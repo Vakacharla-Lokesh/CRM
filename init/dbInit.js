@@ -1,12 +1,11 @@
-import { stores } from "../models/stores";
+import { stores } from "../models/stores.js";
 
 let db = null;
 let dbReady = false;
 
 export function dbCreate() {
   return new Promise((resolve, reject) => {
-    if (dbReady) {
-      postMessage({ action: "dbReady" });
+    if (dbReady && db) {
       resolve(db);
       return;
     }
@@ -14,18 +13,21 @@ export function dbCreate() {
     const request = indexedDB.open("CRM_DB", 1);
 
     request.onerror = () => {
-      console.error("IndexedDB open failed");
+      console.error("IndexedDB open failed:", request.error);
       reject(request.error);
     };
 
     request.onupgradeneeded = (event) => {
       db = event.target.result;
 
-      for (const store of Object.values(stores)) {
+      // console.log("Database upgrade needed. Creating stores...");
+
+      for (const [key, store] of Object.entries(stores)) {
         if (!db.objectStoreNames.contains(store.name)) {
-          db.createObjectStore(store.name, {
+          const objectStore = db.createObjectStore(store.name, {
             keyPath: store.keyPath,
           });
+          // console.log(`Created store: ${store.name}`);
         }
       }
     };
@@ -33,17 +35,8 @@ export function dbCreate() {
     request.onsuccess = (event) => {
       db = event.target.result;
       dbReady = true;
-      postMessage({ action: "dbReady" });
+      // console.log("Database opened successfully");
       resolve(db);
     };
   });
-}
-
-function createStores() {
-  for (let store of Object.entries(stores)) {
-    db.createObjectStore(store[1].name, {
-      keyPath: store[1].keyPath,
-    });
-    // console.log(store);
-  }
 }

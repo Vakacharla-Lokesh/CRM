@@ -6,22 +6,50 @@ let routes = {
 };
 
 let sidebar = document.getElementById("sidebar");
-
 const dbWorker = window.dbWorker;
 
-dbWorker.addEventListener("message", (e) => {
-  console.log("Working before if: ");
-  console.log(e);
+dbWorker.onmessage = (e) => {
+  // console.log("Router received message:", e.data);
+
   if (e.data.action === "getAllSuccess" && e.data.storeName === "Leads") {
-    console.log("Working in if: ");
+    // console.log("Populating leads table with:", e.data.leads.length, "leads");
     populateLeadsTable(e.data.leads);
   }
-});
+
+  if (e.data.action === "getAllError") {
+    console.error("Error fetching leads:", e.data.error);
+    const tbody = document.querySelector("#leads-body");
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="7" class="px-6 py-4 text-center text-red-600 dark:text-red-400">
+            Error loading leads: ${e.data.error}
+          </td>
+        </tr>
+      `;
+    }
+  }
+};
 
 function populateLeadsTable(leads) {
-  console.log("leads data in fn: ", leads);
+  // console.log("populateLeadsTable called with:", leads);
   const tbody = document.querySelector("#leads-body");
-  if (!tbody) return;
+
+  if (!tbody) {
+    console.error("Table body not found!");
+    return;
+  }
+
+  if (!leads || leads.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
+          No leads found. Click "Create" to add your first lead.
+        </td>
+      </tr>
+    `;
+    return;
+  }
 
   tbody.innerHTML = "";
 
@@ -35,52 +63,63 @@ function populateLeadsTable(leads) {
         <div class="flex items-center">
           <input
             type="checkbox"
-            value=""
+            value="${lead.lead_id}"
             class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
           />
         </div>
       </td>
       <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-        ${lead.lead_first_name} ${lead.lead_last_name}
+        ${lead.lead_first_name || ""} ${lead.lead_last_name || ""}
       </th>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.organizationName || "N/A"}</td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_email}</td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_mobile_number}</td>
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_email || ""}</td>
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_mobile_number || ""}</td>
       <td class="px-6 py-4">
         <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
           Active
         </span>
       </td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
-        ${new Date(lead.modified_on).toLocaleDateString()}
+        ${lead.created_on ? new Date(lead.created_on).toLocaleDateString() : "N/A"}
       </td>
     `;
 
     tbody.appendChild(row);
   });
+
+  // console.log("Table populated with", leads.length, "rows");
 }
 
 async function loadRoute(path) {
   const route = routes[path] || routes["/home"];
 
-  const html = await fetch(route).then((res) => res.text());
+  try {
+    const html = await fetch(route).then((res) => res.text());
+    document.getElementById("main-page").innerHTML = html;
 
-  document.getElementById("main-page").innerHTML = html;
-  if (path === "/leads") {
-    console.log("msg sent to all worker get");
-    dbWorker.postMessage({ action: "getAllLeads" });
-    console.log("msg after post message");
+    // Wait a bit for DOM to be ready
+    setTimeout(() => {
+      if (path === "/leads") {
+        // console.log("Leads page loaded, requesting data...");
+        dbWorker.postMessage({ action: "getAllLeads" });
+      }
+    }, 100);
+
+    sessionStorage.setItem("currentTab", path);
+
+    sidebar.querySelectorAll("a").forEach((link) => {
+      if (link.getAttribute("data-link") === path) {
+        link.classList.add("bg-neutral-tertiary", "text-fg-brand");
+      } else {
+        link.classList.remove("bg-neutral-tertiary", "text-fg-brand");
+      }
+    });
+  } catch (error) {
+    console.error("Error loading route:", error);
+    document.getElementById("main-page").innerHTML = `
+      <div class="p-4 text-red-600">Error loading page: ${error.message}</div>
+    `;
   }
-
-  sessionStorage.setItem("currentTab", path);
-
-  sidebar.querySelectorAll("a").forEach((link) => {
-    if (link.getAttribute("data-link") === path) {
-      link.classList.add("bg-neutral-tertiary", "text-fg-brand");
-    } else {
-      link.classList.remove("bg-neutral-tertiary", "text-fg-brand");
-    }
-  });
 }
 
 sidebar.addEventListener("click", (event) => {

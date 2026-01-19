@@ -48,11 +48,11 @@ class LeadsDataRow extends HTMLElement {
   }
 
   connectedCallback() {
-    console.log("New Data row added");
+    // console.log("New Data row added");
   }
 
   disconnectedCallback() {
-    console.log("Data row removed");
+    // console.log("Data row removed");
   }
 }
 
