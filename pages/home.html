@@ -1,40 +1,72 @@
-<div
-  class="w-full h-full md:h-1/2 lg:h-1/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4"
->
-  <div
-    class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black"
-  >
-    <p class="mb-4">Total Leads</p>
-    <p
-      id="data-total-leads"
-      class="text-2xl"
-    ></p>
-  </div>
-  <div
-    class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black"
-  >
-    <p class="mb-4">Ongoing Deals</p>
-    <p
-      id="data-ongoing-leads"
-      class="text-2xl"
-    ></p>
-  </div>
-  <div
-    class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black"
-  >
-    <p class="mb-4">Won Deals</p>
-    <p
-      id="data-won-deals"
-      class="text-2xl"
-    ></p>
-  </div>
-  <div
-    class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black"
-  >
-    <p class="mb-4">Deal Value Won</p>
-    <p
-      id="data-won-deals-value"
-      class="text-2xl"
-    ></p>
-  </div>
-</div>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home - CRM</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+  <body class="min-h-screen bg-white text-body dark:bg-slate-900 dark:text-slate-200">
+    <nav style="position:fixed;top:0;left:0;z-index:50;height:4rem;width:100%;border-bottom:1px solid rgb(229 231 235);background-color:white;" class="bg-white">
+      <div style="margin:0 auto;max-width:80rem;display:flex;align-items:center;justify-content:space-between;padding:1rem">
+        <a href="/" class="logo-container flex items-center gap-2">
+          <img src="https://flowbite.com/docs/images/logo.svg" alt="Logo" style="height:1.75rem" />
+          <span class="brand-name text-lg font-semibold">CRM</span>
+        </a>
+        <div class="nav-actions flex items-center gap-3">
+          <button id="data-WSS" type="button">WSS</button>
+          <button type="button">SSE</button>
+          <button type="button">LPS</button>
+          <button type="button">SPS</button>
+          <button id="data-createDb" class="text-blue-300 hover:underline">Create DB</button>
+          <button id="theme-toggle" title="Toggle theme">🌙</button>
+        </div>
+      </div>
+    </nav>
+
+    <div class="flex flex-1 pt-16">
+      <aside id="default-sidebar" class="z-40 w-64 shrink-0 h-[calc(100vh-4rem)] border-e border-default bg-neutral-primary-soft transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+        <div class="h-full px-3 py-4 overflow-y-auto flex flex-col">
+          <div id="sidebar" class="sidebar">
+            <nav class="nav flex flex-col gap-2">
+              <a data-link="/home" class="flex items-center gap-2 p-2 rounded">Home</a>
+              <a data-link="/leads" class="flex items-center gap-2 p-2 rounded">Leads</a>
+              <a data-link="/organizations" class="flex items-center gap-2 p-2 rounded">Organizations</a>
+              <a data-link="/deals" class="flex items-center gap-2 p-2 rounded">Deals</a>
+            </nav>
+          </div>
+
+          <div class="h-10 w-full bg-none text-black dark:text-white">
+            <pre id="messages"></pre>
+          </div>
+        </div>
+      </aside>
+
+      <main id="main-page" class="flex-1 overflow-y-auto bg-neutral-primary-soft p-6">
+        <div class="w-full h-full md:h-1/2 lg:h-1/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black">
+            <p class="mb-4">Total Leads</p>
+            <p id="data-total-leads" class="text-2xl"></p>
+          </div>
+          <div class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black">
+            <p class="mb-4">Ongoing Deals</p>
+            <p id="data-ongoing-leads" class="text-2xl"></p>
+          </div>
+          <div class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black">
+            <p class="mb-4">Won Deals</p>
+            <p id="data-won-deals" class="text-2xl"></p>
+          </div>
+          <div class="h-full w-full bg-gray-500 rounded-xl p-4 flex flex-col text-white dark:text-black">
+            <p class="mb-4">Deal Value Won</p>
+            <p id="data-won-deals-value" class="text-2xl"></p>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <script src="https://gist.githubusercontent.com/loilo/ed43739361ec718129a15ae5d531095b/raw/idb-backup-and-restore.js" async></script>
+    <script type="module" src="/index.js"></script>
+    <script type="module" src="/router.js" defer></script>
+  </body>
+</html>

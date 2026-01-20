@@ -304,7 +304,7 @@ class LeadModal extends HTMLElement {
       lead_last_name: formData.get("last_name"),
       lead_email: formData.get("email"),
       lead_mobile_number: formData.get("mobile_number"),
-      organizationName: formData.get("organization_name"),
+      organization_name: formData.get("organization_name"),
       websiteName: formData.get("organization_website"),
       organizationSize: formData.get("organization_size"),
       industry: formData.get("organization_industry"),

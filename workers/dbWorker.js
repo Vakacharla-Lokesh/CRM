@@ -1,6 +1,7 @@
 import { dbCreate } from "../init/dbInit.js";
+import { deleteData } from "../services/deleteDb.js";
 import { exportDb } from "../services/exportDb.js";
-import { getLeadCount } from "../services/getCount.js";
+import { getCount } from "../services/getCount.js";
 import { getAllData, getDataById } from "../services/getDb.js";
 import { insertData } from "../services/insertDb.js";
 import { updateData } from "../services/updateDb.js";
@@ -65,7 +66,12 @@ self.onmessage = (e) => {
       break;
 
     case "getData":
-      getLeadCount(db);
+      getCount(db);
+      break;
+
+    case "deleteLead":
+      console.log(e.data.id);
+      deleteData(e.data.id, "Leads", dbReady, db);
       break;
 
     default:

@@ -11,9 +11,12 @@ let routes = {
 };
 
 let sidebar = document.getElementById("sidebar");
-const dbWorker = window.dbWorker;
 
-dbWorker.onmessage = (e) => {
+function attachDbWorkerListener() {
+  const dbWorker = window.dbWorker;
+  if (!dbWorker) return;
+
+  dbWorker.addEventListener("message", (e) => {
   // console.log("Router received message:", e.data);
 
   if (e.data.action === "getAllSuccess" && e.data.storeName === "Leads") {
@@ -44,7 +47,11 @@ dbWorker.onmessage = (e) => {
       `;
     }
   }
-};
+  });
+}
+
+// try to attach now; index.js should initialize the worker before router runs
+attachDbWorkerListener();
 
 async function loadRoute(path) {
   const route = routes[path] || routes["/home"];
@@ -53,15 +60,14 @@ async function loadRoute(path) {
     const html = await fetch(route).then((res) => res.text());
     document.getElementById("main-page").innerHTML = html;
     setTimeout(() => {
+      const db = window.dbWorker;
+      if (!db) return;
       if (path === "/leads") {
-        // console.log("Leads page loaded, requesting data...");
-        dbWorker.postMessage({ action: "getAllLeads" });
+        db.postMessage({ action: "getAllLeads" });
       } else if (path === "/organizations") {
-        // console.log("Organizations page loaded, requesting data...");
-        dbWorker.postMessage({ action: "getAllOrganizations" });
+        db.postMessage({ action: "getAllOrganizations" });
       } else if (path === "/home") {
-        // console.log("Organizations page loaded, requesting data...");
-        dbWorker.postMessage({ action: "getData" });
+        db.postMessage({ action: "getData" });
       }
     }, 100);
 

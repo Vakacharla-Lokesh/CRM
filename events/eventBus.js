@@ -41,4 +41,5 @@ export const EVENTS = {
   DB_ERROR: "db:error",
   ROUTE_CHANGE: "route:change",
   THEME_TOGGLE: "theme:toggle",
+  WEB_SOCKET_MESSAGE: "websocket:message",
 };
