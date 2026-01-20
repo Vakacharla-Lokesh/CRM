@@ -49,5 +49,5 @@ export function populateOrganizationsTable(organizations) {
     tbody.appendChild(row);
   });
 
-  console.log("Table populated with", organizations.length, "rows");
+  // console.log("Table populated with", organizations.length, "rows");
 }

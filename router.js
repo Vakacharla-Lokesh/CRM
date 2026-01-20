@@ -1,3 +1,4 @@
+import { populateHome } from "./services/populateHome.js";
 import { populateLeadsTable } from "./services/populateLeads.js";
 import { populateOrganizationsTable } from "./services/populateOrganizations.js";
 
@@ -6,6 +7,7 @@ let routes = {
   "/home": "/pages/home.html",
   "/leads": "/pages/leads.html",
   "/organizations": "/pages/organizations.html",
+  "/deals": "/pages/deals.html",
 };
 
 let sidebar = document.getElementById("sidebar");
@@ -17,10 +19,16 @@ dbWorker.onmessage = (e) => {
   if (e.data.action === "getAllSuccess" && e.data.storeName === "Leads") {
     // console.log("Populating leads table with:", e.data.leads.length, "leads");
     populateLeadsTable(e.data.rows);
-  } else if (e.data.action === "getAllSuccess" && e.data.storeName === "Organizations") {
+  } else if (
+    e.data.action === "getAllSuccess" &&
+    e.data.storeName === "Organizations"
+  ) {
     // console.log(e.data);
     // console.log("Populating organizations table with:", e.data.rows.length, "organizations");
     populateOrganizationsTable(e.data.rows);
+  } else if (e.data.action === "getDataSuccess") {
+    // console.log(e.data);
+    populateHome(e.data);
   }
 
   if (e.data.action === "getAllError") {
@@ -48,9 +56,12 @@ async function loadRoute(path) {
       if (path === "/leads") {
         // console.log("Leads page loaded, requesting data...");
         dbWorker.postMessage({ action: "getAllLeads" });
-      }else if (path === "/organizations") {
+      } else if (path === "/organizations") {
         // console.log("Organizations page loaded, requesting data...");
         dbWorker.postMessage({ action: "getAllOrganizations" });
+      } else if (path === "/home") {
+        // console.log("Organizations page loaded, requesting data...");
+        dbWorker.postMessage({ action: "getData" });
       }
     }, 100);
 

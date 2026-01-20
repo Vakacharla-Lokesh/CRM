@@ -1,17 +1,26 @@
 import "./components/LeadsDataRow.js";
 import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
+import { exportDb } from "./services/exportDb.js";
 
+// DB WORKER
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
+// window.dbWorker = await createDbWorker();
 const dbWorker = await window.dbWorker;
 let isDbReady = false;
+
+// DATA WORKER
+// window.dataWorker = new Worker("workers/dataWorker.js", { type: "module" });
+// window.dataWorker = await createDataWorker();
+// const dataWorker = window.dataWorker;
 
 document.addEventListener(
   "DOMContentLoaded",
   (event) => {
     // console.log("dom content worker sent message");
     dbWorker.postMessage({ action: "initialize" });
-    // console.log("worker sent message after");
+    // console.log("data worker before message");
+    // dataWorker.postMessage({ action: "getLeadCount" });
   },
   { once: true },
 );
@@ -42,7 +51,7 @@ dbWorker.addEventListener("message", (e) => {
     // Refresh the leads list if we're on the leads page
     if (sessionStorage.getItem("currentTab") === "/leads") {
       dbWorker.postMessage({ action: "getAllLeads" });
-    }else if (sessionStorage.getItem("currentTab") === "/organizations") {
+    } else if (sessionStorage.getItem("currentTab") === "/organizations") {
       dbWorker.postMessage({ action: "getAllOrganizations" });
     }
   }
@@ -58,7 +67,7 @@ dbWorker.addEventListener("message", (e) => {
   }
 });
 
-// THEME TOGGLE LOGIC
+// THEME LOGIC
 const root = document.documentElement;
 const toggleBtn = document.getElementById("theme-toggle");
 const media = window.matchMedia("(prefers-color-scheme: dark)");
@@ -88,7 +97,7 @@ toggleBtn.addEventListener("click", () => {
   applyTheme(isDark ? "light" : "dark");
 });
 
-// MODAL OPEN CLOSE LOGIC
+// MODAL LOGIC
 document.addEventListener("click", (e) => {
   const modal = document.getElementById("form-modal");
   if (!modal) return;
@@ -101,12 +110,21 @@ document.addEventListener("click", (e) => {
     modal.classList.add("hidden");
   }
 
+  if (e.target.closest("#export-leads")) {
+    let exportDbBtn = document.getElementById("export-leads");
+
+    exportDbBtn.addEventListener("click", (e) => {
+      console.log("Inside export function");
+      // dbWorker.postMessage({ action: "exportDb" });
+      exportDb();
+    });
+  }
+
   if (e.target === modal) {
     modal.classList.add("hidden");
   }
 });
 
-// MODAL ESC KEY LOGIC
 document.addEventListener("keydown", (e) => {
   const modal = document.getElementById("form-modal");
   if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) {
