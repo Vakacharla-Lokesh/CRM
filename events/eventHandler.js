@@ -86,8 +86,8 @@ function handleThemeToggle(event) {
 
 function showNotification(message, type = "info") {
   if (type === "success") {
-    console.log(`✓ ${message}`);
+    // console.log(` ${message}`);
   } else if (type === "error") {
-    console.error(`✗ ${message}`);
+    // console.error(` ${message}`);
   }
 }

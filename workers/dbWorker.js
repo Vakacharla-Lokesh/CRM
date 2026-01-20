@@ -10,8 +10,8 @@ async function initializeDb() {
   try {
     db = await dbCreate();
     dbReady = true;
-    // console.log("Worker: Database ready");
-    postMessage({ action: "dbReady" });
+    console.log("Worker: Database ready");
+    self.postMessage({ action: "dbReady" });
   } catch (error) {
     console.error("Worker: Database initialization failed", error);
     postMessage({ action: "dbError", error: error.message });
@@ -78,7 +78,7 @@ function getAllData(storeName) {
       // console.log("getAllData success, count:", request.result.length);
       postMessage({
         action: "getAllSuccess",
-        leads: request.result,
+        rows: request.result,
         storeName,
       });
     };
@@ -126,7 +126,7 @@ function getDataById(storeName, id) {
   };
 }
 
-function putData(storeName, data) {
+function updateData(storeName, data) {
   if (!dbReady || !db) {
     postMessage({
       action: "updateError",
@@ -174,6 +174,20 @@ self.onmessage = (e) => {
 
     case "getLead":
       getDataById("Leads", e.data.id);
+      break;
+
+    case "createOrganization":
+      // console.log("Working on creating: ....");
+      insertData(e.data.organizationData, "Organizations");
+      break;
+
+    case "getAllOrganizations":
+      // console.log("Processing getAllLeads...");
+      getAllData("Organizations");
+      break;
+
+    case "getOrganization":
+      getDataById("Organizations", e.data.id);
       break;
 
     default:

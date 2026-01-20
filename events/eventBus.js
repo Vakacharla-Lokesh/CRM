@@ -36,6 +36,7 @@ export const EVENTS = {
   LEAD_DELETE: "lead:delete",
   LEAD_DELETED: "lead:deleted",
   LEAD_SELECT: "lead:select",
+  ORGANIZATION_CREATED: "organization:created",
   DB_READY: "db:ready",
   DB_ERROR: "db:error",
   ROUTE_CHANGE: "route:change",

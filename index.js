@@ -1,14 +1,20 @@
 import "./components/LeadsDataRow.js";
-import {eventBus, EVENTS} from "./events/eventBus.js";
+import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
-const dbWorker = window.dbWorker;
+const dbWorker = await window.dbWorker;
 let isDbReady = false;
 
-document.addEventListener("DOMContentLoaded", (event) => {
-  dbWorker.postMessage({ action: "initialize" });
-});
+document.addEventListener(
+  "DOMContentLoaded",
+  (event) => {
+    // console.log("dom content worker sent message");
+    dbWorker.postMessage({ action: "initialize" });
+    // console.log("worker sent message after");
+  },
+  { once: true },
+);
 
 initializeEventHandlers(dbWorker);
 
@@ -19,14 +25,14 @@ createDbButton.addEventListener("click", (event) => {
   dbWorker.postMessage({ action: "initialize" });
 });
 
-// Listen for DB ready status
-dbWorker.onmessage = (e) => {
+dbWorker.addEventListener("message", (e) => {
   // console.log("Index.js received:", e.data);
 
   if (e.data.action === "dbReady") {
     // console.log("Database ready");
     isDbReady = true;
-    createDbButton.textContent = "DB Ready ✓";
+    createDbButton.textContent = "DB Ready";
+    createDbButton.classList.remove("text-blue-300");
     createDbButton.classList.add("text-green-600");
   }
 
@@ -36,6 +42,8 @@ dbWorker.onmessage = (e) => {
     // Refresh the leads list if we're on the leads page
     if (sessionStorage.getItem("currentTab") === "/leads") {
       dbWorker.postMessage({ action: "getAllLeads" });
+    }else if (sessionStorage.getItem("currentTab") === "/organizations") {
+      dbWorker.postMessage({ action: "getAllOrganizations" });
     }
   }
 
@@ -48,7 +56,7 @@ dbWorker.onmessage = (e) => {
     console.error("Database error:", e.data.error);
     alert("Database error: " + e.data.error);
   }
-};
+});
 
 // THEME TOGGLE LOGIC
 const root = document.documentElement;
@@ -82,7 +90,7 @@ toggleBtn.addEventListener("click", () => {
 
 // MODAL OPEN CLOSE LOGIC
 document.addEventListener("click", (e) => {
-  const modal = document.getElementById("authentication-modal");
+  const modal = document.getElementById("form-modal");
   if (!modal) return;
 
   if (e.target.closest("#open-modal-btn")) {
@@ -100,7 +108,7 @@ document.addEventListener("click", (e) => {
 
 // MODAL ESC KEY LOGIC
 document.addEventListener("keydown", (e) => {
-  const modal = document.getElementById("authentication-modal");
+  const modal = document.getElementById("form-modal");
   if (e.key === "Escape" && modal && !modal.classList.contains("hidden")) {
     modal.classList.add("hidden");
   }
@@ -108,40 +116,74 @@ document.addEventListener("keydown", (e) => {
 
 // MODAL SUBMISSION LOGIC
 document.addEventListener("submit", (event) => {
-  if (!event.target.matches("form[data-form='createLead']")) return;
-
   event.preventDefault();
+  if (event.target.matches("form[data-form='createLead']")) {
+    if (!isDbReady) {
+      // alert("Database not ready yet. Please wait or click 'Create DB'.");
+      dbWorker.postMessage({ action: "initialize" });
+      // return;
+    }
 
-  if (!isDbReady) {
-    // alert("Database not ready yet. Please wait or click 'Create DB'.");
-    dbWorker.postMessage({ action: "initialize" });
-    // return;
+    const leadData = {
+      lead_id: Date.now(),
+      lead_first_name: document.getElementById("first_name")?.value || "",
+      lead_last_name: document.getElementById("last_name")?.value || "",
+      lead_email: document.getElementById("email")?.value || "",
+      lead_mobile_number: document.getElementById("mobile_number")?.value || "",
+      organization_name:
+        document.getElementById("organization_name")?.value || "",
+      organization_website_name:
+        document.getElementById("organization_website_name")?.value || "",
+      organizationSize:
+        document.getElementById("organization_size")?.value || "",
+      organization_industry:
+        document.getElementById("organization_industry")?.value || "",
+      created_on: new Date(),
+      modified_on: new Date(),
+    };
+
+    // console.log("Submitting lead:", leadData);
+
+    dbWorker.postMessage({
+      action: "createLead",
+      leadData,
+    });
+
+    document.getElementById("form-modal")?.classList.add("hidden");
+
+    eventBus.emit(EVENTS.LEAD_CREATED);
+    event.target.reset();
+  } else if (event.target.matches("form[data-form='createOrganization']")) {
+    if (!isDbReady) {
+      alert("Database not ready yet. Please wait or click 'Create DB'.");
+      dbWorker.postMessage({ action: "initialize" });
+      // return;
+    }
+
+    const organizationData = {
+      organization_id: Date.now(),
+      organization_name:
+        document.getElementById("organization_name")?.value || "",
+      organization_website_name:
+        document.getElementById("organization_website_name")?.value || "",
+      organization_size:
+        document.getElementById("organization_size")?.value || "",
+      organization_industry:
+        document.getElementById("organization_industry")?.value || "",
+      created_on: new Date(),
+      modified_on: new Date(),
+    };
+
+    // console.log("Submitting organization:", organizationData);
+
+    dbWorker.postMessage({
+      action: "createOrganization",
+      organizationData,
+    });
+
+    document.getElementById("form-modal")?.classList.add("hidden");
+
+    eventBus.emit(EVENTS.ORGANIZATION_CREATED);
+    event.target.reset();
   }
-
-  const leadData = {
-    lead_id: Date.now(),
-    lead_first_name: document.getElementById("first_name")?.value || "",
-    lead_last_name: document.getElementById("last_name")?.value || "",
-    lead_email: document.getElementById("email")?.value || "",
-    lead_mobile_number: document.getElementById("mobile_number")?.value || "",
-    organizationName: document.getElementById("organization_name")?.value || "",
-    websiteName:
-      document.getElementById("organization_website_name")?.value || "",
-    organizationSize: document.getElementById("organization_size")?.value || "",
-    industry: document.getElementById("organization_industry")?.value || "",
-    created_on: new Date(),
-    modified_on: new Date(),
-  };
-
-  // console.log("Submitting lead:", leadData);
-
-  dbWorker.postMessage({
-    action: "createLead",
-    leadData,
-  });
-
-  document.getElementById("authentication-modal")?.classList.add("hidden");
-
-  eventBus.emit(EVENTS.LEAD_CREATED);
-  event.target.reset();
 });
