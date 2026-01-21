@@ -1,6 +1,8 @@
 import { populateHome } from "./services/populateHome.js";
 import { populateLeadsTable } from "./services/populateLeads.js";
 import { populateOrganizationsTable } from "./services/populateOrganizations.js";
+import { initializeDealsPage } from "./js/deals.js";
+import { populateDealsTable } from "./services/populateDeals.js";
 
 const routes = {
   "/": "/pages/home.html",
@@ -17,6 +19,7 @@ const routes = {
 const routeScripts = {
   "/login": "/js/login.js",
   "/signup": "/js/signup.js",
+  "/deals": "/js/deals.js",
 };
 
 let sidebar = null;
@@ -30,12 +33,66 @@ function attachDbWorkerListener() {
   }
 
   dbWorker.addEventListener("message", (e) => {
-    const { action, storeName, rows, error } = e.data;
+    const { action, storeName, rows, data, error } = e.data;
+    const currentPath = sessionStorage.getItem("currentTab");
 
-    if (action === "getAllSuccess" && storeName === "Leads") {
+    if (
+      action === "getAllSuccess" &&
+      storeName === "Leads" &&
+      currentPath === "/leads"
+    ) {
       populateLeadsTable(rows || []);
-    } else if (action === "getAllSuccess" && storeName === "Organizations") {
+    } else if (
+      action === "getAllSuccess" &&
+      storeName === "Organizations" &&
+      currentPath === "/organizations"
+    ) {
       populateOrganizationsTable(rows || []);
+    } else if (
+      action === "getAllSuccess" &&
+      storeName === "Deals" &&
+      currentPath === "/deals"
+    ) {
+      console.log("Inside populate deals");
+      populateDealsTable(rows || []);
+    } else if (
+      action === "getAllSuccess" &&
+      storeName === "Leads" &&
+      currentPath === "/deals"
+    ) {
+      const leadSelect = document.getElementById("lead_id");
+      if (leadSelect) {
+        const currentValue = leadSelect.value;
+        leadSelect.innerHTML = '<option value="">Select a Lead</option>';
+        (data || []).forEach((lead) => {
+          const option = document.createElement("option");
+          option.value = lead.lead_id;
+          option.textContent = `${lead.lead_first_name} ${lead.lead_last_name}`;
+          leadSelect.appendChild(option);
+        });
+        if (currentValue) {
+          leadSelect.value = currentValue;
+        }
+      }
+    } else if (
+      action === "getAllSuccess" &&
+      storeName === "Organizations" &&
+      currentPath === "/deals"
+    ) {
+      const orgSelect = document.getElementById("organization_id");
+      if (orgSelect) {
+        const currentValue = orgSelect.value;
+        orgSelect.innerHTML = '<option value="">Select an Organization</option>';
+        (data || []).forEach((org) => {
+          const option = document.createElement("option");
+          option.value = org.organization_id;
+          option.textContent = org.organization_name;
+          orgSelect.appendChild(option);
+        });
+        if (currentValue) {
+          orgSelect.value = currentValue;
+        }
+      }
     } else if (action === "getDataSuccess") {
       populateHome(e.data);
     }
@@ -53,13 +110,14 @@ function attachDbWorkerListener() {
         `;
       }
     }
-
     if (action === "deleteSuccess") {
       const currentPath = sessionStorage.getItem("currentTab");
       if (currentPath === "/leads") {
         dbWorker.postMessage({ action: "getAllLeads" });
       } else if (currentPath === "/organizations") {
         dbWorker.postMessage({ action: "getAllOrganizations" });
+      } else if (currentPath === "/deals") {
+        dbWorker.postMessage({ action: "getAllDeals" });
       }
     }
   });
@@ -125,6 +183,9 @@ export async function loadRoute(path) {
         db.postMessage({ action: "getAllLeads" });
       } else if (path === "/organizations") {
         db.postMessage({ action: "getAllOrganizations" });
+      } else if (path === "/deals") {
+        // initializeDealsPage(db);
+        db.postMessage({ action: "getAllDeals" });
       } else if (path === "/home") {
         db.postMessage({ action: "getData" });
       }

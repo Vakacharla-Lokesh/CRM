@@ -25,6 +25,7 @@ export function initializeEventHandlers(worker) {
   eventBus.on(EVENTS.LOGIN_SUCCESS, handleLoginSuccess);
   eventBus.on(EVENTS.LOGIN_FAILURE, handleLoginFailure);
   eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
+  eventBus.on(EVENTS.LEADS_SCORE, calculateScore);
 
   document.addEventListener(
     "DOMContentLoaded",
@@ -433,4 +434,8 @@ function handleUserCreated(event) {
     "User created successfully! Redirecting to login...",
     "success",
   );
+}
+
+function calculateScore() {
+  dbWorker.postMessage({ action: "calculateScore" });
 }

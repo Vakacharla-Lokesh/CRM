@@ -111,6 +111,9 @@ dbWorker.addEventListener("message", (e) => {
     } else if (payload.storeName === "Organizations") {
       eventBus.emit(EVENTS.ORGANIZATION_CREATED, payload);
       addNotification("Organization created successfully", "success");
+    } else if (payload.storeName === "Deals") {
+      eventBus.emit(EVENTS.DEAL_CREATED, payload);
+      addNotification("Organization created successfully", "success");
     }
   }
 
@@ -156,6 +159,8 @@ eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
   const userData = event.detail;
   addNotification(`Welcome back, ${userData.name}!`, "success");
 });
+
+// eventBus.emit(EVENTS.LEADS_SCORE);
 
 const ws = new WSClient("ws://localhost:8080");
 window.ws = ws;

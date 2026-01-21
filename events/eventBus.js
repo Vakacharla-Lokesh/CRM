@@ -36,6 +36,12 @@ export const EVENTS = {
   LEAD_DELETE: "lead:delete",
   LEAD_DELETED: "lead:deleted",
   LEAD_SELECT: "lead:select",
+  DEAL_CREATE: "deal:create",
+  DEAL_CREATED: "deal:created",
+  DEAL_UPDATE: "deal:update",
+  DEAL_UPDATED: "deal:updated",
+  DEAL_DELETE: "deal:delete",
+  DEAL_DELETED: "deal:deleted",
   ORGANIZATION_CREATE: "organization:create",
   ORGANIZATION_CREATED: "organization:created",
   ORGANIZATION_DELETE: "organization:delete",
@@ -50,4 +56,5 @@ export const EVENTS = {
   LOGIN_FAILURE: "auth:login-failure",
   USER_CREATED: "auth:user-created",
   LOGOUT: "auth:logout",
+  LEADS_SCORE: "leads:score",
 };

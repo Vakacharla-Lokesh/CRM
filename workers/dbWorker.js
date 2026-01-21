@@ -1,4 +1,6 @@
 import { dbCreate } from "../init/dbInit.js";
+import { updateAllObjects } from "../services/calculateScore.js";
+// import { generateLeadScores } from "../services/calculateScore.js";
 import { deleteData } from "../services/deleteDb.js";
 import { exportDb } from "../services/exportDb.js";
 import { getCount } from "../services/getCount.js";
@@ -88,6 +90,33 @@ self.onmessage = (e) => {
       getDataById("Comments", e.data.id, dbReady, db);
       break;
 
+    case "createDeal":
+      insertData(e.data.dealData, "Deals", dbReady, db);
+      break;
+
+    case "getAllDeals":
+      getAllData("Deals", dbReady, db);
+      break;
+
+    case "getDeal":
+      getDataById("Deals", e.data.id, dbReady, db);
+      break;
+
+    case "getDealById":
+      getLeadById(e.data.storeName, e.data.id, dbReady, db);
+      break;
+
+    case "deleteDeal":
+      console.log(e.data.id);
+      deleteData(e.data.id, "Deals", dbReady, db);
+      break;
+
+    case "calculateScore":
+      console.log("Inside calculate score switch case: ");
+      // generateLeadScores(db, dbReady);
+      updateAllObjects();
+      break;
+      
     default:
       console.warn("Unknown action:", e.data.action);
   }
