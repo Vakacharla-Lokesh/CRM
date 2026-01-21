@@ -14,7 +14,7 @@ export function insertData(data, storeName, dbReady, db) {
 
     request.onsuccess = () => {
       // console.log("Insert successful");
-      postMessage({ action: "insertSuccess", data: data });
+      postMessage({ action: "insertSuccess", data, storeName });
     };
 
     request.onerror = (e) => {

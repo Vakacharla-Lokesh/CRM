@@ -1,28 +1,10 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>CRM Lead Details</title>
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+<lead-page></lead-page>
 
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-  </head>
-  <body class="bg-gray-50 text-gray-900">
-    <lead-page></lead-page>
-
-    <!-- App Script -->
-    <script>
-      class TabHeader extends HTMLElement {
-        connectedCallback() {
-          this.innerHTML = `
+<!-- App Script -->
+<script>
+  class TabHeader extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `
           <div class="border-b bg-white">
             <div class="flex gap-6 px-6 py-3 text-sm font-medium">
               ${["Details", "Calls", "Comments", "Attachments"]
@@ -44,113 +26,288 @@
             </div>
           </div>
         `;
-        }
-      }
-      customElements.define("tab-header", TabHeader);
-      class TabContent extends HTMLElement {
-        connectedCallback() {
-          this.render("details");
-        }
+    }
+  }
+  customElements.define("tab-header", TabHeader);
+  class TabContent extends HTMLElement {
+    connectedCallback() {
+      this.render("details");
+    }
 
-        render(activeTab) {
-          const views = {
-            details: `<lead-details></lead-details>`,
-            calls: `<empty-state title="No calls logged yet"></empty-state>`,
-            comments: `<empty-state title="No comments added"></empty-state>`,
-            attachments: `<empty-state title="No files attached"></empty-state>`,
-          };
+    render(activeTab) {
+      const views = {
+        details: `<lead-details></lead-details>`,
+        calls: `<empty-state title="No calls logged yet"></empty-state>`,
+        comments: `<empty-state title="No comments added"></empty-state>`,
+        attachments: `<empty-state title="No files attached"></empty-state>`,
+      };
 
-          this.innerHTML = `
+      this.innerHTML = `
           <div class="p-6">
             ${views[activeTab]}
           </div>
         `;
-        }
-      }
-      customElements.define("tab-content", TabContent);
-      class LeadDetails extends HTMLElement {
-        connectedCallback() {
-          this.innerHTML = `
-          <div class="bg-white rounded-lg shadow p-6 max-w-xl">
-            <h2 class="text-lg font-semibold mb-4">Lead Details</h2>
+    }
+  }
+  customElements.define("tab-content", TabContent);
 
-            <div class="space-y-3 text-sm">
-              ${this.row("Lead ID", "CRM-LEAD-2026-00001")}
-              ${this.row("First Name", "abcd")}
-              ${this.row("Last Name", "—")}
-              ${this.row("Email", "—")}
-              ${this.row("Mobile", "—")}
-              ${this.row("Organization", "—")}
-              ${this.row("Lead Owner", "Administrator")}
+  class LeadDetails extends HTMLElement {
+    connectedCallback() {
+      this.loadLeadData();
+    }
+
+    async loadLeadData() {
+      try {
+        const leadId = sessionStorage.getItem("lead_id");
+        if (!leadId) {
+          this.innerHTML = `
+                <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+                  <p class="text-red-600">Error: No lead ID found</p>
+                </div>
+              `;
+          return;
+        }
+
+        const dbWorker = window.dbWorker;
+        if (!dbWorker) {
+          this.innerHTML = `
+                <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+                  <p class="text-red-600">Error: Database not available</p>
+                </div>
+              `;
+          return;
+        }
+
+        const lead = await this.fetchLeadById(Number(leadId), dbWorker);
+
+        if (lead) {
+          this.render(lead);
+        } else {
+          this.innerHTML = `
+                <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+                  <p class="text-red-600">Error: Lead not found</p>
+                </div>
+              `;
+        }
+      } catch (error) {
+        console.error("Error loading lead details:", error);
+        this.innerHTML = `
+              <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+                <p class="text-red-600">Error: ${error.message}</p>
+              </div>
+            `;
+      }
+    }
+
+    fetchLeadById(leadId, dbWorker) {
+      return new Promise((resolve, reject) => {
+        const messageHandler = (e) => {
+          const { action, data, error, id } = e.data;
+
+          if (action === "getByIdSuccess" && id === leadId) {
+            dbWorker.removeEventListener("message", messageHandler);
+            resolve(data);
+          } else if (action === "getByIdError" && id === leadId) {
+            dbWorker.removeEventListener("message", messageHandler);
+            reject(new Error(error || "Failed to fetch lead"));
+          }
+        };
+
+        dbWorker.addEventListener("message", messageHandler);
+        dbWorker.postMessage({
+          action: "getLeadById",
+          storeName: "Leads",
+          id: leadId,
+        });
+
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          dbWorker.removeEventListener("message", messageHandler);
+          reject(new Error("Request timeout"));
+        }, 5000);
+      });
+    }
+
+    render(lead) {
+      const firstName = lead.lead_first_name || "—";
+      const lastName = lead.lead_last_name || "—";
+      const email = lead.lead_email || "—";
+      const mobile = lead.lead_mobile_number || "—";
+      const organization = lead.organization_name || "—";
+      const createdDate = lead.created_on
+        ? new Date(lead.created_on).toLocaleDateString()
+        : "—";
+
+      this.innerHTML = `
+            <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+              <h2 class="text-lg font-semibold mb-4">Lead Details</h2>
+
+              <div class="space-y-3 text-sm">
+                ${this.row("Lead ID", lead.lead_id)}
+                ${this.row("First Name", firstName)}
+                ${this.row("Last Name", lastName)}
+                ${this.row("Email", email)}
+                ${this.row("Mobile", mobile)}
+                ${this.row("Organization", organization)}
+                ${this.row("Created Date", createdDate)}
+                ${this.row("Lead Score", lead.lead_score || "—")}
+              </div>
             </div>
-          </div>
-        `;
+          `;
+    }
+
+    row(label, value) {
+      return `
+            <div class="flex justify-between border-b pb-2">
+              <span class="text-gray-500">${label}</span>
+              <span class="font-medium">${value}</span>
+            </div>
+          `;
+    }
+  }
+  customElements.define("lead-details", LeadDetails);
+
+  class EmptyState extends HTMLElement {
+    connectedCallback() {
+      const title = this.getAttribute("title") || "Nothing here";
+      this.innerHTML = `
+            <div class="flex flex-col items-center justify-center text-center py-20 text-gray-400">
+              <p class="text-sm">${title}</p>
+            </div>
+          `;
+    }
+  }
+  customElements.define("empty-state", EmptyState);
+
+  class LeadPage extends HTMLElement {
+    connectedCallback() {
+      this.leadData = null;
+      this.loadLeadHeader();
+    }
+
+    async loadLeadHeader() {
+      try {
+        const leadId = sessionStorage.getItem("lead_id");
+        if (!leadId) {
+          this.innerHTML = `
+                <div class="w-full mx-auto mt-6 bg-red-50 rounded-lg p-6 text-red-600">
+                  <p>Error: No lead ID found</p>
+                </div>
+              `;
+          return;
         }
 
-        row(label, value) {
-          return `
-          <div class="flex justify-between border-b pb-2">
-            <span class="text-gray-500">${label}</span>
-            <span class="font-medium">${value}</span>
-          </div>
-        `;
-        }
-      }
-      customElements.define("lead-details", LeadDetails);
-      class EmptyState extends HTMLElement {
-        connectedCallback() {
-          const title = this.getAttribute("title") || "Nothing here";
+        const dbWorker = window.dbWorker;
+        if (!dbWorker) {
           this.innerHTML = `
-          <div class="flex flex-col items-center justify-center text-center py-20 text-gray-400">
-            <p class="text-sm">${title}</p>
-          </div>
-        `;
+                <div class="h-full w-full mx-auto mt-6 bg-red-50 rounded-lg p-6 text-red-600">
+                  <p>Error: Database not available</p>
+                </div>
+              `;
+          return;
         }
+
+        this.leadData = await this.fetchLeadById(Number(leadId), dbWorker);
+        this.renderPage();
+      } catch (error) {
+        console.error("Error loading lead:", error);
+        this.innerHTML = `
+              <div class="w-full h-full mx-auto mt-6 bg-red-50 rounded-lg p-6 text-red-600">
+                <p>Error: ${error.message}</p>
+              </div>
+            `;
       }
-      customElements.define("empty-state", EmptyState);
-      class LeadPage extends HTMLElement {
-        connectedCallback() {
-          this.innerHTML = `
-          <div class="max-w-6xl mx-auto mt-6 bg-white shadow rounded-lg overflow-hidden">
-            <div class="flex items-center justify-between px-6 py-4 border-b">
-              <div>
-                <h1 class="text-xl font-semibold">abcd</h1>
-                <p class="text-xs text-gray-500">CRM-LEAD-2026-00001</p>
+    }
+
+    fetchLeadById(leadId, dbWorker) {
+      return new Promise((resolve, reject) => {
+        const messageHandler = (e) => {
+          const { action, data, error, id } = e.data;
+
+          if (action === "getByIdSuccess" && id === leadId) {
+            dbWorker.removeEventListener("message", messageHandler);
+            resolve(data);
+          } else if (action === "getByIdError" && id === leadId) {
+            dbWorker.removeEventListener("message", messageHandler);
+            reject(new Error(error || "Failed to fetch lead"));
+          }
+        };
+
+        dbWorker.addEventListener("message", messageHandler);
+        dbWorker.postMessage({
+          action: "getLeadById",
+          storeName: "Leads",
+          id: leadId,
+        });
+
+        setTimeout(() => {
+          dbWorker.removeEventListener("message", messageHandler);
+          reject(new Error("Request timeout"));
+        }, 5000);
+      });
+    }
+
+    renderPage() {
+      const fullName =
+        `${this.leadData.lead_first_name || ""} ${
+          this.leadData.lead_last_name || ""
+        }`.trim() || "Unknown Lead";
+      const leadId = this.leadData.lead_id;
+
+      this.innerHTML = `
+            <div class="w-full h-full mx-auto mt-6 bg-white shadow rounded-lg overflow-hidden">
+              <div class="flex items-center justify-between px-6 py-4 border-b">
+                <div class="flex items-center gap-4">
+                  <button id="back-to-leads" class="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors">
+                    ← Back to Leads
+                  </button>
+                  <div>
+                    <h1 class="text-xl font-semibold">${fullName}</h1>
+                    <p class="text-xs text-gray-500">Lead ID: ${leadId}</p>
+                  </div>
+                </div>
+
+                <button class="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
+                  + New
+                </button>
               </div>
 
-              <button class="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
-                + New
-              </button>
+              <tab-header></tab-header>
+              <tab-content></tab-content>
             </div>
+          `;
 
-            <tab-header></tab-header>
-            <tab-content></tab-content>
-          </div>
-        `;
-
-          this.setupTabs();
-        }
-
-        setupTabs() {
-          const content = this.querySelector("tab-content");
-          const buttons = this.querySelectorAll(".tab-btn");
-
-          buttons.forEach((btn) => {
-            btn.addEventListener("click", () => {
-              buttons.forEach((b) =>
-                b.classList.remove("border-b-2", "border-black", "text-black"),
-              );
-              buttons.forEach((b) => b.classList.add("text-gray-500"));
-
-              btn.classList.add("border-b-2", "border-black", "text-black");
-              btn.classList.remove("text-gray-500");
-
-              content.render(btn.dataset.tab);
-            });
-          });
-        }
+      // Add back button functionality
+      const backBtn = this.querySelector("#back-to-leads");
+      if (backBtn) {
+        backBtn.addEventListener("click", () => {
+          if (window.router && window.router.loadRoute) {
+            window.router.loadRoute("/leads");
+          }
+        });
       }
-      customElements.define("lead-page", LeadPage);
-    </script>
-  </body>
-</html>
+
+      this.setupTabs();
+    }
+
+    setupTabs() {
+      const content = this.querySelector("tab-content");
+      const buttons = this.querySelectorAll(".tab-btn");
+
+      buttons.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          buttons.forEach((b) =>
+            b.classList.remove("border-b-2", "border-black", "text-black"),
+          );
+          buttons.forEach((b) => b.classList.add("text-gray-500"));
+
+          btn.classList.add("border-b-2", "border-black", "text-black");
+          btn.classList.remove("text-gray-500");
+
+          content.render(btn.dataset.tab);
+        });
+      });
+    }
+  }
+  customElements.define("lead-page", LeadPage);
+</script>

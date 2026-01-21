@@ -77,6 +77,27 @@ export function initializeEventHandlers(worker) {
       return;
     }
 
+    if (e.target.closest("#editLead")) {
+      e.stopImmediatePropagation();
+
+      const editBtn = e.target.closest("#editLead");
+      const leadRow = editBtn.closest("tr");
+      const lead_id = leadRow?.getAttribute("data-lead-id");
+
+      sessionStorage.setItem("lead_id", lead_id);
+
+      const dropdown = editBtn.closest(".dropdown-menu");
+      if (dropdown) {
+        dropdown.classList.add("hidden");
+      }
+
+      // Navigate to lead details page
+      if (window.router && window.router.loadRoute) {
+        window.router.loadRoute("/leadsDetails");
+      }
+      return;
+    }
+
     if (e.target.closest("#deleteLead")) {
       e.stopImmediatePropagation();
 

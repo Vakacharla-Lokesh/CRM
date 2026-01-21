@@ -115,15 +115,18 @@ dbWorker.addEventListener("message", (e) => {
   }
 
   if (payload.action === "deleteSuccess") {
+    console.log("storeName: ", payload.storeName);
     switch (payload.storeName) {
       case "Leads":
         eventBus.emit(EVENTS.LEAD_DELETED, payload);
+        addNotification("Lead deleted successfully", "success");
         break;
       case "Organizations":
         eventBus.emit(EVENTS.ORGANIZATION_DELETED, payload);
+        addNotification("Organization deleted successfully", "success");
         break;
     }
-    addNotification(`${payload.storeName} deleted successfully`, "success");
+    // addNotification(`${payload.storeName} deleted successfully`, "success");
   }
 
   if (payload.action === "insertError" || payload.action === "dbError") {

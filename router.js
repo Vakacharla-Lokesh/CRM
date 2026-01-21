@@ -8,7 +8,7 @@ const routes = {
   "/leads": "/pages/leads.html",
   "/organizations": "/pages/organizations.html",
   "/deals": "/pages/deals.html",
-  "/leads/id": "/pages/leadDetailPage.html",
+  "/leadsDetails": "/pages/leadDetailPage.html",
   "/login": "/pages/login.html",
   "/signup": "/pages/signup.html",
 };
@@ -64,7 +64,6 @@ function attachDbWorkerListener() {
   });
 }
 
-// Try to attach listener immediately
 attachDbWorkerListener();
 
 export async function loadRoute(path) {

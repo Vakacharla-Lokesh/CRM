@@ -51,6 +51,10 @@ self.onmessage = (e) => {
       getDataById("Leads", e.data.id, dbReady, db);
       break;
 
+    case "getLeadById":
+      getLeadById(e.data.storeName, e.data.id, dbReady, db);
+      break;
+
     case "createOrganization":
       // console.log("Working on creating: ....");
       insertData(e.data.organizationData, "Organizations", dbReady, db);
@@ -83,3 +87,45 @@ self.onmessage = (e) => {
       console.warn("Unknown action:", e.data.action);
   }
 };
+
+/**
+ * Get a single record by ID and send response with the ID
+ */
+function getLeadById(storeName, id, dbReady, db) {
+  if (!dbReady || !db) {
+    postMessage({
+      action: "getByIdError",
+      error: "Database not ready",
+      id,
+    });
+    return;
+  }
+
+  try {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const request = store.get(id);
+
+    request.onsuccess = () => {
+      postMessage({
+        action: "getByIdSuccess",
+        data: request.result,
+        id,
+      });
+    };
+
+    request.onerror = (e) => {
+      postMessage({
+        action: "getByIdError",
+        error: e.target.error?.message,
+        id,
+      });
+    };
+  } catch (error) {
+    postMessage({
+      action: "getByIdError",
+      error: error.message,
+      id,
+    });
+  }
+}
