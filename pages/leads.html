@@ -1,341 +1,294 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0"
-    />
-    <title>Leads - CRM</title>
-    <link
-      rel="stylesheet"
-      href="/styles.css"
-    />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  </head>
-  <body
-    class="min-h-screen bg-white text-body dark:bg-slate-900 dark:text-slate-200"
-  >
-    <nav
-      style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        z-index: 50;
-        height: 4rem;
-        width: 100%;
-        border-bottom: 1px solid rgb(229 231 235);
-        background-color: white;
-      "
-      class="bg-white"
-    >
-      <div
-        style="
-          margin: 0 auto;
-          max-width: 80rem;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1rem;
-        "
-      >
-        <a
-          href="/"
-          class="logo-container flex items-center gap-2"
-        >
-          <img
-            src="https://flowbite.com/docs/images/logo.svg"
-            alt="Logo"
-            style="height: 1.75rem"
-          />
-          <span class="brand-name text-lg font-semibold">CRM</span>
-        </a>
-        <div class="nav-actions flex items-center gap-3">
-          <button
-            id="data-WSS"
-            type="button"
-          >
-            WSS
-          </button>
-          <button type="button">SSE</button>
-          <button type="button">LPS</button>
-          <button type="button">SPS</button>
-          <button
-            id="data-createDb"
-            class="text-blue-300 hover:underline"
-          >
-            Create DB
-          </button>
-          <button
-            id="theme-toggle"
-            title="Toggle theme"
-          >
-            🌙
-          </button>
-        </div>
-      </div>
-    </nav>
-
-    <div class="flex flex-1 pt-16">
-      <main
-        id="main-page"
-        class="flex-1 overflow-y-auto bg-neutral-primary-soft p-6"
-      >
-        <div class="w-full p-4">
-          <div class="flex flex-row justify-between items-center pb-4">
-            <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
-              Leads
-            </h2>
-            <div>
-              <button
-                type="button"
-                id="open-modal-btn"
-                class="text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 font-medium rounded-lg text-sm px-4 py-2 shadow"
-              >
-                Create
-              </button>
-              <button
-                type="button"
-                id="export-leads"
-                class="text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 font-medium rounded-lg text-sm px-4 py-2 shadow"
-              >
-                Export
-              </button>
-            </div>
-          </div>
-          <div
-            class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
-          >
-            <table class="w-full text-sm text-left border-collapse">
-              <thead
-                class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600"
-              >
-                <tr>
-                  <th
-                    scope="col"
-                    class="p-4"
-                  >
-                    <div class="flex items-center">
-                      <input
-                        id="table-checkbox-20"
-                        type="checkbox"
-                        value=""
-                        class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-                      />
-                      <label
-                        for="table-checkbox-20"
-                        class="sr-only"
-                        >Table checkbox</label
-                      >
-                    </div>
-                  </th>
-                  <th class="px-6 py-3">Lead name</th>
-                  <th class="px-6 py-3">Organiztion</th>
-                  <th class="px-6 py-3">Email</th>
-                  <th class="px-6 py-3">Mobile Number</th>
-                  <th class="px-6 py-3">Status</th>
-                  <th class="px-6 py-3">Last Modified</th>
-                  <th class="px-3 py-3"></th>
-                </tr>
-              </thead>
-              <tbody id="leads-body"></tbody>
-            </table>
-          </div>
-        </div>
-
-        <div
-          id="form-modal"
-          class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto"
-        >
-          <div class="relative w-full max-w-xl p-4">
-            <div
-              class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6"
-            >
-              <div
-                class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4"
-              >
-                <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-                  Create Lead
-                </h3>
-                <button
-                  id="close-modal-btn"
-                  class="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm w-9 h-9 flex items-center justify-center"
-                >
-                  <svg
-                    class="w-5 h-5"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  <span class="sr-only">Close modal</span>
-                </button>
-              </div>
-
-              <form
-                class="pt-4"
-                data-form="createLead"
-              >
-                <div
-                  class="grid grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 pb-4"
-                >
-                  <div class="mb-4">
-                    <label
-                      for="first_name"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >First Name</label
-                    >
-                    <input
-                      type="text"
-                      id="first_name"
-                      placeholder="First Name"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="last_name"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Last Name</label
-                    >
-                    <input
-                      type="text"
-                      id="last_name"
-                      placeholder="Last Name"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="email"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Email</label
-                    >
-                    <input
-                      type="email"
-                      id="email"
-                      placeholder="example@gmail.com"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="mobile_number"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Mobile Number</label
-                    >
-                    <input
-                      type="text"
-                      id="mobile_number"
-                      placeholder="mobile"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-                </div>
-
-                <div
-                  class="grid grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 py-4"
-                >
-                  <div class="mb-4">
-                    <label
-                      for="organization_name"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Organization Name</label
-                    >
-                    <input
-                      type="text"
-                      id="organization_name"
-                      placeholder="Organization"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="organization_website_name"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Website Name</label
-                    >
-                    <input
-                      type="text"
-                      id="organization_website_name"
-                      placeholder="Website"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="organization_size"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >No of employees</label
-                    >
-                    <input
-                      type="text"
-                      id="organization_size"
-                      placeholder="1-10"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label
-                      for="organization_industry"
-                      class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                      >Industry</label
-                    >
-                    <input
-                      type="text"
-                      id="organization_industry"
-                      placeholder="Industry"
-                      required
-                      class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  class="w-full mb-3 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none shadow"
-                >
-                  Create Lead
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </main>
+<div class="w-full h-full">
+  <!-- Header Section -->
+  <div class="flex flex-row justify-between items-center pb-6">
+    <div>
+      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
+        Leads
+      </h2>
+      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+        Manage your sales leads and contacts
+      </p>
     </div>
+    <div class="flex gap-2">
+      <button
+        type="button"
+        id="export-leads"
+        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+      >
+        Export
+      </button>
+      <button
+        type="button"
+        id="open-modal-btn"
+        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
+      >
+        + Create Lead
+      </button>
+    </div>
+  </div>
 
-    <script
-      src="https://gist.githubusercontent.com/loilo/ed43739361ec718129a15ae5d531095b/raw/idb-backup-and-restore.js"
-      async
-    ></script>
-    <script
-      type="module"
-      src="/index.js"
-    ></script>
-    <script
-      type="module"
-      src="/router.js"
-      defer
-    ></script>
-  </body>
-</html>
+  <!-- Table Section -->
+  <div
+    class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+  >
+    <table class="w-full text-sm text-left">
+      <thead
+        class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600"
+      >
+        <tr>
+          <th
+            scope="col"
+            class="p-4"
+          >
+            <input
+              type="checkbox"
+              id="select-all-leads"
+              class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2"
+            />
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Lead Name
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Organization
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Email
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Mobile
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Status
+          </th>
+          <th
+            scope="col"
+            class="px-6 py-3"
+          >
+            Created
+          </th>
+          <th
+            scope="col"
+            class="px-3 py-3"
+          >
+            Actions
+          </th>
+        </tr>
+      </thead>
+      <tbody id="leads-body">
+        <!-- Leads will be populated here dynamically -->
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Create Lead Modal -->
+<div
+  id="form-modal"
+  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto"
+>
+  <div class="relative w-full max-w-2xl p-4 mx-4">
+    <div
+      class="bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700"
+    >
+      <!-- Modal Header -->
+      <div
+        class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+          Create New Lead
+        </h3>
+        <button
+          id="close-modal-btn"
+          type="button"
+          class="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        >
+          <svg
+            class="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <form
+        class="px-6 py-4"
+        data-form="createLead"
+      >
+        <!-- Lead Information -->
+        <div class="mb-4">
+          <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+            Lead Information
+          </h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                for="first_name"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                First Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="first_name"
+                required
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="John"
+              />
+            </div>
+            <div>
+              <label
+                for="last_name"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Last Name <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                id="last_name"
+                required
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Doe"
+              />
+            </div>
+            <div>
+              <label
+                for="email"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Email <span class="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                id="email"
+                required
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="john@example.com"
+              />
+            </div>
+            <div>
+              <label
+                for="mobile_number"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Mobile Number
+              </label>
+              <input
+                type="tel"
+                id="mobile_number"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="+1 234 567 8900"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Organization Information -->
+        <div class="mb-6">
+          <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
+            Organization Information
+          </h4>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label
+                for="organization_name"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Organization Name
+              </label>
+              <input
+                type="text"
+                id="organization_name"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Acme Inc"
+              />
+            </div>
+            <div>
+              <label
+                for="organization_website_name"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Website
+              </label>
+              <input
+                type="url"
+                id="organization_website_name"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="https://example.com"
+              />
+            </div>
+            <div>
+              <label
+                for="organization_size"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Company Size
+              </label>
+              <input
+                type="text"
+                id="organization_size"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="1-50"
+              />
+            </div>
+            <div>
+              <label
+                for="organization_industry"
+                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+              >
+                Industry
+              </label>
+              <input
+                type="text"
+                id="organization_industry"
+                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                placeholder="Technology"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="flex gap-3">
+          <button
+            type="submit"
+            class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-colors"
+          >
+            Create Lead
+          </button>
+          <button
+            type="button"
+            id="close-modal-btn"
+            class="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

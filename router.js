@@ -2,66 +2,105 @@ import { populateHome } from "./services/populateHome.js";
 import { populateLeadsTable } from "./services/populateLeads.js";
 import { populateOrganizationsTable } from "./services/populateOrganizations.js";
 
-let routes = {
-  "/": "index.html",
+const routes = {
+  "/": "/pages/home.html",
   "/home": "/pages/home.html",
   "/leads": "/pages/leads.html",
   "/organizations": "/pages/organizations.html",
   "/deals": "/pages/deals.html",
+  "/leads/id": "/pages/leadDetailPage.html",
+  "/login": "/pages/login.html",
+  "/signup": "/pages/signup.html",
 };
 
-let sidebar = document.getElementById("sidebar");
+// Routes where sidebar should be hidden
+// const hideSidebarRoutes = ["/login", "/signup"];
+
+let sidebar = null;
 
 function attachDbWorkerListener() {
   const dbWorker = window.dbWorker;
-  if (!dbWorker) return;
+  if (!dbWorker) {
+    console.warn("dbWorker not available yet");
+    return;
+  }
 
   dbWorker.addEventListener("message", (e) => {
-  // console.log("Router received message:", e.data);
+    const { action, storeName, rows, error } = e.data;
 
-  if (e.data.action === "getAllSuccess" && e.data.storeName === "Leads") {
-    // console.log("Populating leads table with:", e.data.leads.length, "leads");
-    populateLeadsTable(e.data.rows);
-  } else if (
-    e.data.action === "getAllSuccess" &&
-    e.data.storeName === "Organizations"
-  ) {
-    // console.log(e.data);
-    // console.log("Populating organizations table with:", e.data.rows.length, "organizations");
-    populateOrganizationsTable(e.data.rows);
-  } else if (e.data.action === "getDataSuccess") {
-    // console.log(e.data);
-    populateHome(e.data);
-  }
-
-  if (e.data.action === "getAllError") {
-    console.error("Error fetching leads:", e.data.error);
-    const tbody = document.querySelector("#leads-body");
-    if (tbody) {
-      tbody.innerHTML = `
-        <tr>
-          <td colspan="7" class="px-6 py-4 text-center text-red-600 dark:text-red-400">
-            Error loading leads: ${e.data.error}
-          </td>
-        </tr>
-      `;
+    // Handle successful data retrieval
+    if (action === "getAllSuccess" && storeName === "Leads") {
+      populateLeadsTable(rows || []);
+    } else if (action === "getAllSuccess" && storeName === "Organizations") {
+      populateOrganizationsTable(rows || []);
+    } else if (action === "getDataSuccess") {
+      populateHome(e.data);
     }
-  }
+
+    // Handle errors
+    if (action === "getAllError") {
+      console.error("Error fetching data:", error);
+      const tbody = document.querySelector(`#${storeName.toLowerCase()}-body`);
+      if (tbody) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" class="px-6 py-4 text-center text-red-600 dark:text-red-400">
+              Error loading data: ${error}
+            </td>
+          </tr>
+        `;
+      }
+    }
+
+    // Handle delete success - refresh the current view
+    if (action === "deleteSuccess") {
+      const currentPath = sessionStorage.getItem("currentTab");
+      if (currentPath === "/leads") {
+        dbWorker.postMessage({ action: "getAllLeads" });
+      } else if (currentPath === "/organizations") {
+        dbWorker.postMessage({ action: "getAllOrganizations" });
+      }
+    }
   });
 }
 
-// try to attach now; index.js should initialize the worker before router runs
+// Try to attach listener immediately
 attachDbWorkerListener();
 
-async function loadRoute(path) {
+export async function loadRoute(path) {
   const route = routes[path] || routes["/home"];
+  const sidebar = document.getElementById("default-sidebar");
 
   try {
-    const html = await fetch(route).then((res) => res.text());
-    document.getElementById("main-page").innerHTML = html;
+    const response = await fetch(route);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const html = await response.text();
+    const mainPage = document.getElementById("main-page");
+
+    if (mainPage) {
+      mainPage.innerHTML = html;
+    }
+
+    // Hide sidebar on login and signup pages
+    // if (sidebar) {
+    //   if (hideSidebarRoutes.includes(path)) {
+    //     sidebar.classList.add("hidden");
+    //   } else {
+    //     sidebar.classList.remove("hidden");
+    //   }
+    // }
+
     setTimeout(() => {
       const db = window.dbWorker;
-      if (!db) return;
+      if (!db) {
+        console.warn("Database worker not ready");
+        return;
+      }
+
+      // Fetch data based on route
       if (path === "/leads") {
         db.postMessage({ action: "getAllLeads" });
       } else if (path === "/organizations") {
@@ -71,32 +110,85 @@ async function loadRoute(path) {
       }
     }, 100);
 
+    // Store current route
     sessionStorage.setItem("currentTab", path);
 
-    sidebar.querySelectorAll("a").forEach((link) => {
-      if (link.getAttribute("data-link") === path) {
-        link.classList.add("bg-neutral-tertiary", "text-fg-brand");
-      } else {
-        link.classList.remove("bg-neutral-tertiary", "text-fg-brand");
-      }
-    });
+    // Update sidebar active state
+    updateSidebarActiveState(path);
   } catch (error) {
     console.error("Error loading route:", error);
-    document.getElementById("main-page").innerHTML = `
-      <div class="p-4 text-red-600">Error loading page: ${error.message}</div>
-    `;
+    const mainPage = document.getElementById("main-page");
+    if (mainPage) {
+      mainPage.innerHTML = `
+        <div class="p-8 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+          <h2 class="text-xl font-semibold text-red-800 dark:text-red-200 mb-2">Error Loading Page</h2>
+          <p class="text-red-600 dark:text-red-300">${error.message}</p>
+          <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+            Reload Page
+          </button>
+        </div>
+      `;
+    }
   }
 }
 
-sidebar.addEventListener("click", (event) => {
-  event.preventDefault();
-  const link = event.target.closest("a");
-  if (!link) return;
-  const path = link.getAttribute("data-link");
-  loadRoute(path);
-});
+function updateSidebarActiveState(path) {
+  const sidebarElement = document.getElementById("sidebar");
+  if (!sidebarElement) return;
 
-window.addEventListener("DOMContentLoaded", () => {
+  const links = sidebarElement.querySelectorAll("a[data-link]");
+  links.forEach((link) => {
+    const linkPath = link.getAttribute("data-link");
+
+    if (linkPath === path) {
+      // Add active classes
+      link.classList.remove("text-gray-700", "dark:text-gray-300");
+      link.classList.add(
+        "bg-blue-100",
+        "dark:bg-blue-900",
+        "text-blue-600",
+        "dark:text-blue-300",
+        "font-medium",
+      );
+    } else {
+      // Remove active classes
+      link.classList.remove(
+        "bg-blue-100",
+        "dark:bg-blue-900",
+        "text-blue-600",
+        "dark:text-blue-300",
+        "font-medium",
+      );
+      link.classList.add("text-gray-700", "dark:text-gray-300");
+    }
+  });
+}
+
+// Initialize router on DOM load
+document.addEventListener("DOMContentLoaded", () => {
+  sidebar = document.getElementById("default-sidebar");
+
+  if (sidebar) {
+    // Sidebar click handler with event delegation
+    sidebar.addEventListener("click", (event) => {
+      const link = event.target.closest("a[data-link]");
+      if (!link) return;
+
+      event.preventDefault();
+      const path = link.getAttribute("data-link");
+      loadRoute(path);
+    });
+  }
+
   const savedTab = sessionStorage.getItem("currentTab") || "/home";
   loadRoute(savedTab);
+
+  window.addEventListener("popstate", () => {
+    const path = window.location.pathname;
+    if (routes[path]) {
+      loadRoute(path);
+    }
+  });
+
+  window.router = { loadRoute };
 });

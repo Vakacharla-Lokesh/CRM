@@ -3,13 +3,22 @@
     <h2 class="text-xl font-semibold text-gray-900 dark:text-white">
       Organizations
     </h2>
-    <button
-      type="button"
-      id="open-modal-btn"
-      class="text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 font-medium rounded-lg text-sm px-4 py-2 shadow"
-    >
-      Create
-    </button>
+    <div class="flex gap-2">
+      <button
+        type="button"
+        id="export-organizations"
+        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+      >
+        Export
+      </button>
+      <button
+        type="button"
+        id="open-modal-btn"
+        class="text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 font-medium rounded-lg text-sm px-4 py-2 shadow"
+      >
+        Create
+      </button>
+    </div>
   </div>
   <div
     class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
@@ -42,6 +51,12 @@
           <th class="px-6 py-3">Website</th>
           <th class="px-6 py-3">Industry</th>
           <th class="px-6 py-3">Last Modified</th>
+          <th
+            scope="col"
+            class="px-3 py-3"
+          >
+            Actions
+          </th>
         </tr>
       </thead>
       <tbody id="organizations-body"></tbody>

@@ -2,39 +2,155 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <title>CRM Lead Details</title>
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0"
     />
-    <title>Document</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
   </head>
-  <body>
-    <div class="w-full h-full">
-      <div class="w-10 flex gap-x-4">
-        <button>
-          <span
-            ><svg
-              class="w-6 h-6 text-gray-800 dark:text-white"
-              aria-hidden="true"
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              fill="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M12 20a7.966 7.966 0 0 1-5.002-1.756l.002.001v-.683c0-1.794 1.492-3.25 3.333-3.25h3.334c1.84 0 3.333 1.456 3.333 3.25v.683A7.966 7.966 0 0 1 12 20ZM2 12C2 6.477 6.477 2 12 2s10 4.477 10 10c0 5.5-4.44 9.963-9.932 10h-.138C6.438 21.962 2 17.5 2 12Zm10-5c-1.84 0-3.333 1.455-3.333 3.25S10.159 13.5 12 13.5c1.84 0 3.333-1.455 3.333-3.25S13.841 7 12 7Z"
-                clip-rule="evenodd"
-              />
-            </svg></span>Details
-        </button>
-        <button>Organization</button>
-        <button>Calls</button>
-        <button>Comments</button>
-        <button>Attachments</button>
-      </div>
-      <div></div>
-    </div>
+  <body class="bg-gray-50 text-gray-900">
+    <lead-page></lead-page>
+
+    <!-- App Script -->
+    <script>
+      class TabHeader extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `
+          <div class="border-b bg-white">
+            <div class="flex gap-6 px-6 py-3 text-sm font-medium">
+              ${["Details", "Calls", "Comments", "Attachments"]
+                .map(
+                  (tab, i) => `
+                <button
+                  data-tab="${tab.toLowerCase()}"
+                  class="tab-btn pb-2 ${
+                    i === 0
+                      ? "border-b-2 border-black text-black"
+                      : "text-gray-500 hover:text-black"
+                  }"
+                >
+                  ${tab}
+                </button>
+              `,
+                )
+                .join("")}
+            </div>
+          </div>
+        `;
+        }
+      }
+      customElements.define("tab-header", TabHeader);
+      class TabContent extends HTMLElement {
+        connectedCallback() {
+          this.render("details");
+        }
+
+        render(activeTab) {
+          const views = {
+            details: `<lead-details></lead-details>`,
+            calls: `<empty-state title="No calls logged yet"></empty-state>`,
+            comments: `<empty-state title="No comments added"></empty-state>`,
+            attachments: `<empty-state title="No files attached"></empty-state>`,
+          };
+
+          this.innerHTML = `
+          <div class="p-6">
+            ${views[activeTab]}
+          </div>
+        `;
+        }
+      }
+      customElements.define("tab-content", TabContent);
+      class LeadDetails extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `
+          <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+            <h2 class="text-lg font-semibold mb-4">Lead Details</h2>
+
+            <div class="space-y-3 text-sm">
+              ${this.row("Lead ID", "CRM-LEAD-2026-00001")}
+              ${this.row("First Name", "abcd")}
+              ${this.row("Last Name", "—")}
+              ${this.row("Email", "—")}
+              ${this.row("Mobile", "—")}
+              ${this.row("Organization", "—")}
+              ${this.row("Lead Owner", "Administrator")}
+            </div>
+          </div>
+        `;
+        }
+
+        row(label, value) {
+          return `
+          <div class="flex justify-between border-b pb-2">
+            <span class="text-gray-500">${label}</span>
+            <span class="font-medium">${value}</span>
+          </div>
+        `;
+        }
+      }
+      customElements.define("lead-details", LeadDetails);
+      class EmptyState extends HTMLElement {
+        connectedCallback() {
+          const title = this.getAttribute("title") || "Nothing here";
+          this.innerHTML = `
+          <div class="flex flex-col items-center justify-center text-center py-20 text-gray-400">
+            <p class="text-sm">${title}</p>
+          </div>
+        `;
+        }
+      }
+      customElements.define("empty-state", EmptyState);
+      class LeadPage extends HTMLElement {
+        connectedCallback() {
+          this.innerHTML = `
+          <div class="max-w-6xl mx-auto mt-6 bg-white shadow rounded-lg overflow-hidden">
+            <div class="flex items-center justify-between px-6 py-4 border-b">
+              <div>
+                <h1 class="text-xl font-semibold">abcd</h1>
+                <p class="text-xs text-gray-500">CRM-LEAD-2026-00001</p>
+              </div>
+
+              <button class="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800">
+                + New
+              </button>
+            </div>
+
+            <tab-header></tab-header>
+            <tab-content></tab-content>
+          </div>
+        `;
+
+          this.setupTabs();
+        }
+
+        setupTabs() {
+          const content = this.querySelector("tab-content");
+          const buttons = this.querySelectorAll(".tab-btn");
+
+          buttons.forEach((btn) => {
+            btn.addEventListener("click", () => {
+              buttons.forEach((b) =>
+                b.classList.remove("border-b-2", "border-black", "text-black"),
+              );
+              buttons.forEach((b) => b.classList.add("text-gray-500"));
+
+              btn.classList.add("border-b-2", "border-black", "text-black");
+              btn.classList.remove("text-gray-500");
+
+              content.render(btn.dataset.tab);
+            });
+          });
+        }
+      }
+      customElements.define("lead-page", LeadPage);
+    </script>
   </body>
 </html>

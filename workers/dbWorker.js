@@ -74,6 +74,11 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Leads", dbReady, db);
       break;
 
+    case "deleteOrganization":
+      console.log(e.data.id);
+      deleteData(e.data.id, "Organizations", dbReady, db);
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }

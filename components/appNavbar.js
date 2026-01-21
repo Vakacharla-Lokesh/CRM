@@ -85,7 +85,7 @@ class AppNavbar extends HTMLElement {
   handleDbReady() {
     const btn = document.getElementById("data-createDb");
     if (btn) {
-      btn.textContent = "DB Ready ✓";
+      btn.textContent = "DB Ready";
       btn.classList.add("db-ready");
       btn.disabled = true;
     }

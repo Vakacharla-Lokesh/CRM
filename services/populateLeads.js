@@ -1,19 +1,20 @@
-import "../components/LeadsDataRow.js";
-
 export function populateLeadsTable(leads) {
-  // console.log("populateLeadsTable called with:", leads);
   const tbody = document.querySelector("#leads-body");
 
   if (!tbody) {
-    console.error("Table body not found!");
+    console.error("Table body #leads-body not found!");
     return;
   }
 
   if (!leads || leads.length === 0) {
     tbody.innerHTML = `
       <tr>
-        <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
-          No leads found. Click "Create" to add your first lead.
+        <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+          <svg class="w-12 h-12 mx-auto mb-3 text-gray-400 dark:text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+          </svg>
+          <p class="text-sm font-medium">No leads found</p>
+          <p class="text-xs mt-1">Click "Create Lead" to add your first lead</p>
         </td>
       </tr>
     `;
@@ -22,78 +23,83 @@ export function populateLeadsTable(leads) {
 
   tbody.innerHTML = "";
 
-  leads.forEach((lead) => {
+  leads.forEach((lead, index) => {
     const row = document.createElement("tr");
     row.setAttribute("data-lead-id", lead.lead_id);
     row.className =
-      "border-b border-gray-100 dark:border-gray-700 even:bg-gray-50 dark:even:bg-gray-700/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors";
+      "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
+
+    const fullName =
+      `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim() ||
+      "Unknown";
+    const email = lead.lead_email || "No email";
+    const mobile = lead.lead_mobile_number || "No mobile";
+    const organization = lead.organization_name || "N/A";
+    const createdDate = lead.created_on
+      ? new Date(lead.created_on).toLocaleDateString()
+      : "N/A";
 
     row.innerHTML = `
       <td class="w-4 p-4">
-        <div class="flex items-center">
-          <input
-            type="checkbox"
-            value="${lead.lead_id}"
-            class="w-4 h-4 border border-default-medium rounded-xs bg-neutral-secondary-medium focus:ring-2 focus:ring-brand-soft"
-          />
-        </div>
+        <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${lead.lead_id}" />
       </td>
-
       <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-        ${lead.lead_first_name || ""} ${lead.lead_last_name || ""}
+        ${fullName}
       </th>
-
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.organization_name || "N/A"}</td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_email || ""}</td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${lead.lead_mobile_number || ""}</td>
-
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+        ${organization}
+      </td>
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+        ${email}
+      </td>
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
+        ${mobile}
+      </td>
       <td class="px-6 py-4">
-        <span class="inline-flex rounded-full px-2 py-0.5 text-xs font-medium bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
+          <span class="w-1.5 h-1.5 mr-1.5 bg-green-500 rounded-full"></span>
           Active
         </span>
       </td>
-
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
-        ${lead.created_on ? new Date(lead.created_on).toLocaleDateString() : "N/A"}
+      <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">
+        ${createdDate}
       </td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
+      <td class="px-3 py-4">
         <div class="relative inline-block">
-          <button
-            type="button"
-            class="dropdown-btn flex items-center justify-center w-8 h-8 rounded"
-          >
-            <svg class="w-6 h-6 text-gray-800 dark:text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <path stroke="currentColor" stroke-linecap="round" stroke-width="2"
-                d="M12 6h.01M12 12h.01M12 18h.01" />
+          <button type="button" class="dropdown-btn p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" aria-label="Actions menu">
+            <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
             </svg>
           </button>
-
-          <div
-            class="dropdown-menu hidden absolute right-0 top-full mt-2 w-20 bg-white border border-gray-200 rounded shadow-lg z-50 even:bg-gray-50 dark:even:bg-gray-700/40 hover:bg-blue-50 dark:hover:bg-blue-500/10"
-          >
-            <ul class="py-1 text-sm even:bg-gray-50 dark:even:bg-gray-700/40 hover:bg-blue-50 dark:hover:bg-blue-500/10">
-              <li><a data-link="/edit-lead"  class="block px-4 py-2 hover:bg-gray-100">Edit</a></li>
-              <li><a data-lead-id=${lead.lead_id} id="deleteLead" class="block px-4 py-2 hover:bg-gray-100">Delete</a></li>
-            </ul>
+          
+          <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
+            <a href="#" data-action="edit" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+              Edit
+            </a>
+            <a href="#" data-action="view" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              </svg>
+              View
+            </a>
+            <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
+            <a href="#" id="deleteLead" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+              <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+              Delete
+            </a>
           </div>
         </div>
       </td>
-`;
-
-    // const row = document.createElement("leads-row");
-    // row.setAttribute("lead-id", lead.lead_id);
-    // row.setAttribute("lead-first-name", lead.lead_first_name);
-    // row.setAttribute("lead-last-name", lead.lead_last_name);
-    // row.setAttribute("organization-name", lead.organization_name);
-    // row.setAttribute("lead-email", lead.lead_email);
-    // row.setAttribute("lead-mobile-number", lead.lead_mobile_number);
-    // row.setAttribute(
-    //   "created-on",
-    //   lead.created_on ? new Date(lead.created_on).toLocaleDateString() : "N/A",
-    // );
+    `;
 
     tbody.appendChild(row);
   });
 
-  // console.log("Table populated with", leads.length, "rows");
+  // console.log(`Populated leads table with ${leads.length} lead(s)`);
 }

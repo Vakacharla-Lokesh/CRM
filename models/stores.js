@@ -3,6 +3,7 @@ import { commentsStructure } from "./commentModel.js";
 import { dealsStructure } from "./dealModel.js";
 import { leadsStructure } from "./leadModel.js";
 import { organizationsStructure } from "./organizationModel.js";
+import { usersStructure } from "./userModel.js";
 
 export const stores = {
   Leads: leadsStructure,
@@ -10,4 +11,5 @@ export const stores = {
   Comments: commentsStructure,
   Deals: dealsStructure,
   Organizations: organizationsStructure,
+  Users: usersStructure,
 };

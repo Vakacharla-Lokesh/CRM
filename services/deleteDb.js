@@ -15,7 +15,7 @@ export function deleteData(id, storeName, dbReady, db) {
 
     request.onsuccess = () => {
       console.log("Delete successful");
-      postMessage({ action: "deleteSuccess", id });
+      postMessage({ action: "deleteSuccess", id, storeName });
     };
 
     request.onerror = (e) => {

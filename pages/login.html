@@ -1,0 +1,117 @@
+<div class="flex flex-1">
+  <main
+    id="main-page"
+    class="flex-1 flex items-center justify-center bg-neutral-primary-soft p-6"
+  >
+    <div class="w-full max-w-md">
+      <div class="text-center mb-8">
+        <div class="flex items-center justify-center gap-3 mb-4">
+          <img
+            src="https://flowbite.com/docs/images/logo.svg"
+            alt="CRM Logo"
+            class="h-12"
+          />
+          <h1 class="text-3xl font-bold text-heading">CRM</h1>
+        </div>
+        <p class="text-body text-sm">
+          Welcome back! Please login to your account
+        </p>
+      </div>
+
+      <form
+        id="login-form"
+        class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 space-y-6"
+      >
+        <div>
+          <label
+            for="login-email"
+            class="block mb-2.5 text-sm font-medium text-heading"
+          >
+            Email Address
+          </label>
+          <input
+            type="email"
+            id="login-email"
+            name="email"
+            class="w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-2 focus:ring-brand focus:border-brand block px-4 py-2.5 shadow-xs placeholder:text-body transition duration-200"
+            placeholder="you@example.com"
+            required
+          />
+          <p
+            id="email-error"
+            class="text-red-600 text-xs mt-1 hidden"
+          ></p>
+        </div>
+
+        <div>
+          <label
+            for="login-password"
+            class="block mb-2.5 text-sm font-medium text-heading"
+          >
+            Password
+          </label>
+          <input
+            type="password"
+            id="login-password"
+            name="password"
+            class="w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-2 focus:ring-brand focus:border-brand block px-4 py-2.5 shadow-xs placeholder:text-body transition duration-200"
+            placeholder="••••••••"
+            required
+          />
+          <p
+            id="password-error"
+            class="text-red-600 text-xs mt-1 hidden"
+          ></p>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label
+            for="remember-me"
+            class="flex items-center gap-2 cursor-pointer"
+          >
+            <input
+              type="checkbox"
+              id="remember-me"
+              name="remember"
+              class="w-4 h-4 border border-default-medium rounded bg-neutral-secondary-medium focus:ring-2 focus:ring-brand cursor-pointer"
+            />
+            <span class="text-sm text-body select-none">Remember me</span>
+          </label>
+          <a
+            href="#"
+            class="text-sm text-brand hover:underline"
+            >Forgot password?</a
+          >
+        </div>
+
+        <div class="items-center w-full justify-center flex">
+          <button
+            type="submit"
+            id="login-submit"
+            class="px-10 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors self-center"
+          >
+            Sign In
+          </button>
+        </div>
+        <p
+          id="form-error"
+          class="text-red-600 text-sm text-center hidden"
+        ></p>
+        <div
+          class="text-center pt-4 border-t border-gray-200 dark:border-gray-700"
+        >
+          <p class="text-sm text-body">
+            Don't have an account?
+            <a
+              id="sign-up-btn"
+              onclick="console.log('testing in signup')"
+              data-link="/signup"
+              class="text-brand hover:underline font-medium cursor-pointer"
+              ><span>Sign up</span></a
+            >
+          </p>
+        </div>
+      </form>
+    </div>
+  </main>
+</div>
