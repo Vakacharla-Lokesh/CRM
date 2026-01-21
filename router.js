@@ -13,10 +13,14 @@ const routes = {
   "/signup": "/pages/signup.html",
 };
 
-// Routes where sidebar should be hidden
-// const hideSidebarRoutes = ["/login", "/signup"];
+// Routes that need special script loading
+const routeScripts = {
+  "/login": "/js/login.js",
+  "/signup": "/js/signup.js",
+};
 
 let sidebar = null;
+let loadedScripts = new Set();
 
 function attachDbWorkerListener() {
   const dbWorker = window.dbWorker;
@@ -28,7 +32,6 @@ function attachDbWorkerListener() {
   dbWorker.addEventListener("message", (e) => {
     const { action, storeName, rows, error } = e.data;
 
-    // Handle successful data retrieval
     if (action === "getAllSuccess" && storeName === "Leads") {
       populateLeadsTable(rows || []);
     } else if (action === "getAllSuccess" && storeName === "Organizations") {
@@ -37,7 +40,6 @@ function attachDbWorkerListener() {
       populateHome(e.data);
     }
 
-    // Handle errors
     if (action === "getAllError") {
       console.error("Error fetching data:", error);
       const tbody = document.querySelector(`#${storeName.toLowerCase()}-body`);
@@ -52,7 +54,6 @@ function attachDbWorkerListener() {
       }
     }
 
-    // Handle delete success - refresh the current view
     if (action === "deleteSuccess") {
       const currentPath = sessionStorage.getItem("currentTab");
       if (currentPath === "/leads") {
@@ -65,6 +66,33 @@ function attachDbWorkerListener() {
 }
 
 attachDbWorkerListener();
+
+async function loadPageScript(path) {
+  const scriptPath = routeScripts[path];
+  if (!scriptPath) return;
+
+  // Remove previously loaded route scripts
+  loadedScripts.forEach((scriptUrl) => {
+    const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
+    if (existingScript) {
+      existingScript.remove();
+    }
+  });
+  loadedScripts.clear();
+
+  // Load new script
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.type = "module";
+    script.src = scriptPath;
+    script.onload = () => {
+      loadedScripts.add(scriptPath);
+      resolve();
+    };
+    script.onerror = reject;
+    document.body.appendChild(script);
+  });
+}
 
 export async function loadRoute(path) {
   const route = routes[path] || routes["/home"];
@@ -83,14 +111,8 @@ export async function loadRoute(path) {
       mainPage.innerHTML = html;
     }
 
-    // Hide sidebar on login and signup pages
-    // if (sidebar) {
-    //   if (hideSidebarRoutes.includes(path)) {
-    //     sidebar.classList.add("hidden");
-    //   } else {
-    //     sidebar.classList.remove("hidden");
-    //   }
-    // }
+    // Load page-specific scripts
+    await loadPageScript(path);
 
     setTimeout(() => {
       const db = window.dbWorker;
@@ -99,7 +121,6 @@ export async function loadRoute(path) {
         return;
       }
 
-      // Fetch data based on route
       if (path === "/leads") {
         db.postMessage({ action: "getAllLeads" });
       } else if (path === "/organizations") {
@@ -109,10 +130,7 @@ export async function loadRoute(path) {
       }
     }, 100);
 
-    // Store current route
     sessionStorage.setItem("currentTab", path);
-
-    // Update sidebar active state
     updateSidebarActiveState(path);
   } catch (error) {
     console.error("Error loading route:", error);
@@ -140,7 +158,6 @@ function updateSidebarActiveState(path) {
     const linkPath = link.getAttribute("data-link");
 
     if (linkPath === path) {
-      // Add active classes
       link.classList.remove("text-gray-700", "dark:text-gray-300");
       link.classList.add(
         "bg-blue-100",
@@ -150,7 +167,6 @@ function updateSidebarActiveState(path) {
         "font-medium",
       );
     } else {
-      // Remove active classes
       link.classList.remove(
         "bg-blue-100",
         "dark:bg-blue-900",
@@ -163,12 +179,10 @@ function updateSidebarActiveState(path) {
   });
 }
 
-// Initialize router on DOM load
 document.addEventListener("DOMContentLoaded", () => {
   sidebar = document.getElementById("default-sidebar");
 
   if (sidebar) {
-    // Sidebar click handler with event delegation
     sidebar.addEventListener("click", (event) => {
       const link = event.target.closest("a[data-link]");
       if (!link) return;

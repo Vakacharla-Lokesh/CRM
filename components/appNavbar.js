@@ -2,31 +2,122 @@ import { eventBus, EVENTS } from "../events/eventBus.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
-  <style>
-    nav { position: fixed; top: 0; left: 0; z-index: 50; height: 4rem; width:100%; border-bottom:1px solid rgb(229 231 235); background-color: white; }
-    .nav-container { margin:0 auto; max-width:80rem; display:flex; align-items:center; justify-content:space-between; padding:1rem }
-    .logo { height:1.75rem }
-    .brand-name { font-size:1.25rem; font-weight:600; color: rgb(17 24 39); white-space:nowrap }
-    .nav-actions { display:flex; gap:0.75rem; align-items:center }
-    button { border-radius:0.375rem; padding:0.375rem 0.75rem; font-size:0.875rem; border:1px solid rgb(209 213 219); background:transparent; cursor:pointer }
-    .db-ready { color: rgb(22 163 74); border-color: rgb(22 163 74) }
-  </style>
-  <nav>
-    <div class="nav-container">
-      <a href="/" class="logo-container">
-        <img src="https://flowbite.com/docs/images/logo.svg" class="logo" alt="Logo" />
-        <span class="brand-name">CRM</span>
-      </a>
-      <div class="nav-actions">
-        <button id="data-WSS" type="button">WSS</button>
-        <button type="button">SSE</button>
-        <button type="button">LPS</button>
-        <button type="button">SPS</button>
-        <button id="data-createDb" class="text-blue-300 hover:underline">Create DB</button>
-        <button id="theme-toggle" title="Toggle theme">🌙</button>
-      </div>
-    </div>
-  </nav>
+  <nav
+        class="fixed top-0 left-0 z-50 h-16 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
+      >
+        <div
+          class="mx-auto max-w-7xl flex items-center justify-between px-4 h-full"
+        >
+          <a
+            href="/"
+            class="flex items-center gap-2"
+          >
+            <img
+              src="https://flowbite.com/docs/images/logo.svg"
+              alt="Logo"
+              class="h-7"
+            />
+            <span class="text-lg font-semibold">CRM</span>
+          </a>
+
+          <div class="flex items-center gap-3">
+            <!-- Connection Status Indicators -->
+            <div class="flex items-center gap-2">
+              <div
+                id="status-wss"
+                class="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span>WSS</span>
+              </div>
+              <div
+                id="status-sse"
+                class="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span>SSE</span>
+              </div>
+            </div>
+
+            <!-- Notification Dropdown -->
+            <div class="relative">
+              <button
+                id="notification-btn"
+                type="button"
+                class="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              >
+                <svg
+                  class="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                <span
+                  id="notification-badge"
+                  class="hidden absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"
+                ></span>
+              </button>
+
+              <!-- Dropdown Menu -->
+              <div
+                id="notification-dropdown"
+                class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 max-h-96 overflow-hidden"
+              >
+                <div
+                  class="px-4 py-3 border-b border-gray-200 dark:border-gray-700"
+                >
+                  <h3 class="font-semibold">Notifications</h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">
+                    WebSocket Updates
+                  </p>
+                </div>
+                <div
+                  id="notification-list"
+                  class="overflow-y-auto max-h-80"
+                >
+                  <div
+                    class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm"
+                  >
+                    No notifications yet
+                  </div>
+                </div>
+                <div
+                  class="px-4 py-2 border-t border-gray-200 dark:border-gray-700"
+                >
+                  <button
+                    id="clear-notifications"
+                    class="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Clear all
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              id="data-createDb"
+              class="px-3 py-1.5 text-sm rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
+            >
+              Create DB
+            </button>
+
+            <button
+              id="theme-toggle"
+              title="Toggle theme"
+              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              🌙
+            </button>
+          </div>
+        </div>
+      </nav>
 `;
 
 class AppNavbar extends HTMLElement {

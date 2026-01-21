@@ -83,6 +83,11 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Organizations", dbReady, db);
       break;
 
+    case "getCommentById":
+      console.log("Inside switch of comment");
+      getDataById("Comments", e.data.id, dbReady, db);
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }
