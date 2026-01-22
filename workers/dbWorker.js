@@ -2,7 +2,6 @@ import { dbCreate } from "../init/dbInit.js";
 import { updateAllObjects } from "../services/calculateScore.js";
 // import { generateLeadScores } from "../services/calculateScore.js";
 import { deleteData } from "../services/deleteDb.js";
-import { exportDb } from "../services/exportDb.js";
 import { getCount } from "../services/getCount.js";
 import { getAllData, getDataById } from "../services/getDb.js";
 import { insertData } from "../services/insertDb.js";
@@ -72,7 +71,7 @@ self.onmessage = (e) => {
       break;
 
     case "getData":
-      getCount(db);
+      getCount(db, dbReady);
       break;
 
     case "deleteLead":
@@ -116,7 +115,12 @@ self.onmessage = (e) => {
       // generateLeadScores(db, dbReady);
       updateAllObjects();
       break;
-      
+
+    case "updateLead":
+      console.log("Inside update case");
+      updateData("Leads", e.data.leadData, dbReady, db);
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }

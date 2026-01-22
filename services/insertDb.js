@@ -13,7 +13,7 @@ export function insertData(data, storeName, dbReady, db) {
     const request = store.add(data);
 
     request.onsuccess = () => {
-      // console.log("Insert successful");
+      console.log("Insert successful");
       postMessage({ action: "insertSuccess", data, storeName });
     };
 

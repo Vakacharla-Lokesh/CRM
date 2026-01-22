@@ -165,25 +165,25 @@ eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
 const ws = new WSClient("ws://localhost:8080");
 window.ws = ws;
 
-ws.onOpen = () => {
-  const wssStatus = document.getElementById("status-wss");
-  if (wssStatus) {
-    wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
-    wssStatus.querySelector("span:first-child").classList.add("bg-green-500");
-  }
-  addNotification("WebSocket connected", "success");
-};
+// ws.onOpen = () => {
+//   const wssStatus = document.getElementById("status-wss");
+//   if (wssStatus) {
+//     wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
+//     wssStatus.querySelector("span:first-child").classList.add("bg-green-500");
+//   }
+//   addNotification("WebSocket connected", "success");
+// };
 
-ws.onClose = () => {
-  const wssStatus = document.getElementById("status-wss");
-  if (wssStatus) {
-    wssStatus
-      .querySelector("span:first-child")
-      .classList.remove("bg-green-500");
-    wssStatus.querySelector("span:first-child").classList.add("bg-red-500");
-  }
-  addNotification("WebSocket disconnected", "error");
-};
+// ws.onClose = () => {
+//   const wssStatus = document.getElementById("status-wss");
+//   if (wssStatus) {
+//     wssStatus
+//       .querySelector("span:first-child")
+//       .classList.remove("bg-green-500");
+//     wssStatus.querySelector("span:first-child").classList.add("bg-red-500");
+//   }
+//   addNotification("WebSocket disconnected", "error");
+// };
 
 ws.onMessage = (data) => {
   eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, { message: data?.message ?? data });
@@ -202,6 +202,62 @@ ws.onMessage = (data) => {
 };
 
 ws.connect();
+
+let pollingInterval = null;
+
+function startShortPolling() {
+  if (pollingInterval) return;
+
+  pollingInterval = setInterval(async () => {
+    try {
+      // const res = await fetch("/api/poll"); // your polling endpoint
+      // if (!res.ok) return;
+
+      // const data = await res.json();
+
+      // eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, {
+      //   message: "Web socket disconnected",
+      // });
+
+      ws.connect();
+
+      // addNotification(`POLL: ${JSON.stringify(data)}`, "info");
+    } catch (err) {
+      console.error("Polling error:", err);
+    }
+  }, 5000);
+}
+
+function stopShortPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+}
+
+ws.onOpen = () => {
+  stopShortPolling();
+
+  const wssStatus = document.getElementById("status-wss");
+  if (wssStatus) {
+    wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
+    wssStatus.querySelector("span:first-child").classList.add("bg-green-500");
+  }
+  addNotification("WebSocket connected", "success");
+};
+
+ws.onClose = () => {
+  startShortPolling();
+
+  const wssStatus = document.getElementById("status-wss");
+  if (wssStatus) {
+    wssStatus
+      .querySelector("span:first-child")
+      .classList.remove("bg-green-500");
+    wssStatus.querySelector("span:first-child").classList.add("bg-red-500");
+  }
+  addNotification("WebSocket disconnected", "error");
+};
 
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {

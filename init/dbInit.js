@@ -29,6 +29,14 @@ export function dbCreate() {
           });
           // console.log(`Created store: ${store.name}`);
         }
+
+        if (store.name == "Deals") {
+          db.transaction("Deals", "readonly")
+            .objectStore("Deals")
+            .store.createIndex("deal_status_count", "deal_status", {
+              unique: false,
+            });
+        }
       }
     };
 

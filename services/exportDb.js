@@ -40,21 +40,96 @@ export function exportToJson(idbDatabase) {
   });
 }
 
-export function exportDb() {
+export function exportDb(storeName) {
   console.log("Inside exportdb fn ...");
   const dbName = "CRM_DB";
   indexedDB.open(dbName).onsuccess = function (event) {
     const db = event.target.result;
-    exportToJson(db)
+    exportStoreToCsv(db, storeName)
       .then((jsonData) => {
-        const blob = new Blob([jsonData], { type: "application/json" });
+        const blob = new Blob([jsonData], { type: "text/csv" });
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = "indexeddb_backup.json";
+        a.download = "indexeddb_backup.csv";
         a.click();
         URL.revokeObjectURL(url);
       })
       .catch((err) => console.error("Export failed:", err));
   };
+}
+
+export function exportStoreToJson(db, storeName) {
+  return new Promise((resolve, reject) => {
+    if (!db.objectStoreNames.contains(storeName)) {
+      reject(new Error(`Object store "${storeName}" does not exist`));
+      return;
+    }
+
+    const transaction = db.transaction(storeName, "readonly");
+    const store = transaction.objectStore(storeName);
+    const request = store.openCursor();
+
+    const allObjects = [];
+
+    request.onerror = () => reject(request.error);
+
+    request.onsuccess = (event) => {
+      const cursor = event.target.result;
+      if (cursor) {
+        allObjects.push(cursor.value);
+        cursor.continue();
+      } else {
+        // Finished reading the store
+        resolve(JSON.stringify({ [storeName]: allObjects }, null, 2));
+      }
+    };
+  });
+}
+
+export function exportStoreToCsv(db, storeName) {
+  return new Promise((resolve, reject) => {
+    if (!db.objectStoreNames.contains(storeName)) {
+      reject(new Error(`Object store "${storeName}" does not exist`));
+      return;
+    }
+
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const request = store.openCursor();
+
+    const rows = [];
+
+    request.onerror = () => reject(request.error);
+
+    request.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (cursor) {
+        rows.push(cursor.value);
+        cursor.continue();
+      } else {
+        if (!rows.length) {
+          resolve("");
+          return;
+        }
+
+        const headers = Array.from(
+          new Set(rows.flatMap((obj) => Object.keys(obj))),
+        );
+
+        const escapeCsv = (value) => {
+          if (value == null) return "";
+          const str = String(value);
+          return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+        };
+
+        const csv = [
+          headers.join(","),
+          ...rows.map((row) => headers.map((h) => escapeCsv(row[h])).join(",")),
+        ].join("\n");
+
+        resolve(csv);
+      }
+    };
+  });
 }

@@ -1,5 +1,19 @@
 import { eventBus, EVENTS } from "./eventBus.js";
 import { exportDb } from "../services/exportDb.js";
+import {
+  handleLeadCreate,
+  handleLeadCreated,
+  handleLeadDelete,
+  handleLeadDeleted,
+} from "./leadEvents.js";
+import {
+  handleOrganizationCreate,
+  handleOrganizationCreated,
+  handleOrganizationDelete,
+  handleOrganizationDeleted,
+} from "./organizationEvents.js";
+import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
+import { showMessage, showNotification } from "./notificationEvents.js";
 
 let dbWorker = null;
 let isDbReady = false;
@@ -14,6 +28,7 @@ export function initializeEventHandlers(worker) {
   eventBus.on(EVENTS.LEAD_CREATED, handleLeadCreated);
   eventBus.on(EVENTS.LEAD_DELETE, handleLeadDelete);
   eventBus.on(EVENTS.LEAD_DELETED, handleLeadDeleted);
+  eventBus.on(EVENTS.LEADS_EXPORT, handleLeadExport);
   eventBus.on(EVENTS.ORGANIZATION_CREATE, handleOrganizationCreate);
   eventBus.on(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
   eventBus.on(EVENTS.ORGANIZATION_DELETE, handleOrganizationDelete);
@@ -26,6 +41,8 @@ export function initializeEventHandlers(worker) {
   eventBus.on(EVENTS.LOGIN_FAILURE, handleLoginFailure);
   eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
   eventBus.on(EVENTS.LEADS_SCORE, calculateScore);
+  eventBus.on(EVENTS.DEAL_CREATE, handleDealCreate);
+  eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
 
   document.addEventListener(
     "DOMContentLoaded",
@@ -53,7 +70,7 @@ export function initializeEventHandlers(worker) {
     }
 
     if (e.target.closest("#export-leads")) {
-      exportDb();
+      eventBus.emit(EVENTS.LEADS_EXPORT);
       return;
     }
 
@@ -116,6 +133,26 @@ export function initializeEventHandlers(worker) {
       if (dropdown) {
         dropdown.classList.add("hidden");
       }
+      return;
+    }
+
+    if (e.target.closest("#editOrganiztion")) {
+      e.stopImmediatePropagation();
+
+      const editBtn = e.target.closest("#editOrganization");
+      const organizationRow = editBtn.closest("tr");
+      const organization_id = organizationRow?.getAttribute(
+        "data-organization-id",
+      );
+
+      sessionStorage.setItem("organization_id", organization_id);
+
+      const dropdown = editBtn.closest(".dropdown-menu");
+      if (dropdown) {
+        dropdown.classList.add("hidden");
+      }
+
+      
       return;
     }
 
@@ -228,6 +265,67 @@ export function initializeEventHandlers(worker) {
       eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
       document.getElementById("form-modal")?.classList.add("hidden");
       event.target.reset();
+    } else if (event.target.matches("form[data-form='createDeal']")) {
+      event.preventDefault();
+      if (!isDbReady && dbWorker) {
+        dbWorker.postMessage({ action: "initialize" });
+        showNotification("Database initializing, please try again...", "info");
+        return;
+      }
+
+      console.log("Inside handle Deal create caller");
+
+      const dealName =
+        document.getElementById("deal_name")?.value?.trim() || "";
+      const dealValue =
+        document.getElementById("deal_value")?.value?.trim() || "";
+      const leadId = document.getElementById("lead_id")?.value || "";
+      const organizationId =
+        document.getElementById("organization_id")?.value || "";
+      const dealStatus =
+        document.getElementById("deal_status")?.value?.trim() || "";
+
+      if (!dealName || !dealValue) {
+        alert("Please fill in Deal Name and Deal Value");
+        return;
+      }
+
+      if (!dealStatus) {
+        alert("Please select a Deal Status");
+        return;
+      }
+
+      const dealData = {
+        deal_id: Date.now(),
+        deal_name: dealName,
+        deal_value: Number(dealValue),
+        lead_id: leadId ? Number(leadId) : null,
+        organization_id: organizationId ? Number(organizationId) : null,
+        deal_status: dealStatus,
+        created_on: new Date(),
+        modified_on: new Date(),
+      };
+
+      if (leadId) {
+        const lead = allLeads.find((l) => l.lead_id === dealData.lead_id);
+        if (lead) {
+          dealData.lead_first_name = lead.lead_first_name;
+          dealData.lead_last_name = lead.lead_last_name;
+        }
+      }
+
+      if (organizationId) {
+        const org = allOrganizations.find(
+          (o) => o.organization_id === dealData.organization_id,
+        );
+        if (org) {
+          dealData.organization_name = org.organization_name;
+        }
+      }
+
+      eventBus.emit(EVENTS.DEAL_CREATE, { dealData });
+      document.getElementById("form-modal")?.classList.add("hidden");
+      event.target.reset();
     }
   });
   initializeTheme();
@@ -268,98 +366,6 @@ function handleDbError(event) {
   showNotification(`Database error: ${event.detail.error}`, "error");
 }
 
-function handleLeadCreate(event) {
-  if (!isDbReady || !dbWorker) {
-    showNotification("Database not ready yet. Please wait.", "error");
-    return;
-  }
-
-  const leadData = {
-    lead_id: Date.now(),
-    ...event.detail.leadData,
-    created_on: new Date(),
-    modified_on: new Date(),
-  };
-
-  dbWorker.postMessage({
-    action: "createLead",
-    leadData,
-  });
-}
-
-function handleLeadCreated(event) {
-  showNotification("Lead created successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
-  }
-}
-
-function handleLeadDelete(event) {
-  if (!dbWorker) return;
-
-  const id = Number(event.detail.id);
-  dbWorker.postMessage({ action: "deleteLead", id });
-}
-
-function handleLeadDeleted(event) {
-  showNotification("Lead deleted successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
-  }
-}
-
-function handleOrganizationDelete(event) {
-  if (!dbWorker) return;
-
-  const id = Number(event.detail.id);
-  dbWorker.postMessage({ action: "deleteOrganization", id });
-}
-
-function handleOrganizationDeleted(event) {
-  showNotification("Organization deleted successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/organizations" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllOrganizations" });
-  }
-}
-
-function handleOrganizationCreate(event) {
-  if (!isDbReady || !dbWorker) {
-    showNotification("Database not ready yet. Please wait.", "error");
-    return;
-  }
-
-  const organizationData = {
-    organization_id: Date.now(),
-    ...event.detail.organizationData,
-    created_on: new Date(),
-    modified_on: new Date(),
-  };
-
-  dbWorker.postMessage({
-    action: "createOrganization",
-    organizationData,
-  });
-}
-
-function handleOrganizationCreated(event) {
-  showNotification("Organization created successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/organizations" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllOrganizations" });
-  }
-}
-
-function handleOrganizationExport(event) {
-  exportDb();
-}
-
 function handleModalClose(event) {
   console.log("inside modal fn", event);
   // localStorage.setItem("");
@@ -371,44 +377,6 @@ function handleThemeToggle(event) {
 
   root.classList.toggle("dark", theme === "dark");
   localStorage.setItem("theme", theme);
-}
-
-function showNotification(message, type = "info") {
-  const notification = document.createElement("div");
-  notification.className = `fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 z-50 ${
-    type === "success"
-      ? "bg-green-500 text-white"
-      : type === "error"
-        ? "bg-red-500 text-white"
-        : "bg-blue-500 text-white"
-  }`;
-  notification.textContent = message;
-
-  document.body.appendChild(notification);
-
-  setTimeout(() => {
-    notification.style.transform = "translateX(400px)";
-    setTimeout(() => notification.remove(), 300);
-  }, 3000);
-}
-
-function showMessage(event) {
-  const payload = event?.detail || event;
-  const message = payload?.message ?? payload;
-
-  const messages = document.getElementById("messages");
-  if (!messages) return;
-
-  const msgElement = document.createElement("div");
-  msgElement.className = "text-gray-700 dark:text-gray-300 mb-1";
-  msgElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
-
-  messages.appendChild(msgElement);
-  messages.scrollTop = messages.scrollHeight;
-
-  while (messages.children.length > 10) {
-    messages.removeChild(messages.firstChild);
-  }
 }
 
 function handleLoginSuccess(event) {
@@ -438,4 +406,12 @@ function handleUserCreated(event) {
 
 function calculateScore() {
   dbWorker.postMessage({ action: "calculateScore" });
+}
+
+function handleLeadExport(event) {
+  exportDb("Leads");
+}
+
+function handleOrganizationExport(event) {
+  exportDb("Organizations");
 }
