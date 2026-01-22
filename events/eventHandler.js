@@ -1,17 +1,17 @@
 import { eventBus, EVENTS } from "./eventBus.js";
 import { exportDb } from "../services/exportDb.js";
-import {
-  handleLeadCreate,
-  handleLeadCreated,
-  handleLeadDelete,
-  handleLeadDeleted,
-} from "./leadEvents.js";
-import {
-  handleOrganizationCreate,
-  handleOrganizationCreated,
-  handleOrganizationDelete,
-  handleOrganizationDeleted,
-} from "./organizationEvents.js";
+// import {
+//   handleLeadCreate,
+//   handleLeadCreated,
+//   handleLeadDelete,
+//   handleLeadDeleted,
+// } from "./leadEvents.js";
+// import {
+//   handleOrganizationCreate,
+//   handleOrganizationCreated,
+//   handleOrganizationDelete,
+//   handleOrganizationDeleted,
+// } from "./organizationEvents.js";
 import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
 import { showMessage, showNotification } from "./notificationEvents.js";
 
@@ -22,7 +22,7 @@ export function initializeEventHandlers(worker) {
   dbWorker = worker;
 
   // Event bus listeners
-  eventBus.on(EVENTS.DB_READY, handleDbReady);
+  // eventBus.on(EVENTS.DB_READY, handleDbReady);
   eventBus.on(EVENTS.DB_ERROR, handleDbError);
   eventBus.on(EVENTS.LEAD_CREATE, handleLeadCreate);
   eventBus.on(EVENTS.LEAD_CREATED, handleLeadCreated);
@@ -43,6 +43,8 @@ export function initializeEventHandlers(worker) {
   eventBus.on(EVENTS.LEADS_SCORE, calculateScore);
   eventBus.on(EVENTS.DEAL_CREATE, handleDealCreate);
   eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
+  eventBus.on(EVENTS.DEAL_DELETE, handleDealDelete);
+  eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
 
   document.addEventListener(
     "DOMContentLoaded",
@@ -69,6 +71,11 @@ export function initializeEventHandlers(worker) {
       return;
     }
 
+    if (e.target.closest("#calculate-score")) {
+      eventBus.emit(EVENTS.LEADS_SCORE);
+      return;
+    }
+
     if (e.target.closest("#export-leads")) {
       eventBus.emit(EVENTS.LEADS_EXPORT);
       return;
@@ -77,6 +84,10 @@ export function initializeEventHandlers(worker) {
     if (e.target.closest("#export-organizations")) {
       eventBus.emit(EVENTS.ORGANIZATION_EXPORT);
       return;
+    }
+
+    if (e.target.closest("#export-deals")) {
+      eventBus.emit(EVENTS.DEAL_EXPORT);
     }
 
     if (e.target.closest(".dropdown-btn")) {
@@ -117,6 +128,7 @@ export function initializeEventHandlers(worker) {
     }
 
     if (e.target.closest("#deleteLead")) {
+      e.preventDefault();
       e.stopImmediatePropagation();
 
       const deleteBtn = e.target.closest("#deleteLead");
@@ -152,7 +164,6 @@ export function initializeEventHandlers(worker) {
         dropdown.classList.add("hidden");
       }
 
-      
       return;
     }
 
@@ -170,6 +181,27 @@ export function initializeEventHandlers(worker) {
           eventBus.emit(EVENTS.ORGANIZATION_DELETE, {
             id: Number(organization_id),
           });
+        }
+      }
+
+      const dropdown = deleteBtn.closest(".dropdown-menu");
+      if (dropdown) {
+        dropdown.classList.add("hidden");
+      }
+      return;
+    }
+
+    if (e.target.closest("#deleteDeal")) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+
+      const deleteBtn = e.target.closest("#deleteDeal");
+      const dealRow = deleteBtn.closest("tr");
+      const deal_id = dealRow?.getAttribute("data-deal-id");
+
+      if (deal_id) {
+        if (confirm("Are you sure you want to delete this lead?")) {
+          eventBus.emit(EVENTS.DEAL_DELETE, { id: Number(deal_id) });
         }
       }
 
@@ -344,22 +376,22 @@ function initializeTheme() {
   }
 }
 
-function handleDbReady(event) {
-  isDbReady = true;
+// function handleDbReady(event) {
+//   isDbReady = true;
 
-  const createDbBtn = document.getElementById("data-createDb");
-  if (createDbBtn) {
-    createDbBtn.textContent = "DB Ready";
-    createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
-    createDbBtn.classList.add(
-      "bg-green-100",
-      "dark:bg-green-900",
-      "text-green-600",
-      "dark:text-green-300",
-    );
-    createDbBtn.disabled = true;
-  }
-}
+//   const createDbBtn = document.getElementById("data-createDb");
+//   if (createDbBtn) {
+//     createDbBtn.textContent = "DB Ready";
+//     createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
+//     createDbBtn.classList.add(
+//       "bg-green-100",
+//       "dark:bg-green-900",
+//       "text-green-600",
+//       "dark:text-green-300",
+//     );
+//     createDbBtn.disabled = true;
+//   }
+// }
 
 function handleDbError(event) {
   console.error("[EventHandlers] Database error:", event.detail);
@@ -414,4 +446,103 @@ function handleLeadExport(event) {
 
 function handleOrganizationExport(event) {
   exportDb("Organizations");
+}
+
+function handleDealExport(event) {
+  exportDb("Deals");
+}
+
+function handleLeadCreate(event) {
+  if (!isDbReady || !dbWorker) {
+    showNotification("Database not ready yet. Please wait.", "error");
+    return;
+  }
+
+  const leadData = {
+    lead_id: Date.now(),
+    ...event.detail.leadData,
+    created_on: new Date(),
+    modified_on: new Date(),
+  };
+
+  dbWorker.postMessage({
+    action: "createLead",
+    leadData,
+  });
+}
+
+function handleLeadCreated(event) {
+  showNotification("Lead created successfully!", "success");
+
+  const currentTab = sessionStorage.getItem("currentTab");
+  if (currentTab === "/leads" && dbWorker) {
+    dbWorker.postMessage({ action: "getAllLeads" });
+  }
+}
+
+function handleLeadDelete(event) {
+  if (!dbWorker) return;
+
+  const id = Number(event.detail.id);
+  dbWorker.postMessage({ action: "deleteLead", id });
+}
+
+function handleLeadDeleted(event) {
+  showNotification("Lead deleted successfully!", "success");
+
+  const currentTab = sessionStorage.getItem("currentTab");
+  if (currentTab === "/leads" && dbWorker) {
+    dbWorker.postMessage({ action: "getAllLeads" });
+  }
+}
+
+function handleOrganizationCreate(event) {
+  if (!isDbReady || !dbWorker) {
+    showNotification("Database not ready yet. Please wait.", "error");
+    return;
+  }
+
+  const organizationData = {
+    organization_id: Date.now(),
+    ...event.detail.organizationData,
+    created_on: new Date(),
+    modified_on: new Date(),
+  };
+
+  dbWorker.postMessage({
+    action: "createOrganization",
+    organizationData,
+  });
+}
+
+function handleOrganizationCreated(event) {
+  showNotification("Organization created successfully!", "success");
+
+  const currentTab = sessionStorage.getItem("currentTab");
+  if (currentTab === "/organizations" && dbWorker) {
+    dbWorker.postMessage({ action: "getAllOrganizations" });
+  }
+}
+
+function handleOrganizationDelete(event) {
+  if (!dbWorker) return;
+
+  const id = Number(event.detail.id);
+  dbWorker.postMessage({ action: "deleteOrganization", id });
+}
+
+function handleOrganizationDeleted(event) {
+  showNotification("Organization deleted successfully!", "success");
+
+  const currentTab = sessionStorage.getItem("currentTab");
+  if (currentTab === "/organizations" && dbWorker) {
+    dbWorker.postMessage({ action: "getAllOrganizations" });
+  }
+}
+
+function handleDealDelete(event){
+  if (!dbWorker) return;
+
+  const id = Number(event.detail.id);
+  dbWorker.postMessage({ action: "deleteLead", id });
 }

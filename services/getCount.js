@@ -35,6 +35,15 @@ export function getCount(db, dbReady) {
         }
       });
 
+      const totalValue = request.result.reduce(
+        (accumulator, currentValue) => accumulator + currentValue.deal_value,
+        0,
+      );
+
+      const avg_value = Math.floor(totalValue / request.result.length).toFixed(
+        2,
+      );
+
       // const ongoingDeals = request.result.filter(
       //   (deal) => deal.deal_status === "Ongoing",
       // );
@@ -44,6 +53,7 @@ export function getCount(db, dbReady) {
       console.log("Users with role:", wonDeals);
       // console.log("Users ongoing: ", ongoingDeals);
       console.log("Deal Value: ", dealValue);
+      console.log("Avg deal value: ", avg_value);
 
       postMessage({
         action: "getDataSuccess",
@@ -51,6 +61,7 @@ export function getCount(db, dbReady) {
         deals_won: wonDeals.length,
         deals_ongoing: ongoingDeals,
         deal_value_won: dealValue,
+        avg_deal_value: avg_value,
       });
     };
   } catch (error) {

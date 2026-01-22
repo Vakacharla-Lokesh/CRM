@@ -5,5 +5,9 @@ export const usersStructure = {
     user_id: 1,
     user_email: "hello@gmail.com",
     password: "testing",
+    first_name: "Lokesh",
+    last_name: "Testing",
+    mobile: "909090",
+    role: "Admin",
   },
 };

@@ -38,6 +38,7 @@ export function populateLeadsTable(leads) {
     const createdDate = lead.created_on
       ? new Date(lead.created_on).toLocaleDateString()
       : "N/A";
+    const score = lead.score || "0";
 
     row.innerHTML = `
       <td class="w-4 p-4">
@@ -57,8 +58,7 @@ export function populateLeadsTable(leads) {
       </td>
       <td class="px-6 py-4">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-          <span class="w-1.5 h-1.5 mr-1.5 bg-green-500 rounded-full"></span>
-          Active
+          ${score}
         </span>
       </td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">

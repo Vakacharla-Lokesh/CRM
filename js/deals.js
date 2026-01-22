@@ -27,10 +27,6 @@ export function initializeDealsPage(worker) {
 
   // Modal controls
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#export-deals")) {
-      handleExportDeals();
-    }
-
     if (e.target.closest("#editDeal")) {
       e.stopImmediatePropagation();
       handleEditDeal(e);
@@ -298,78 +294,4 @@ function handleDeleteDeal(e) {
   if (dropdown) {
     dropdown.classList.add("hidden");
   }
-}
-
-function handleExportDeals() {
-  if (!dbWorker) {
-    console.error("Database worker not available");
-    return;
-  }
-
-  const messageHandler = (e) => {
-    const { action, data, storeName } = e.data;
-
-    if (action === "getAllSuccess" && storeName === "Deals") {
-      dbWorker.removeEventListener("message", messageHandler);
-      exportToCSV(data || []);
-    }
-  };
-
-  dbWorker.addEventListener("message", messageHandler);
-  dbWorker.postMessage({
-    action: "getAllDeals",
-    storeName: "Deals",
-  });
-
-  setTimeout(() => {
-    dbWorker.removeEventListener("message", messageHandler);
-  }, 5000);
-}
-
-function exportToCSV(deals) {
-  if (!deals || deals.length === 0) {
-    alert("No deals to export");
-    return;
-  }
-
-  // Get all unique keys
-  const keys = [
-    ...new Set(deals.flatMap((deal) => Object.keys(deal))),
-  ];
-
-  // Create CSV header
-  const headers = keys.join(",");
-
-  // Create CSV rows
-  const rows = deals
-    .map((deal) =>
-      keys
-        .map((key) => {
-          let value = deal[key];
-          if (value === null || value === undefined) {
-            return "";
-          }
-          if (typeof value === "string" && value.includes(",")) {
-            return `"${value}"`;
-          }
-          return value;
-        })
-        .join(","),
-    )
-    .join("\n");
-
-  const csv = `${headers}\n${rows}`;
-
-  // Create blob and download
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-  const link = document.createElement("a");
-  const url = URL.createObjectURL(blob);
-
-  link.setAttribute("href", url);
-  link.setAttribute("download", `deals_${new Date().getTime()}.csv`);
-  link.style.visibility = "hidden";
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 }

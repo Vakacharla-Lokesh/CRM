@@ -100,14 +100,6 @@ template.innerHTML = `
                 </div>
               </div>
             </div>
-
-            <button
-              id="data-createDb"
-              class="px-3 py-1.5 text-sm rounded-lg bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-800 transition-colors"
-            >
-              Create DB
-            </button>
-
             <button
               id="theme-toggle"
               title="Toggle theme"
@@ -144,7 +136,7 @@ class AppNavbar extends HTMLElement {
       this.dbStatusBtn.addEventListener("click", this.handleDbCreate.bind(this));
     }
 
-    eventBus.on(EVENTS.DB_READY, this.handleDbReady.bind(this));
+    // eventBus.on(EVENTS.DB_READY, this.handleDbReady.bind(this));
   }
 
   initializeTheme() {
@@ -173,14 +165,14 @@ class AppNavbar extends HTMLElement {
     }
   }
 
-  handleDbReady() {
-    const btn = document.getElementById("data-createDb");
-    if (btn) {
-      btn.textContent = "DB Ready";
-      btn.classList.add("db-ready");
-      btn.disabled = true;
-    }
-  }
+  // handleDbReady() {
+  //   const btn = document.getElementById("data-createDb");
+  //   if (btn) {
+  //     btn.textContent = "DB Ready";
+  //     btn.classList.add("db-ready");
+  //     btn.disabled = true;
+  //   }
+  // }
 }
 
 customElements.define("app-navbar", AppNavbar);

@@ -4,6 +4,7 @@ import { dealsStructure } from "./dealModel.js";
 import { leadsStructure } from "./leadModel.js";
 import { organizationsStructure } from "./organizationModel.js";
 import { usersStructure } from "./userModel.js";
+import { attachmentsStructure } from "./attachmentModel.js";
 
 export const stores = {
   Leads: leadsStructure,
@@ -12,4 +13,5 @@ export const stores = {
   Deals: dealsStructure,
   Organizations: organizationsStructure,
   Users: usersStructure,
+  Attachments: attachmentsStructure,
 };

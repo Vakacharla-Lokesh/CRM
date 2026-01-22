@@ -8,8 +8,8 @@ function scoreLead(lead) {
   //   score += (lead.clicks || 0) * 5;
   score += (lead.comments || 0) * 4;
 
-  if (lead.organization_size >= 10) score += 10;
-  if (lead.organization_size >= 50) score += 10;
+  if (lead.organization_size >= 100) score += 10;
+  if (lead.organization_size >= 500) score += 10;
 
   if (lead.email && !lead.email.includes("gmail.com")) {
     score += 5;

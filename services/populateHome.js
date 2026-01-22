@@ -11,4 +11,7 @@ export function populateHome(data) {
 
   let dealValueWon = document.querySelector("#data-won-deals-value");
   dealValueWon.textContent = `$ ${data.deal_value_won}`;
+
+  let avgDealValue = document.querySelector("#data-avg-deals-value");
+  avgDealValue.textContent = `$ ${data.avg_deal_value}`;
 }

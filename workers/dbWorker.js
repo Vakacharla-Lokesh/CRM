@@ -121,6 +121,30 @@ self.onmessage = (e) => {
       updateData("Leads", e.data.leadData, dbReady, db);
       break;
 
+    case "createAttachment":
+      insertData(e.data.attachmentData, "Attachments", dbReady, db);
+      break;
+
+    case "getAllAttachments":
+      getAllData("Attachments", dbReady, db);
+      break;
+
+    case "deleteAttachment":
+      deleteData(e.data.id, "Attachments", dbReady, db);
+      break;
+
+    case "createComment":
+      insertData(e.data.commentData, "Comments", dbReady, db);
+      break;
+
+    case "getAllComments":
+      getAllData("Comments", dbReady, db);
+      break;
+
+    case "deleteComment":
+      deleteData(e.data.id, "Comments", dbReady, db);
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }

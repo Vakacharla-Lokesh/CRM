@@ -15,7 +15,7 @@ const routes = {
   "/signup": "/pages/signup.html",
 };
 
-// Routes that need special script loading
+// Routes that need script loading
 const routeScripts = {
   "/login": "/js/login.js",
   "/signup": "/js/signup.js",
@@ -129,7 +129,6 @@ async function loadPageScript(path) {
   const scriptPath = routeScripts[path];
   if (!scriptPath) return;
 
-  // Remove previously loaded route scripts
   loadedScripts.forEach((scriptUrl) => {
     const existingScript = document.querySelector(`script[src="${scriptUrl}"]`);
     if (existingScript) {
@@ -138,7 +137,6 @@ async function loadPageScript(path) {
   });
   loadedScripts.clear();
 
-  // Load new script
   return new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.type = "module";

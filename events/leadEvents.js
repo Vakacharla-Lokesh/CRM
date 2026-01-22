@@ -1,4 +1,4 @@
-export function handleLeadCreate(event) {
+export function handleLeadCreate(event, isDbReady, dbWorker) {
   if (!isDbReady || !dbWorker) {
     showNotification("Database not ready yet. Please wait.", "error");
     return;

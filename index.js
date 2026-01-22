@@ -1,6 +1,5 @@
 import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
-import { addTestUsers } from "./services/addTestUsers.js";
 import WSClient from "./websockets/client.js";
 
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
@@ -100,7 +99,7 @@ dbWorker.addEventListener("message", (e) => {
   const payload = e.data || {};
 
   if (payload.action === "dbReady") {
-    eventBus.emit(EVENTS.DB_READY, payload);
+    // eventBus.emit(EVENTS.DB_READY, payload);
     addNotification("Database initialized successfully", "success");
   }
 

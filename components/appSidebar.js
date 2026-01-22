@@ -80,24 +80,6 @@ template.innerHTML = `
                 <span>Deals</span>
               </a>
             </nav>
-
-            <div class="mt-auto pt-4">
-              <div
-                id="User"
-                class="h-32 w-full overflow-y-auto bg-gray-100 dark:bg-gray-900 rounded p-2 text-xs font-mono"
-              >
-                <button
-                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
-                >
-                  <a data-link="/login">Login</a>
-                </button>
-                <button
-                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
-                >
-                  Logout
-                </button>
-              </div>
-            </div>
           </div>
         </aside>
 `;
@@ -155,3 +137,21 @@ class AppSidebar extends HTMLElement {
 }
 
 customElements.define("app-sidebar", AppSidebar);
+
+{/* <div class="mt-auto pt-4">
+              <div
+                id="User"
+                class="h-32 w-full overflow-y-auto bg-gray-100 dark:bg-gray-900 rounded p-2 text-xs font-mono"
+              >
+                <button
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
+                >
+                  <a data-link="/login">Login</a>
+                </button>
+                <button
+                  class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
+                >
+                  Logout
+                </button>
+              </div>
+            </div> */}

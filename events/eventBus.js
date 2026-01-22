@@ -43,6 +43,7 @@ export const EVENTS = {
   DEAL_UPDATED: "deal:updated",
   DEAL_DELETE: "deal:delete",
   DEAL_DELETED: "deal:deleted",
+  DEAL_EXPORT: "deal:export",
   ORGANIZATION_CREATE: "organization:create",
   ORGANIZATION_CREATED: "organization:created",
   ORGANIZATION_DELETE: "organization:delete",
