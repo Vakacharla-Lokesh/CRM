@@ -145,6 +145,17 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Comments", dbReady, db);
       break;
 
+    case "createCall":
+      insertData(e.data.callData, "Calls", dbReady, db);
+      break;
+
+    case "getAllCalls":
+      getAllData("Calls", dbReady, db);
+      break;
+
+    case "deleteCall":
+      deleteData(e.data.id, "Calls", dbReady, db);
+      break;
     default:
       console.warn("Unknown action:", e.data.action);
   }

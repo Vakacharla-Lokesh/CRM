@@ -14,6 +14,7 @@ import { exportDb } from "../services/exportDb.js";
 // } from "./organizationEvents.js";
 import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
 import { showMessage, showNotification } from "./notificationEvents.js";
+import { loadRoute } from "../router.js";
 
 let dbWorker = null;
 let isDbReady = false;
@@ -22,7 +23,7 @@ export function initializeEventHandlers(worker) {
   dbWorker = worker;
 
   // Event bus listeners
-  // eventBus.on(EVENTS.DB_READY, handleDbReady);
+  eventBus.on(EVENTS.DB_READY, handleDbReady);
   eventBus.on(EVENTS.DB_ERROR, handleDbError);
   eventBus.on(EVENTS.LEAD_CREATE, handleLeadCreate);
   eventBus.on(EVENTS.LEAD_CREATED, handleLeadCreated);
@@ -107,7 +108,10 @@ export function initializeEventHandlers(worker) {
     }
 
     if (e.target.closest("#editLead")) {
+      e.preventDefault();
       e.stopImmediatePropagation();
+
+      // console.log("Inside edit lead");
 
       const editBtn = e.target.closest("#editLead");
       const leadRow = editBtn.closest("tr");
@@ -120,10 +124,11 @@ export function initializeEventHandlers(worker) {
         dropdown.classList.add("hidden");
       }
 
-      // Navigate to lead details page
-      if (window.router && window.router.loadRoute) {
-        window.router.loadRoute("/leadsDetails");
-      }
+      // console.log("Before loadroute");
+
+      window.router.loadRoute("/leadsDetails");
+
+      // console.log("After loadroute");
       return;
     }
 
@@ -260,6 +265,12 @@ export function initializeEventHandlers(worker) {
           document.getElementById("organization_industry")?.value?.trim() || "",
       };
 
+      const regex = /^[1-9]\d{9}$/;
+      if (!regex.test(leadData.lead_mobile_number)) {
+        alert("Please enter a valid 10-digit mobile number.");
+        e.preventDefault();
+      }
+
       if (!leadData.lead_first_name || !leadData.lead_email) {
         showNotification("Please fill in required fields", "error");
         return;
@@ -376,22 +387,22 @@ function initializeTheme() {
   }
 }
 
-// function handleDbReady(event) {
-//   isDbReady = true;
+function handleDbReady(event) {
+  isDbReady = true;
 
-//   const createDbBtn = document.getElementById("data-createDb");
-//   if (createDbBtn) {
-//     createDbBtn.textContent = "DB Ready";
-//     createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
-//     createDbBtn.classList.add(
-//       "bg-green-100",
-//       "dark:bg-green-900",
-//       "text-green-600",
-//       "dark:text-green-300",
-//     );
-//     createDbBtn.disabled = true;
-//   }
-// }
+  const createDbBtn = document.getElementById("data-createDb");
+  if (createDbBtn) {
+    createDbBtn.textContent = "DB Ready";
+    createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
+    createDbBtn.classList.add(
+      "bg-green-100",
+      "dark:bg-green-900",
+      "text-green-600",
+      "dark:text-green-300",
+    );
+    createDbBtn.disabled = true;
+  }
+}
 
 function handleDbError(event) {
   console.error("[EventHandlers] Database error:", event.detail);
@@ -420,7 +431,7 @@ function handleLoginSuccess(event) {
       window.router.loadRoute("/home");
     } else {
       // Fallback if router not available
-      window.location.href = "/#/home";
+      window.router.loadRoute("/login");
     }
   }, 500);
 }
@@ -540,7 +551,7 @@ function handleOrganizationDeleted(event) {
   }
 }
 
-function handleDealDelete(event){
+function handleDealDelete(event) {
   if (!dbWorker) return;
 
   const id = Number(event.detail.id);

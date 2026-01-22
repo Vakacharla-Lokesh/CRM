@@ -18,7 +18,7 @@ export async function addTestUsers() {
         user_email: "john.doe@example.com",
         password: "john123",
         name: "John Doe",
-        role: "sales",
+        role: "user",
         createdAt: new Date().toISOString(),
       },
       {
@@ -26,7 +26,7 @@ export async function addTestUsers() {
         user_email: "jane.smith@example.com",
         password: "jane123",
         name: "Jane Smith",
-        role: "manager",
+        role: "user",
         createdAt: new Date().toISOString(),
       },
       {
@@ -34,7 +34,7 @@ export async function addTestUsers() {
         user_email: "testing@example.com",
         password: "testing",
         name: "Test User",
-        role: "sales",
+        role: "user",
         createdAt: new Date().toISOString(),
       },
     ];
@@ -60,7 +60,7 @@ export async function addTestUsers() {
     }
 
     tx.oncomplete = () => {
-      console.log("✓ All test users have been added to IndexedDB");
+      console.log("All test users have been added");
     };
 
     tx.onerror = () => {
@@ -99,7 +99,7 @@ export async function clearAllUsers() {
     const request = store.clear();
 
     request.onsuccess = () => {
-      console.log("✓ All users have been cleared from IndexedDB");
+      console.log("All users have been cleared");
     };
 
     request.onerror = () => {

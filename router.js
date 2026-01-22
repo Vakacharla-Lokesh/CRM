@@ -3,6 +3,7 @@ import { populateLeadsTable } from "./services/populateLeads.js";
 import { populateOrganizationsTable } from "./services/populateOrganizations.js";
 import { initializeDealsPage } from "./js/deals.js";
 import { populateDealsTable } from "./services/populateDeals.js";
+import { addTestUsers } from "./services/addTestUsers.js";
 
 const routes = {
   "/": "/pages/home.html",
@@ -25,10 +26,11 @@ const routeScripts = {
 let sidebar = null;
 let loadedScripts = new Set();
 
-function attachDbWorkerListener() {
+export function attachDbWorkerListener() {
   const dbWorker = window.dbWorker;
   if (!dbWorker) {
     console.warn("dbWorker not available yet");
+
     return;
   }
 
@@ -82,7 +84,8 @@ function attachDbWorkerListener() {
       const orgSelect = document.getElementById("organization_id");
       if (orgSelect) {
         const currentValue = orgSelect.value;
-        orgSelect.innerHTML = '<option value="">Select an Organization</option>';
+        orgSelect.innerHTML =
+          '<option value="">Select an Organization</option>';
         (data || []).forEach((org) => {
           const option = document.createElement("option");
           option.value = org.organization_id;
@@ -123,8 +126,6 @@ function attachDbWorkerListener() {
   });
 }
 
-attachDbWorkerListener();
-
 async function loadPageScript(path) {
   const scriptPath = routeScripts[path];
   if (!scriptPath) return;
@@ -151,8 +152,20 @@ async function loadPageScript(path) {
 }
 
 export async function loadRoute(path) {
-  const route = routes[path] || routes["/home"];
-  const sidebar = document.getElementById("default-sidebar");
+  const user = localStorage.getItem("authToken");
+  let route = routes[path];
+  if (user) {
+    route = routes[path] || routes["/home"];
+  } else {
+    route = routes["/login"];
+  }
+  sidebar = document.getElementById("default-sidebar");
+  // console.log(sidebar.classList);
+  if (route == "/login" || route == "/signup") {
+    sidebar.classList.add("hidden");
+  } else {
+    sidebar.classList.remove("hidden");
+  }
 
   try {
     const response = await fetch(route);
@@ -238,29 +251,37 @@ function updateSidebarActiveState(path) {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  sidebar = document.getElementById("default-sidebar");
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    sidebar = document.getElementById("default-sidebar");
 
-  if (sidebar) {
-    sidebar.addEventListener("click", (event) => {
-      const link = event.target.closest("a[data-link]");
-      if (!link) return;
+    // addTestUsers();
 
-      event.preventDefault();
-      const path = link.getAttribute("data-link");
-      loadRoute(path);
+    // if (sidebar) {
+    //   sidebar.addEventListener("click", (event) => {
+    //     const link = event.target.closest("a[data-link]");
+    //     if (!link) return;
+
+    //     event.preventDefault();
+    //     const path = link.getAttribute("data-link");
+    //     loadRoute(path);
+    //   });
+    // }
+
+    const user = localStorage.getItem("authToken");
+
+    let savedTab = user ? "/home" : "/login";
+    loadRoute(savedTab);
+
+    window.addEventListener("popstate", () => {
+      const path = window.location.pathname;
+      if (routes[path]) {
+        loadRoute(path);
+      }
     });
-  }
 
-  const savedTab = sessionStorage.getItem("currentTab") || "/home";
-  loadRoute(savedTab);
-
-  window.addEventListener("popstate", () => {
-    const path = window.location.pathname;
-    if (routes[path]) {
-      loadRoute(path);
-    }
-  });
-
-  window.router = { loadRoute };
-});
+    window.router = { loadRoute };
+  },
+  { once: true },
+);

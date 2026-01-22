@@ -106,7 +106,6 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      // Store auth information
       localStorage.setItem("authToken", result.user.userId);
       localStorage.setItem("userId", result.user.userId);
       localStorage.setItem("userName", result.user.name);

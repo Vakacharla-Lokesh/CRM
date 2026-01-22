@@ -1,7 +1,7 @@
 export async function checkUserLogin(email, password) {
   return new Promise((resolve, reject) => {
     try {
-      const request = indexedDB.open("CRM");
+      const request = indexedDB.open("CRM_DB");
 
       request.onsuccess = (event) => {
         const db = event.target.result;

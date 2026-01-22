@@ -5,9 +5,6 @@
       <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
         Deals
       </h2>
-      <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-        Manage your sales deals and pipeline
-      </p>
     </div>
     <div class="flex gap-2">
       <button
@@ -16,13 +13,6 @@
         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
       >
         Export
-      </button>
-      <button
-        type="button"
-        id="open-modal-btn"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
-      >
-        + Create Deal
       </button>
     </div>
   </div>
@@ -130,124 +120,6 @@
           </svg>
         </button>
       </div>
-
-      <!-- Modal Body -->
-      <form
-        class="px-6 py-4"
-        data-form="createDeal"
-      >
-        <!-- Deal Information -->
-        <div class="mb-4">
-          <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Deal Information
-          </h4>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label
-                for="deal_name"
-                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Deal Name <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                id="deal_name"
-                required
-                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Product A Deal"
-              />
-            </div>
-            <div>
-              <label
-                for="deal_value"
-                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Deal Value <span class="text-red-500">*</span>
-              </label>
-              <input
-                type="number"
-                id="deal_value"
-                required
-                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="50000"
-              />
-            </div>
-            <div>
-              <label
-                for="lead_id"
-                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Lead
-              </label>
-              <select
-                id="lead_id"
-                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                <option value="">Select a Lead</option>
-              </select>
-            </div>
-            <div>
-              <label
-                for="organization_id"
-                class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-              >
-                Organization
-              </label>
-              <select
-                id="organization_id"
-                class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                <option value="">Select an Organization</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <!-- Deal Status -->
-        <div class="mb-6">
-          <h4 class="text-sm font-medium text-gray-900 dark:text-white mb-3">
-            Deal Status
-          </h4>
-          <div>
-            <label
-              for="deal_status"
-              class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
-              Status <span class="text-red-500">*</span>
-            </label>
-            <select
-              id="deal_status"
-              required
-              class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            >
-              <option value="">Select a Status</option>
-              <option value="Prospecting">Prospecting</option>
-              <option value="Qualification">Qualification</option>
-              <option value="Negotiation">Negotiation</option>
-              <option value="Ready to close">Ready to close</option>
-              <option value="Won">Won</option>
-              <option value="Lost">Lost</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <div class="flex gap-3">
-          <button
-            type="submit"
-            class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-colors"
-          >
-            Create Deal
-          </button>
-          <button
-            type="button"
-            id="close-modal-btn"
-            class="px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
-          >
-            Cancel
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 </div>

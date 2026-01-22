@@ -13,11 +13,11 @@ template.innerHTML = `
             class="flex items-center gap-2"
           >
             <img
-              src="https://flowbite.com/docs/images/logo.svg"
+              src="../crm.png"
               alt="Logo"
               class="h-7"
             />
-            <span class="text-lg font-semibold">CRM</span>
+            <span class="text-lg font-semibold">Campaign Flux</span>
           </a>
 
           <div class="flex items-center gap-3">
@@ -128,12 +128,18 @@ class AppNavbar extends HTMLElement {
   setupEventListeners() {
     this.themeToggle = document.getElementById("theme-toggle");
     if (this.themeToggle) {
-      this.themeToggle.addEventListener("click", this.handleThemeToggle.bind(this));
+      this.themeToggle.addEventListener(
+        "click",
+        this.handleThemeToggle.bind(this),
+      );
     }
 
     this.dbStatusBtn = document.getElementById("data-createDb");
     if (this.dbStatusBtn) {
-      this.dbStatusBtn.addEventListener("click", this.handleDbCreate.bind(this));
+      this.dbStatusBtn.addEventListener(
+        "click",
+        this.handleDbCreate.bind(this),
+      );
     }
 
     // eventBus.on(EVENTS.DB_READY, this.handleDbReady.bind(this));
@@ -141,7 +147,9 @@ class AppNavbar extends HTMLElement {
 
   initializeTheme() {
     const savedTheme = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     this.currentTheme = savedTheme || (prefersDark ? "dark" : "light");
     this.applyTheme(this.currentTheme);
   }

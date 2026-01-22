@@ -1,4 +1,5 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
+import { loadRoute } from "../router.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -28,21 +29,6 @@ template.innerHTML = `
                 <span>Home</span>
               </a>
               <a
-                data-link="/leads"
-                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
-              >
-                <svg
-                  class="w-5 h-5"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"
-                  />
-                </svg>
-                <span>Leads</span>
-              </a>
-              <a
                 data-link="/organizations"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
@@ -58,6 +44,21 @@ template.innerHTML = `
                   />
                 </svg>
                 <span>Organizations</span>
+              </a>
+              <a
+                data-link="/leads"
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
+              >
+                <svg
+                  class="w-5 h-5"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z"
+                  />
+                </svg>
+                <span>Leads</span>
               </a>
               <a
                 data-link="/deals"
@@ -87,7 +88,7 @@ template.innerHTML = `
 class AppSidebar extends HTMLElement {
   constructor() {
     super();
-    this.currentRoute = "/home";
+    this.currentRoute = sessionStorage.getItem("currentTab");
   }
 
   connectedCallback() {
@@ -95,50 +96,36 @@ class AppSidebar extends HTMLElement {
       this.innerHTML = template.innerHTML;
     }
     this.setupEventListeners();
-    this.restoreActiveRoute();
   }
 
   setupEventListeners() {
-    const links = this.querySelectorAll("a[data-route]");
+    // console.log("Inside setup event listener");
+    const links = this.querySelectorAll("a[data-link]");
     links.forEach((link) => {
-      link.addEventListener("click", (e) => {
-        e.preventDefault();
-        const route = link.getAttribute("data-route");
-        this.navigateTo(route);
+      // console.log(link);
+      link.addEventListener("click", (event) => {
+        event.preventDefault();
+        if (!link) return;
+
+        const path = link.getAttribute("data-link");
+        loadRoute(path);
       });
     });
   }
 
-  navigateTo(route) {
-    if (route === this.currentRoute) return;
-    this.currentRoute = route;
-    this.updateActiveLink(route);
-    window.history.pushState({}, "", route);
-    localStorage.setItem("activeRoute", route);
-    eventBus.emit(EVENTS.ROUTE_CHANGE, { route });
-    this.classList.remove("open");
-  }
-
   updateActiveLink(route) {
-    const links = this.querySelectorAll("a[data-route]");
+    const links = this.querySelectorAll("a[data-link]");
     links.forEach((link) => {
-      const linkRoute = link.getAttribute("data-route");
+      const linkRoute = link.getAttribute("data-lnik");
       link.classList.toggle("active", linkRoute === route);
     });
-  }
-
-  restoreActiveRoute() {
-    const savedRoute =
-      localStorage.getItem("activeRoute") || window.location.pathname;
-    this.currentRoute = savedRoute;
-    this.updateActiveLink(savedRoute);
-    eventBus.emit(EVENTS.ROUTE_CHANGE, { route: savedRoute });
   }
 }
 
 customElements.define("app-sidebar", AppSidebar);
 
-{/* <div class="mt-auto pt-4">
+{
+  /* <div class="mt-auto pt-4">
               <div
                 id="User"
                 class="h-32 w-full overflow-y-auto bg-gray-100 dark:bg-gray-900 rounded p-2 text-xs font-mono"
@@ -154,4 +141,5 @@ customElements.define("app-sidebar", AppSidebar);
                   Logout
                 </button>
               </div>
-            </div> */}
+            </div> */
+}
