@@ -67,7 +67,7 @@ self.onmessage = (e) => {
       getAllData("Organizations", dbReady, db);
       break;
 
-    case "getOrganization":
+    case "getOrganizationById":
       getDataById("Organizations", e.data.id, dbReady, db);
       break;
 
@@ -76,7 +76,7 @@ self.onmessage = (e) => {
       break;
 
     case "deleteLead":
-      console.log(e.data.id);
+      // console.log(e.data.id);
       deleteData(e.data.id, "Leads", dbReady, db);
       break;
 

@@ -1,20 +1,16 @@
-export function handleOrganizationCreate(event) {
-  if (!isDbReady || !dbWorker) {
-    showNotification("Database not ready yet. Please wait.", "error");
-    return;
-  }
+import { showNotification } from "./notificationEvents.js";
+import { exportDb } from "../services/exportDb.js";
 
-  const organizationData = {
-    organization_id: Date.now(),
-    ...event.detail.organizationData,
-    created_on: new Date(),
-    modified_on: new Date(),
-  };
+let dbWorker = null;
+let isDbReady = false;
 
-  dbWorker.postMessage({
-    action: "createOrganization",
-    organizationData,
-  });
+export function initializeOrganizationEventDependencies(worker, dbReady) {
+  dbWorker = worker;
+  isDbReady = dbReady;
+}
+
+export function setDbReady(ready) {
+  isDbReady = ready;
 }
 
 export function handleOrganizationCreated(event) {
@@ -40,4 +36,8 @@ export function handleOrganizationDeleted(event) {
   if (currentTab === "/organizations" && dbWorker) {
     dbWorker.postMessage({ action: "getAllOrganizations" });
   }
+}
+
+export function handleOrganizationExport(event) {
+  exportDb("Organizations");
 }

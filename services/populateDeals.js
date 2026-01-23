@@ -32,24 +32,34 @@ export function populateDealsTable(deals) {
       "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
     const dealName = deal.deal_name || `Deal #${deal.deal_id}`;
-    const leadName = deal.lead_first_name ? `${deal.lead_first_name} ${deal.lead_last_name || ""}`.trim() : "N/A";
+    const leadName = deal.lead_first_name
+      ? `${deal.lead_first_name} ${deal.lead_last_name || ""}`.trim()
+      : "N/A";
     const organization = deal.organization_name || "N/A";
-    const dealValue = deal.deal_value ? `$${Number(deal.deal_value).toLocaleString()}` : "$0";
+    const dealValue = deal.deal_value
+      ? `$${Number(deal.deal_value).toLocaleString()}`
+      : "$0";
     const status = deal.deal_status || "Prospecting";
     const createdDate = deal.created_on
       ? new Date(deal.created_on).toLocaleDateString()
       : "N/A";
 
     const statusColors = {
-      "Prospecting": "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
-      "Qualification": "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300",
-      "Negotiation": "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
-      "Ready to close": "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
-      "Won": "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
-      "Lost": "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
+      Prospecting:
+        "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
+      Qualification:
+        "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300",
+      Negotiation:
+        "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
+      "Ready to close":
+        "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
+      Won: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+      Lost: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300",
     };
 
-    const statusColor = statusColors[status] || "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300";
+    const statusColor =
+      statusColors[status] ||
+      "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300";
 
     row.innerHTML = `
       <td class="w-4 p-4">
@@ -76,32 +86,22 @@ export function populateDealsTable(deals) {
         ${createdDate}
       </td>
       <td class="px-3 py-4">
-        <div class="relative inline-block">
-          <button type="button" class="dropdown-btn p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors" aria-label="Actions menu">
-            <svg class="w-5 h-5 text-gray-600 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10 6a2 2 0 110-4 2 2 0 010 4zM10 12a2 2 0 110-4 2 2 0 010 4zM10 18a2 2 0 110-4 2 2 0 010 4z" />
-            </svg>
-          </button>
-          
-          <div class="dropdown-menu hidden absolute right-0 top-full mt-1 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 py-1">
-            <a data-link="/dealDetails" id="editDeal" data-action="edit" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+        <div class="flex flex-row gap-1">
+            <a id="editDeal" data-action="edit" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
               <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
               Edit
             </a>
-            <div class="border-t border-gray-200 dark:border-gray-700 my-1"></div>
-            <a href="#" id="deleteDeal" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+            <a id="deleteDeal" class="block px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
               <svg class="w-4 h-4 inline-block mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
               Delete
             </a>
-          </div>
         </div>
       </td>
     `;
-
     tbody.appendChild(row);
   });
 

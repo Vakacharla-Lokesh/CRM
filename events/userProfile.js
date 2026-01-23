@@ -7,10 +7,13 @@ export function updateUserDetails() {
       >
         ${userData.user_name.slice(0, 1)}
       </div>
-      <div>
-        <p class="text-2xl font-medium text-white">
+      <div class="flex flex-col">
+        <span class="text-sm font-medium text-gray-900 dark:text-gray-100">
           ${userData.user_name}
-        </p>
+        </span>
+        <span class="text-xs text-gray-500 dark:text-gray-400">
+          ${userData.role}
+        </span>
       </div>
     </div>
     `;

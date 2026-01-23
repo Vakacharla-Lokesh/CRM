@@ -14,7 +14,32 @@ export const leadsStructure = {
     lead_status: "New",
     comment_ids: [],
     call_ids: [],
+    user_id: "1",
     created_on: new Date(),
     modified_on: new Date(),
   },
+  indexes: [
+    {
+      name: "lead_email",
+      keyPath: "lead_email",
+      options: { unique: true },
+    },
+    {
+      name: "lead_status",
+      keyPath: "lead_status",
+      options: { unique: false },
+    },
+    {
+      name: "organization_id",
+      keyPath: "organization_id",
+      options: { unique: false },
+    },
+    {
+      name: "user_id",
+      keyPath: "user_id",
+      options: {
+        unique: false,
+      },
+    },
+  ],
 };

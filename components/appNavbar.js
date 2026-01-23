@@ -13,7 +13,7 @@ template.innerHTML = `
             class="flex items-center gap-2"
           >
             <img
-              src="../crm.png"
+              src="../public/crm.png"
               alt="Logo"
               class="h-7"
             />
@@ -30,6 +30,13 @@ template.innerHTML = `
               Test Diagnostic
             </button>
             <div class="flex items-center gap-2">
+            <div
+                id="status-long-polling"
+                class="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span>LPS</span>
+              </div>
               <div
                 id="status-wss"
                 class="flex items-center gap-1 px-2 py-1 rounded text-xs"
@@ -107,13 +114,6 @@ template.innerHTML = `
                 </div>
               </div>
             </div>
-            <button
-              id="theme-toggle"
-              title="Toggle theme"
-              class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            >
-              🌙
-            </button>
           </div>
         </div>
       </nav>
@@ -220,3 +220,11 @@ class AppNavbar extends HTMLElement {
 }
 
 customElements.define("app-navbar", AppNavbar);
+
+// `<button
+//               id="theme-toggle"
+//               title="Toggle theme"
+//               class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+//             >
+//               🌙
+//             </button>`

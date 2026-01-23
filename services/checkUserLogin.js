@@ -11,12 +11,12 @@ export async function checkUserLogin(email, password) {
 
         getAllRequest.onsuccess = () => {
           const users = getAllRequest.result;
-          
+
           // Find user by email and password
           const user = users.find(
             (u) =>
               u.user_email?.toLowerCase() === email.toLowerCase() &&
-              u.password === password
+              u.password === password,
           );
 
           if (user) {
@@ -25,7 +25,8 @@ export async function checkUserLogin(email, password) {
               user: {
                 userId: user.user_id,
                 email: user.user_email,
-                name: user.user_name || "User",
+                name: user.name || "User",
+                role: user.role,
               },
             });
           } else {
@@ -64,7 +65,7 @@ export async function userExists(email) {
         getAllRequest.onsuccess = () => {
           const users = getAllRequest.result;
           const exists = users.some(
-            (u) => u.user_email?.toLowerCase() === email.toLowerCase()
+            (u) => u.user_email?.toLowerCase() === email.toLowerCase(),
           );
           resolve(exists);
         };
@@ -97,7 +98,7 @@ export async function getUserByEmail(email) {
         getAllRequest.onsuccess = () => {
           const users = getAllRequest.result;
           const user = users.find(
-            (u) => u.user_email?.toLowerCase() === email.toLowerCase()
+            (u) => u.user_email?.toLowerCase() === email.toLowerCase(),
           );
           resolve(user || null);
         };

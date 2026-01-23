@@ -2,7 +2,7 @@ class LeadPage extends HTMLElement {
   connectedCallback() {
     this.style.display = "block";
     this.style.width = "100%";
-    this.style.minHeight = "100vh";
+    // this.style.minHeight = "100vh";
 
     this.leadData = null;
     this.loadLeadHeader();
@@ -114,13 +114,25 @@ class LeadPage extends HTMLElement {
               <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                 <div class="w-full flex flex-row justify-between items-center gap-4">
                   <div class="flex flex-row items-center">
-                    <button id="back-to-leads" class="px-3 py-2 text-sm bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
-                      < Back
+                    <button
+                      id="back-to-leads"
+                      class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-all focus:outline-none focus:ring-2 focus:ring-gray-300 dark:focus:ring-gray-500"
+                    >
+                      <svg
+                        class="w-4 h-4"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M15 19l-7-7 7-7"
+                        />
+                      </svg>
+                      Back
                     </button>
-                    <div>
-                      <p class="text-xl font-semibold text-gray-900 dark:text-white">${fullName}</p>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">Lead ID: ${leadId}</p>
-                    </div>
                   </div>
                   <div class="">
                     <button id="convert-to-lead" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors">

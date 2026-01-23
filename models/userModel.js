@@ -10,4 +10,11 @@ export const usersStructure = {
     mobile: "909090",
     role: "Admin",
   },
+  indexes: [
+    {
+      name: "user_email",
+      keyPath: "user_email",
+      options: { unique: true },
+    },
+  ],
 };

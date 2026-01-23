@@ -35,7 +35,6 @@ function showError(field, message) {
   }
 }
 
-// Email validation on blur
 emailInput.addEventListener("blur", () => {
   const email = emailInput.value.trim();
   if (email && !validateEmail(email)) {
@@ -45,7 +44,7 @@ emailInput.addEventListener("blur", () => {
   }
 });
 
-// Password validation on blur
+// Password validation
 passwordInput.addEventListener("blur", () => {
   const password = passwordInput.value;
   if (password && !validatePassword(password)) {
@@ -55,7 +54,6 @@ passwordInput.addEventListener("blur", () => {
   }
 });
 
-// Clear errors on input
 emailInput.addEventListener("input", () => {
   if (emailError.classList.contains("visible")) {
     emailError.classList.add("hidden");
@@ -116,6 +114,7 @@ loginForm.addEventListener("submit", async (e) => {
           user_id: result.user.userId,
           user_name: result.user.name,
           authToken: generateId("user"),
+          role: result.user.role,
         }),
       );
 
@@ -155,16 +154,6 @@ function attachSignUpListener() {
         rememberCheckboxField.checked = true;
       }
     }
-  }
-
-  let signUpBtn = document.querySelector("#sign-up-btn");
-  if (signUpBtn) {
-    signUpBtn.addEventListener("click", (event) => {
-      event.preventDefault();
-      console.log("Inside ");
-      const path = signUpBtn.getAttribute("data-link");
-      loadRoute(path);
-    });
   }
 }
 

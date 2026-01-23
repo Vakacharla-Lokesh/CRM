@@ -11,10 +11,31 @@
       }
     }
 
+    debounce = (func, delay) => {
+      let timerId;
+      return (...args) => {
+        clearTimeout(timerId);
+        timerId = setTimeout(() => func(...args), delay);
+      };
+    };
+
+    performSearch = (searchTerm) => {
+      // if (!searchTerm) return;
+      // resultsDiv.innerHTML = `Searching for: ${query}`;
+      // console.log("API call for:", query);
+      this.filterRows(searchTerm);
+    };
+
+    debouncedSearch = this.debounce(this.performSearch, 500);
+
     setupFilter() {
       this.filterInput.addEventListener("input", (e) => {
         const searchTerm = e.target.value.toLowerCase().trim();
-        this.filterRows(searchTerm);
+        // this.filterRows(searchTerm);
+        // if(searchTerm == ""){
+        //   return;
+        // }
+        this.debouncedSearch(searchTerm);
       });
     }
 
@@ -209,7 +230,6 @@
         return;
       }
 
-      // Show loading state
       const originalHTML = this.bulkDeleteBtn.innerHTML;
       this.bulkDeleteBtn.disabled = true;
       this.bulkDeleteBtn.innerHTML = `
@@ -234,7 +254,6 @@
           }
         }
 
-        // Show result notification
         if (errorCount === 0) {
           this.showNotification(
             `Successfully deleted ${successCount} item(s)`,
@@ -247,10 +266,8 @@
           );
         }
 
-        // Refresh the table
         this.refreshTable(dbWorker);
 
-        // Reset checkboxes
         this.selectAllCheckbox.checked = false;
         this.selectAllCheckbox.indeterminate = false;
         this.updateBulkDeleteButton();
@@ -273,7 +290,6 @@
         const messageHandler = (e) => {
           const { action, error, storeName, id: deletedId } = e.data;
 
-          // Check if this is the response for our delete request
           if (storeName === this.storeName) {
             if (action === "deleteSuccess") {
               clearTimeout(timeoutId);
@@ -289,8 +305,7 @@
 
         dbWorker.addEventListener("message", messageHandler);
 
-        // Determine the correct action name
-        const actionName = `delete${this.storeName.slice(0, -1)}`; // e.g., "deleteLead"
+        const actionName = `delete${this.storeName.slice(0, -1)}`;
 
         dbWorker.postMessage({
           action: actionName,
@@ -324,10 +339,6 @@
       }, 3000);
     }
   }
-
-  // ===================================================================
-  // INITIALIZATION
-  // ===================================================================
   function initializeTableFeatures() {
     const currentPath = sessionStorage.getItem("currentTab");
 
@@ -371,19 +382,16 @@
     }
   }
 
-  // Initialize when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initializeTableFeatures);
   } else {
     initializeTableFeatures();
   }
 
-  // Re-initialize on route changes (for SPA behavior)
   window.addEventListener("popstate", () => {
     setTimeout(initializeTableFeatures, 100);
   });
 
-  // Export for manual initialization if needed
   window.TableFeatures = {
     TableFilter,
     BulkDeleteManager,

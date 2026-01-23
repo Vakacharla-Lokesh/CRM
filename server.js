@@ -1,52 +1,42 @@
 import express from "express";
+import cors from "cors";
+
 const app = express();
 const port = 3000;
 
-const exports = [];
+app.use(
+  cors({
+    origin: ["http://localhost:5000"],
+    credentials: true,
+  }),
+);
 
-function exportsCleanUp(exportId) {
-  setTimeout(() => {
-    delete exports[exportId];
-  }, 60000);
-}
+let latestMessage = null;
+let waitingClients = [];
 
-app.get("/api/export", (req, res) => {
-  const exportId = crypto.randomUUID();
+app.get("/poll", (req, res) => {
+  if (latestMessage) {
+    return res.json({ message: latestMessage });
+  }
 
-  exports[exportId] = { status: "processing" };
+  waitingClients.push(res);
 
-  setTimeout(() => {
-    exports[exportId] = {
-      status: "done",
-    };
-    exportsCleanUp(exportId);
-  }, 45000);
-
-  res.json({ exportId });
+  req.on("close", () => {
+    waitingClients = waitingClients.filter((r) => r !== res);
+  });
 });
 
-app.get("/api/export/status/:id", async (req, res) => {
-  const exportId = req.params.id;
-  const timeout = 30000;
-  const start = Date.now();
+app.post("/update", express.json(), (req, res) => {
+  latestMessage = req.body.message || "New update";
 
-  const checkStatus = () => {
-    const job = exports[exportId];
+  waitingClients.forEach((r) => r.json({ message: latestMessage }));
 
-    if (!job) {
-      return res.status(404).json({ error: "Not found" });
-    }
+  waitingClients = [];
+  latestMessage = null;
 
-    if (job.status === "done") {
-      return res.json(job);
-    }
+  res.sendStatus(200);
+});
 
-    if (Date.now() - start > timeout) {
-      return res.json({ status: "processing" });
-    }
-
-    setTimeout(checkStatus, 1000);
-  };
-
-  checkStatus();
+app.listen(port, () => {
+  console.log(`Server is running on http://localhost:${port}`);
 });

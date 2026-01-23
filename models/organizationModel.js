@@ -8,4 +8,16 @@ export const organizationsStructure = {
     organization_size: 50,
     organization_industry: "Software",
   },
+  indexes: [
+    {
+      name: "organization_id",
+      keyPath: "organization_id",
+      options: { unique: true },
+    },
+    {
+      name: "organization_name",
+      keyPath: "organization_name",
+      options: { unique: false },
+    },
+  ],
 };

@@ -10,7 +10,7 @@ export function dbCreate() {
       return;
     }
 
-    const request = indexedDB.open("CRM_DB", 3);
+    const request = indexedDB.open("CRM_DB", 4);
 
     request.onerror = () => {
       console.error("IndexedDB open failed:", request.error);
@@ -20,20 +20,29 @@ export function dbCreate() {
     request.onupgradeneeded = (event) => {
       db = event.target.result;
 
-      // console.log("Database upgrade needed. Creating stores...");
+      for (const store of Object.values(stores)) {
+        let objectStore;
 
-      for (const [key, store] of Object.entries(stores)) {
         if (!db.objectStoreNames.contains(store.name)) {
-          const objectStore = db.createObjectStore(store.name, {
+          objectStore = db.createObjectStore(store.name, {
             keyPath: store.keyPath,
           });
-          // console.log(`Created store: ${store.name}`);
+        } else {
+          objectStore = event.target.transaction.objectStore(store.name);
+        }
+
+        if (store.indexes && store.indexes.length) {
+          store.indexes.forEach((index) => {
+            if (!objectStore.indexNames.contains(index.name)) {
+              objectStore.createIndex(
+                index.name,
+                index.keyPath,
+                index.options || { unique: false },
+              );
+            }
+          });
         }
       }
-
-      db.objectStore("Users").createIndex("user_email", {
-        unique: true,
-      });
     };
 
     request.onsuccess = (event) => {

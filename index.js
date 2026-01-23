@@ -254,7 +254,29 @@ ws.onClose = () => {
   addNotification("WebSocket disconnected", "error");
 };
 
+// async function longPolling() {
+//   try {
+//     const res = await fetch("http://localhost:3000/poll");
+//     const data = await res.json();
+
+//     console.log(data.message);
+
+//     const wssLPS = document.getElementById("status-long-polling");
+//     if (wssLPS) {
+//       wssLPS.querySelector("span:first-child").classList.remove("bg-gray-400");
+//       wssLPS.querySelector("span:first-child").classList.add("bg-green-500");
+//     }
+//   } catch (err) {
+//     console.error("Long Polling error:", err);
+//   } finally {
+//     setTimeout(longPolling, 10000);
+//   }
+// }
+
+// longPolling();
+
 // THEME CONTROL
+
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
   themeToggle.addEventListener("click", () => {
