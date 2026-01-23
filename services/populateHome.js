@@ -1,5 +1,5 @@
 export function populateHome(data) {
-  console.log("Inside populate home fn ...", data);
+  // console.log("Inside populate home fn ...", data);
   // let totalLeads = document.querySelector("#data-total-leads");
   // totalLeads.textContent = data.lead_count;
 
@@ -72,7 +72,7 @@ export function populateHome(data) {
       id="data-avg-deals-value"
       class="mt-4 text-3xl font-semibold text-indigo-600 dark:text-indigo-400"
     >
-      $ ${data.avg_deal_value}
+      $ ${data.avg_deal_value || 0}
     </p>
   </div>
 `;

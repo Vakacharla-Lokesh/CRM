@@ -30,7 +30,7 @@ class LeadPage extends HTMLElement {
         return;
       }
 
-      this.leadData = await this.fetchLeadById(Number(leadId), dbWorker);
+      this.leadData = await this.fetchLeadById(leadId, dbWorker);
       this.renderPage();
     } catch (error) {
       console.error("Error loading lead:", error);
@@ -43,14 +43,16 @@ class LeadPage extends HTMLElement {
   }
 
   fetchLeadById(leadId, dbWorker) {
+    console.log(leadId);
+    console.log("Inside fetch Lead by Id");
     return new Promise((resolve, reject) => {
       const messageHandler = (e) => {
         const { action, data, error, id } = e.data;
 
-        if (action === "getByIdSuccess" && id === leadId) {
+        if (action === "getByIdSuccess" && id == leadId) {
           dbWorker.removeEventListener("message", messageHandler);
           resolve(data);
-        } else if (action === "getByIdError" && id === leadId) {
+        } else if (action === "getByIdError" && id == leadId) {
           // dbWorker.removeEventListener("message", messageHandler);
           dbWorker.postMessage({ action: "initialize" });
           // return;
@@ -77,10 +79,10 @@ class LeadPage extends HTMLElement {
       const messageHandler = (e) => {
         const { action, data, error, id } = e.data;
 
-        if (action === "getByIdSuccess" && id === leadId) {
+        if (action === "getByIdSuccess" && id == leadId) {
           dbWorker.removeEventListener("message", messageHandler);
           resolve(data);
-        } else if (action === "getByIdError" && id === leadId) {
+        } else if (action === "getByIdError" && id == leadId) {
           dbWorker.removeEventListener("message", messageHandler);
           reject(new Error(error || "Failed to fetch lead"));
         }
@@ -147,11 +149,10 @@ class LeadPage extends HTMLElement {
       const leadId = sessionStorage.getItem("lead_id");
       convertToDealBtn.addEventListener("click", () => {
         dbWorker.postMessage({ action: "convertToDeal", lead_id: leadId });
+        if (window.router && window.router.loadRoute) {
+          window.router.loadRoute("/leads");
+        }
       });
-
-      if (window.router && window.router.loadRoute) {
-        window.router.loadRoute("/leads");
-      }
     }
 
     this.setupTabs();

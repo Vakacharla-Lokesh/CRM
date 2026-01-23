@@ -15,6 +15,7 @@ import { exportDb } from "../services/exportDb.js";
 import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
 import { showMessage, showNotification } from "./notificationEvents.js";
 import { loadRoute } from "../router.js";
+import { generateId } from "../services/uidGenerator.js";
 
 let dbWorker = null;
 let isDbReady = false;
@@ -46,6 +47,7 @@ export function initializeEventHandlers(worker) {
   eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
   eventBus.on(EVENTS.DEAL_DELETE, handleDealDelete);
   eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
+  eventBus.on(EVENTS.LOGOUT_SUCCESS, handleLogout);
 
   document.addEventListener(
     "DOMContentLoaded",
@@ -118,6 +120,7 @@ export function initializeEventHandlers(worker) {
       const lead_id = leadRow?.getAttribute("data-lead-id");
 
       sessionStorage.setItem("lead_id", lead_id);
+      sessionStorage.setItem("currentTab", "/leadDetails");
 
       const dropdown = editBtn.closest(".dropdown-menu");
       if (dropdown) {
@@ -126,7 +129,10 @@ export function initializeEventHandlers(worker) {
 
       // console.log("Before loadroute");
 
-      window.router.loadRoute("/leadsDetails");
+      if (window.router && window.router.loadRoute) {
+        // console.log("Inside if of route");
+        window.router.loadRoute("/leadDetails");
+      }
 
       // console.log("After loadroute");
       return;
@@ -142,7 +148,7 @@ export function initializeEventHandlers(worker) {
 
       if (lead_id) {
         if (confirm("Are you sure you want to delete this lead?")) {
-          eventBus.emit(EVENTS.LEAD_DELETE, { id: Number(lead_id) });
+          eventBus.emit(EVENTS.LEAD_DELETE, { id: lead_id });
         }
       }
 
@@ -184,7 +190,7 @@ export function initializeEventHandlers(worker) {
       if (organization_id) {
         if (confirm("Are you sure you want to delete this organization?")) {
           eventBus.emit(EVENTS.ORGANIZATION_DELETE, {
-            id: Number(organization_id),
+            id: organization_id,
           });
         }
       }
@@ -206,7 +212,7 @@ export function initializeEventHandlers(worker) {
 
       if (deal_id) {
         if (confirm("Are you sure you want to delete this lead?")) {
-          eventBus.emit(EVENTS.DEAL_DELETE, { id: Number(deal_id) });
+          eventBus.emit(EVENTS.DEAL_DELETE, { id: deal_id });
         }
       }
 
@@ -342,8 +348,8 @@ export function initializeEventHandlers(worker) {
         deal_id: Date.now(),
         deal_name: dealName,
         deal_value: Number(dealValue),
-        lead_id: leadId ? Number(leadId) : null,
-        organization_id: organizationId ? Number(organizationId) : null,
+        lead_id: leadId ? leadId : null,
+        organization_id: organizationId ? organizationId : null,
         deal_status: dealStatus,
         created_on: new Date(),
         modified_on: new Date(),
@@ -470,7 +476,7 @@ function handleLeadCreate(event) {
   }
 
   const leadData = {
-    lead_id: Date.now(),
+    lead_id: generateId("lead"),
     ...event.detail.leadData,
     created_on: new Date(),
     modified_on: new Date(),
@@ -494,7 +500,7 @@ function handleLeadCreated(event) {
 function handleLeadDelete(event) {
   if (!dbWorker) return;
 
-  const id = Number(event.detail.id);
+  const id = event.detail.id;
   dbWorker.postMessage({ action: "deleteLead", id });
 }
 
@@ -514,7 +520,7 @@ function handleOrganizationCreate(event) {
   }
 
   const organizationData = {
-    organization_id: Date.now(),
+    organization_id: generateId("org"),
     ...event.detail.organizationData,
     created_on: new Date(),
     modified_on: new Date(),
@@ -538,7 +544,7 @@ function handleOrganizationCreated(event) {
 function handleOrganizationDelete(event) {
   if (!dbWorker) return;
 
-  const id = Number(event.detail.id);
+  const id = event.detail.id;
   dbWorker.postMessage({ action: "deleteOrganization", id });
 }
 
@@ -554,6 +560,10 @@ function handleOrganizationDeleted(event) {
 function handleDealDelete(event) {
   if (!dbWorker) return;
 
-  const id = Number(event.detail.id);
+  const id = event.detail.id;
   dbWorker.postMessage({ action: "deleteLead", id });
+}
+
+function handleLogout() {
+  showNotification("User Logged Out Successfully");
 }

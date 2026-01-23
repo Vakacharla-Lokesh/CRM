@@ -118,7 +118,7 @@ dbWorker.addEventListener("message", (e) => {
   }
 
   if (payload.action === "deleteSuccess") {
-    console.log("storeName: ", payload.storeName);
+    // console.log("storeName: ", payload.storeName);
     switch (payload.storeName) {
       case "Leads":
         eventBus.emit(EVENTS.LEAD_DELETED, payload);

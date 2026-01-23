@@ -24,7 +24,7 @@ class CallsContent extends HTMLElement {
       }
 
       const calls = await this.fetchCallsByLeadId(
-        Number(this.leadId),
+        this.leadId,
         dbWorker,
       );
 
@@ -51,7 +51,7 @@ class CallsContent extends HTMLElement {
 
           // Filter calls for this specific lead
           const leadCalls = (rows || []).filter(
-            (call) => call.lead_id === leadId,
+            (call) => call.lead_id == leadId,
           );
           resolve(leadCalls);
         } else if (action === "getAllError" && storeName === "Calls") {
@@ -442,7 +442,7 @@ class CallsContent extends HTMLElement {
 
     const callData = {
       call_id: callId ? Number(callId) : Date.now(),
-      lead_id: Number(this.leadId),
+      lead_id: this.leadId,
       call_type: type,
       call_status: status,
       duration: duration,

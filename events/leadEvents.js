@@ -29,7 +29,7 @@ export function handleLeadCreated(event) {
 export function handleLeadDelete(event) {
   if (!dbWorker) return;
 
-  const id = Number(event.detail.id);
+  const id = event.detail.id;
   dbWorker.postMessage({ action: "deleteLead", id });
 }
 

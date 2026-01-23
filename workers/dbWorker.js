@@ -156,6 +156,10 @@ self.onmessage = (e) => {
     case "deleteCall":
       deleteData(e.data.id, "Calls", dbReady, db);
       break;
+
+    case "convertToDeal":
+      convertLeadToDeal(e.data.lead_id, dbReady, db);
+      break;
     default:
       console.warn("Unknown action:", e.data.action);
   }

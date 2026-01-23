@@ -25,7 +25,7 @@ class LeadDetails extends HTMLElement {
         return;
       }
 
-      const lead = await this.fetchLeadById(Number(leadId), dbWorker);
+      const lead = await this.fetchLeadById(leadId, dbWorker);
 
       if (lead) {
         this.render(lead);
@@ -51,10 +51,10 @@ class LeadDetails extends HTMLElement {
       const messageHandler = (e) => {
         const { action, data, error, id } = e.data;
 
-        if (action === "getByIdSuccess" && id === leadId) {
+        if (action === "getByIdSuccess" && id == leadId) {
           dbWorker.removeEventListener("message", messageHandler);
           resolve(data);
-        } else if (action === "getByIdError" && id === leadId) {
+        } else if (action === "getByIdError" && id == leadId) {
           dbWorker.removeEventListener("message", messageHandler);
           reject(new Error(error || "Failed to fetch lead"));
         }

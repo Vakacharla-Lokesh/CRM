@@ -10,7 +10,7 @@ export function getCount(db, dbReady) {
   }
 
   try {
-    console.log("Inside get count");
+    // console.log("Inside get count");
     const tx = db.transaction("Leads", "readonly");
     const objectStore = tx.objectStore("Leads");
 
@@ -22,7 +22,7 @@ export function getCount(db, dbReady) {
     const request = store.getAll();
 
     countRequest.onsuccess = () => {
-      console.log("Data Worker count: ... ", countRequest.result);
+      // console.log("Data Worker count: ... ", countRequest.result);
     };
 
     request.onsuccess = function () {
@@ -40,9 +40,10 @@ export function getCount(db, dbReady) {
         0,
       );
 
-      const avg_value = Math.floor(totalValue / request.result.length).toFixed(
-        2,
-      );
+      const avg_value =
+        request.result.length != 0
+          ? Math.floor(totalValue / request.result.length).toFixed(2)
+          : 0;
 
       // const ongoingDeals = request.result.filter(
       //   (deal) => deal.deal_status === "Ongoing",
@@ -50,10 +51,10 @@ export function getCount(db, dbReady) {
 
       const ongoingDeals = request.result.length - wonDeals.length;
 
-      console.log("Users with role:", wonDeals);
+      // console.log("Users with role:", wonDeals);
       // console.log("Users ongoing: ", ongoingDeals);
-      console.log("Deal Value: ", dealValue);
-      console.log("Avg deal value: ", avg_value);
+      // console.log("Deal Value: ", dealValue);
+      // console.log("Avg deal value: ", avg_value);
 
       postMessage({
         action: "getDataSuccess",

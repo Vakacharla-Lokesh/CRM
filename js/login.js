@@ -1,6 +1,7 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { loadRoute } from "../router.js";
 import { checkUserLogin } from "../services/checkUserLogin.js";
+import { generateId } from "../services/uidGenerator.js";
 
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("login-email");
@@ -106,9 +107,17 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      localStorage.setItem("authToken", result.user.userId);
-      localStorage.setItem("userId", result.user.userId);
-      localStorage.setItem("userName", result.user.name);
+      // localStorage.setItem("user", result.user.userId);
+      // localStorage.setItem("userId", result.user.userId);
+      // localStorage.setItem("userName", result.user.name);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          user_id: result.user.userId,
+          user_name: result.user.name,
+          authToken: generateId("user"),
+        }),
+      );
 
       if (rememberCheckbox.checked) {
         localStorage.setItem("rememberEmail", email);
@@ -152,6 +161,7 @@ function attachSignUpListener() {
   if (signUpBtn) {
     signUpBtn.addEventListener("click", (event) => {
       event.preventDefault();
+      console.log("Inside ");
       const path = signUpBtn.getAttribute("data-link");
       loadRoute(path);
     });

@@ -57,6 +57,6 @@ export const EVENTS = {
   LOGIN_SUCCESS: "auth:login-success",
   LOGIN_FAILURE: "auth:login-failure",
   USER_CREATED: "auth:user-created",
-  LOGOUT: "auth:logout",
+  LOGOUT_SUCCESS: "auth:logout-success",
   LEADS_SCORE: "leads:score",
 };

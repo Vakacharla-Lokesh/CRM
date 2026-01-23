@@ -180,8 +180,8 @@ function handleDealCreate(form) {
     deal_id: Date.now(),
     deal_name: dealName,
     deal_value: Number(dealValue),
-    lead_id: leadId ? Number(leadId) : null,
-    organization_id: organizationId ? Number(organizationId) : null,
+    lead_id: leadId ? leadId : null,
+    organization_id: organizationId ? organizationId : null,
     deal_status: dealStatus,
     created_on: new Date(),
     modified_on: new Date(),
@@ -280,7 +280,7 @@ function handleDeleteDeal(e) {
       dbWorker.addEventListener("message", messageHandler);
       dbWorker.postMessage({
         action: "deleteDeal",
-        id: Number(deal_id),
+        id: deal_id,
         storeName: "Deals",
       });
 

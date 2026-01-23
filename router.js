@@ -11,9 +11,10 @@ const routes = {
   "/leads": "/pages/leads.html",
   "/organizations": "/pages/organizations.html",
   "/deals": "/pages/deals.html",
-  "/leadsDetails": "/pages/leadDetailPage.html",
+  "/leadDetails": "/pages/leadDetailPage.html",
   "/login": "/pages/login.html",
   "/signup": "/pages/signup.html",
+  "/dealDetails": "/pages/dealDetailPage.html",
 };
 
 // Routes that need script loading
@@ -30,7 +31,6 @@ export function attachDbWorkerListener() {
   const dbWorker = window.dbWorker;
   if (!dbWorker) {
     console.warn("dbWorker not available yet");
-
     return;
   }
 
@@ -38,11 +38,15 @@ export function attachDbWorkerListener() {
     const { action, storeName, rows, data, error } = e.data;
     const currentPath = sessionStorage.getItem("currentTab");
 
+    // console.log(currentPath);
+    // console.log(action);
+
     if (
       action === "getAllSuccess" &&
       storeName === "Leads" &&
       currentPath === "/leads"
     ) {
+      // console.log("Inside getallsuccess");
       populateLeadsTable(rows || []);
     } else if (
       action === "getAllSuccess" &&
@@ -55,7 +59,7 @@ export function attachDbWorkerListener() {
       storeName === "Deals" &&
       currentPath === "/deals"
     ) {
-      console.log("Inside populate deals");
+      // console.log("Inside populate deals");
       populateDealsTable(rows || []);
     } else if (
       action === "getAllSuccess" &&
@@ -92,12 +96,18 @@ export function attachDbWorkerListener() {
           option.textContent = org.organization_name;
           orgSelect.appendChild(option);
         });
+
         if (currentValue) {
           orgSelect.value = currentValue;
         }
       }
     } else if (action === "getDataSuccess") {
       populateHome(e.data);
+    } else if (action === "convertToDealSuccess") {
+      alert("Lead successfully converted to Deal!");
+      loadRoute("/deals");
+    } else if (action === "convertToDealError") {
+      alert("Error converting lead to deal: " + error);
     }
 
     if (action === "getAllError") {
@@ -152,19 +162,21 @@ async function loadPageScript(path) {
 }
 
 export async function loadRoute(path) {
-  const user = localStorage.getItem("authToken");
+  const user = localStorage.getItem("user");
   let route = routes[path];
+
   if (user) {
     route = routes[path] || routes["/home"];
   } else {
     route = routes["/login"];
   }
+
   sidebar = document.getElementById("default-sidebar");
-  // console.log(sidebar.classList);
-  if (route == "/login" || route == "/signup") {
-    sidebar.classList.add("hidden");
+
+  if (route === "/pages/login.html" || route === "/pages/signup.html") {
+    sidebar?.classList.add("hidden");
   } else {
-    sidebar.classList.remove("hidden");
+    sidebar?.classList.remove("hidden");
   }
 
   try {
@@ -183,6 +195,7 @@ export async function loadRoute(path) {
     // Load page-specific scripts
     await loadPageScript(path);
 
+    // IMPORTANT: Set currentTab AFTER the page has loaded
     setTimeout(() => {
       const db = window.dbWorker;
       if (!db) {
@@ -195,15 +208,15 @@ export async function loadRoute(path) {
       } else if (path === "/organizations") {
         db.postMessage({ action: "getAllOrganizations" });
       } else if (path === "/deals") {
-        // initializeDealsPage(db);
         db.postMessage({ action: "getAllDeals" });
       } else if (path === "/home") {
         db.postMessage({ action: "getData" });
       }
-    }, 100);
 
-    sessionStorage.setItem("currentTab", path);
-    updateSidebarActiveState(path);
+      // Set currentTab AFTER everything is loaded
+      sessionStorage.setItem("currentTab", path);
+      updateSidebarActiveState(path);
+    }, 100);
   } catch (error) {
     console.error("Error loading route:", error);
     const mainPage = document.getElementById("main-page");
@@ -256,21 +269,7 @@ document.addEventListener(
   () => {
     sidebar = document.getElementById("default-sidebar");
 
-    // addTestUsers();
-
-    // if (sidebar) {
-    //   sidebar.addEventListener("click", (event) => {
-    //     const link = event.target.closest("a[data-link]");
-    //     if (!link) return;
-
-    //     event.preventDefault();
-    //     const path = link.getAttribute("data-link");
-    //     loadRoute(path);
-    //   });
-    // }
-
-    const user = localStorage.getItem("authToken");
-
+    const user = localStorage.getItem("user");
     let savedTab = user ? "/home" : "/login";
     loadRoute(savedTab);
 

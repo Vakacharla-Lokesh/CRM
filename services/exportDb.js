@@ -1,3 +1,9 @@
+const objectKeys = {
+  Leads: "lead_id",
+  Organizations: "organization_id",
+  Deals: "deal_id",
+};
+
 export function exportToJson(idbDatabase) {
   return new Promise((resolve, reject) => {
     const exportObject = {};
@@ -94,6 +100,8 @@ export function exportStoreToCsv(db, storeName) {
       return;
     }
 
+    const idKey = objectKeys[storeName]; // 👈 ID field for this store
+
     const tx = db.transaction(storeName, "readonly");
     const store = tx.objectStore(storeName);
     const request = store.openCursor();
@@ -113,8 +121,13 @@ export function exportStoreToCsv(db, storeName) {
           return;
         }
 
+        // ✅ Build headers excluding the ID key
         const headers = Array.from(
-          new Set(rows.flatMap((obj) => Object.keys(obj))),
+          new Set(
+            rows.flatMap((obj) =>
+              Object.keys(obj).filter((key) => key !== idKey),
+            ),
+          ),
         );
 
         const escapeCsv = (value) => {

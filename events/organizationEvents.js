@@ -29,7 +29,7 @@ export function handleOrganizationCreated(event) {
 export function handleOrganizationDelete(event) {
   if (!dbWorker) return;
 
-  const id = Number(event.detail.id);
+  const id = event.detail.id;
   dbWorker.postMessage({ action: "deleteOrganization", id });
 }
 

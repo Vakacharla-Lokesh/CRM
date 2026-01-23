@@ -18,10 +18,7 @@ class AttachmentsContent extends HTMLElement {
         return;
       }
 
-      const attachments = await this.fetchAttachmentsByLeadId(
-        Number(leadId),
-        dbWorker,
-      );
+      const attachments = await this.fetchAttachmentsByLeadId(leadId, dbWorker);
       this.attachments = attachments;
 
       if (attachments && attachments.length > 0) {
@@ -36,14 +33,20 @@ class AttachmentsContent extends HTMLElement {
   }
 
   fetchAttachmentsByLeadId(leadId, dbWorker) {
+    console.log("Inside fetch attachments: ", leadId);
     return new Promise((resolve, reject) => {
       const messageHandler = (e) => {
-        const { action, data, error, storeName } = e.data;
+        console.log(e);
+        const { action, rows, error, storeName } = e.data;
 
         if (action === "getAllSuccess" && storeName === "Attachments") {
           dbWorker.removeEventListener("message", messageHandler);
           // Filter attachments by lead_id
-          const filtered = (data || []).filter((att) => att.lead_id === leadId);
+          const filtered = (rows || []).filter((att) => {
+            console.log("inside attach filter:", att.lead_id);
+            console.log("testing equals: ", att.lead_id == leadId);
+            return att.lead_id == leadId;
+          });
           resolve(filtered);
         } else if (action === "getAllError" && storeName === "Attachments") {
           dbWorker.removeEventListener("message", messageHandler);
@@ -388,7 +391,7 @@ class AttachmentsContent extends HTMLElement {
   }
 
   async handleFileUpload(files) {
-    const leadId = parseInt(this.getAttribute("lead-id"));
+    const leadId = this.getAttribute("lead-id");
     const dbWorker = window.dbWorker;
 
     if (!dbWorker || !files || files.length === 0) {

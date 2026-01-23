@@ -8,10 +8,10 @@ export function getLeadById(leadId, dbWorker) {
     const messageHandler = (e) => {
       const { action, data, error, id } = e.data;
 
-      if (action === "getByIdSuccess" && id === leadId) {
+      if (action === "getByIdSuccess" && id == leadId) {
         dbWorker.removeEventListener("message", messageHandler);
         resolve(data);
-      } else if (action === "getByIdError" && id === leadId) {
+      } else if (action === "getByIdError" && id == leadId) {
         dbWorker.removeEventListener("message", messageHandler);
         reject(new Error(error || "Failed to fetch lead"));
       }

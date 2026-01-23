@@ -24,7 +24,7 @@ class CommentsContent extends HTMLElement {
       }
 
       const comments = await this.fetchCommentsByLeadId(
-        Number(this.leadId),
+        this.leadId,
         dbWorker,
       );
 
@@ -51,7 +51,7 @@ class CommentsContent extends HTMLElement {
 
           // Filter comments for this specific lead
           const leadComments = (rows || []).filter(
-            (comment) => comment.lead_id === leadId,
+            (comment) => comment.lead_id == leadId,
           );
           resolve(leadComments);
         } else if (action === "getAllError" && storeName === "Comments") {
@@ -375,7 +375,7 @@ class CommentsContent extends HTMLElement {
       comment_id: Date.now(),
       comment_title: title,
       comment_desc: desc,
-      lead_id: Number(this.leadId),
+      lead_id: this.leadId,
       created_on: new Date(),
     };
 
