@@ -5,6 +5,10 @@ import {
   handleLeadCreated,
   handleLeadDelete,
   handleLeadDeleted,
+  handleLeadExport,
+  calculateScore,
+  initializeLeadEventDependencies,
+  setDbReady as setLeadDbReady,
 } from "./leadEvents.js";
 // import {
 //   handleOrganizationCreate,
@@ -15,6 +19,7 @@ import {
 import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
 import { showMessage, showNotification } from "./notificationEvents.js";
 import { generateId } from "../services/uidGenerator.js";
+import { updateUserDetails } from "./userProfile.js";
 
 let dbWorker = null;
 let isDbReady = false;
@@ -22,7 +27,8 @@ let isDbReady = false;
 export function initializeEventHandlers(worker) {
   dbWorker = worker;
 
-  // DB EVENTS
+  // Initialize event module dependencies
+  initializeLeadEventDependencies(worker, isDbReady);
   eventBus.on(EVENTS.DB_READY, handleDbReady);
   eventBus.on(EVENTS.DB_ERROR, handleDbError);
   // LEAD EVENTS
@@ -274,8 +280,7 @@ export function initializeEventHandlers(worker) {
         organization_name:
           document.getElementById("organization_name")?.value?.trim() || "",
         organization_website_name:
-          document.getElementById("organization_website_name")?.value?.trim() ||
-          "",
+          document.getElementById("organization_website")?.value?.trim() || "",
         organization_size:
           document.getElementById("organization_size")?.value?.trim() || "",
         organization_industry:
@@ -297,6 +302,7 @@ export function initializeEventHandlers(worker) {
       }
 
       if (leadFormData.organization_name) {
+        console.log("Inside starting if: ");
         createOrganizationAndLead(leadFormData);
       } else {
         const leadData = {
@@ -306,6 +312,7 @@ export function initializeEventHandlers(worker) {
           lead_email: leadFormData.lead_email,
           lead_mobile_number: leadFormData.lead_mobile_number,
           organization_id: null,
+          organization_size: Number(leadFormData.organization_size),
           lead_source: "Manual",
           lead_score: 0,
           created_on: new Date(),
@@ -428,6 +435,7 @@ function initializeTheme() {
 
 function handleDbReady(event) {
   isDbReady = true;
+  setLeadDbReady(true);
 
   const createDbBtn = document.getElementById("data-createDb");
   if (createDbBtn) {
@@ -463,6 +471,7 @@ function handleThemeToggle(event) {
 
 function handleLoginSuccess(event) {
   showNotification(`Welcome back, ${event.detail.name}!`, "success");
+  updateUserDetails();
 
   // Import loadRoute and use it to navigate to home
   setTimeout(() => {
@@ -484,10 +493,6 @@ function handleUserCreated(event) {
     "User created successfully! Redirecting to login...",
     "success",
   );
-}
-
-function calculateScore() {
-  dbWorker.postMessage({ action: "calculateScore" });
 }
 
 function handleOrganizationCreate(event) {
@@ -558,12 +563,20 @@ function createOrganizationAndLead(formData) {
     modified_on: new Date(),
   };
 
-  dbWorker.postMessage({
-    action: "createOrganization",
-    organizationData,
-  });
+  // dbWorker.postMessage({
+  //   action: "createOrganization",
+  //   organizationData,
+  // });
+
+  console.log("before org create: ");
+  eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
+  console.log("after org create: ");
+
+  // eventBus.emit(EVENTS.LEAD_CREATE, { leadData, dbWorker, isDbReady });
 
   const organizationHandler = (e) => {
+    console.log("Inside eventHandler.js orgHandler: ");
+
     const { action, storeName } = e.data;
 
     if (action === "insertSuccess" && storeName === "Organizations") {
@@ -576,6 +589,7 @@ function createOrganizationAndLead(formData) {
         lead_mobile_number: formData.lead_mobile_number,
         organization_id: organizationId,
         organization_name: formData.organization_name,
+        organization_size: formData.organization_size,
         lead_source: "Manual",
         lead_score: 0,
         created_on: new Date(),
@@ -583,15 +597,12 @@ function createOrganizationAndLead(formData) {
         lead_status: "New",
       };
 
+      console.log("Before eventBus emit in eventHandler: ");
       eventBus.emit(EVENTS.LEAD_CREATE, { leadData, dbWorker, isDbReady });
     }
   };
 
   dbWorker.addEventListener("message", organizationHandler);
-}
-
-export function handleLeadExport(event) {
-  exportDb("Leads");
 }
 
 export function handleOrganizationExport(event) {

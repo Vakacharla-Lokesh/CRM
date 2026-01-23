@@ -6,6 +6,27 @@
     <div class="flex gap-2">
       <button
         type="button"
+        id="bulk-delete-organizations"
+        style="display: none"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600 rounded-lg transition-colors items-center gap-2"
+      >
+        <svg
+          class="w-4 h-4 inline-block"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+          />
+        </svg>
+        Delete Selected
+      </button>
+      <button
+        type="button"
         id="export-organizations"
         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
       >
@@ -20,6 +41,7 @@
       </button>
     </div>
   </div>
+  <search-bar data-search-type="organizations-search-input"></search-bar>
   <div
     class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
   >
@@ -64,119 +86,4 @@
   </div>
 </div>
 
-<div
-  id="form-modal"
-  class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto"
->
-  <div class="relative w-full max-w-xl p-4">
-    <div
-      class="bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-6"
-    >
-      <div
-        class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4"
-      >
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
-          Create Organization
-        </h3>
-        <button
-          id="close-modal-btn"
-          class="text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-lg text-sm w-9 h-9 flex items-center justify-center"
-        >
-          <svg
-            class="w-5 h-5"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-          <span class="sr-only">Close modal</span>
-        </button>
-      </div>
-
-      <form
-        class="pt-4"
-        data-form="createOrganization"
-      >
-        <div
-          class="grid grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 pb-4"
-        >
-          <div class="mb-4">
-            <label
-              for="organization_name"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Organization Name</label
-            >
-            <input
-              type="text"
-              id="organization_name"
-              placeholder="Organization Name"
-              required
-              class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-              value="hello"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label
-              for="organization_size"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Organiztion Size</label
-            >
-            <input
-              type="number"
-              id="organization_size"
-              placeholder="1-1000"
-              required
-              class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-              value="hello"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label
-              for="organization_website_name"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Website</label
-            >
-            <input
-              type="url"
-              id="organization_website_name"
-              placeholder="https://example.com"
-              required
-              class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-              value="hello@gmail.com"
-            />
-          </div>
-
-          <div class="mb-4">
-            <label
-              for="organization_industry"
-              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Industry</label
-            >
-            <input
-              type="text"
-              id="organization_industry"
-              placeholder="Software"
-              required
-              class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
-            />
-          </div>
-        </div>
-        <button
-          type="submit"
-          class="w-full mb-3 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none shadow"
-        >
-          Create Organization
-        </button>
-      </form>
-    </div>
-  </div>
-</div>
+<organization-modal></organization-modal>

@@ -77,10 +77,6 @@
       return div.innerHTML;
     }
   }
-
-  // ===================================================================
-  // BULK DELETE MANAGER
-  // ===================================================================
   class BulkDeleteManager {
     constructor(config) {
       this.tableBodyId = config.tableBodyId;
@@ -100,24 +96,17 @@
     }
 
     init() {
-      // Initially hide bulk delete button
       this.bulkDeleteBtn.style.display = "none";
-
-      // Select All functionality
       this.selectAllCheckbox.addEventListener("change", (e) => {
         this.toggleAllCheckboxes(e.target.checked);
         this.updateBulkDeleteButton();
       });
-
-      // Individual checkbox changes (using event delegation)
       this.tbody.addEventListener("change", (e) => {
         if (e.target.classList.contains(this.itemCheckboxClass)) {
           this.updateSelectAllState();
           this.updateBulkDeleteButton();
         }
       });
-
-      // Bulk delete button click
       this.bulkDeleteBtn.addEventListener("click", () => {
         this.handleBulkDelete();
       });
@@ -180,14 +169,12 @@
     getSelectedIds() {
       return this.getSelectedCheckboxes()
         .map((cb) => {
-          // Get ID from checkbox value or from parent row data attribute
           if (cb.value && cb.value !== "on") {
             return cb.value;
           }
 
           const row = cb.closest("tr");
           if (row) {
-            // Try different data attribute patterns
             const datasetKey = Object.keys(row.dataset).find((key) =>
               key.toLowerCase().includes("id"),
             );
@@ -237,7 +224,6 @@
       let errorCount = 0;
 
       try {
-        // Delete each selected item
         for (const id of selectedIds) {
           try {
             await this.deleteItem(id, dbWorker);
@@ -385,16 +371,19 @@
     }
   }
 
+  // Initialize when DOM is ready
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", initializeTableFeatures);
   } else {
     initializeTableFeatures();
   }
 
+  // Re-initialize on route changes (for SPA behavior)
   window.addEventListener("popstate", () => {
     setTimeout(initializeTableFeatures, 100);
   });
 
+  // Export for manual initialization if needed
   window.TableFeatures = {
     TableFilter,
     BulkDeleteManager,

@@ -1,6 +1,7 @@
 export function populateOrganizationsTable(organizations) {
   // console.log("populateLeadsTable called with:", leads);
   const tbody = document.querySelector("#organizations-body");
+  console.log("inside populate orgs fn");
 
   if (!tbody) {
     console.error("Table body not found!");
@@ -21,7 +22,7 @@ export function populateOrganizationsTable(organizations) {
   tbody.innerHTML = "";
 
   organizations.forEach((organization) => {
-    console.log(organization);
+    // console.log(organization);
     const row = document.createElement("tr");
     row.setAttribute("data-organization-id", organization.organization_id);
     row.className =

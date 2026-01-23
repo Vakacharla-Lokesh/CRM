@@ -9,6 +9,14 @@
     <div class="flex gap-2">
       <button
         type="button"
+        id="bulk-delete-deals"
+        style="display: none"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors items-center gap-2"
+      >
+        Delete Selected
+      </button>
+      <button
+        type="button"
         id="export-deals"
         class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
       >
@@ -16,6 +24,8 @@
       </button>
     </div>
   </div>
+
+  <search-bar data-search-type="deals-search-input"></search-bar>
 
   <!-- Table Section -->
   <div

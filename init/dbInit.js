@@ -10,7 +10,7 @@ export function dbCreate() {
       return;
     }
 
-    const request = indexedDB.open("CRM_DB", 1);
+    const request = indexedDB.open("CRM_DB", 3);
 
     request.onerror = () => {
       console.error("IndexedDB open failed:", request.error);
@@ -29,15 +29,11 @@ export function dbCreate() {
           });
           // console.log(`Created store: ${store.name}`);
         }
-
-        // if (store.name == "Deals") {
-        //   db.transaction("Deals", "readonly")
-        //     .objectStore("Deals")
-        //     .store.createIndex("deal_status_count", "deal_status", {
-        //       unique: false,
-        //     });
-        // }
       }
+
+      db.objectStore("Users").createIndex("user_email", {
+        unique: true,
+      });
     };
 
     request.onsuccess = (event) => {

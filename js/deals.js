@@ -102,6 +102,8 @@ function loadLeadsForDropdown() {
     action: "getAllLeads",
     storeName: "Leads",
   });
+
+  populateLeadDropdown();
 }
 
 function loadOrganizationsForDropdown() {
@@ -111,6 +113,8 @@ function loadOrganizationsForDropdown() {
     action: "getAllOrganizations",
     storeName: "Organizations",
   });
+
+  populateOrganizationDropdown();
 }
 
 function populateLeadDropdown() {
@@ -163,8 +167,10 @@ function handleDealCreate(form) {
   const dealName = document.getElementById("deal_name")?.value?.trim() || "";
   const dealValue = document.getElementById("deal_value")?.value?.trim() || "";
   const leadId = document.getElementById("lead_id")?.value || "";
-  const organizationId = document.getElementById("organization_id")?.value || "";
-  const dealStatus = document.getElementById("deal_status")?.value?.trim() || "";
+  const organizationId =
+    document.getElementById("organization_id")?.value || "";
+  const dealStatus =
+    document.getElementById("deal_status")?.value?.trim() || "";
 
   if (!dealName || !dealValue) {
     alert("Please fill in Deal Name and Deal Value");

@@ -76,7 +76,7 @@ function hideNotificationBadge() {
   }
 }
 
-// Notification dropdown toggle
+// Notification dropdown
 document.addEventListener("click", (e) => {
   const notificationBtn = document.getElementById("notification-btn");
   const notificationDropdown = document.getElementById("notification-dropdown");
@@ -108,10 +108,13 @@ dbWorker.addEventListener("message", (e) => {
     if (payload.storeName === "Leads") {
       eventBus.emit(EVENTS.LEAD_CREATED, payload);
       addNotification("Lead created successfully", "success");
-    } else if (payload.storeName === "Organizations") {
+    }
+    if (payload.storeName === "Organizations") {
+      console.log("Inside index.js insertSuccess: ");
       eventBus.emit(EVENTS.ORGANIZATION_CREATED, payload);
       addNotification("Organization created successfully", "success");
-    } else if (payload.storeName === "Deals") {
+    }
+    if (payload.storeName === "Deals") {
       eventBus.emit(EVENTS.DEAL_CREATED, payload);
       addNotification("Organization created successfully", "success");
     }
@@ -164,6 +167,7 @@ eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
 
 // eventBus.emit(EVENTS.LEADS_SCORE);
 
+// WEB SOCKER CLIENT SIDE
 const ws = new WSClient("ws://localhost:8080");
 window.ws = ws;
 
@@ -212,18 +216,7 @@ function startShortPolling() {
 
   pollingInterval = setInterval(async () => {
     try {
-      // const res = await fetch("/api/poll"); // your polling endpoint
-      // if (!res.ok) return;
-
-      // const data = await res.json();
-
-      // eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, {
-      //   message: "Web socket disconnected",
-      // });
-
       ws.connect();
-
-      // addNotification(`POLL: ${JSON.stringify(data)}`, "info");
     } catch (err) {
       console.error("Polling error:", err);
     }
@@ -261,6 +254,7 @@ ws.onClose = () => {
   addNotification("WebSocket disconnected", "error");
 };
 
+// THEME CONTROL
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
   themeToggle.addEventListener("click", () => {
@@ -291,25 +285,3 @@ document.addEventListener("DOMContentLoaded", () => {
     if (themeToggle) themeToggle.textContent = "🌙";
   }
 });
-
-const leadsBody = document.querySelector("#leads-body");
-const selectAllCheckbox = document.getElementById("select-all-leads");
-
-if (leadsBody) {
-  leadsBody.addEventListener("change", function (event) {
-    if (event.target.classList.contains("item-checkbox")) {
-      const allCheckboxes = document.querySelectorAll(".item-checkbox");
-      const allChecked = Array.from(allCheckboxes).every((cb) => cb.checked);
-      selectAllCheckbox.checked = allChecked;
-    }
-  });
-}
-
-if (selectAllCheckbox) {
-  selectAllCheckbox.addEventListener("change", function () {
-    const checkboxes = document.querySelectorAll(".item-checkbox");
-    checkboxes.forEach((checkbox) => {
-      checkbox.checked = this.checked;
-    });
-  });
-}

@@ -21,7 +21,14 @@ template.innerHTML = `
           </a>
 
           <div class="flex items-center gap-3">
-            <!-- Connection Status Indicators -->
+            
+            <button
+              type="button"
+              id="diagnostic-btn"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
+            >
+              Test Diagnostic
+            </button>
             <div class="flex items-center gap-2">
               <div
                 id="status-wss"
@@ -142,6 +149,14 @@ class AppNavbar extends HTMLElement {
       );
     }
 
+    this.diagnosticBtn = document.querySelector("#diagnostic-btn");
+    if (this.diagnosticBtn) {
+      this.diagnosticBtn.addEventListener(
+        "click",
+        this.runTaskDiagnostics.bind(this),
+      );
+    }
+
     // eventBus.on(EVENTS.DB_READY, this.handleDbReady.bind(this));
   }
 
@@ -181,6 +196,27 @@ class AppNavbar extends HTMLElement {
   //     btn.disabled = true;
   //   }
   // }
+
+  runTaskDiagnostics() {
+    console.log("0 Synchronous: Start");
+
+    // Microtask
+    Promise.resolve().then(() => {
+      console.log("3 Microtask: Promise.then");
+    });
+
+    // Macrotask
+    setTimeout(() => {
+      console.log("4 Macrotask: setTimeout");
+    }, 0);
+
+    // Another Microtask
+    queueMicrotask(() => {
+      console.log("2 Microtask: queueMicrotask");
+    });
+
+    console.log("1 Synchronous: End");
+  }
 }
 
 customElements.define("app-navbar", AppNavbar);

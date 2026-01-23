@@ -4,6 +4,7 @@ import { populateOrganizationsTable } from "./services/populateOrganizations.js"
 import { initializeDealsPage } from "./js/deals.js";
 import { populateDealsTable } from "./services/populateDeals.js";
 import { addTestUsers } from "./services/addTestUsers.js";
+import { updateUserDetails } from "./events/userProfile.js";
 
 const routes = {
   "/": "/pages/home.html",
@@ -182,6 +183,7 @@ export async function loadRoute(path) {
     sidebar?.classList.add("hidden");
   } else {
     sidebar?.classList.remove("hidden");
+    updateUserDetails();
   }
 
   try {
@@ -190,7 +192,11 @@ export async function loadRoute(path) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const html = await response.text();
+    const blob = await response.blob();
+    const html = await blob.text();
+
+    // console.log(html);
+
     const mainPage = document.getElementById("main-page");
 
     if (mainPage) {

@@ -86,7 +86,7 @@ template.innerHTML = `
                 id="User"
                 class="flex flex-col h-32 w-full overflow-y-auto bg-gray-100 dark:bg-gray-900 rounded p-2 text-xs font-mono"
               >
-                <div>
+                <div id="user-profile">
                 </div>
                 <button
                   id = "logoutBtn"
@@ -104,6 +104,7 @@ class AppSidebar extends HTMLElement {
   constructor() {
     super();
     this.currentRoute = sessionStorage.getItem("currentTab");
+    // console.log(this.userData);
   }
 
   connectedCallback() {
