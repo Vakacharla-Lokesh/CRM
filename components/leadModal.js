@@ -263,7 +263,7 @@ class LeadModal extends HTMLElement {
       this.handleBackdropClick.bind(this),
     );
     this.form = this.shadowRoot.getElementById("lead-form");
-    this.form.addEventListener("submit", this.handleSubmit.bind(this));
+    // this.form.addEventListener("submit", this.handleSubmit.bind(this));
     this.escHandler = this.handleEscape.bind(this);
     document.addEventListener("keydown", this.escHandler);
     eventBus.on(EVENTS.MODAL_OPEN, this.handleOpen.bind(this));
@@ -295,24 +295,24 @@ class LeadModal extends HTMLElement {
     }
   }
 
-  handleSubmit(event) {
-    event.preventDefault();
+  // handleSubmit(event) {
+  //   event.preventDefault();
 
-    const formData = new FormData(this.form);
-    const leadData = {
-      lead_first_name: formData.get("first_name"),
-      lead_last_name: formData.get("last_name"),
-      lead_email: formData.get("email"),
-      lead_mobile_number: formData.get("mobile_number"),
-      organization_name: formData.get("organization_name"),
-      websiteName: formData.get("organization_website"),
-      organizationSize: formData.get("organization_size"),
-      industry: formData.get("organization_industry"),
-    };
-    eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
-    this.close();
-    this.form.reset();
-  }
+  //   const formData = new FormData(this.form);
+  //   const leadData = {
+  //     lead_first_name: formData.get("first_name"),
+  //     lead_last_name: formData.get("last_name"),
+  //     lead_email: formData.get("email"),
+  //     lead_mobile_number: formData.get("mobile_number"),
+  //     organization_name: formData.get("organization_name"),
+  //     websiteName: formData.get("organization_website"),
+  //     organizationSize: formData.get("organization_size"),
+  //     industry: formData.get("organization_industry"),
+  //   };
+  //   eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
+  //   this.close();
+  //   this.form.reset();
+  // }
 
   open() {
     this.classList.add("open");

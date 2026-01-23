@@ -1,11 +1,11 @@
 import { eventBus, EVENTS } from "./eventBus.js";
 import { exportDb } from "../services/exportDb.js";
-// import {
-//   handleLeadCreate,
-//   handleLeadCreated,
-//   handleLeadDelete,
-//   handleLeadDeleted,
-// } from "./leadEvents.js";
+import {
+  handleLeadCreate,
+  handleLeadCreated,
+  handleLeadDelete,
+  handleLeadDeleted,
+} from "./leadEvents.js";
 // import {
 //   handleOrganizationCreate,
 //   handleOrganizationCreated,
@@ -14,7 +14,6 @@ import { exportDb } from "../services/exportDb.js";
 // } from "./organizationEvents.js";
 import { handleDealCreate, handleDealCreated } from "./dealEvents.js";
 import { showMessage, showNotification } from "./notificationEvents.js";
-import { loadRoute } from "../router.js";
 import { generateId } from "../services/uidGenerator.js";
 
 let dbWorker = null;
@@ -23,31 +22,43 @@ let isDbReady = false;
 export function initializeEventHandlers(worker) {
   dbWorker = worker;
 
-  // Event bus listeners
+  // DB EVENTS
   eventBus.on(EVENTS.DB_READY, handleDbReady);
   eventBus.on(EVENTS.DB_ERROR, handleDbError);
+  // LEAD EVENTS
   eventBus.on(EVENTS.LEAD_CREATE, handleLeadCreate);
   eventBus.on(EVENTS.LEAD_CREATED, handleLeadCreated);
   eventBus.on(EVENTS.LEAD_DELETE, handleLeadDelete);
   eventBus.on(EVENTS.LEAD_DELETED, handleLeadDeleted);
   eventBus.on(EVENTS.LEADS_EXPORT, handleLeadExport);
+  eventBus.on(EVENTS.LEADS_SCORE, calculateScore);
+
+  // ORG EVENTS
   eventBus.on(EVENTS.ORGANIZATION_CREATE, handleOrganizationCreate);
   eventBus.on(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
   eventBus.on(EVENTS.ORGANIZATION_DELETE, handleOrganizationDelete);
   eventBus.on(EVENTS.ORGANIZATION_DELETED, handleOrganizationDeleted);
   eventBus.on(EVENTS.ORGANIZATION_EXPORT, handleOrganizationExport);
-  eventBus.on(EVENTS.MODAL_CLOSE, handleModalClose);
-  eventBus.on(EVENTS.THEME_TOGGLE, handleThemeToggle);
-  eventBus.on(EVENTS.WEB_SOCKET_MESSAGE, showMessage);
-  eventBus.on(EVENTS.LOGIN_SUCCESS, handleLoginSuccess);
-  eventBus.on(EVENTS.LOGIN_FAILURE, handleLoginFailure);
-  eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
-  eventBus.on(EVENTS.LEADS_SCORE, calculateScore);
+
+  // DEAL EVENTS
   eventBus.on(EVENTS.DEAL_CREATE, handleDealCreate);
   eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
   eventBus.on(EVENTS.DEAL_DELETE, handleDealDelete);
   eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
+
+  // MODAL EVENTS
+  eventBus.on(EVENTS.MODAL_CLOSE, handleModalClose);
+  eventBus.on(EVENTS.THEME_TOGGLE, handleThemeToggle);
+
+  // WEB SOCKET EVENTS
+  eventBus.on(EVENTS.WEB_SOCKET_MESSAGE, showMessage);
+
+  // LOGIN EVENTS
+  eventBus.on(EVENTS.LOGIN_SUCCESS, handleLoginSuccess);
+  eventBus.on(EVENTS.LOGIN_FAILURE, handleLoginFailure);
   eventBus.on(EVENTS.LOGOUT_SUCCESS, handleLogout);
+
+  eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
 
   document.addEventListener(
     "DOMContentLoaded",
@@ -252,7 +263,7 @@ export function initializeEventHandlers(worker) {
         return;
       }
 
-      const leadData = {
+      const leadFormData = {
         lead_first_name:
           document.getElementById("first_name")?.value?.trim() || "",
         lead_last_name:
@@ -272,17 +283,39 @@ export function initializeEventHandlers(worker) {
       };
 
       const regex = /^[1-9]\d{9}$/;
-      if (!regex.test(leadData.lead_mobile_number)) {
+      if (
+        leadFormData.lead_mobile_number &&
+        !regex.test(leadFormData.lead_mobile_number)
+      ) {
         alert("Please enter a valid 10-digit mobile number.");
-        e.preventDefault();
+        return;
       }
 
-      if (!leadData.lead_first_name || !leadData.lead_email) {
+      if (!leadFormData.lead_first_name || !leadFormData.lead_email) {
         showNotification("Please fill in required fields", "error");
         return;
       }
 
-      eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
+      if (leadFormData.organization_name) {
+        createOrganizationAndLead(leadFormData);
+      } else {
+        const leadData = {
+          lead_id: generateId("lead"),
+          lead_first_name: leadFormData.lead_first_name,
+          lead_last_name: leadFormData.lead_last_name,
+          lead_email: leadFormData.lead_email,
+          lead_mobile_number: leadFormData.lead_mobile_number,
+          organization_id: null,
+          lead_source: "Manual",
+          lead_score: 0,
+          created_on: new Date(),
+          modified_on: new Date(),
+          lead_status: "New",
+        };
+
+        eventBus.emit(EVENTS.LEAD_CREATE, { leadData, dbWorker, isDbReady });
+      }
+
       document.getElementById("form-modal")?.classList.add("hidden");
       event.target.reset();
     } else if (event.target.matches("form[data-form='createOrganization']")) {
@@ -457,62 +490,6 @@ function calculateScore() {
   dbWorker.postMessage({ action: "calculateScore" });
 }
 
-function handleLeadExport(event) {
-  exportDb("Leads");
-}
-
-function handleOrganizationExport(event) {
-  exportDb("Organizations");
-}
-
-function handleDealExport(event) {
-  exportDb("Deals");
-}
-
-function handleLeadCreate(event) {
-  if (!isDbReady || !dbWorker) {
-    showNotification("Database not ready yet. Please wait.", "error");
-    return;
-  }
-
-  const leadData = {
-    lead_id: generateId("lead"),
-    ...event.detail.leadData,
-    created_on: new Date(),
-    modified_on: new Date(),
-  };
-
-  dbWorker.postMessage({
-    action: "createLead",
-    leadData,
-  });
-}
-
-function handleLeadCreated(event) {
-  showNotification("Lead created successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
-  }
-}
-
-function handleLeadDelete(event) {
-  if (!dbWorker) return;
-
-  const id = event.detail.id;
-  dbWorker.postMessage({ action: "deleteLead", id });
-}
-
-function handleLeadDeleted(event) {
-  showNotification("Lead deleted successfully!", "success");
-
-  const currentTab = sessionStorage.getItem("currentTab");
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
-  }
-}
-
 function handleOrganizationCreate(event) {
   if (!isDbReady || !dbWorker) {
     showNotification("Database not ready yet. Please wait.", "error");
@@ -566,4 +543,61 @@ function handleDealDelete(event) {
 
 function handleLogout() {
   showNotification("User Logged Out Successfully");
+}
+
+function createOrganizationAndLead(formData) {
+  const organizationId = generateId("org");
+
+  const organizationData = {
+    organization_id: organizationId,
+    organization_name: formData.organization_name,
+    organization_website_name: formData.organization_website_name || "",
+    organization_size: formData.organization_size || "",
+    organization_industry: formData.organization_industry || "",
+    created_on: new Date(),
+    modified_on: new Date(),
+  };
+
+  dbWorker.postMessage({
+    action: "createOrganization",
+    organizationData,
+  });
+
+  const organizationHandler = (e) => {
+    const { action, storeName } = e.data;
+
+    if (action === "insertSuccess" && storeName === "Organizations") {
+      dbWorker.removeEventListener("message", organizationHandler);
+      const leadData = {
+        lead_id: generateId("lead"),
+        lead_first_name: formData.lead_first_name,
+        lead_last_name: formData.lead_last_name,
+        lead_email: formData.lead_email,
+        lead_mobile_number: formData.lead_mobile_number,
+        organization_id: organizationId,
+        organization_name: formData.organization_name,
+        lead_source: "Manual",
+        lead_score: 0,
+        created_on: new Date(),
+        modified_on: new Date(),
+        lead_status: "New",
+      };
+
+      eventBus.emit(EVENTS.LEAD_CREATE, { leadData, dbWorker, isDbReady });
+    }
+  };
+
+  dbWorker.addEventListener("message", organizationHandler);
+}
+
+export function handleLeadExport(event) {
+  exportDb("Leads");
+}
+
+export function handleOrganizationExport(event) {
+  exportDb("Organizations");
+}
+
+export function handleDealExport(event) {
+  exportDb("Deals");
 }

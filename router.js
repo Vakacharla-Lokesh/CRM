@@ -108,6 +108,11 @@ export function attachDbWorkerListener() {
       loadRoute("/deals");
     } else if (action === "convertToDealError") {
       alert("Error converting lead to deal: " + error);
+    } else if (action === "convertToDealSuccess") {
+      alert("Lead successfully converted to Deal!");
+      loadRoute("/deals");
+    } else if (action === "convertToDealError") {
+      alert("Error converting lead to deal: " + error);
     }
 
     if (action === "getAllError") {
@@ -215,6 +220,10 @@ export async function loadRoute(path) {
 
       // Set currentTab AFTER everything is loaded
       sessionStorage.setItem("currentTab", path);
+
+      if (window.TableFeatures) {
+        window.TableFeatures.initialize();
+      }
       updateSidebarActiveState(path);
     }, 100);
   } catch (error) {

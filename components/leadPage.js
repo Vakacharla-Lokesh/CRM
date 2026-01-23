@@ -148,9 +148,12 @@ class LeadPage extends HTMLElement {
     if (convertToDealBtn) {
       const leadId = sessionStorage.getItem("lead_id");
       convertToDealBtn.addEventListener("click", () => {
-        dbWorker.postMessage({ action: "convertToDeal", lead_id: leadId });
-        if (window.router && window.router.loadRoute) {
-          window.router.loadRoute("/leads");
+        if (
+          confirm(
+            "Convert this lead to a deal? The lead will be marked as 'Converted'.",
+          )
+        ) {
+          dbWorker.postMessage({ action: "convertToDeal", lead_id: leadId });
         }
       });
     }

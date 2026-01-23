@@ -1,11 +1,13 @@
-export function handleLeadCreate(event, isDbReady, dbWorker) {
+export function handleLeadCreate(event) {
+  let { dbWorker, isDbReady } = event.details;
+
   if (!isDbReady || !dbWorker) {
     showNotification("Database not ready yet. Please wait.", "error");
     return;
   }
 
   const leadData = {
-    lead_id: Date.now(),
+    lead_id: generateId("lead"),
     ...event.detail.leadData,
     created_on: new Date(),
     modified_on: new Date(),
@@ -18,6 +20,7 @@ export function handleLeadCreate(event, isDbReady, dbWorker) {
 }
 
 export function handleLeadCreated(event) {
+  let dbWorker = event.details.dbWorker;
   showNotification("Lead created successfully!", "success");
 
   const currentTab = sessionStorage.getItem("currentTab");
@@ -27,6 +30,7 @@ export function handleLeadCreated(event) {
 }
 
 export function handleLeadDelete(event) {
+  let dbWorker = event.details.dbWorker;
   if (!dbWorker) return;
 
   const id = event.detail.id;
@@ -34,6 +38,7 @@ export function handleLeadDelete(event) {
 }
 
 export function handleLeadDeleted(event) {
+  let dbWorker = event.details.dbWorker;
   showNotification("Lead deleted successfully!", "success");
 
   const currentTab = sessionStorage.getItem("currentTab");

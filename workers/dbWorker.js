@@ -5,6 +5,7 @@ import { deleteData } from "../services/deleteDb.js";
 import { getCount } from "../services/getCount.js";
 import { getAllData, getDataById } from "../services/getDb.js";
 import { insertData } from "../services/insertDb.js";
+import { convertLeadToDeal } from "../services/leadToDeal.js";
 import { updateData } from "../services/updateDb.js";
 
 let db = null;
@@ -160,14 +161,12 @@ self.onmessage = (e) => {
     case "convertToDeal":
       convertLeadToDeal(e.data.lead_id, dbReady, db);
       break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }
 };
 
-/**
- * Get a single record by ID and send response with the ID
- */
 function getLeadById(storeName, id, dbReady, db) {
   if (!dbReady || !db) {
     postMessage({
