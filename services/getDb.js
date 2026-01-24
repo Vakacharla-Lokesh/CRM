@@ -17,7 +17,7 @@ export function getAllData(storeName, dbReady, db) {
     const request = store.getAll();
 
     request.onsuccess = () => {
-      // console.log("getAllData success, count:", request.result.length);
+      console.log("getAllData success, count:", request.result.length);
       postMessage({
         action: "getAllSuccess",
         rows: request.result,

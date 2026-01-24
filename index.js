@@ -1,11 +1,14 @@
+// index.js - Updated to use modular router
 import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
-import { attachDbWorkerListener } from "./router.js";
+import router from "./router.js";
 import WSClient from "./websockets/client.js";
 
+// Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
 const dbWorker = window.dbWorker;
 
+// Notification management
 const notifications = [];
 const MAX_NOTIFICATIONS = 10;
 
@@ -76,7 +79,7 @@ function hideNotificationBadge() {
   }
 }
 
-// Notification dropdown
+// Notification dropdown handlers
 document.addEventListener("click", (e) => {
   const notificationBtn = document.getElementById("notification-btn");
   const notificationDropdown = document.getElementById("notification-dropdown");
@@ -96,12 +99,17 @@ document.addEventListener("click", (e) => {
   }
 });
 
+// DB Worker message handling
 dbWorker.addEventListener("message", (e) => {
   const payload = e.data || {};
 
   if (payload.action === "dbReady") {
+    console.log("Database ready, initializing router...");
     eventBus.emit(EVENTS.DB_READY, payload);
     addNotification("Database initialized successfully", "success");
+
+    // Initialize router with dbWorker
+    router.initialize(dbWorker);
   }
 
   if (payload.action === "insertSuccess") {
@@ -110,18 +118,16 @@ dbWorker.addEventListener("message", (e) => {
       addNotification("Lead created successfully", "success");
     }
     if (payload.storeName === "Organizations") {
-      console.log("Inside index.js insertSuccess: ");
       eventBus.emit(EVENTS.ORGANIZATION_CREATED, payload);
       addNotification("Organization created successfully", "success");
     }
     if (payload.storeName === "Deals") {
       eventBus.emit(EVENTS.DEAL_CREATED, payload);
-      addNotification("Organization created successfully", "success");
+      addNotification("Deal created successfully", "success");
     }
   }
 
   if (payload.action === "deleteSuccess") {
-    // console.log("storeName: ", payload.storeName);
     switch (payload.storeName) {
       case "Leads":
         eventBus.emit(EVENTS.LEAD_DELETED, payload);
@@ -131,8 +137,10 @@ dbWorker.addEventListener("message", (e) => {
         eventBus.emit(EVENTS.ORGANIZATION_DELETED, payload);
         addNotification("Organization deleted successfully", "success");
         break;
+      case "Deals":
+        addNotification("Deal deleted successfully", "success");
+        break;
     }
-    // addNotification(`${payload.storeName} deleted successfully`, "success");
   }
 
   if (payload.action === "insertError" || payload.action === "dbError") {
@@ -141,10 +149,10 @@ dbWorker.addEventListener("message", (e) => {
   }
 });
 
+// Initialize event handlers
 initializeEventHandlers(dbWorker);
 
-attachDbWorkerListener();
-
+// User creation event
 eventBus.on(EVENTS.USER_CREATED, (event) => {
   const userData = event.detail;
   addNotification(
@@ -160,54 +168,15 @@ eventBus.on(EVENTS.USER_CREATED, (event) => {
     });
   }
 });
+
 eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
   const userData = event.detail;
   addNotification(`Welcome back, ${userData.name}!`, "success");
 });
 
-// eventBus.emit(EVENTS.LEADS_SCORE);
-
-// WEB SOCKER CLIENT SIDE
+// WebSocket setup
 const ws = new WSClient("ws://localhost:8080");
 window.ws = ws;
-
-// ws.onOpen = () => {
-//   const wssStatus = document.getElementById("status-wss");
-//   if (wssStatus) {
-//     wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
-//     wssStatus.querySelector("span:first-child").classList.add("bg-green-500");
-//   }
-//   addNotification("WebSocket connected", "success");
-// };
-
-// ws.onClose = () => {
-//   const wssStatus = document.getElementById("status-wss");
-//   if (wssStatus) {
-//     wssStatus
-//       .querySelector("span:first-child")
-//       .classList.remove("bg-green-500");
-//     wssStatus.querySelector("span:first-child").classList.add("bg-red-500");
-//   }
-//   addNotification("WebSocket disconnected", "error");
-// };
-
-ws.onMessage = (data) => {
-  eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, { message: data?.message ?? data });
-
-  const messageText = typeof data === "object" ? JSON.stringify(data) : data;
-  addNotification(`WS: ${messageText}`, "info");
-
-  const messages = document.getElementById("messages");
-  if (messages) {
-    const msgLine = document.createElement("div");
-    msgLine.className = "text-gray-700 dark:text-gray-300 mb-1";
-    msgLine.textContent = `[${new Date().toLocaleTimeString()}] ${messageText}`;
-    messages.appendChild(msgLine);
-    messages.scrollTop = messages.scrollHeight;
-  }
-};
-
-ws.connect();
 
 let pollingInterval = null;
 
@@ -232,7 +201,6 @@ function stopShortPolling() {
 
 ws.onOpen = () => {
   stopShortPolling();
-
   const wssStatus = document.getElementById("status-wss");
   if (wssStatus) {
     wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
@@ -243,7 +211,6 @@ ws.onOpen = () => {
 
 ws.onClose = () => {
   startShortPolling();
-
   const wssStatus = document.getElementById("status-wss");
   if (wssStatus) {
     wssStatus
@@ -254,29 +221,15 @@ ws.onClose = () => {
   addNotification("WebSocket disconnected", "error");
 };
 
-// async function longPolling() {
-//   try {
-//     const res = await fetch("http://localhost:3000/poll");
-//     const data = await res.json();
+ws.onMessage = (data) => {
+  eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, { message: data?.message ?? data });
+  const messageText = typeof data === "object" ? JSON.stringify(data) : data;
+  addNotification(`WS: ${messageText}`, "info");
+};
 
-//     console.log(data.message);
+ws.connect();
 
-//     const wssLPS = document.getElementById("status-long-polling");
-//     if (wssLPS) {
-//       wssLPS.querySelector("span:first-child").classList.remove("bg-gray-400");
-//       wssLPS.querySelector("span:first-child").classList.add("bg-green-500");
-//     }
-//   } catch (err) {
-//     console.error("Long Polling error:", err);
-//   } finally {
-//     setTimeout(longPolling, 10000);
-//   }
-// }
-
-// longPolling();
-
-// THEME CONTROL
-
+// Theme control
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
   themeToggle.addEventListener("click", () => {
@@ -295,6 +248,7 @@ if (themeToggle) {
   });
 }
 
+// Initialize theme on page load
 document.addEventListener("DOMContentLoaded", () => {
   const savedTheme = localStorage.getItem("theme");
   const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;

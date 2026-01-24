@@ -45,7 +45,7 @@ self.onmessage = (e) => {
       break;
 
     case "getAllLeads":
-      // console.log("Processing getAllLeads...");
+      console.log("Processing getAllLeads...");
       getAllData("Leads", dbReady, db);
       break;
 

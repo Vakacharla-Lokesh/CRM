@@ -1,5 +1,4 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
-import { loadRoute } from "../router.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -137,7 +136,7 @@ class AppSidebar extends HTMLElement {
         if (!link) return;
 
         const path = link.getAttribute("data-link");
-        loadRoute(path);
+        window.router.loadRoute(path);
       });
     });
 

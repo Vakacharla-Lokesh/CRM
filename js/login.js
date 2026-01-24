@@ -1,5 +1,4 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
-import { loadRoute } from "../router.js";
 import { checkUserLogin } from "../services/checkUserLogin.js";
 import { generateId } from "../services/uidGenerator.js";
 

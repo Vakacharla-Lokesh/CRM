@@ -186,7 +186,7 @@ signupForm.addEventListener("submit", async (e) => {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        loadRoute("/login");
+        window.router.loadRoute("/login");
       }, 2000);
     } else {
       formError.textContent =
