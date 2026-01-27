@@ -56,7 +56,10 @@ export const EVENTS = {
   WEB_SOCKET_MESSAGE: "websocket:message",
   LOGIN_SUCCESS: "auth:login-success",
   LOGIN_FAILURE: "auth:login-failure",
-  USER_CREATED: "auth:user-created",
+  USER_CREATE: "user:create",
+  USER_CREATED: "user:created",
+  USER_DELETE: "user:delete",
+  USER_DELETED: "user:deleted",
   LOGOUT_SUCCESS: "auth:logout-success",
   LEADS_SCORE: "leads:score",
 };

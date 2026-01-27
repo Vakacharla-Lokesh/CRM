@@ -25,8 +25,9 @@ export async function checkUserLogin(email, password) {
               user: {
                 userId: user.user_id,
                 email: user.user_email,
-                name: user.name || "User",
-                role: user.role,
+                name: user.user_name || user.name || "User",
+                role: user.role || "user",
+                tenantId: user.tenant_id,
               },
             });
           } else {

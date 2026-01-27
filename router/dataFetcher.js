@@ -24,60 +24,48 @@ export class DataFetcher {
 
     const user = JSON.parse(localStorage.getItem("user"));
 
+    if (!user) {
+      console.warn("No user found in localStorage");
+      return;
+    }
+
+    const { user_id, tenant_id, role } = user;
+
     switch (path) {
       case "/leads":
-        console.log("Inside dataFetcher leads switch: ");
-        if (user.role == "admin") {
-          this.dbWorker.postMessage({
-            action: "getAllLeads",
-            tenant_id: user.tenant_id || "testing...",
-          });
-        } else {
-          this.dbWorker.postMessage({
-            action: "getAllLeadsByUserId",
-            user_id: user.user_id,
-          });
-        }
+        this.dbWorker.postMessage({
+          action: "getAllLeads",
+          user_id,
+          tenant_id,
+          role,
+        });
         break;
 
       case "/organizations":
-        console.log("Inside dataFetcher organizations switch: ");
-        if (user.role == "admin") {
-          this.dbWorker.postMessage({
-            action: "getAllOrganizations",
-            tenant_id: user.tenant_id || "testing...",
-          });
-        } else {
-          this.dbWorker.postMessage({
-            action: "getAllOrganizationsByUserId",
-            user_id: user.user_id,
-          });
-        }
+        this.dbWorker.postMessage({
+          action: "getAllOrganizations",
+          user_id,
+          tenant_id,
+          role,
+        });
         break;
 
       case "/deals":
-        // this.dbWorker.postMessage({ action: "getAllDeals" });
-        console.log("Inside dataFetcher deals switch: ");
-        if (user.role == "admin") {
-          this.dbWorker.postMessage({
-            action: "getAllDeals",
-            tenant_id: user.tenant_id || "testing...",
-          });
-        } else {
-          this.dbWorker.postMessage({
-            action: "getAllDealsByUserId",
-            user_id: user.user_id,
-          });
-        }
+        this.dbWorker.postMessage({
+          action: "getAllDeals",
+          user_id,
+          tenant_id,
+          role,
+        });
         break;
 
       case "/users":
-        // this.dbWorker.postMessage({ action: "getAllDeals" });
-        console.log("Inside dataFetcher users switch: ");
-        if (user.role == "admin") {
+        // Only admins and super_admins can view users
+        if (role === "admin" || role === "super_admin") {
           this.dbWorker.postMessage({
             action: "getAllUsers",
-            tenant_id: user.tenant_id || "testing...",
+            tenant_id,
+            role,
           });
         }
         break;

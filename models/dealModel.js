@@ -13,5 +13,13 @@ export const dealsStructure = {
     deal_status: "Prospecting",
     created_on: new Date(),
     modified_on: new Date(),
+    tenant_id: "tenant_123",
   },
+  indexes: [
+    {
+      name: "tenant_id",
+      keyPath: "tenant_id",
+      options: { unique: true },
+    },
+  ],
 };

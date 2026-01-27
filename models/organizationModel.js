@@ -7,6 +7,7 @@ export const organizationsStructure = {
     organization_website_name: "www.google.com/",
     organization_size: 50,
     organization_industry: "Software",
+    tenant_id: "tenant_123",
   },
   indexes: [
     {
@@ -17,6 +18,11 @@ export const organizationsStructure = {
     {
       name: "organization_name",
       keyPath: "organization_name",
+      options: { unique: false },
+    },
+    {
+      name: "tenant",
+      keyPath: "tenant_id",
       options: { unique: false },
     },
   ],

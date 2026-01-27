@@ -9,12 +9,18 @@ export const usersStructure = {
     last_name: "Testing",
     mobile: "909090",
     role: "Admin",
+    tenant_id: "tenant_123",
   },
   indexes: [
     {
       name: "user_email",
       keyPath: "user_email",
       options: { unique: true },
+    },
+    {
+      name: "tenant",
+      keyPath: "tenant_id",
+      options: { unique: false },
     },
   ],
 };

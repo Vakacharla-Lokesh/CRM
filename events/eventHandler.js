@@ -34,12 +34,17 @@ import {
   handleLeadFormSubmit,
   handleOrganizationFormSubmit,
   handleDealFormSubmit,
+  handleUserFormSubmit,
 } from "./handlers/formHandlers.js";
 
-/**
- * Main event handler initialization
- * This is now much cleaner and delegates to specific handler modules
- */
+import {
+  handleUserCreate,
+  handleUserCreated,
+  handleUserDelete,
+  handleUserDeleted,
+  handleUserClick,
+} from "./handlers/userHandlers.js";
+
 export function initializeEventHandlers(worker) {
   // Initialize database state
   dbState.initialize(worker);
@@ -56,6 +61,7 @@ export function initializeEventHandlers(worker) {
   registerDealEvents();
   registerUIEvents();
   registerAuthEvents();
+  registerUserEvents();
 
   // Initialize theme and DOM listeners
   initializeTheme();
@@ -107,6 +113,13 @@ function registerAuthEvents() {
   eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
 }
 
+function registerUserEvents() {
+  eventBus.on(EVENTS.USER_CREATE, handleUserCreate);
+  eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
+  eventBus.on(EVENTS.USER_DELETE, handleUserDelete);
+  eventBus.on(EVENTS.USER_DELETED, handleUserDeleted);
+}
+
 function initializeClickHandlers() {
   document.addEventListener("click", (e) => {
     // Modal handlers
@@ -151,6 +164,7 @@ function initializeClickHandlers() {
     if (handleLeadClick(e)) return;
     if (handleOrganizationClick(e)) return;
     if (handleDealClick(e)) return;
+    if (handleUserClick(e)) return;
 
     // Close dropdowns when clicking outside
     if (
@@ -182,6 +196,8 @@ function initializeFormHandlers() {
       handleOrganizationFormSubmit(event);
     } else if (event.target.matches("form[data-form='createDeal']")) {
       handleDealFormSubmit(event);
+    } else if (event.target.matches("form[data-form='createUser']")) {
+      handleUserFormSubmit(event);
     }
   });
 }
@@ -257,10 +273,6 @@ function handleLoginSuccess(event) {
 
 function handleLoginFailure(event) {
   console.log("Login failed:", event.detail);
-}
-
-function handleUserCreated(event) {
-  console.log("User created:", event.detail);
 }
 
 function handleLogout() {

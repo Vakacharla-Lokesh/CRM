@@ -3,6 +3,7 @@ import { updateAllObjects } from "../services/calculateScore.js";
 // import { generateLeadScores } from "../services/calculateScore.js";
 import { deleteData } from "../services/deleteDb.js";
 import { getCount } from "../services/getCount.js";
+import { getDataByTenantAndUser } from "../services/getDataByTenant.js";
 import { getAllData, getDataById } from "../services/getDb.js";
 import { insertData } from "../services/insertDb.js";
 import { convertLeadToDeal } from "../services/leadToDeal.js";
@@ -45,9 +46,23 @@ self.onmessage = (e) => {
       insertData(e.data.leadData, "Leads", dbReady, db);
       break;
 
+    // case "getAllLeads":
+    //   console.log("Processing getAllLeads...");
+    //   getAllData("Leads", dbReady, db);
+    //   break;
     case "getAllLeads":
-      console.log("Processing getAllLeads...");
-      getAllData("Leads", dbReady, db);
+      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+        getDataByTenantAndUser(
+          "Leads",
+          e.data.user_id,
+          e.data.tenant_id,
+          e.data.role,
+          dbReady,
+          db,
+        );
+      } else {
+        getAllData("Leads", dbReady, db);
+      }
       break;
 
     case "getLead":
@@ -79,9 +94,23 @@ self.onmessage = (e) => {
       insertData(e.data.organizationData, "Organizations", dbReady, db);
       break;
 
+    // case "getAllOrganizations":
+    //   // console.log("Processing getAllLeads...");
+    //   getAllData("Organizations", dbReady, db);
+    //   break;
     case "getAllOrganizations":
-      // console.log("Processing getAllLeads...");
-      getAllData("Organizations", dbReady, db);
+      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+        getDataByTenantAndUser(
+          "Organizations",
+          e.data.user_id,
+          e.data.tenant_id,
+          e.data.role,
+          dbReady,
+          db,
+        );
+      } else {
+        getAllData("Organizations", dbReady, db);
+      }
       break;
 
     case "getOrganizationById":
@@ -98,8 +127,22 @@ self.onmessage = (e) => {
       insertData(e.data.dealData, "Deals", dbReady, db);
       break;
 
+    // case "getAllDeals":
+    //   getAllData("Deals", dbReady, db);
+    //   break;
     case "getAllDeals":
-      getAllData("Deals", dbReady, db);
+      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+        getDataByTenantAndUser(
+          "Deals",
+          e.data.user_id,
+          e.data.tenant_id,
+          e.data.role,
+          dbReady,
+          db,
+        );
+      } else {
+        getAllData("Deals", dbReady, db);
+      }
       break;
 
     case "getDeal":
@@ -176,13 +219,32 @@ self.onmessage = (e) => {
       break;
 
     // Users case:
+    // case "getAllUsers":
+    //   console.log("Inside get Users switch case: ");
+    //   getAllData("Users", dbReady, db);
+    //   break;
     case "getAllUsers":
-      console.log("Inside get Users switch case: ");
-      getAllData("Users", dbReady, db);
+      if (e.data.tenant_id && e.data.role) {
+        getDataByTenantAndUser(
+          "Users",
+          null,
+          e.data.tenant_id,
+          e.data.role,
+          dbReady,
+          db,
+        );
+      } else {
+        getAllData("Users", dbReady, db);
+      }
       break;
+
     case "deleteUser":
       console.log("Inside delete User case: ", e.data.id);
       deleteData(e.data.id, "Users", dbReady, db);
+      break;
+
+    case "createUser":
+      insertData(e.data.userData, "Users", dbReady, db);
       break;
 
     default:

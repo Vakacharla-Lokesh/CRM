@@ -114,6 +114,7 @@ loginForm.addEventListener("submit", async (e) => {
           user_name: result.user.name,
           authToken: generateId("user"),
           role: result.user.role,
+          tenant_id: result.user.tenantId,
         }),
       );
 

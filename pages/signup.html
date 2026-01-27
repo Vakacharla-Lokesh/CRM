@@ -11,21 +11,47 @@
             alt="CRM Logo"
             class="h-12"
           />
-          <h1 class="text-3xl font-bold text-heading">CRM</h1>
+          <h1 class="text-3xl font-bold text-heading">Campaign Flux</h1>
         </div>
-        <p class="text-body text-sm">Create your account to get started</p>
+        <p class="text-body text-sm">Create your organization account</p>
       </div>
 
       <form
         id="signup-form"
         class="bg-white dark:bg-slate-800 rounded-lg shadow-md p-8 space-y-6"
       >
+        <!-- Tenant/Organization Name -->
+        <div>
+          <label
+            for="signup-tenant-name"
+            class="block mb-2.5 text-sm font-medium text-heading"
+          >
+            Organization Name <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            id="signup-tenant-name"
+            name="tenantName"
+            class="w-full bg-neutral-secondary-medium border border-default-medium text-heading text-sm rounded-base focus:ring-2 focus:ring-brand focus:border-brand block px-4 py-2.5 shadow-xs placeholder:text-body transition duration-200"
+            placeholder="Your Company Name"
+            required
+          />
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            This will be your organization's workspace
+          </p>
+          <p
+            id="tenant-name-error"
+            class="text-red-600 text-xs mt-1 hidden"
+          ></p>
+        </div>
+
+        <!-- Full Name -->
         <div>
           <label
             for="signup-name"
             class="block mb-2.5 text-sm font-medium text-heading"
           >
-            Full Name
+            Your Full Name <span class="text-red-500">*</span>
           </label>
           <input
             type="text"
@@ -41,12 +67,13 @@
           ></p>
         </div>
 
+        <!-- Email -->
         <div>
           <label
             for="signup-email"
             class="block mb-2.5 text-sm font-medium text-heading"
           >
-            Email Address
+            Email Address <span class="text-red-500">*</span>
           </label>
           <input
             type="email"
@@ -62,12 +89,13 @@
           ></p>
         </div>
 
+        <!-- Password -->
         <div>
           <label
             for="signup-password"
             class="block mb-2.5 text-sm font-medium text-heading"
           >
-            Password
+            Password <span class="text-red-500">*</span>
           </label>
           <input
             type="password"
@@ -83,12 +111,13 @@
           ></p>
         </div>
 
+        <!-- Confirm Password -->
         <div>
           <label
             for="signup-confirm-password"
             class="block mb-2.5 text-sm font-medium text-heading"
           >
-            Confirm Password
+            Confirm Password <span class="text-red-500">*</span>
           </label>
           <input
             type="password"
@@ -104,6 +133,7 @@
           ></p>
         </div>
 
+        <!-- Terms -->
         <div class="flex items-center gap-2">
           <input
             type="checkbox"
@@ -120,17 +150,19 @@
           </label>
         </div>
 
+        <!-- Submit Button -->
         <button
           type="submit"
           id="signup-submit"
           class="w-full bg-brand hover:bg-brand-strong text-white font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:ring-4 focus:ring-brand-medium focus:outline-none transition duration-200 shadow-xs"
         >
-          Create Account
+          Create Organization Account
         </button>
         <p
           id="form-error"
           class="text-red-600 text-sm text-center hidden"
         ></p>
+
         <div
           class="text-center pt-4 border-t border-gray-200 dark:border-gray-700"
         >

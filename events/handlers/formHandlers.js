@@ -248,3 +248,55 @@ function createOrganizationAndLead(formData) {
 
   dbWorker.addEventListener("message", organizationHandler);
 }
+
+export function handleUserFormSubmit(event) {
+  event.preventDefault();
+  const { dbWorker, isDbReady } = dbState;
+
+  if (!isDbReady && dbWorker) {
+    dbWorker.postMessage({ action: "initialize" });
+    showNotification("Database initializing, please try again...", "info");
+    return;
+  }
+
+  const currentUser = JSON.parse(localStorage.getItem("user"));
+
+  const userData = {
+    user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    user_name: document.getElementById("user_name")?.value?.trim() || "",
+    user_email: document.getElementById("user_email")?.value?.trim() || "",
+    password: document.getElementById("user_password")?.value?.trim() || "",
+    mobile: document.getElementById("user_mobile")?.value?.trim() || "",
+    first_name: document.getElementById("user_name")?.value?.trim().split(' ')[0] || "",
+    last_name: document.getElementById("user_name")?.value?.trim().split(' ').slice(1).join(' ') || "",
+    tenant_id: currentUser.tenant_id,
+    role: "user", // Default role for new users
+  };
+
+  // Validation
+  if (!userData.user_name || !userData.user_email || !userData.password) {
+    alert("Please fill in all required fields");
+    return;
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(userData.user_email)) {
+    alert("Please enter a valid email address");
+    return;
+  }
+
+  if (userData.password.length < 6) {
+    alert("Password must be at least 6 characters");
+    return;
+  }
+
+  const regex = /^[1-9]\d{9}$/;
+  if (userData.mobile && !regex.test(userData.mobile)) {
+    alert("Please enter a valid 10-digit mobile number.");
+    return;
+  }
+
+  eventBus.emit(EVENTS.USER_CREATE, { userData });
+  document.getElementById("form-modal")?.classList.add("hidden");
+  event.target.reset();
+}

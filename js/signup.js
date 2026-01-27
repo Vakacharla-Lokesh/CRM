@@ -3,6 +3,7 @@ import { registerUser } from "../services/registerUser.js";
 import { loadRoute } from "../router.js";
 
 const signupForm = document.getElementById("signup-form");
+const tenantNameInput = document.getElementById("signup-tenant-name");
 const nameInput = document.getElementById("signup-name");
 const emailInput = document.getElementById("signup-email");
 const passwordInput = document.getElementById("signup-password");
@@ -10,10 +11,15 @@ const confirmPasswordInput = document.getElementById("signup-confirm-password");
 const agreeTermsCheckbox = document.getElementById("agree-terms");
 const submitBtn = document.getElementById("signup-submit");
 const formError = document.getElementById("form-error");
+const tenantNameError = document.getElementById("tenant-name-error");
 const nameError = document.getElementById("name-error");
 const emailError = document.getElementById("email-error");
 const passwordError = document.getElementById("password-error");
 const confirmPasswordError = document.getElementById("confirm-password-error");
+
+function validateTenantName(tenantName) {
+  return tenantName && tenantName.trim().length >= 2;
+}
 
 function validateName(name) {
   return name && name.trim().length >= 2;
@@ -34,6 +40,7 @@ function validateConfirmPassword(password, confirmPassword) {
 
 function clearErrors() {
   formError.classList.add("hidden");
+  tenantNameError.classList.add("hidden");
   nameError.classList.add("hidden");
   emailError.classList.add("hidden");
   passwordError.classList.add("hidden");
@@ -48,7 +55,16 @@ function showError(field, message) {
   }
 }
 
-// Input validation on blur
+// Validation on blur
+tenantNameInput.addEventListener("blur", () => {
+  const tenantName = tenantNameInput.value.trim();
+  if (tenantName && !validateTenantName(tenantName)) {
+    showError("tenant-name", "Organization name must be at least 2 characters");
+  } else {
+    tenantNameError.classList.add("hidden");
+  }
+});
+
 nameInput.addEventListener("blur", () => {
   const name = nameInput.value.trim();
   if (name && !validateName(name)) {
@@ -87,6 +103,10 @@ confirmPasswordInput.addEventListener("blur", () => {
 });
 
 // Clear errors on input
+tenantNameInput.addEventListener("input", () => {
+  tenantNameError.classList.add("hidden");
+});
+
 nameInput.addEventListener("input", () => {
   nameError.classList.add("hidden");
 });
@@ -108,6 +128,7 @@ signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   clearErrors();
 
+  const tenantName = tenantNameInput.value.trim();
   const name = nameInput.value.trim();
   const email = emailInput.value.trim();
   const password = passwordInput.value;
@@ -115,6 +136,15 @@ signupForm.addEventListener("submit", async (e) => {
   const agreeTerms = agreeTermsCheckbox.checked;
 
   let hasErrors = false;
+
+  // Validate tenant name
+  if (!tenantName) {
+    showError("tenant-name", "Organization name is required");
+    hasErrors = true;
+  } else if (!validateTenantName(tenantName)) {
+    showError("tenant-name", "Organization name must be at least 2 characters");
+    hasErrors = true;
+  }
 
   // Validate name
   if (!name) {
@@ -166,8 +196,8 @@ signupForm.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Creating Account...";
 
   try {
-    // Register user
-    const result = await registerUser(name, email, password);
+    // Register user with new tenant
+    const result = await registerUser(name, email, password, true, tenantName);
 
     if (result.success) {
       // Emit user creation event
@@ -175,11 +205,13 @@ signupForm.addEventListener("submit", async (e) => {
         userId: result.user.userId,
         name: result.user.name,
         email: result.user.email,
+        tenantId: result.user.tenantId,
+        role: result.user.role,
       });
 
       // Show success message
       formError.textContent =
-        "Account created successfully! Redirecting to login...";
+        "Organization created successfully! Redirecting to login...";
       formError.classList.remove("hidden");
       formError.classList.remove("text-red-600");
       formError.classList.add("text-green-600");
@@ -199,6 +231,6 @@ signupForm.addEventListener("submit", async (e) => {
     formError.classList.remove("hidden");
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Create Account";
+    submitBtn.textContent = "Create Organization Account";
   }
 });
