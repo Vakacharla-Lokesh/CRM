@@ -40,6 +40,7 @@ self.onmessage = (e) => {
       }
       break;
 
+    // Lead cases:
     case "createLead":
       insertData(e.data.leadData, "Leads", dbReady, db);
       break;
@@ -53,10 +54,26 @@ self.onmessage = (e) => {
       getDataById("Leads", e.data.id, dbReady, db);
       break;
 
-    case "getLeadById":
-      getLeadById(e.data.storeName, e.data.id, dbReady, db);
+    case "getAllLeadsByUserId":
+      console.log("Inside get data by user id: ", e.data.user_id);
+      getLeadById(e.data.storeName, e.data.user_id, dbReady, db);
       break;
 
+    case "getLeadById":
+      getDataById(e.data.storeName, e.data.id, dbReady, db);
+      break;
+
+    case "deleteLead":
+      // console.log(e.data.id);
+      deleteData(e.data.id, "Leads", dbReady, db);
+      break;
+
+    case "updateLead":
+      console.log("Inside update case");
+      updateData("Leads", e.data.leadData, dbReady, db);
+      break;
+
+    // Organization cases:
     case "createOrganization":
       // console.log("Working on creating: ....");
       insertData(e.data.organizationData, "Organizations", dbReady, db);
@@ -71,25 +88,12 @@ self.onmessage = (e) => {
       getDataById("Organizations", e.data.id, dbReady, db);
       break;
 
-    case "getData":
-      getCount(db, dbReady);
-      break;
-
-    case "deleteLead":
-      // console.log(e.data.id);
-      deleteData(e.data.id, "Leads", dbReady, db);
-      break;
-
     case "deleteOrganization":
       console.log(e.data.id);
       deleteData(e.data.id, "Organizations", dbReady, db);
       break;
 
-    case "getCommentById":
-      console.log("Inside switch of comment");
-      getDataById("Comments", e.data.id, dbReady, db);
-      break;
-
+    // Deal cases:
     case "createDeal":
       insertData(e.data.dealData, "Deals", dbReady, db);
       break;
@@ -111,17 +115,6 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Deals", dbReady, db);
       break;
 
-    case "calculateScore":
-      console.log("Inside calculate score switch case: ");
-      // generateLeadScores(db, dbReady);
-      updateAllObjects();
-      break;
-
-    case "updateLead":
-      console.log("Inside update case");
-      updateData("Leads", e.data.leadData, dbReady, db);
-      break;
-
     case "createAttachment":
       insertData(e.data.attachmentData, "Attachments", dbReady, db);
       break;
@@ -132,6 +125,12 @@ self.onmessage = (e) => {
 
     case "deleteAttachment":
       deleteData(e.data.id, "Attachments", dbReady, db);
+      break;
+
+    // Comment cases:
+    case "getCommentById":
+      console.log("Inside switch of comment");
+      getDataById("Comments", e.data.id, dbReady, db);
       break;
 
     case "createComment":
@@ -146,6 +145,7 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Comments", dbReady, db);
       break;
 
+    // Calls cases:
     case "createCall":
       insertData(e.data.callData, "Calls", dbReady, db);
       break;
@@ -158,8 +158,31 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Calls", dbReady, db);
       break;
 
+    // Lead to deal case:
     case "convertToDeal":
       convertLeadToDeal(e.data.lead_id, dbReady, db);
+      break;
+
+    // Home data extraction case:
+    case "getData":
+      getCount(db, dbReady);
+      break;
+
+    // Lead score generation case:
+    case "calculateScore":
+      console.log("Inside calculate score switch case: ");
+      // generateLeadScores(db, dbReady);
+      updateAllObjects();
+      break;
+
+    // Users case:
+    case "getAllUsers":
+      console.log("Inside get Users switch case: ");
+      getAllData("Users", dbReady, db);
+      break;
+    case "deleteUser":
+      console.log("Inside delete User case: ", e.data.id);
+      deleteData(e.data.id, "Users", dbReady, db);
       break;
 
     default:
@@ -167,41 +190,41 @@ self.onmessage = (e) => {
   }
 };
 
-function getLeadById(storeName, id, dbReady, db) {
-  if (!dbReady || !db) {
-    postMessage({
-      action: "getByIdError",
-      error: "Database not ready",
-      id,
-    });
-    return;
-  }
+// function getLeadById(storeName, id, dbReady, db) {
+//   if (!dbReady || !db) {
+//     postMessage({
+//       action: "getByIdError",
+//       error: "Database not ready",
+//       id,
+//     });
+//     return;
+//   }
 
-  try {
-    const tx = db.transaction(storeName, "readonly");
-    const store = tx.objectStore(storeName);
-    const request = store.get(id);
+//   try {
+//     const tx = db.transaction(storeName, "readonly");
+//     const store = tx.objectStore(storeName);
+//     const request = store.get(id);
 
-    request.onsuccess = () => {
-      postMessage({
-        action: "getByIdSuccess",
-        data: request.result,
-        id,
-      });
-    };
+//     request.onsuccess = () => {
+//       postMessage({
+//         action: "getByIdSuccess",
+//         data: request.result,
+//         id,
+//       });
+//     };
 
-    request.onerror = (e) => {
-      postMessage({
-        action: "getByIdError",
-        error: e.target.error?.message,
-        id,
-      });
-    };
-  } catch (error) {
-    postMessage({
-      action: "getByIdError",
-      error: error.message,
-      id,
-    });
-  }
-}
+//     request.onerror = (e) => {
+//       postMessage({
+//         action: "getByIdError",
+//         error: e.target.error?.message,
+//         id,
+//       });
+//     };
+//   } catch (error) {
+//     postMessage({
+//       action: "getByIdError",
+//       error: error.message,
+//       id,
+//     });
+//   }
+// }

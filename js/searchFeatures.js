@@ -99,12 +99,12 @@
     }
   }
   class BulkDeleteManager {
-    constructor(config) {
-      this.tableBodyId = config.tableBodyId;
-      this.selectAllId = config.selectAllId;
-      this.bulkDeleteBtnId = config.bulkDeleteBtnId;
-      this.itemCheckboxClass = config.itemCheckboxClass || "item-checkbox";
-      this.storeName = config.storeName;
+    constructor(path) {
+      this.tableBodyId = path.tableBodyId;
+      this.selectAllId = path.selectAllId;
+      this.bulkDeleteBtnId = path.bulkDeleteBtnId;
+      this.itemCheckboxClass = path.itemCheckboxClass || "item-checkbox";
+      this.storeName = path.storeName;
 
       this.selectAllCheckbox = document.getElementById(this.selectAllId);
       this.bulkDeleteBtn = document.getElementById(this.bulkDeleteBtnId);
@@ -117,6 +117,7 @@
     }
 
     init() {
+      console.log("Inside init of bulk delete: ");
       this.bulkDeleteBtn.style.display = "none";
       this.selectAllCheckbox.addEventListener("change", (e) => {
         this.toggleAllCheckboxes(e.target.checked);
@@ -339,54 +340,106 @@
       }, 3000);
     }
   }
-  function initializeTableFeatures() {
-    const currentPath = sessionStorage.getItem("currentTab");
+  function initializeTableFeatures(currentPathParam) {
+    let currentPath;
+    if (typeof currentPathParam === "string") {
+      currentPath = currentPathParam;
+    } else {
+      currentPath = sessionStorage.getItem("currentTab");
+    }
+    console.log("Inside initializeTableFeatures: ", currentPath);
+    const safeInitialize = (
+      page,
+      tableBodyId,
+      searchInputId,
+      selectAllId,
+      bulkDeleteBtnId,
+      storeName,
+    ) => {
+      const maxRetries = 5;
+      let retryCount = 0;
+      const attemptInit = () => {
+        const searchInput = document.getElementById(searchInputId);
+        const tbody = document.getElementById(tableBodyId);
+
+        if (searchInput && tbody) {
+          new TableFilter(tableBodyId, searchInputId);
+          new BulkDeleteManager({
+            tableBodyId: tableBodyId,
+            selectAllId: selectAllId,
+            bulkDeleteBtnId: bulkDeleteBtnId,
+            itemCheckboxClass: "item-checkbox",
+            storeName: storeName,
+          });
+        } else if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(attemptInit, 100);
+        } else {
+          console.warn(
+            `Failed to initialize features for ${page} - elements not found`,
+          );
+        }
+      };
+
+      attemptInit();
+    };
 
     // LEADS PAGE
     if (currentPath === "/leads") {
-      new TableFilter("leads-body", "leads-search-input");
-
-      new BulkDeleteManager({
-        tableBodyId: "leads-body",
-        selectAllId: "select-all-leads",
-        bulkDeleteBtnId: "bulk-delete-leads",
-        itemCheckboxClass: "item-checkbox",
-        storeName: "Leads",
-      });
+      console.log("Inside leads initialize: ");
+      safeInitialize(
+        "/leads",
+        "leads-body",
+        "leads-search-input",
+        "select-all-leads",
+        "bulk-delete-leads",
+        "Leads",
+      );
     }
 
     // ORGANIZATIONS PAGE
     if (currentPath === "/organizations") {
-      new TableFilter("organizations-body", "organizations-search-input");
-
-      new BulkDeleteManager({
-        tableBodyId: "organizations-body",
-        selectAllId: "select-all-organizations",
-        bulkDeleteBtnId: "bulk-delete-organizations",
-        itemCheckboxClass: "item-checkbox",
-        storeName: "Organizations",
-      });
+      safeInitialize(
+        "/organizations",
+        "organizations-body",
+        "organizations-search-input",
+        "select-all-organizations",
+        "bulk-delete-organizations",
+        "Organizations",
+      );
     }
 
     // DEALS PAGE
     if (currentPath === "/deals") {
-      new TableFilter("deals-body", "deals-search-input");
+      safeInitialize(
+        "/deals",
+        "deals-body",
+        "deals-search-input",
+        "select-all-deals",
+        "bulk-delete-deals",
+        "Deals",
+      );
+    }
 
-      new BulkDeleteManager({
-        tableBodyId: "deals-body",
-        selectAllId: "select-all-deals",
-        bulkDeleteBtnId: "bulk-delete-deals",
-        itemCheckboxClass: "item-checkbox",
-        storeName: "Deals",
-      });
+    // USERS PAGE
+    if (currentPath === "/users") {
+      safeInitialize(
+        "/users",
+        "users-body",
+        "users-search-input",
+        "select-all-users",
+        "bulk-delete-users",
+        "Users",
+      );
     }
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeTableFeatures);
-  } else {
-    initializeTableFeatures();
-  }
+  // if (document.readyState === "loading") {
+  //   document.addEventListener("DOMContentLoaded", initializeTableFeatures);
+  // } else {
+  //   setTimeout(initializeTableFeatures, 200);
+  // }
+  document.addEventListener("DOMContentLoaded", initializeTableFeatures);
 
   window.addEventListener("popstate", () => {
     setTimeout(initializeTableFeatures, 100);

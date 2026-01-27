@@ -41,13 +41,14 @@ class SearchBar extends HTMLElement {
   }
 
   attributeChangedCallback(name, oldValue, newValue) {
-    // console.log(`Inside attribute change: ${name} ${oldValue} ${newValue}`);
+    console.log(`Inside attribute change: ${name} ${oldValue} ${newValue}`);
     this.render();
   }
 
   render() {
     let inputField = this.querySelector(".search");
     let idType = this.getAttribute("data-search-type");
+    console.log("inside searchBar component: ", idType);
     inputField.id = idType;
 
     switch (idType) {
@@ -59,6 +60,9 @@ class SearchBar extends HTMLElement {
         break;
       case "deals-search-input":
         inputField.setAttribute("placeholder", "Search deals");
+        break;
+      case "users-search-input":
+        inputField.setAttribute("placeholder", "Search users");
         break;
       default:
         console.log("Error in search input field");

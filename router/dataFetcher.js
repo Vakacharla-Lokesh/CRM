@@ -2,6 +2,7 @@ import { populateHome } from "../services/populateHome.js";
 import { populateLeadsTable } from "../services/populateLeads.js";
 import { populateOrganizationsTable } from "../services/populateOrganizations.js";
 import { populateDealsTable } from "../services/populateDeals.js";
+import { populateUsersTable } from "../services/populateUsers.js";
 import { updateUserDetails } from "../events/userProfile.js";
 
 export class DataFetcher {
@@ -21,18 +22,64 @@ export class DataFetcher {
 
     console.log("Fetching data for route:", path);
 
+    const user = JSON.parse(localStorage.getItem("user"));
+
     switch (path) {
       case "/leads":
-        console.log("Inside dataFetcher switch: ");
-        this.dbWorker.postMessage({ action: "getAllLeads" });
+        console.log("Inside dataFetcher leads switch: ");
+        if (user.role == "admin") {
+          this.dbWorker.postMessage({
+            action: "getAllLeads",
+            tenant_id: user.tenant_id || "testing...",
+          });
+        } else {
+          this.dbWorker.postMessage({
+            action: "getAllLeadsByUserId",
+            user_id: user.user_id,
+          });
+        }
         break;
 
       case "/organizations":
-        this.dbWorker.postMessage({ action: "getAllOrganizations" });
+        console.log("Inside dataFetcher organizations switch: ");
+        if (user.role == "admin") {
+          this.dbWorker.postMessage({
+            action: "getAllOrganizations",
+            tenant_id: user.tenant_id || "testing...",
+          });
+        } else {
+          this.dbWorker.postMessage({
+            action: "getAllOrganizationsByUserId",
+            user_id: user.user_id,
+          });
+        }
         break;
 
       case "/deals":
-        this.dbWorker.postMessage({ action: "getAllDeals" });
+        // this.dbWorker.postMessage({ action: "getAllDeals" });
+        console.log("Inside dataFetcher deals switch: ");
+        if (user.role == "admin") {
+          this.dbWorker.postMessage({
+            action: "getAllDeals",
+            tenant_id: user.tenant_id || "testing...",
+          });
+        } else {
+          this.dbWorker.postMessage({
+            action: "getAllDealsByUserId",
+            user_id: user.user_id,
+          });
+        }
+        break;
+
+      case "/users":
+        // this.dbWorker.postMessage({ action: "getAllDeals" });
+        console.log("Inside dataFetcher users switch: ");
+        if (user.role == "admin") {
+          this.dbWorker.postMessage({
+            action: "getAllUsers",
+            tenant_id: user.tenant_id || "testing...",
+          });
+        }
         break;
 
       case "/home":
@@ -88,6 +135,8 @@ export class DataFetcher {
       populateOrganizationsTable(rows || []);
     } else if (storeName === "Deals" && currentPath === "/deals") {
       populateDealsTable(rows || []);
+    } else if (storeName === "Users" && currentPath === "/users") {
+      populateUsersTable(rows || []);
     }
   }
 

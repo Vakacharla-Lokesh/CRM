@@ -117,12 +117,6 @@ loginForm.addEventListener("submit", async (e) => {
         }),
       );
 
-      if (rememberCheckbox.checked) {
-        localStorage.setItem("rememberEmail", email);
-      } else {
-        localStorage.removeItem("rememberEmail");
-      }
-
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
         email,
         userId: result.user.userId,

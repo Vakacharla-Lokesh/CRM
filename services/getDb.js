@@ -43,7 +43,7 @@ export function getAllData(storeName, dbReady, db) {
   }
 }
 
-export function getDataById(storeName, id) {
+export function getDataById(storeName, id, dbReady, db) {
   if (!dbReady || !db) {
     postMessage({
       action: "getError",
@@ -56,14 +56,31 @@ export function getDataById(storeName, id) {
   const store = tx.objectStore(storeName);
   const request = store.get(id);
 
-  request.onsuccess = () => {
-    postMessage({ action: "getSuccess", data: request.result });
-  };
+  try {
+    const tx = db.transaction(storeName, "readonly");
+    const store = tx.objectStore(storeName);
+    const request = store.get(id);
 
-  request.onerror = (e) => {
+    request.onsuccess = () => {
+      postMessage({
+        action: "getByIdSuccess",
+        data: request.result,
+        id,
+      });
+    };
+
+    request.onerror = (e) => {
+      postMessage({
+        action: "getByIdError",
+        error: e.target.error?.message,
+        id,
+      });
+    };
+  } catch (error) {
     postMessage({
-      action: "getError",
-      error: e.target.error?.message,
+      action: "getByIdError",
+      error: error.message,
+      id,
     });
-  };
+  }
 }

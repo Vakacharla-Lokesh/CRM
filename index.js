@@ -1,8 +1,8 @@
-// index.js - Updated to use modular router
 import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
 import WSClient from "./websockets/client.js";
+import { initializeOrgSelect } from './components/organizationSelect.js';
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
@@ -110,6 +110,8 @@ dbWorker.addEventListener("message", (e) => {
 
     // Initialize router with dbWorker
     router.initialize(dbWorker);
+
+    initializeOrgSelect(dbWorker);
   }
 
   if (payload.action === "insertSuccess") {

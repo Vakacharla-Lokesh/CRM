@@ -13,6 +13,8 @@ export function handleLeadFormSubmit(event) {
     return;
   }
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
   const leadFormData = {
     lead_first_name: document.getElementById("first_name")?.value?.trim() || "",
     lead_last_name: document.getElementById("last_name")?.value?.trim() || "",
@@ -30,7 +32,12 @@ export function handleLeadFormSubmit(event) {
     contact_name: document.getElementById("contact_name")?.value?.trim() || "",
     contact_number:
       document.getElementById("contact_number")?.value?.trim() || "",
+    user_id: user.user_id,
   };
+
+  const selectedOrgId = document.getElementById(
+    "selected_organization_id",
+  )?.value;
 
   // Validation
   if (
@@ -57,7 +64,24 @@ export function handleLeadFormSubmit(event) {
     return;
   }
 
-  if (leadFormData.organization_name) {
+  if (selectedOrgId) {
+    const leadData = {
+      lead_id: generateId("lead"),
+      lead_first_name: leadFormData.lead_first_name,
+      lead_last_name: leadFormData.lead_last_name,
+      lead_email: leadFormData.lead_email,
+      lead_mobile_number: leadFormData.lead_mobile_number,
+      organization_id: selectedOrgId,
+      organization_name: leadFormData.organization_name,
+      lead_source: "Manual",
+      lead_score: 0,
+      created_on: new Date(),
+      modified_on: new Date(),
+      lead_status: "New",
+    };
+
+    eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
+  } else if (leadFormData.organization_name) {
     createOrganizationAndLead(leadFormData);
   } else {
     const leadData = {
@@ -79,6 +103,7 @@ export function handleLeadFormSubmit(event) {
 
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
+  document.getElementById("selected_organization_id")?.remove();
 }
 
 export function handleOrganizationFormSubmit(event) {
@@ -90,6 +115,8 @@ export function handleOrganizationFormSubmit(event) {
     showNotification("Database initializing, please try again...", "info");
     return;
   }
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const organizationData = {
     organization_id: generateId("org"),
@@ -104,6 +131,7 @@ export function handleOrganizationFormSubmit(event) {
     contact_name: document.getElementById("contact_name")?.value?.trim() || "",
     contact_number:
       document.getElementById("contact_number")?.value?.trim() || "",
+    user_id: user.user_id,
   };
 
   if (
@@ -173,10 +201,11 @@ export function handleDealFormSubmit(event) {
   event.target.reset();
 }
 
-// Helper function
 function createOrganizationAndLead(formData) {
   const { dbWorker } = dbState;
   const organizationId = generateId("org");
+
+  const user = JSON.parse(localStorage.getItem("user"));
 
   const organizationData = {
     organization_id: organizationId,
@@ -186,6 +215,7 @@ function createOrganizationAndLead(formData) {
     organization_industry: formData.organization_industry || "",
     created_on: new Date(),
     modified_on: new Date(),
+    user_id: user.user_id,
   };
 
   eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
@@ -209,6 +239,7 @@ function createOrganizationAndLead(formData) {
         created_on: new Date(),
         modified_on: new Date(),
         lead_status: "New",
+        user_id: user.user_id,
       };
 
       eventBus.emit(EVENTS.LEAD_CREATE, { leadData });

@@ -25,11 +25,11 @@ export class SidebarManager {
     }
   }
 
-  updateActiveState(path) {
+  updateActive(path) {
     const sidebarElement = document.getElementById("sidebar");
 
     if (!sidebarElement) return;
-    
+
     const links = sidebarElement.querySelectorAll("a[data-link]");
 
     links.forEach((link) => {
@@ -55,5 +55,15 @@ export class SidebarManager {
         link.classList.add("text-gray-700", "dark:text-gray-300");
       }
     });
+  }
+
+  isAdmin(role) {
+    const sidebarElement = document.getElementById("sidebar");
+    const usersTab = document.querySelector("#data-users-list");
+    if (role == "admin") {
+      usersTab.classList.remove("hidden");
+    } else {
+      usersTab.classList.add("hidden");
+    }
   }
 }
