@@ -1,5 +1,5 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
-import { populateDealsTable } from "../services/populateDeals.js";
+import { populateDealsTable } from "../controllers/populateDeals.js";
 
 let dbWorker = null;
 let allLeads = [];

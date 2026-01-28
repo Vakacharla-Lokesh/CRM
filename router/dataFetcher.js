@@ -1,8 +1,8 @@
-import { populateHome } from "../services/populateHome.js";
-import { populateLeadsTable } from "../services/populateLeads.js";
-import { populateOrganizationsTable } from "../services/populateOrganizations.js";
-import { populateDealsTable } from "../services/populateDeals.js";
-import { populateUsersTable } from "../services/populateUsers.js";
+import { populateHome } from "../controllers/populateHome.js";
+import { populateLeadsTable } from "../controllers/populateLeads.js";
+import { populateOrganizationsTable } from "../controllers/populateOrganizations.js";
+import { populateDealsTable } from "../controllers/populateDeals.js";
+import { populateUsersTable } from "../controllers/populateUsers.js";
 import { updateUserDetails } from "../events/userProfile.js";
 
 export class DataFetcher {

@@ -1,3 +1,5 @@
+import { generateId } from "./uidGenerator";
+
 export function convertLeadToDeal(leadId, dbReady, db) {
   if (!dbReady || !db) {
     postMessage({
@@ -8,7 +10,6 @@ export function convertLeadToDeal(leadId, dbReady, db) {
   }
 
   try {
-    // First, get the lead data
     const tx = db.transaction(["Leads", "Deals"], "readwrite");
     const leadsStore = tx.objectStore("Leads");
     const dealsStore = tx.objectStore("Deals");
@@ -26,11 +27,10 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         return;
       }
 
-      // Create deal from lead data
       const dealData = {
         deal_id: generateId("deal"),
         deal_name: `Deal - ${lead.lead_first_name} ${lead.lead_last_name}`,
-        deal_value: 0, // Default value, user can update later
+        deal_value: 0,
         lead_id: lead.lead_id,
         lead_first_name: lead.lead_first_name,
         lead_last_name: lead.lead_last_name,
@@ -44,7 +44,6 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       const addRequest = dealsStore.add(dealData);
 
       addRequest.onsuccess = () => {
-        // Update lead status to "Converted"
         const updatedLead = {
           ...lead,
           lead_status: "Converted",
@@ -90,11 +89,4 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       error: error.message,
     });
   }
-}
-
-// Add this helper function for ID generation in worker
-function generateId(prefix) {
-  return (
-    prefix + "_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
-  );
 }

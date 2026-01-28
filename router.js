@@ -34,6 +34,7 @@ class Router {
     // initial route
     const user = localStorage.getItem("user");
     const initialRoute = user ? "/home" : "/login";
+    console.log("Initial route clause: ", initialRoute);
     this.loadRoute(initialRoute);
   }
 
@@ -69,10 +70,9 @@ class Router {
 
       this.scheduleDataFetch(path);
 
-      this.sidebarManager.updateActive(path);
-
       if (user) {
         this.sidebarManager.isAdmin(user.role);
+        this.sidebarManager.updateActive(path);
       }
     } catch (error) {
       console.error("Error loading route:", error);
