@@ -19,6 +19,7 @@ async function initialize() {
     db = await dbCreate();
     dbReady = true;
     // console.log("Worker: Database ready");
+    // addTestUsers(db);
     self.postMessage({ action: "dbReady" });
   } catch (error) {
     console.error("Worker: Database initialization failed", error);
@@ -251,42 +252,3 @@ self.onmessage = (e) => {
       console.warn("Unknown action:", e.data.action);
   }
 };
-
-// function getLeadById(storeName, id, dbReady, db) {
-//   if (!dbReady || !db) {
-//     postMessage({
-//       action: "getByIdError",
-//       error: "Database not ready",
-//       id,
-//     });
-//     return;
-//   }
-
-//   try {
-//     const tx = db.transaction(storeName, "readonly");
-//     const store = tx.objectStore(storeName);
-//     const request = store.get(id);
-
-//     request.onsuccess = () => {
-//       postMessage({
-//         action: "getByIdSuccess",
-//         data: request.result,
-//         id,
-//       });
-//     };
-
-//     request.onerror = (e) => {
-//       postMessage({
-//         action: "getByIdError",
-//         error: e.target.error?.message,
-//         id,
-//       });
-//     };
-//   } catch (error) {
-//     postMessage({
-//       action: "getByIdError",
-//       error: error.message,
-//       id,
-//     });
-//   }
-// }

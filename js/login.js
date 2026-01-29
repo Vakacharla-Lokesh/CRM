@@ -159,5 +159,8 @@ document.addEventListener("DOMContentLoaded", () => {
 attachSignUpListener();
 
 loginForm.addEventListener("click", (event) => {
-  console.log("Inside login form");
+  // console.log("Inside login form");
+  if(event.target.closest("[data-link]")){
+    window.router.loadRoute("/signup");
+  }
 });

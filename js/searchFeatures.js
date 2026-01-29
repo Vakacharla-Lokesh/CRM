@@ -317,8 +317,13 @@
     }
 
     refreshTable(dbWorker) {
+      const user = JSON.parse(localStorage.getItem("user"));
       const actionName = `getAll${this.storeName}`;
-      dbWorker.postMessage({ action: actionName });
+      dbWorker.postMessage({
+        action: actionName,
+        tenant_id: user.tenant_id,
+        role: user.role,
+      });
     }
 
     showNotification(message, type = "info") {

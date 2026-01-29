@@ -86,6 +86,7 @@ class LeadDetails extends HTMLElement {
       : "—";
 
     this.leadData = lead;
+    const status = lead.lead_status || "New";
 
     this.innerHTML = `
             <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
@@ -140,12 +141,11 @@ class LeadDetails extends HTMLElement {
                       </div>
                       <div>
                         <label for="edit_last_name" class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Last Name <span class="text-red-500">*</span>
+                          Last Name
                         </label>
                         <input
                           type="text"
                           id="edit_last_name"
-                          required
                           class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                           value="${lead.lead_last_name || ""}"
                         />
@@ -172,6 +172,23 @@ class LeadDetails extends HTMLElement {
                           class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                           value="${lead.lead_mobile_number || ""}"
                         />
+                      </div>
+                      <div>
+                        <label 
+                          for="edit_status" 
+                          class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
+                        >
+                          Status
+                        </label>
+                        <select 
+                          id="edit_status"
+                          class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"  
+                        >
+                          <option value="New" ${status === "New" ? "selected" : ""}>New</option>
+                          <option value="Converted" ${status === "Converted" ? "selected" : ""}>Converted</option>
+                          <option value="Dead" ${status === "Dead" ? "selected" : ""}>Dead</option>
+                          <option value="Follow-Up" ${status === "Follow-Up" ? "selected" : ""}>Follow-Up</option>
+                        </select>
                       </div>
                     </div>
 
@@ -249,8 +266,10 @@ class LeadDetails extends HTMLElement {
       document.getElementById("edit_last_name")?.value?.trim() || "";
     const email = document.getElementById("edit_email")?.value?.trim() || "";
     const mobile = document.getElementById("edit_mobile")?.value?.trim() || "";
+    const status =
+      document.getElementById("edit_status")?.value?.trim() || "New";
 
-    if (!firstName || !lastName || !email) {
+    if (!firstName || !email) {
       alert("Please fill in all required fields");
       return;
     }
@@ -267,6 +286,7 @@ class LeadDetails extends HTMLElement {
       lead_last_name: lastName,
       lead_email: email,
       lead_mobile_number: mobile,
+      lead_status: status,
       modified_on: new Date(),
     };
 

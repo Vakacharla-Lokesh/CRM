@@ -127,6 +127,10 @@ dbWorker.addEventListener("message", (e) => {
       eventBus.emit(EVENTS.DEAL_CREATED, payload);
       addNotification("Deal created successfully", "success");
     }
+    if (payload.storeName === "Users") {
+      eventBus.emit(EVENTS.USER_CREATED, payload);
+      addNotification("User created successfully", "success");
+    }
   }
 
   if (payload.action === "deleteSuccess") {

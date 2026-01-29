@@ -12,7 +12,7 @@ template.innerHTML = `<div
         class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
       >
         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
-          Add Deal
+          Edit Deal
         </h3>
         <button
           id="close-modal-btn"

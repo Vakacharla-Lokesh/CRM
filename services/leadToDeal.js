@@ -30,12 +30,13 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       const dealData = {
         deal_id: generateId("deal"),
         deal_name: `Deal - ${lead.lead_first_name} ${lead.lead_last_name}`,
-        deal_value: 0, // Default value, user can update later
+        deal_value: 0,
         lead_id: lead.lead_id,
         lead_first_name: lead.lead_first_name,
         lead_last_name: lead.lead_last_name,
         organization_id: lead.organization_id || null,
         organization_name: lead.organization_name || "",
+        tenant_id: lead.tenant_id,
         deal_status: "Prospecting",
         created_on: new Date(),
         modified_on: new Date(),

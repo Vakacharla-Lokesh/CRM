@@ -47,14 +47,14 @@ export class OrganizationSelect {
     container.innerHTML = `
       <div class="relative">
         <label class="block mb-2 text-sm font-medium text-gray-700 dark:text-gray-300">
-          Organization <span class="text-xs text-gray-500">(Select or create new)</span>
+          Organization <span class="text-xs text-gray-500">(Optional)</span>
         </label>
         
         <div class="relative">
           <input
             type="text"
             id="org-search-input"
-            placeholder="Search or type to create new..."
+            placeholder="Search existing organizations..."
             autocomplete="off"
             class="w-full px-3 py-2 pr-10 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
           />
@@ -92,30 +92,34 @@ export class OrganizationSelect {
   attachEventListeners() {
     const searchInput = document.getElementById("org-search-input");
     const dropdownBtn = document.getElementById("org-dropdown-btn");
-    const dropdown = document.getElementById("org-dropdown");
     const clearBtn = document.getElementById("org-clear-btn");
 
-    // Show/hide dropdown
-    searchInput.addEventListener("focus", () => {
-      this.showDropdown();
-    });
-
-    dropdownBtn.addEventListener("click", (e) => {
-      e.preventDefault();
-      this.toggleDropdown();
-    });
-
-    // Search/filter
-    searchInput.addEventListener("input", (e) => {
-      const query = e.target.value.toLowerCase();
-      this.filterOrganizations(query);
-
-      if (query && !this.isOpen) {
+    if (searchInput) {
+      searchInput.addEventListener("focus", () => {
         this.showDropdown();
-      }
-    });
+      });
 
-    // Clear selection
+      searchInput.addEventListener("blur", () => {
+        this.hideDropdown();
+      });
+
+      searchInput.addEventListener("input", (e) => {
+        const query = e.target.value.toLowerCase();
+        this.filterOrganizations(query);
+
+        if (query && !this.isOpen) {
+          this.showDropdown();
+        }
+      });
+    }
+
+    if (dropdownBtn) {
+      dropdownBtn.addEventListener("click", (e) => {
+        e.preventDefault();
+        this.toggleDropdown();
+      });
+    }
+
     if (clearBtn) {
       clearBtn.addEventListener("click", () => {
         this.clearSelection();
@@ -138,20 +142,13 @@ export class OrganizationSelect {
       org.organization_name.toLowerCase().includes(query),
     );
 
-    if (filtered.length === 0 && query) {
-      // Show "Create new" option
+    if (filtered.length === 0) {
       orgList.innerHTML = `
-        <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm border-b border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20" data-create-new="${query}">
-          <div class="flex items-center gap-2">
-            <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            <span class="text-green-700 dark:text-green-300">Create "<strong>${this.escapeHtml(query)}</strong>"</span>
-          </div>
+        <div class="px-4 py-3 text-sm text-gray-500 dark:text-gray-400 text-center">
+          No matching organizations found
         </div>
       `;
     } else {
-      // Show filtered organizations
       orgList.innerHTML = filtered
         .map(
           (org) => `
@@ -165,37 +162,12 @@ export class OrganizationSelect {
       `,
         )
         .join("");
-
-      // Add "Create new" option if query doesn't match exactly
-      if (
-        query &&
-        !filtered.some((org) => org.organization_name.toLowerCase() === query)
-      ) {
-        orgList.innerHTML += `
-          <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer text-sm border-t border-gray-200 dark:border-gray-700 bg-green-50 dark:bg-green-900/20" data-create-new="${query}">
-            <div class="flex items-center gap-2">
-              <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-              </svg>
-              <span class="text-green-700 dark:text-green-300">Create "<strong>${this.escapeHtml(query)}</strong>"</span>
-            </div>
-          </div>
-        `;
-      }
     }
 
-    // Attach click handlers
     orgList.querySelectorAll("[data-org-id]").forEach((item) => {
       item.addEventListener("click", (e) => {
         const orgId = e.currentTarget.getAttribute("data-org-id");
         this.selectOrganization(orgId);
-      });
-    });
-
-    orgList.querySelectorAll("[data-create-new]").forEach((item) => {
-      item.addEventListener("click", (e) => {
-        const orgName = e.currentTarget.getAttribute("data-create-new");
-        this.createNewOrganization(orgName);
       });
     });
   }
@@ -210,34 +182,7 @@ export class OrganizationSelect {
     this.hideDropdown();
   }
 
-  createNewOrganization(orgName) {
-    // Clear form and set organization name
-    document.getElementById("organization_name").value = orgName;
-    document.getElementById("organization_website_name").value = "";
-    document.getElementById("organization_size").value = "";
-    document.getElementById("organization_industry").value = "Software";
-
-    // Clear the search input
-    document.getElementById("org-search-input").value = orgName;
-
-    this.selectedOrg = null;
-    this.hideDropdown();
-    this.hideSelectedDisplay();
-
-    // Remove the hidden organization_id field (we're creating new)
-    const hiddenOrgIdField = document.getElementById(
-      "selected_organization_id",
-    );
-    if (hiddenOrgIdField) {
-      hiddenOrgIdField.remove();
-    }
-
-    // Show notification
-    this.showNotification(`Creating new organization: ${orgName}`, "info");
-  }
-
   updateFormFields(org) {
-    // Auto-fill organization fields
     const fields = {
       organization_name: org.organization_name,
       organization_website_name: org.organization_website_name || "",
@@ -253,16 +198,16 @@ export class OrganizationSelect {
       }
     });
 
-    // Store the organization_id in a hidden field
+    const form = document.querySelector('form[data-form="createLead"]');
+    if (!form) return;
+
     let hiddenOrgIdField = document.getElementById("selected_organization_id");
     if (!hiddenOrgIdField) {
       hiddenOrgIdField = document.createElement("input");
       hiddenOrgIdField.type = "hidden";
       hiddenOrgIdField.id = "selected_organization_id";
       hiddenOrgIdField.name = "selected_organization_id";
-      document
-        .querySelector('form[data-form="createLead"]')
-        .appendChild(hiddenOrgIdField);
+      form.appendChild(hiddenOrgIdField);
     }
     hiddenOrgIdField.value = org.organization_id;
   }
@@ -277,6 +222,9 @@ export class OrganizationSelect {
       nameEl.textContent = org.organization_name;
       detailsEl.textContent = `${org.organization_size || "N/A"} employees • ${org.organization_industry || "N/A"}`;
       display.classList.remove("hidden");
+    }
+
+    if (searchInput) {
       searchInput.value = org.organization_name;
     }
   }
@@ -290,15 +238,20 @@ export class OrganizationSelect {
 
   clearSelection() {
     this.selectedOrg = null;
-    document.getElementById("org-search-input").value = "";
+    const searchInput = document.getElementById("org-search-input");
+    if (searchInput) {
+      searchInput.value = "";
+    }
     this.hideSelectedDisplay();
 
-    // Clear form fields
-    [
+    // Clear form fields only if they exist
+    const fieldIds = [
       "organization_name",
       "organization_website_name",
       "organization_size",
-    ].forEach((id) => {
+    ];
+
+    fieldIds.forEach((id) => {
       const field = document.getElementById(id);
       if (field) field.value = "";
     });
@@ -317,9 +270,9 @@ export class OrganizationSelect {
     if (dropdown) {
       dropdown.classList.remove("hidden");
       this.isOpen = true;
-      this.filterOrganizations(
-        document.getElementById("org-search-input").value,
-      );
+      const searchInput = document.getElementById("org-search-input");
+      const query = searchInput ? searchInput.value : "";
+      this.filterOrganizations(query);
     }
   }
 
@@ -339,25 +292,6 @@ export class OrganizationSelect {
     }
   }
 
-  showNotification(message, type) {
-    const notification = document.createElement("div");
-    notification.className = `fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 z-50 ${
-      type === "success"
-        ? "bg-green-500 text-white"
-        : type === "error"
-          ? "bg-red-500 text-white"
-          : "bg-blue-500 text-white"
-    }`;
-    notification.textContent = message;
-
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-      notification.style.transform = "translateX(400px)";
-      setTimeout(() => notification.remove(), 300);
-    }, 3000);
-  }
-
   escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
@@ -365,7 +299,6 @@ export class OrganizationSelect {
   }
 }
 
-// Initialize the organization select when lead modal opens
 export function initializeOrgSelect(dbWorker) {
   document.addEventListener("click", (e) => {
     if (e.target.closest("#open-modal-btn")) {
@@ -373,7 +306,6 @@ export function initializeOrgSelect(dbWorker) {
 
       if (currentTab === "/leads") {
         setTimeout(() => {
-          // Replace the organization name field with our custom select
           const orgNameField = document.getElementById("organization_name");
           if (
             orgNameField &&

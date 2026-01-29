@@ -39,6 +39,20 @@ export function populateLeadsTable(leads) {
       ? new Date(lead.created_on).toLocaleDateString()
       : "N/A";
     const score = lead.score || "0";
+    const status = lead.lead_status || "New";
+
+    const statusColors = {
+      New: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
+      "Follow-Up":
+        "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
+      Converted:
+        "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+      Dead: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300",
+    };
+
+    const statusColor =
+      statusColors[status] ||
+      "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300";
 
     row.innerHTML = `
       <td class="w-4 p-4">
@@ -57,8 +71,8 @@ export function populateLeadsTable(leads) {
         ${mobile}
       </td>
       <td class="px-6 py-4">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">
-          ${score}
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+          ${status}
         </span>
       </td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">

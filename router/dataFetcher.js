@@ -1,8 +1,8 @@
-import { populateHome } from "../services/populateHome.js";
-import { populateLeadsTable } from "../services/populateLeads.js";
-import { populateOrganizationsTable } from "../services/populateOrganizations.js";
-import { populateDealsTable } from "../services/populateDeals.js";
-import { populateUsersTable } from "../services/populateUsers.js";
+import { populateHome } from "../controllers/populateHome.js";
+import { populateLeadsTable } from "../controllers/populateLeads.js";
+import { populateOrganizationsTable } from "../controllers/populateOrganizations.js";
+import { populateDealsTable } from "../controllers/populateDeals.js";
+import { populateUsersTable } from "../controllers/populateUsers.js";
 import { updateUserDetails } from "../events/userProfile.js";
 
 export class DataFetcher {
@@ -60,7 +60,6 @@ export class DataFetcher {
         break;
 
       case "/users":
-        // Only admins and super_admins can view users
         if (role === "admin" || role === "super_admin") {
           this.dbWorker.postMessage({
             action: "getAllUsers",
@@ -93,17 +92,13 @@ export class DataFetcher {
       this.handleGetAllSuccess(storeName, rows, currentPath);
     }
 
-    // Handle errors
     if (action === "getAllError") {
       this.handleGetAllError(storeName, error);
     }
 
-    // Handle delete success
     if (action === "deleteSuccess") {
       this.handleDeleteSuccess(storeName, currentPath);
     }
-
-    // Handle other actions
     this.handleOtherActions(data, currentPath);
   }
 
@@ -144,7 +139,6 @@ export class DataFetcher {
   }
 
   handleDeleteSuccess(storeName, currentPath) {
-    // Refresh data after delete
     if (currentPath === "/leads" && storeName === "Leads") {
       this.dbWorker.postMessage({ action: "getAllLeads" });
     } else if (
@@ -154,18 +148,18 @@ export class DataFetcher {
       this.dbWorker.postMessage({ action: "getAllOrganizations" });
     } else if (currentPath === "/deals" && storeName === "Deals") {
       this.dbWorker.postMessage({ action: "getAllDeals" });
+    } else if (currentPath === "/users" && storeName === "Users") {
+      this.dbWorker.postMessage({ action: "getAllUsers" });
     }
   }
 
   handleOtherActions(data, currentPath) {
     const { action } = data;
 
-    // Handle home page data
     if (action === "getDataSuccess") {
       populateHome(data);
     }
 
-    // Handle convert to deal
     if (action === "convertToDealSuccess") {
       alert("Lead successfully converted to Deal!");
       if (window.router && window.router.loadRoute) {

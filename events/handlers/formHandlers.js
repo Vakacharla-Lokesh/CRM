@@ -22,17 +22,17 @@ export function handleLeadFormSubmit(event) {
     lead_mobile_number:
       document.getElementById("mobile_number")?.value?.trim() || "",
     organization_name:
-      document.getElementById("organization_name")?.value?.trim() || "",
+      document.getElementById("organization_name")?.value?.trim() ||
+      document.getElementById("org-search-input")?.value?.trim() ||
+      "",
     organization_website_name:
       document.getElementById("organization_website_name")?.value?.trim() || "",
     organization_size:
       document.getElementById("organization_size")?.value?.trim() || "",
     organization_industry:
       document.getElementById("organization_industry")?.value?.trim() || "",
-    contact_name: document.getElementById("contact_name")?.value?.trim() || "",
-    contact_number:
-      document.getElementById("contact_number")?.value?.trim() || "",
     user_id: user.user_id,
+    tenant_id: user.tenant_id,
   };
 
   const selectedOrgId = document.getElementById(
@@ -46,6 +46,7 @@ export function handleLeadFormSubmit(event) {
     !leadFormData.lead_mobile_number ||
     !leadFormData.organization_name
   ) {
+    console.log("Inside form validation: ", leadFormData);
     alert("Enter values correctly");
     return;
   }
@@ -78,6 +79,8 @@ export function handleLeadFormSubmit(event) {
       created_on: new Date(),
       modified_on: new Date(),
       lead_status: "New",
+      user_id: user.user_id,
+      tenant_id: user.tenant_id,
     };
 
     eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
@@ -96,6 +99,8 @@ export function handleLeadFormSubmit(event) {
       created_on: new Date(),
       modified_on: new Date(),
       lead_status: "New",
+      user_id: user.user_id,
+      tenant_id: user.tenant_id,
     };
 
     eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
@@ -132,6 +137,7 @@ export function handleOrganizationFormSubmit(event) {
     contact_number:
       document.getElementById("contact_number")?.value?.trim() || "",
     user_id: user.user_id,
+    tenant_id: user.tenant_id,
   };
 
   if (
@@ -216,6 +222,7 @@ function createOrganizationAndLead(formData) {
     created_on: new Date(),
     modified_on: new Date(),
     user_id: user.user_id,
+    tenant_id: user.tenant_id,
   };
 
   eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
@@ -240,6 +247,7 @@ function createOrganizationAndLead(formData) {
         modified_on: new Date(),
         lead_status: "New",
         user_id: user.user_id,
+        tenant_id: user.tenant_id,
       };
 
       eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
@@ -267,13 +275,19 @@ export function handleUserFormSubmit(event) {
     user_email: document.getElementById("user_email")?.value?.trim() || "",
     password: document.getElementById("user_password")?.value?.trim() || "",
     mobile: document.getElementById("user_mobile")?.value?.trim() || "",
-    first_name: document.getElementById("user_name")?.value?.trim().split(' ')[0] || "",
-    last_name: document.getElementById("user_name")?.value?.trim().split(' ').slice(1).join(' ') || "",
+    first_name:
+      document.getElementById("user_name")?.value?.trim().split(" ")[0] || "",
+    last_name:
+      document
+        .getElementById("user_name")
+        ?.value?.trim()
+        .split(" ")
+        .slice(1)
+        .join(" ") || "",
     tenant_id: currentUser.tenant_id,
-    role: "user", // Default role for new users
+    role: "user",
   };
 
-  // Validation
   if (!userData.user_name || !userData.user_email || !userData.password) {
     alert("Please fill in all required fields");
     return;
