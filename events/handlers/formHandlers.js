@@ -123,8 +123,14 @@ export function handleOrganizationFormSubmit(event) {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
+  // Check if we're editing or creating
+  const organizationId = document
+    .getElementById("organization_id")
+    ?.value?.trim();
+  const isEdit = !!organizationId;
+
   const organizationData = {
-    organization_id: generateId("org"),
+    organization_id: isEdit ? organizationId : generateId("org"),
     organization_name:
       document.getElementById("organization_name")?.value?.trim() || "",
     organization_website_name:
@@ -158,7 +164,12 @@ export function handleOrganizationFormSubmit(event) {
     return;
   }
 
-  eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
+  if (isEdit) {
+    eventBus.emit(EVENTS.ORGANIZATION_UPDATE, { organizationData });
+  } else {
+    eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
+  }
+
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
 }
@@ -172,6 +183,12 @@ export function handleDealFormSubmit(event) {
     showNotification("Database initializing, please try again...", "info");
     return;
   }
+
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  // Check if we're editing or creating
+  const dealId = document.getElementById("deal_id_hidden")?.value?.trim();
+  const isEdit = !!dealId;
 
   const dealName = document.getElementById("deal_name")?.value?.trim() || "";
   const dealValue = document.getElementById("deal_value")?.value?.trim() || "";
@@ -192,18 +209,33 @@ export function handleDealFormSubmit(event) {
   }
 
   const dealData = {
-    deal_id: Date.now(),
+    deal_id: isEdit ? dealId : Date.now(),
     deal_name: dealName,
     deal_value: Number(dealValue),
     lead_id: leadId || null,
     organization_id: organizationId || null,
     deal_status: dealStatus,
-    created_on: new Date(),
-    modified_on: new Date(),
+    user_id: user.user_id,
+    tenant_id: user.tenant_id,
   };
 
-  eventBus.emit(EVENTS.DEAL_CREATE, { dealData });
-  document.getElementById("form-modal")?.classList.add("hidden");
+  if (!isEdit) {
+    dealData.created_on = new Date();
+  }
+  dealData.modified_on = new Date();
+
+  if (isEdit) {
+    eventBus.emit(EVENTS.DEAL_UPDATE, { dealData });
+  } else {
+    eventBus.emit(EVENTS.DEAL_CREATE, { dealData });
+  }
+
+  const modal =
+    document.getElementById("deal-form-modal") ||
+    document.getElementById("form-modal");
+  if (modal) {
+    modal.classList.add("hidden");
+  }
   event.target.reset();
 }
 

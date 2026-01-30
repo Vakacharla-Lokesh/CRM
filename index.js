@@ -2,7 +2,7 @@ import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
 import WSClient from "./websockets/client.js";
-import { initializeOrgSelect } from './components/organizationSelect.js';
+import { initializeOrgSelect } from "./components/organizationSelect.js";
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
@@ -130,6 +130,17 @@ dbWorker.addEventListener("message", (e) => {
     if (payload.storeName === "Users") {
       eventBus.emit(EVENTS.USER_CREATED, payload);
       addNotification("User created successfully", "success");
+    }
+  }
+
+  if (payload.action === "updateSuccess") {
+    if (payload.storeName === "Organizations") {
+      eventBus.emit(EVENTS.ORGANIZATION_UPDATED, payload);
+      addNotification("Organization updated successfully", "success");
+    }
+    if (payload.storeName === "Deals") {
+      eventBus.emit(EVENTS.DEAL_UPDATED, payload);
+      addNotification("Deal updated successfully", "success");
     }
   }
 

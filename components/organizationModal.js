@@ -10,7 +10,7 @@ template.innerHTML = `<div
       <div
         class="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4"
       >
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white">
+        <h3 id="modal-title" class="text-lg font-medium text-gray-900 dark:text-white">
           Add Organization
         </h3>
         <button
@@ -38,7 +38,10 @@ template.innerHTML = `<div
       <form
         class="pt-4"
         data-form="createOrganization"
+        id="organization-form"
       >
+        <input type="hidden" id="organization_id" name="organization_id" value="">
+        
         <div
           class="grid grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 pb-4"
         >
@@ -61,7 +64,7 @@ template.innerHTML = `<div
             <label
               for="organization_size"
               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Organiztion Size</label
+              >Organization Size</label
             >
             <input
               type="number"
@@ -125,7 +128,7 @@ template.innerHTML = `<div
                 id="contact_name"
                 name="contact_name"
                 class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-                placeholder="Acme Inc"
+                placeholder="John Doe"
               />
             </div>
             <div>
@@ -147,6 +150,7 @@ template.innerHTML = `<div
         </div>
         <button
           type="submit"
+          id="submit-btn"
           class="w-full mb-3 text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none shadow"
         >
           Add Organization
@@ -155,9 +159,12 @@ template.innerHTML = `<div
     </div>
   </div>
 </div>`;
+
 class OrganizationModal extends HTMLElement {
   constructor() {
     super();
+    this.editMode = false;
+    this.currentOrgData = null;
   }
 
   connectedCallback() {
@@ -166,11 +173,80 @@ class OrganizationModal extends HTMLElement {
     }
 
     this.render();
+    this.setupListeners();
+
+    if(!sessionStorage.getItem("organization_id")){
+      this.setCreateMode();
+    }
+  }
+
+  setupListeners() {
+    const dbWorker = window.dbWorker;
+    if (!dbWorker) return;
+
+    dbWorker.addEventListener("message", (e) => {
+      const { action, data, id } = e.data;
+
+      if (action === "getByIdSuccess" && data && data.organization_id) {
+        // this.populateForm(data);
+        this.setEditMode(data);
+      }
+    });
+  }
+
+  setEditMode(organizationData) {
+    this.editMode = true;
+    this.currentOrgData = organizationData;
+
+    const modalTitle = this.querySelector("#modal-title");
+    const submitBtn = this.querySelector("#submit-btn");
+
+    if (modalTitle) modalTitle.textContent = "Edit Organization";
+    if (submitBtn) submitBtn.textContent = "Update Organization";
+
+    this.populateForm(organizationData);
+  }
+
+  setCreateMode() {
+    this.editMode = false;
+    this.currentOrgData = null;
+
+    const modalTitle = this.querySelector("#modal-title");
+    const submitBtn = this.querySelector("#submit-btn");
+    const form = this.querySelector("#organization-form");
+
+    if (modalTitle) modalTitle.textContent = "Add Organization";
+    if (submitBtn) submitBtn.textContent = "Add Organization";
+    if (form) form.reset();
+
+    // Clear hidden ID field
+    const orgIdField = this.querySelector("#organization_id");
+    if (orgIdField) orgIdField.value = "";
+  }
+
+  populateForm(data) {
+    if (!data) return;
+
+    const fields = {
+      organization_id: data.organization_id || "",
+      organization_name: data.organization_name || "",
+      organization_size: data.organization_size || "",
+      organization_website_name: data.organization_website_name || "",
+      organization_industry: data.organization_industry || "Software",
+      contact_name: data.contact_name || "",
+      contact_number: data.contact_number || "",
+    };
+
+    Object.keys(fields).forEach((fieldId) => {
+      const field = this.querySelector(`#${fieldId}`);
+      if (field) {
+        field.value = fields[fieldId];
+      }
+    });
   }
 
   async render() {
-    console.log("Inside render()");
-    //   await searchFeature();
+    console.log("Organization modal rendered");
   }
 }
 

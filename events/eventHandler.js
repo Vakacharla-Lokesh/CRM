@@ -19,6 +19,8 @@ import {
   handleOrganizationDeleted,
   handleOrganizationExport,
   handleOrganizationClick,
+  handleOrganizationUpdate,
+  handleOrganizationUpdated,
 } from "./handlers/organizationHandlers.js";
 
 import {
@@ -28,6 +30,8 @@ import {
   handleDealDeleted,
   handleDealExport,
   handleDealClick,
+  handleDealUpdate,
+  handleDealUpdated,
 } from "./handlers/dealHandlers.js";
 
 import {
@@ -89,6 +93,8 @@ function registerOrganizationEvents() {
   eventBus.on(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
   eventBus.on(EVENTS.ORGANIZATION_DELETE, handleOrganizationDelete);
   eventBus.on(EVENTS.ORGANIZATION_DELETED, handleOrganizationDeleted);
+  eventBus.on(EVENTS.ORGANIZATION_UPDATE, handleOrganizationUpdate);
+  eventBus.on(EVENTS.ORGANIZATION_UPDATED, handleOrganizationUpdated);
   eventBus.on(EVENTS.ORGANIZATION_EXPORT, handleOrganizationExport);
 }
 
@@ -97,6 +103,8 @@ function registerDealEvents() {
   eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
   eventBus.on(EVENTS.DEAL_DELETE, handleDealDelete);
   eventBus.on(EVENTS.DEAL_DELETED, handleDealDeleted);
+  eventBus.on(EVENTS.DEAL_UPDATE, handleDealUpdate);
+  eventBus.on(EVENTS.DEAL_UPDATED, handleDealUpdated);
   eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
 }
 
@@ -129,7 +137,11 @@ function initializeClickHandlers() {
     }
 
     if (e.target.closest("#close-modal-btn")) {
+      console.log("Inside close modal btn: ");
       document.getElementById("form-modal")?.classList.add("hidden");
+      sessionStorage.removeItem("lead_id");
+      sessionStorage.removeItem("organization_id");
+      sessionStorage.removeItem("deal_id");
       return;
     }
 

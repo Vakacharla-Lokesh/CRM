@@ -9,7 +9,6 @@ export class RouteManager {
       "/leadDetails": "/pages/leadDetailPage.html",
       "/login": "/pages/login.html",
       "/signup": "/pages/signup.html",
-      "/dealDetails": "/pages/dealDetailPage.html",
       "/users": "/pages/users.html",
     };
 

@@ -123,6 +123,11 @@ self.onmessage = (e) => {
       deleteData(e.data.id, "Organizations", dbReady, db);
       break;
 
+    case "updateOrganization":
+      console.log("Inside update organization case");
+      updateData("Organizations", e.data.organizationData, dbReady, db);
+      break;
+
     // Deal cases:
     case "createDeal":
       insertData(e.data.dealData, "Deals", dbReady, db);
@@ -151,13 +156,20 @@ self.onmessage = (e) => {
       break;
 
     case "getDealById":
-      getLeadById(e.data.storeName, e.data.id, dbReady, db);
+      getDataById("Deals", e.data.id, dbReady, db);
       break;
 
     case "deleteDeal":
       console.log(e.data.id);
       deleteData(e.data.id, "Deals", dbReady, db);
       break;
+
+    case "updateDeal":
+      console.log("Inside update deal case");
+      updateData("Deals", e.data.dealData, dbReady, db);
+      break;
+
+    // Attachment cases:
 
     case "createAttachment":
       insertData(e.data.attachmentData, "Attachments", dbReady, db);

@@ -64,6 +64,7 @@ export function getDataById(storeName, id, dbReady, db) {
     request.onsuccess = () => {
       postMessage({
         action: "getByIdSuccess",
+        storeName,
         data: request.result,
         id,
       });

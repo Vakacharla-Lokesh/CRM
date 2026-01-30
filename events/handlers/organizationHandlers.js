@@ -24,6 +24,26 @@ export function handleOrganizationCreate(event) {
   });
 }
 
+export function handleOrganizationUpdate(event) {
+  const { dbWorker, isDbReady } = dbState;
+
+  if (!isDbReady || !dbWorker) {
+    showNotification("Database not ready yet. Please wait.", "error");
+    return;
+  }
+
+  const organizationData = {
+    ...event.detail.organizationData,
+    modified_on: new Date(),
+  };
+
+  dbWorker.postMessage({
+    action: "updateOrganization",
+    organizationData,
+    storeName: "Organizations",
+  });
+}
+
 export function handleOrganizationCreated(event) {
   showNotification("Organization created successfully!", "success");
 
@@ -31,7 +51,30 @@ export function handleOrganizationCreated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllOrganizations" });
+    const user = JSON.parse(localStorage.getItem("user"));
+    dbWorker.postMessage({
+      action: "getAllOrganizations",
+      user_id: user.user_id,
+      tenant_id: user.tenant_id,
+      role: user.role,
+    });
+  }
+}
+
+export function handleOrganizationUpdated(event) {
+  showNotification("Organization updated successfully!", "success");
+
+  const currentTab = sessionStorage.getItem("currentTab");
+  const { dbWorker } = dbState;
+
+  if (currentTab === "/organizations" && dbWorker) {
+    const user = JSON.parse(localStorage.getItem("user"));
+    dbWorker.postMessage({
+      action: "getAllOrganizations",
+      user_id: user.user_id,
+      tenant_id: user.tenant_id,
+      role: user.role,
+    });
   }
 }
 
@@ -51,7 +94,13 @@ export function handleOrganizationDeleted(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllOrganizations" });
+    const user = JSON.parse(localStorage.getItem("user"));
+    dbWorker.postMessage({
+      action: "getAllOrganizations",
+      user_id: user.user_id,
+      tenant_id: user.tenant_id,
+      role: user.role,
+    });
   }
 }
 
@@ -73,17 +122,26 @@ export function handleOrganizationClick(e) {
       "data-organization-id",
     );
 
-    sessionStorage.setItem("organization_id", organization_id);
+    if (organization_id) {
+      sessionStorage.setItem("organization_id", organization_id);
 
-    const modal = document.getElementById("form-modal");
-    if (modal) {
-      modal.classList.remove("hidden");
+      // Open the modal
+      const modal = document.getElementById("form-modal");
+      if (modal) {
+        modal.classList.remove("hidden");
+
+        // Set the modal to edit mode
+        const organizationModal = document.querySelector("organization-modal");
+        if (organizationModal) {
+          // Request organization data from DB
+          dbWorker.postMessage({
+            action: "getOrganizationById",
+            id: organization_id,
+            storeName: "Organizations",
+          });
+        }
+      }
     }
-
-    dbWorker.postMessage({
-      action: "getOrganizationById",
-      id: organization_id,
-    });
 
     const dropdown = editBtn.closest(".dropdown-menu");
     if (dropdown) {

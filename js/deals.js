@@ -27,11 +27,6 @@ export function initializeDealsPage(worker) {
 
   // Modal controls
   document.addEventListener("click", (e) => {
-    if (e.target.closest("#editDeal")) {
-      e.stopImmediatePropagation();
-      handleEditDeal(e);
-    }
-
     if (e.target.closest("#deleteDeal")) {
       e.stopImmediatePropagation();
       handleDeleteDeal(e);
@@ -238,25 +233,20 @@ function handleDealCreate(form) {
   }, 5000);
 }
 
-function handleEditDeal(e) {
-  const editBtn = e.target.closest("#editDeal");
-  const dealRow = editBtn.closest("tr");
-  const deal_id = dealRow?.getAttribute("data-deal-id");
+// function handleEditDeal(e) {
+//   const editBtn = e.target.closest("#editDeal");
+//   const dealRow = editBtn.closest("tr");
+//   const deal_id = dealRow?.getAttribute("data-deal-id");
 
-  if (deal_id) {
-    sessionStorage.setItem("deal_id", deal_id);
+//   if (deal_id) {
+//     sessionStorage.setItem("deal_id", deal_id);
 
-    const dropdown = editBtn.closest(".dropdown-menu");
-    if (dropdown) {
-      dropdown.classList.add("hidden");
-    }
-
-    // Navigate to deal details page
-    if (window.router && window.router.loadRoute) {
-      window.router.loadRoute("/dealDetails");
-    }
-  }
-}
+//     const dropdown = editBtn.closest(".dropdown-menu");
+//     if (dropdown) {
+//       dropdown.classList.add("hidden");
+//     }
+//   }
+// }
 
 function handleDeleteDeal(e) {
   const deleteBtn = e.target.closest("#deleteDeal");
