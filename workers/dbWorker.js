@@ -221,14 +221,13 @@ self.onmessage = (e) => {
 
     // Home data extraction case:
     case "getData":
-      getCount(db, dbReady);
+      getCount(db, dbReady, e.data.tenant_id, e.data.user_id, e.data.role);
       break;
 
     // Lead score generation case:
     case "calculateScore":
-      console.log("Inside calculate score switch case: ");
-      // generateLeadScores(db, dbReady);
-      updateAllObjects();
+      console.log("Inside calculate score switch case");
+      updateAllObjects(db, dbReady);
       break;
 
     // Users case:

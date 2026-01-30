@@ -1,7 +1,8 @@
-import { RouteManager } from "./router/RouteManager.js";
+import { RouteManager } from "./router/routeManager.js";
 import { PageLoader } from "./router/PageLoader.js";
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
+// import user from "./events/handlers/userManager.js";
 
 class Router {
   constructor() {
@@ -33,6 +34,8 @@ class Router {
 
     // initial route
     const user = localStorage.getItem("user");
+    // const initialRoute = user ? "/home" : "/login";
+    // user.initialize();
     const initialRoute = user ? "/home" : "/login";
     this.loadRoute(initialRoute);
   }
@@ -50,10 +53,11 @@ class Router {
     });
   }
 
-  // loads routes and scripts and sidebarmanager
+  // loads routes and scripts
   async loadRoute(path) {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
+      // user.initialize();
       const resolvedPath = this.routeManager.resolvePath(path, user);
 
       this.sidebarManager.toggleSidebar(resolvedPath);

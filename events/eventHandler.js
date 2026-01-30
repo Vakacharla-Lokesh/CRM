@@ -48,6 +48,7 @@ import {
   handleUserDeleted,
   handleUserClick,
 } from "./handlers/userHandlers.js";
+// import user from "./handlers/userManager.js";
 
 export function initializeEventHandlers(worker) {
   // Initialize database state
@@ -281,6 +282,7 @@ function handleLoginSuccess(event) {
       window.router.loadRoute("/home");
     }
   }, 500);
+  user.initialize();
 }
 
 function handleLoginFailure(event) {
@@ -289,6 +291,7 @@ function handleLoginFailure(event) {
 
 function handleLogout() {
   console.log("User logged out");
+  user.destroy();
 }
 
 function initializeTheme() {

@@ -1,8 +1,10 @@
 import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
-import WSClient from "./websockets/client.js";
 import { initializeOrgSelect } from "./components/organizationSelect.js";
+import { longPolling } from "./services/polling/longPolling.js";
+import { checkHealth } from "./services/polling/shortPolling.js";
+import { initWebSocket } from "./services/websockets/wsManager.js";
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
@@ -12,7 +14,7 @@ const dbWorker = window.dbWorker;
 const notifications = [];
 const MAX_NOTIFICATIONS = 10;
 
-function addNotification(message, type = "info") {
+export function addNotification(message, type = "info") {
   const notification = {
     id: Date.now(),
     message,
@@ -164,6 +166,14 @@ dbWorker.addEventListener("message", (e) => {
     eventBus.emit(EVENTS.DB_ERROR, payload);
     addNotification(`Error: ${payload.error}`, "error");
   }
+
+  if (e.data.action === "scoreUpdateSuccess") {
+    const { updatedCount, totalLeads } = e.data;
+    addNotification(
+      `Lead scores updated! ${updatedCount} of ${totalLeads} leads modified.`,
+      "success",
+    );
+  }
 });
 
 // Initialize event handlers
@@ -190,61 +200,6 @@ eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
   const userData = event.detail;
   addNotification(`Welcome back, ${userData.name}!`, "success");
 });
-
-// WebSocket setup
-const ws = new WSClient("ws://localhost:8080");
-window.ws = ws;
-
-let pollingInterval = null;
-
-function startShortPolling() {
-  if (pollingInterval) return;
-
-  pollingInterval = setInterval(async () => {
-    try {
-      ws.connect();
-    } catch (err) {
-      console.error("Polling error:", err);
-    }
-  }, 5000);
-}
-
-function stopShortPolling() {
-  if (pollingInterval) {
-    clearInterval(pollingInterval);
-    pollingInterval = null;
-  }
-}
-
-ws.onOpen = () => {
-  stopShortPolling();
-  const wssStatus = document.getElementById("status-wss");
-  if (wssStatus) {
-    wssStatus.querySelector("span:first-child").classList.remove("bg-gray-400");
-    wssStatus.querySelector("span:first-child").classList.add("bg-green-500");
-  }
-  addNotification("WebSocket connected", "success");
-};
-
-ws.onClose = () => {
-  startShortPolling();
-  const wssStatus = document.getElementById("status-wss");
-  if (wssStatus) {
-    wssStatus
-      .querySelector("span:first-child")
-      .classList.remove("bg-green-500");
-    wssStatus.querySelector("span:first-child").classList.add("bg-red-500");
-  }
-  addNotification("WebSocket disconnected", "error");
-};
-
-ws.onMessage = (data) => {
-  eventBus.emit(EVENTS.WEB_SOCKET_MESSAGE, { message: data?.message ?? data });
-  const messageText = typeof data === "object" ? JSON.stringify(data) : data;
-  addNotification(`WS: ${messageText}`, "info");
-};
-
-ws.connect();
 
 // Theme control
 const themeToggle = document.getElementById("theme-toggle");
@@ -277,4 +232,15 @@ document.addEventListener("DOMContentLoaded", () => {
   } else {
     if (themeToggle) themeToggle.textContent = "🌙";
   }
+});
+
+// Long polling call
+longPolling();
+
+// short polling call
+checkHealth();
+
+// Web sockers call
+initWebSocket({
+  url: "ws://localhost:8080",
 });

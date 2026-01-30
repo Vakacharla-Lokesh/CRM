@@ -32,7 +32,7 @@ export function getDataByTenantAndUser(storeName, user_id, tenant_id, role, dbRe
         });
         return;
       }
-      filteredData = filteredData.filter(item => 
+      filteredData = filteredData.filter(item =>
         item.user_id === user_id && item.tenant_id === tenant_id
       );
       postMessage({

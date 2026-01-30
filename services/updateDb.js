@@ -12,8 +12,12 @@ export function updateData(storeName, data, dbReady, db) {
   const request = store.put(data);
 
   request.onsuccess = () => {
-    // console.log("update success");
-    postMessage({ action: "updateSuccess", id: data.lead_id });
+    console.log("update success", storeName);
+    postMessage({
+      action: "updateSuccess",
+      id: data.lead_id,
+      storeName: storeName,
+    });
   };
 
   request.onerror = (e) => {

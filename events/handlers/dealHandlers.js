@@ -106,7 +106,7 @@ export function handleDealExport() {
 }
 
 export function handleDealClick(e) {
-  console.log("Inside handledealClick: ");
+  // console.log("Inside handledealClick: ");
   const { dbWorker } = dbState;
 
   if (e.target.closest("#editDeal")) {

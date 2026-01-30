@@ -1,75 +1,167 @@
-// import { getAllData } from "./getDb";
-
 function scoreLead(lead) {
   let score = 0;
-
-  //   score += (lead.visits || 0) * 2;
-  //   score += (lead.opens || 0) * 3;
-  //   score += (lead.clicks || 0) * 5;
   score += (lead.comments || 0) * 4;
 
   if (lead.organization_size >= 100) score += 10;
   if (lead.organization_size >= 500) score += 10;
 
-  if (lead.email && !lead.email.includes("gmail.com")) {
+  if (
+    lead.lead_email &&
+    !lead.lead_email.includes("gmail.com") &&
+    !lead.lead_email.includes("hotmail.com")
+  ) {
     score += 5;
   }
 
-  return score;
+  score += (lead.calls || 0) * 3;
+
+  score += (lead.attachments || 0) * 2;
+
+  if (lead.lead_status === "Converted") {
+    score += 20;
+  } else if (lead.lead_status === "Follow-Up") {
+    score += 10;
+  } else if (lead.lead_status === "Dead") {
+    score = Math.max(0, score - 15);
+  }
+
+  if (lead.created_on) {
+    const daysSinceCreation =
+      (Date.now() - new Date(lead.created_on).getTime()) /
+      (1000 * 60 * 60 * 24);
+    if (daysSinceCreation <= 30) {
+      score += 5;
+    }
+  }
+
+  return Math.max(0, score);
 }
 
-// export async function generateLeadScores(db, dbReady) {
-//   const leads = getAllData("Leads", dbReady, db);
+export function updateAllObjects(db, dbReady) {
+  if (!dbReady || !db) {
+    console.error("Database not ready");
+    postMessage({
+      action: "scoreUpdateError",
+      error: "Database not ready",
+    });
+    return;
+  }
 
-//   const objectStore = db
-//     .transaction(["toDoList"], "readwrite")
-//     .objectStore("toDoList");
+  console.log("Starting lead score calculation...");
 
-//   const scoredLeads = leads.map((lead) => ({
-//     ...lead,
-//     score: scoreLead(lead),
-//   }));
+  const leadsTransaction = db.transaction(
+    ["Leads", "Comments", "Calls", "Attachments"],
+    "readonly",
+  );
+  const leadsStore = leadsTransaction.objectStore("Leads");
+  const commentsStore = leadsTransaction.objectStore("Comments");
+  const callsStore = leadsTransaction.objectStore("Calls");
+  const attachmentsStore = leadsTransaction.objectStore("Attachments");
 
-//   scoredLeads.sort((a, b) => b.score - a.score);
+  const leadsRequest = leadsStore.getAll();
 
-//   return scoredLeads;
-// }
+  leadsRequest.onsuccess = function () {
+    const leads = leadsRequest.result;
+    const commentsRequest = commentsStore.getAll();
+    const callsRequest = callsStore.getAll();
+    const attachmentsRequest = attachmentsStore.getAll();
 
-export function updateAllObjects() {
-  const request = indexedDB.open("CRM_DB", 2);
+    Promise.all([
+      new Promise((resolve) => {
+        commentsRequest.onsuccess = () => resolve(commentsRequest.result);
+      }),
+      new Promise((resolve) => {
+        callsRequest.onsuccess = () => resolve(callsRequest.result);
+      }),
+      new Promise((resolve) => {
+        attachmentsRequest.onsuccess = () => resolve(attachmentsRequest.result);
+      }),
+    ]).then(([allComments, allCalls, allAttachments]) => {
+      const commentCounts = {};
+      const callCounts = {};
+      const attachmentCounts = {};
 
-  request.onsuccess = function () {
-    const db = request.result;
-    const transaction = db.transaction("Leads", "readwrite");
-    const objectStore = transaction.objectStore("Leads");
+      allComments.forEach((comment) => {
+        commentCounts[comment.lead_id] =
+          (commentCounts[comment.lead_id] || 0) + 1;
+      });
 
-    const cursorRequest = objectStore.openCursor();
+      allCalls.forEach((call) => {
+        callCounts[call.lead_id] = (callCounts[call.lead_id] || 0) + 1;
+      });
 
-    cursorRequest.onsuccess = function (event) {
-      const cursor = event.target.result;
+      allAttachments.forEach((attachment) => {
+        attachmentCounts[attachment.lead_id] =
+          (attachmentCounts[attachment.lead_id] || 0) + 1;
+      });
 
-      if (cursor) {
-        const updatedData = cursor.value;
-        // updatedData.updatedAt = new Date().toISOString();
-        console.log(cursor.value);
-        updatedData.score = scoreLead(cursor.value);
+      const updateTransaction = db.transaction("Leads", "readwrite");
+      const updateStore = updateTransaction.objectStore("Leads");
 
-        const updateRequest = cursor.update(updatedData);
+      let updatedCount = 0;
+      let errorCount = 0;
 
-        updateRequest.onsuccess = function () {
-          console.log("Record updated:", cursor.key);
+      leads.forEach((lead) => {
+        const enrichedLead = {
+          ...lead,
+          comments: commentCounts[lead.lead_id] || 0,
+          calls: callCounts[lead.lead_id] || 0,
+          attachments: attachmentCounts[lead.lead_id] || 0,
         };
+        const newScore = scoreLead(enrichedLead);
+        if (lead.score !== newScore) {
+          const updatedLead = {
+            ...lead,
+            score: newScore,
+            modified_on: new Date(),
+          };
 
-        cursor.continue();
-      } else {
-        console.log("All records updated.");
-      }
-    };
+          const updateRequest = updateStore.put(updatedLead);
 
-    transaction.oncomplete = function () {
-      db.close();
-    };
+          updateRequest.onsuccess = () => {
+            updatedCount++;
+            console.log(
+              `Updated lead ${lead.lead_id}: score ${lead.score || 0} to ${newScore}`,
+            );
+          };
+
+          updateRequest.onerror = (e) => {
+            errorCount++;
+            console.error(
+              `Error updating lead ${lead.lead_id}:`,
+              e.target.error,
+            );
+          };
+        }
+      });
+
+      updateTransaction.oncomplete = () => {
+        console.log(
+          `Score calculation complete. Updated: ${updatedCount}, Errors: ${errorCount}`,
+        );
+        postMessage({
+          action: "scoreUpdateSuccess",
+          updatedCount,
+          errorCount,
+          totalLeads: leads.length,
+        });
+      };
+
+      updateTransaction.onerror = (e) => {
+        console.error("Transaction error:", e.target.error);
+        postMessage({
+          action: "scoreUpdateError",
+          error: e.target.error?.message || "Update failed",
+        });
+      };
+    });
+  };
+
+  leadsRequest.onerror = (e) => {
+    console.error("Error fetching leads:", e.target.error);
+    postMessage({
+      action: "scoreUpdateError",
+      error: e.target.error?.message || "Failed to fetch leads",
+    });
   };
 }
-
-// updateAllObjects();

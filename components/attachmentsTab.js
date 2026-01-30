@@ -70,7 +70,10 @@ class AttachmentsContent extends HTMLElement {
   renderAttachments(attachments) {
     const attachmentsHTML = attachments
       .map((attachment) => {
-        const fileIcon = this.getFileIcon(attachment.file_type);
+        const fileIcon = this.getFileIcon(
+          attachment.file_type,
+          attachment.file_data,
+        );
         const downloadUrl = attachment.file_data || "#";
 
         return `
@@ -351,7 +354,7 @@ class AttachmentsContent extends HTMLElement {
     const filesHTML = Array.from(files)
       .map((file, index) => {
         const size = this.formatFileSize(file.size);
-        const icon = this.getFileIcon(file.type);
+        const icon = this.getFileIconForPreview(file);
 
         return `
         <div class="flex items-center justify-between p-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
@@ -388,6 +391,29 @@ class AttachmentsContent extends HTMLElement {
         this.querySelector("#upload-btn").disabled = true;
       });
     });
+  }
+
+  getFileIconForPreview(file) {
+    const iconClass = "w-8 h-8 text-gray-500 dark:text-gray-400";
+
+    if (file.type.includes("image")) {
+      const objectUrl = URL.createObjectURL(file);
+
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+
+      return `<img src="${objectUrl}" alt="Preview" class="w-8 h-8 rounded object-cover border border-gray-300 dark:border-gray-600" />`;
+    } else if (file.type.includes("pdf")) {
+      return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
+    } else if (file.type.includes("word") || file.type.includes("document")) {
+      return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
+    } else if (
+      file.type.includes("excel") ||
+      file.type.includes("spreadsheet")
+    ) {
+      return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
+    } else {
+      return `<svg class="${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>`;
+    }
   }
 
   async handleFileUpload(files) {
@@ -561,13 +587,14 @@ class AttachmentsContent extends HTMLElement {
     return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   }
 
-  getFileIcon(fileType) {
+  getFileIcon(fileType, fileData = null) {
     const iconClass = "w-8 h-8 text-gray-500 dark:text-gray-400";
-
-    if (fileType.includes("pdf")) {
-      return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
+    if (fileType.includes("image") && fileData) {
+      return `<img src="${fileData}" alt="Preview" class="w-8 h-8 rounded object-cover border border-gray-300 dark:border-gray-600" />`;
     } else if (fileType.includes("image")) {
       return `<svg class="${iconClass}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>`;
+    } else if (fileType.includes("pdf")) {
+      return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
     } else if (fileType.includes("word") || fileType.includes("document")) {
       return `<svg class="${iconClass}" fill="currentColor" viewBox="0 0 20 20"><path d="M4 18h12V6h-4V2H4v16zm-2 1V0h12l4 4v16H2v-1z"/></svg>`;
     } else if (fileType.includes("excel") || fileType.includes("spreadsheet")) {

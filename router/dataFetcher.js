@@ -70,7 +70,12 @@ export class DataFetcher {
         break;
 
       case "/home":
-        this.dbWorker.postMessage({ action: "getData" });
+        this.dbWorker.postMessage({
+          action: "getData",
+          user_id,
+          tenant_id,
+          role,
+        });
         break;
 
       default:

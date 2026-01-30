@@ -295,7 +295,7 @@ class LeadDetails extends HTMLElement {
 
       if (action === "updateSuccess" && id === updatedLeadData.lead_id) {
         dbWorker.removeEventListener("message", messageHandler);
-        alert("Lead updated successfully!");
+        // alert("Lead updated successfully!");
         this.leadData = updatedLeadData;
         document.getElementById("edit-lead-modal")?.classList.add("hidden");
         this.loadLeadData();

@@ -76,6 +76,8 @@ export function handleOrganizationUpdated(event) {
       role: user.role,
     });
   }
+  
+  sessionStorage.removeItem("organization_id");
 }
 
 export function handleOrganizationDelete(event) {
@@ -123,6 +125,7 @@ export function handleOrganizationClick(e) {
     );
 
     if (organization_id) {
+      // Set the organization_id in session storage
       sessionStorage.setItem("organization_id", organization_id);
 
       // Open the modal
@@ -130,10 +133,8 @@ export function handleOrganizationClick(e) {
       if (modal) {
         modal.classList.remove("hidden");
 
-        // Set the modal to edit mode
-        const organizationModal = document.querySelector("organization-modal");
-        if (organizationModal) {
-          // Request organization data from DB
+        // Request organization data from DB
+        if (dbWorker) {
           dbWorker.postMessage({
             action: "getOrganizationById",
             id: organization_id,

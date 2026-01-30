@@ -264,6 +264,31 @@ class DealModal extends HTMLElement {
     if (form) form.reset();
   }
 
+  loadOrganizations() {
+    return new Promise((resolve) => {
+      const handler = (e) => {
+        const { action, rows, storeName } = e.data;
+
+        if (action === "getAllSuccess" && storeName === "Organizations") {
+          this.dbWorker.removeEventListener("message", handler);
+          this.organizations = rows || [];
+          resolve();
+        }
+      };
+
+      this.dbWorker.addEventListener("message", handler);
+      this.dbWorker.postMessage({
+        action: "getAllOrganizations",
+        storeName: "Organizations",
+      });
+
+      setTimeout(() => {
+        this.dbWorker.removeEventListener("message", handler);
+        resolve();
+      }, 3000);
+    });
+  }
+
   async render() {
     console.log("Deal modal rendered");
   }

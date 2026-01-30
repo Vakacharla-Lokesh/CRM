@@ -16,6 +16,8 @@ export class OrganizationSelect {
   }
 
   loadOrganizations() {
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log(user);
     return new Promise((resolve) => {
       const handler = (e) => {
         const { action, rows, storeName } = e.data;
@@ -31,6 +33,9 @@ export class OrganizationSelect {
       this.dbWorker.postMessage({
         action: "getAllOrganizations",
         storeName: "Organizations",
+        user_id: user.user_id,
+        tenant_id: user.tenant_id,
+        role: user.role,
       });
 
       setTimeout(() => {

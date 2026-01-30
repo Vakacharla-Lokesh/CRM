@@ -174,10 +174,24 @@ class OrganizationModal extends HTMLElement {
 
     this.render();
     this.setupListeners();
+    this.setupModalOpenListener();
 
-    if(!sessionStorage.getItem("organization_id")){
-      this.setCreateMode();
-    }
+    // Initialize in create mode
+    this.setCreateMode();
+  }
+
+  setupModalOpenListener() {
+    document.addEventListener("click", (e) => {
+      if (e.target.closest("#open-modal-btn")) {
+        const currentPath = sessionStorage.getItem("currentTab");
+        if (currentPath === "/organizations") {
+          sessionStorage.removeItem("organization_id");
+          setTimeout(() => {
+            this.setCreateMode();
+          }, 0);
+        }
+      }
+    });
   }
 
   setupListeners() {
@@ -188,8 +202,10 @@ class OrganizationModal extends HTMLElement {
       const { action, data, id } = e.data;
 
       if (action === "getByIdSuccess" && data && data.organization_id) {
-        // this.populateForm(data);
-        this.setEditMode(data);
+        const orgId = sessionStorage.getItem("organization_id");
+        if (orgId && orgId === data.organization_id) {
+          this.setEditMode(data);
+        }
       }
     });
   }
@@ -218,10 +234,24 @@ class OrganizationModal extends HTMLElement {
     if (modalTitle) modalTitle.textContent = "Add Organization";
     if (submitBtn) submitBtn.textContent = "Add Organization";
     if (form) form.reset();
-
-    // Clear hidden ID field
     const orgIdField = this.querySelector("#organization_id");
     if (orgIdField) orgIdField.value = "";
+    const fields = [
+      "organization_name",
+      "organization_size",
+      "organization_website_name",
+      "contact_name",
+      "contact_number",
+    ];
+
+    fields.forEach((fieldId) => {
+      const field = this.querySelector(`#${fieldId}`);
+      if (field) field.value = "";
+    });
+
+    // Reset industry dropdown to default
+    const industryField = this.querySelector("#organization_industry");
+    if (industryField) industryField.value = "Software";
   }
 
   populateForm(data) {
