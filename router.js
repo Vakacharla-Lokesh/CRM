@@ -1,5 +1,5 @@
 import { RouteManager } from "./router/routeManager.js";
-import { PageLoader } from "./router/PageLoader.js";
+import { PageLoader } from "./router/pageLoader.js";
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
 // import user from "./events/handlers/userManager.js";

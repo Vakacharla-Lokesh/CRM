@@ -1,3 +1,5 @@
+import { generateId } from "./utils/uidGenerator.js";
+
 export function convertLeadToDeal(leadId, dbReady, db) {
   if (!dbReady || !db) {
     postMessage({
@@ -8,7 +10,6 @@ export function convertLeadToDeal(leadId, dbReady, db) {
   }
 
   try {
-    // First, get the lead data
     const tx = db.transaction(["Leads", "Deals"], "readwrite");
     const leadsStore = tx.objectStore("Leads");
     const dealsStore = tx.objectStore("Deals");
@@ -91,11 +92,4 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       error: error.message,
     });
   }
-}
-
-// Add this helper function for ID generation in worker
-function generateId(prefix) {
-  return (
-    prefix + "_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
-  );
 }

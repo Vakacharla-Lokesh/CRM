@@ -1,5 +1,5 @@
 import { eventBus, EVENTS } from "./eventBus.js";
-import { dbState } from "../services/dbState.js";
+import { dbState } from "../services/state/dbState.js";
 import { showMessage } from "./notificationEvents.js";
 
 import {
@@ -282,7 +282,7 @@ function handleLoginSuccess(event) {
       window.router.loadRoute("/home");
     }
   }, 500);
-  user.initialize();
+  // user.initialize();
 }
 
 function handleLoginFailure(event) {

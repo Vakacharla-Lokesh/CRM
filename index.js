@@ -2,9 +2,10 @@ import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
 import { initializeOrgSelect } from "./components/organizationSelect.js";
-import { longPolling } from "./services/polling/longPolling.js";
-import { checkHealth } from "./services/polling/shortPolling.js";
-import { initWebSocket } from "./services/websockets/wsManager.js";
+
+import { longPolling } from "./services/communication/polling/longPolling.js";
+import { checkHealth } from "./services/communication/polling/shortPolling.js";
+import { initWebSocket } from "./services/communication/websockets/wsManager.js";
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });

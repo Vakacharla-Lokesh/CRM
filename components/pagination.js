@@ -66,7 +66,6 @@ class Pagination extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.shadowRoot.appendChild(template.cloneNode(true));
 
-    // State
     this.currentPage = 1;
     this.pageSize = 10;
     this.totalItems = 0;
@@ -74,19 +73,27 @@ class Pagination extends HTMLElement {
     this.tableBodyId = "";
     this.allData = [];
     this.filteredData = [];
+    
+    this._isReady = false;
+    this._pendingInit = null;
+    this._isFiltering = false;
   }
 
   connectedCallback() {
+    this._isReady = true;
     this.setupEventListeners();
     this.renderPagination();
+    if (this._pendingInit) {
+      const { tableBodyId, data } = this._pendingInit;
+      this._pendingInit = null;
+      this._doInitialize(tableBodyId, data);
+    }
   }
 
   setupEventListeners() {
     const prevBtn = this.shadowRoot.getElementById("prev-btn");
     const nextBtn = this.shadowRoot.getElementById("next-btn");
     const pageSizeSelect = this.shadowRoot.getElementById("page-size");
-
-    // Add null checks to prevent errors
     if (prevBtn) {
       prevBtn.addEventListener("click", () => this.goToPreviousPage());
     }
@@ -110,16 +117,32 @@ class Pagination extends HTMLElement {
    * @param {Array} data - The full array of data
    */
   initialize(tableBodyId, data = []) {
-    // Ensure shadow DOM is ready
-    if (!this.shadowRoot) {
-      console.warn("Shadow DOM not ready, delaying initialization");
-      setTimeout(() => this.initialize(tableBodyId, data), 10);
+    // If component is not ready yet (connectedCallback hasn't run), queue the initialization
+    if (!this._isReady) {
+      this._pendingInit = { tableBodyId, data };
+      return;
+    }
+    
+    this._doInitialize(tableBodyId, data);
+  }
+  
+  /**
+   * Internal initialization logic
+   * @private
+   */
+  _doInitialize(tableBodyId, data = []) {
+    // Verify shadow DOM elements are available
+    const pageNumbers = this.shadowRoot.getElementById("page-numbers");
+    if (!pageNumbers) {
+      // Elements not ready yet, retry after a short delay
+      setTimeout(() => this._doInitialize(tableBodyId, data), 10);
       return;
     }
     
     this.tableBodyId = tableBodyId;
     this.allData = [...data];
     this.filteredData = [...data];
+    this._isFiltering = false; // Reset filter mode
     this.totalItems = this.filteredData.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
     this.currentPage = 1;
@@ -132,8 +155,15 @@ class Pagination extends HTMLElement {
    * @param {Array} data - The new array of data
    */
   updateData(data) {
+    // If component is not ready yet, queue as pending init
+    if (!this._isReady) {
+      this._pendingInit = { tableBodyId: this.tableBodyId, data };
+      return;
+    }
+    
     this.allData = [...data];
     this.filteredData = [...data];
+    this._isFiltering = false; // Reset filter mode
     this.totalItems = this.filteredData.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize);
     this.currentPage = 1;
@@ -146,9 +176,18 @@ class Pagination extends HTMLElement {
    * @param {string} searchTerm - The search term to filter by
    */
   filterData(searchTerm) {
+    // If component is not ready yet, ignore filter request
+    if (!this._isReady) {
+      return;
+    }
+    
     if (!searchTerm.trim()) {
+      // Clear filter mode when search is empty
+      this._isFiltering = false;
       this.filteredData = [...this.allData];
     } else {
+      // Enable filter mode when searching
+      this._isFiltering = true;
       const term = searchTerm.toLowerCase();
       this.filteredData = this.allData.filter((item) => {
         const text = JSON.stringify(item).toLowerCase();
@@ -172,14 +211,13 @@ class Pagination extends HTMLElement {
   }
 
   displayCurrentPage() {
-    if (!this.tableBodyId) {
-      console.warn("Table body ID not set");
+    // Silently return if component not ready or table not set
+    if (!this._isReady || !this.tableBodyId) {
       return;
     }
 
     const tbody = document.getElementById(this.tableBodyId);
     if (!tbody) {
-      console.warn(`Table body with ID "${this.tableBodyId}" not found`);
       return;
     }
 
@@ -188,8 +226,8 @@ class Pagination extends HTMLElement {
       (row) => !row.classList.contains("filter-empty-state") && !row.classList.contains("pagination-empty-state"),
     );
 
-    // If we have filtered data, we need to work with that
-    const workingData = this.filteredData.length > 0 ? this.filteredData : this.allData;
+    // Use filteredData when in filtering mode, otherwise use allData
+    const workingData = this._isFiltering ? this.filteredData : this.allData;
     const totalItems = workingData.length;
 
     if (totalItems === 0) {
@@ -214,8 +252,8 @@ class Pagination extends HTMLElement {
     allRows.forEach((row) => (row.style.display = "none"));
 
     // Show only the rows for the current page
-    // If we have filtered data, we need to map data indices to row indices
-    if (this.filteredData.length > 0 && this.filteredData.length !== this.allData.length) {
+    // If we're in filter mode, we need to map data indices to row indices
+    if (this._isFiltering) {
       // We're in filtered mode - need to find matching rows
       const currentPageData = this.filteredData.slice(startIndex, endIndex);
       
@@ -289,9 +327,8 @@ class Pagination extends HTMLElement {
     const endItem = this.shadowRoot.getElementById("end-item");
     const totalItemsElement = this.shadowRoot.getElementById("total-items");
 
-    // Add null checks to prevent errors
+    // Silently return if elements not ready yet
     if (!startItem || !endItem || !totalItemsElement) {
-      console.warn("Pagination info elements not found in shadow DOM");
       return;
     }
 
@@ -331,9 +368,14 @@ class Pagination extends HTMLElement {
   }
 
   renderPagination() {
-    // Ensure shadow DOM is ready before rendering
-    if (!this.shadowRoot) {
-      console.warn("Shadow DOM not ready for pagination rendering");
+    // Ensure component is ready and shadow DOM elements are available
+    if (!this._isReady || !this.shadowRoot) {
+      return;
+    }
+    
+    // Verify key elements exist before rendering
+    const pageNumbersContainer = this.shadowRoot.getElementById("page-numbers");
+    if (!pageNumbersContainer) {
       return;
     }
     
@@ -358,9 +400,8 @@ class Pagination extends HTMLElement {
   renderPageNumbers() {
     const pageNumbersContainer = this.shadowRoot.getElementById("page-numbers");
     
-    // Add null check to prevent errors
+    // Silently return if element not ready yet
     if (!pageNumbersContainer) {
-      console.warn("Page numbers container not found in shadow DOM");
       return;
     }
     
@@ -429,7 +470,7 @@ class Pagination extends HTMLElement {
   }
 
   getState() {
-    const workingData = this.filteredData.length > 0 ? this.filteredData : this.allData;
+    const workingData = this._isFiltering ? this.filteredData : this.allData;
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = Math.min(this.currentPage * this.pageSize, workingData.length);
     
@@ -441,7 +482,7 @@ class Pagination extends HTMLElement {
       startIndex: startIndex,
       endIndex: endIndex,
       currentPageData: workingData.slice(startIndex, endIndex),
-      isFiltered: this.filteredData.length > 0 && this.filteredData.length !== this.allData.length
+      isFiltered: this._isFiltering
     };
   }
   
@@ -450,7 +491,7 @@ class Pagination extends HTMLElement {
    * @returns {Array} The data for the current page
    */
   getCurrentPageData() {
-    const workingData = this.filteredData.length > 0 ? this.filteredData : this.allData;
+    const workingData = this._isFiltering ? this.filteredData : this.allData;
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = Math.min(startIndex + this.pageSize, workingData.length);
     return workingData.slice(startIndex, endIndex);
@@ -461,6 +502,7 @@ class Pagination extends HTMLElement {
    */
   reset() {
     this.currentPage = 1;
+    this._isFiltering = false; // Reset filter mode
     this.filteredData = [...this.allData];
     this.totalItems = this.filteredData.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;

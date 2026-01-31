@@ -12,7 +12,7 @@ template.innerHTML = `<div
         class="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700"
       >
         <h3 id="deal-modal-title" class="text-lg font-semibold text-gray-900 dark:text-white">
-          Add Deal
+          Edit Deal
         </h3>
         <button
           id="close-deal-modal-btn"
@@ -88,14 +88,15 @@ template.innerHTML = `<div
                 for="lead_id"
                 class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
               >
-                Associated Lead
+                Associated Lead <span class="text-red-500">*</span>
               </label>
               <select
                 id="lead_id"
                 name="lead_id"
+                required
                 class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
-                <option value="">Select a Lead</option>
+                <option value="">Loading leads...</option>
               </select>
             </div>
             <div id="organization-select">
@@ -110,7 +111,7 @@ template.innerHTML = `<div
                 name="organization_id"
                 class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
-                <option value="">Select an Organization</option>
+                <option value="">Loading organizations...</option>
               </select>
             </div>
             <div>
@@ -144,7 +145,7 @@ template.innerHTML = `<div
             id="deal-submit-btn"
             class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 transition-colors"
           >
-            Add Deal
+            Update Deal
           </button>
           <button
             type="button"
@@ -167,6 +168,7 @@ class DealModal extends HTMLElement {
     this.leads = [];
     this.organizations = [];
     this.dbWorker = null;
+    this.messageHandler = null;
   }
 
   connectedCallback() {
@@ -176,7 +178,53 @@ class DealModal extends HTMLElement {
     this.dbWorker = window.dbWorker;
     this.render();
     this.setupListeners();
+    this.setupDbWorkerListener();
     this.loadDropdownData();
+  }
+
+  setupDbWorkerListener() {
+    if (!this.dbWorker) {
+      console.error("DB Worker not available");
+      return;
+    }
+
+    this.messageHandler = (e) => {
+      const { action, data, rows, storeName } = e.data;
+
+      console.log("DealModal received:", {
+        action,
+        storeName,
+        dataLength: data?.length || rows?.length,
+      });
+
+      if (action === "getAllSuccess" && storeName === "Leads") {
+        const leadsData = data || rows || [];
+        this.leads = leadsData;
+        this.populateLeadDropdown();
+
+        if (this.currentDealData && this.currentDealData.lead_id) {
+          this.selectLeadInDropdown(this.currentDealData.lead_id);
+        }
+      }
+
+      if (action === "getAllSuccess" && storeName === "Organizations") {
+        const orgsData = data || rows || [];
+        this.organizations = orgsData;
+        this.populateOrganizationDropdown();
+
+        if (this.currentDealData && this.currentDealData.organization_id) {
+          this.selectOrganizationInDropdown(
+            this.currentDealData.organization_id,
+          );
+        }
+      }
+
+      if (action === "getByIdSuccess" && data && data.deal_id) {
+        this.setEditMode(data);
+      }
+    };
+
+    this.dbWorker.addEventListener("message", this.messageHandler);
   }
 
   setupListeners() {
@@ -194,22 +242,11 @@ class DealModal extends HTMLElement {
         this.closeModal();
       });
     }
-
-    const dbWorker = window.dbWorker;
-    if (!dbWorker) return;
-
-    dbWorker.addEventListener("message", (e) => {
-      const { action, data } = e.data;
-
-      if (action === "getByIdSuccess" && data && data.deal_id) {
-        // console.log("Inside idsuccess: ", data);
-        // this.populateForm(data);
-        this.setEditMode(data);
-      }
-    });
   }
 
   setEditMode(dealData) {
+    console.log("Setting edit mode with deal data:", dealData);
+
     this.editMode = true;
     this.currentDealData = dealData;
 
@@ -219,10 +256,84 @@ class DealModal extends HTMLElement {
     if (modalTitle) modalTitle.textContent = "Edit Deal";
     if (submitBtn) submitBtn.textContent = "Update Deal";
 
-    // Reload dropdowns and then populate form with deal data
-    this.loadDropdownData().then(() => {
+    setTimeout(() => {
       this.populateForm(dealData);
+    }, 150);
+  }
+
+  populateForm(data) {
+    if (!data) return;
+    console.log("Populating form with:", data);
+
+    const fields = {
+      deal_id_hidden: data.deal_id || "",
+      deal_name: data.deal_name || "",
+      deal_value: data.deal_value || "",
+      deal_status: data.deal_status || "Prospecting",
+    };
+
+    Object.keys(fields).forEach((fieldId) => {
+      const field = this.querySelector(`#${fieldId}`);
+      if (field) {
+        field.value = fields[fieldId];
+      }
     });
+
+    if (data.lead_id) {
+      this.selectLeadInDropdown(data.lead_id);
+    }
+
+    if (data.organization_id) {
+      this.selectOrganizationInDropdown(data.organization_id);
+    }
+  }
+
+  selectLeadInDropdown(leadId) {
+    const leadSelect = this.querySelector("#lead_id");
+    if (!leadSelect) {
+      console.warn("Lead select element not found");
+      return;
+    }
+
+    leadSelect.value = leadId;
+
+    if (leadSelect.value !== leadId) {
+      console.log("Lead not yet available, retrying in 300ms...");
+      setTimeout(() => {
+        leadSelect.value = leadId;
+        console.log("Lead selected:", leadId);
+      }, 300);
+    } else {
+      console.log("Lead selected immediately:", leadId);
+    }
+  }
+
+  selectOrganizationInDropdown(organizationId) {
+    const orgSelect = this.querySelector("#organization_id");
+    if (!orgSelect) {
+      console.warn("Organization select element not found");
+      return;
+    }
+    orgSelect.value = organizationId;
+    if (orgSelect.value !== organizationId) {
+      console.log("Organization not yet available, retrying in 300ms...");
+      setTimeout(() => {
+        orgSelect.value = organizationId;
+        console.log("Organization selected:", organizationId);
+      }, 300);
+    } else {
+      console.log("Organization selected immediately:", organizationId);
+    }
+  }
+
+  closeModal() {
+    const modal = this.querySelector("#deal-form-modal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+    const form = this.querySelector("#deal-form");
+    if (form) form.reset();
+    this.setCreateMode();
   }
 
   setCreateMode() {
@@ -233,110 +344,32 @@ class DealModal extends HTMLElement {
     const submitBtn = this.querySelector("#deal-submit-btn");
     const form = this.querySelector("#deal-form");
 
-    if (modalTitle) modalTitle.textContent = "Add Deal";
-    if (submitBtn) submitBtn.textContent = "Add Deal";
+    if (modalTitle) modalTitle.textContent = "Edit Deal";
+    if (submitBtn) submitBtn.textContent = "Update Deal";
     if (form) form.reset();
 
     const dealIdField = this.querySelector("#deal_id_hidden");
     if (dealIdField) dealIdField.value = "";
-
-    // Reload dropdowns for fresh data
-    this.loadDropdownData();
   }
 
-  populateForm(data) {
-    if (!data) return;
-    console.log("Inside populateform: ", data);
-
-    const fields = {
-      deal_id_hidden: data.deal_id || "",
-      deal_name: data.deal_name || "",
-      deal_value: data.deal_value || "",
-      lead_id: data.lead_id || "",
-      organization_id: data.organization_id || "",
-      deal_status: data.deal_status || "Prospecting",
-    };
-
-    Object.keys(fields).forEach((fieldId) => {
-      const field = this.querySelector(`#${fieldId}`);
-      if (field) {
-        field.value = fields[fieldId];
-      }
-    });
-  }
-
-  closeModal() {
-    const modal = this.querySelector("#deal-form-modal");
-    if (modal) {
-      modal.classList.add("hidden");
-    }
-    const form = this.querySelector("#deal-form");
-    if (form) form.reset();
-  }
-
-  loadOrganizations() {
-    return new Promise((resolve) => {
-      const handler = (e) => {
-        const { action, rows, storeName } = e.data;
-
-        if (action === "getAllSuccess" && storeName === "Organizations") {
-          this.dbWorker.removeEventListener("message", handler);
-          this.organizations = rows || [];
-          this.populateOrganizationDropdown();
-          resolve();
-        }
-      };
-
-      const user = JSON.parse(localStorage.getItem("user"));
-      this.dbWorker.addEventListener("message", handler);
-      this.dbWorker.postMessage({
-        action: "getAllOrganizations",
-        storeName: "Organizations",
-        user_id: user?.user_id,
-        tenant_id: user?.tenant_id,
-        role: user?.role,
-      });
-
-      setTimeout(() => {
-        this.dbWorker.removeEventListener("message", handler);
-        resolve();
-      }, 3000);
-    });
-  }
-
-  loadLeads() {
-    return new Promise((resolve) => {
-      const handler = (e) => {
-        const { action, data, storeName } = e.data;
-
-        if (action === "getAllSuccess" && storeName === "Leads") {
-          this.dbWorker.removeEventListener("message", handler);
-          this.leads = data || [];
-          this.populateLeadDropdown();
-          resolve();
-        }
-      };
-
-      const user = JSON.parse(localStorage.getItem("user"));
-      this.dbWorker.addEventListener("message", handler);
-      this.dbWorker.postMessage({
-        action: "getAllLeads",
-        storeName: "Leads",
-        user_id: user?.user_id,
-        tenant_id: user?.tenant_id,
-        role: user?.role,
-      });
-
-      setTimeout(() => {
-        this.dbWorker.removeEventListener("message", handler);
-        resolve();
-      }, 3000);
-    });
-  }
-
-  async loadDropdownData() {
+  loadDropdownData() {
     if (!this.dbWorker) return;
-    await Promise.all([this.loadLeads(), this.loadOrganizations()]);
+    const user = JSON.parse(localStorage.getItem("user"));
+    console.log("Loading dropdown data...");
+    this.dbWorker.postMessage({
+      action: "getAllLeads",
+      storeName: "Leads",
+      user_id: user?.user_id,
+      tenant_id: user?.tenant_id,
+      role: user?.role,
+    });
+    this.dbWorker.postMessage({
+      action: "getAllOrganizations",
+      storeName: "Organizations",
+      user_id: user?.user_id,
+      tenant_id: user?.tenant_id,
+      role: user?.role,
+    });
   }
 
   populateLeadDropdown() {
@@ -344,42 +377,72 @@ class DealModal extends HTMLElement {
     if (!leadSelect) return;
 
     const currentValue = leadSelect.value;
+
     leadSelect.innerHTML = '<option value="">Select a Lead</option>';
 
+    if (this.leads.length === 0) {
+      leadSelect.innerHTML = '<option value="">No leads available</option>';
+      return;
+    }
+
     this.leads.forEach((lead) => {
-      const leadName = `${lead.lead_first_name || ''} ${lead.lead_last_name || ''}`.trim();
+      const leadName =
+        `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim();
       const option = document.createElement("option");
       option.value = lead.lead_id;
-      option.textContent = leadName || lead.lead_email || 'Unnamed Lead';
+      option.textContent = leadName || lead.lead_email || "Unnamed Lead";
       leadSelect.appendChild(option);
     });
-
     if (currentValue) {
       leadSelect.value = currentValue;
+    }
+
+    console.log("Lead dropdown populated with", this.leads.length, "items");
+    if (this.currentDealData && this.currentDealData.lead_id) {
+      this.selectLeadInDropdown(this.currentDealData.lead_id);
     }
   }
 
   populateOrganizationDropdown() {
     const orgSelect = this.querySelector("#organization_id");
     if (!orgSelect) return;
-
     const currentValue = orgSelect.value;
     orgSelect.innerHTML = '<option value="">Select an Organization</option>';
+
+    if (this.organizations.length === 0) {
+      orgSelect.innerHTML =
+        '<option value="">No organizations available</option>';
+      return;
+    }
 
     this.organizations.forEach((org) => {
       const option = document.createElement("option");
       option.value = org.organization_id;
-      option.textContent = org.organization_name || 'Unnamed Organization';
+      option.textContent = org.organization_name || "Unnamed Organization";
       orgSelect.appendChild(option);
     });
-
     if (currentValue) {
       orgSelect.value = currentValue;
+    }
+
+    console.log(
+      "Organization dropdown populated with",
+      this.organizations.length,
+      "items",
+    );
+    if (this.currentDealData && this.currentDealData.organization_id) {
+      this.selectOrganizationInDropdown(this.currentDealData.organization_id);
     }
   }
 
   async render() {
     console.log("Deal modal rendered");
+  }
+
+  disconnectedCallback() {
+    if (this.dbWorker && this.messageHandler) {
+      this.dbWorker.removeEventListener("message", this.messageHandler);
+    }
   }
 }
 

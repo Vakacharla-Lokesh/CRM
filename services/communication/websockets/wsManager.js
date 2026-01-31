@@ -1,4 +1,4 @@
-import { addNotification } from "../../index.js";
+import { addNotification } from "../../../index.js";
 import WSClient from "./client.js";
 
 export function initWebSocket({

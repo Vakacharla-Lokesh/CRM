@@ -8,11 +8,18 @@ import { getAllData, getDataById } from "../services/getDb.js";
 import { insertData } from "../services/insertDb.js";
 import { convertLeadToDeal } from "../services/leadToDeal.js";
 import { updateData } from "../services/updateDb.js";
+import {
+  buildStatusSegmentMap,
+  buildIndustrySegmentMap,
+} from "../services/data/leadSegmentation.js";
+
+// UNCOMMENT TO USE IN NEW BROWSER TO ADD TEST USERS
+// import { addTestUsers } from "../services/utils/addTestUsers.js";
 
 let db = null;
 let dbReady = false;
 
-// console.log("Worker started, initializing database...");
+console.log("Worker started, initializing database...");
 
 async function initialize() {
   try {
@@ -221,7 +228,14 @@ self.onmessage = (e) => {
 
     // Home data extraction case:
     case "getData":
-      getCount(db, dbReady, e.data.tenant_id, e.data.user_id, e.data.role);
+      getCount(
+        db,
+        dbReady,
+        e.data.tenant_id,
+        e.data.user_id,
+        e.data.role,
+        e.data,
+      );
       break;
 
     // Lead score generation case:

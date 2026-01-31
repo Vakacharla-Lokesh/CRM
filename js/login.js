@@ -1,6 +1,6 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { checkUserLogin } from "../services/checkUserLogin.js";
-import { generateId } from "../services/uidGenerator.js";
+import { generateId } from "../services/utils/uidGenerator.js";
 
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("login-email");
@@ -160,7 +160,7 @@ attachSignUpListener();
 
 loginForm.addEventListener("click", (event) => {
   // console.log("Inside login form");
-  if(event.target.closest("[data-link]")){
+  if (event.target.closest("[data-link]")) {
     window.router.loadRoute("/signup");
   }
 });

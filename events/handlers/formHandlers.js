@@ -1,6 +1,6 @@
-import { dbState } from "../../services/dbState.js";
+import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
-import { generateId } from "../../services/uidGenerator.js";
+import { generateId } from "../../services/utils/uidGenerator.js";
 import { showNotification } from "../notificationEvents.js";
 
 export function handleLeadFormSubmit(event) {

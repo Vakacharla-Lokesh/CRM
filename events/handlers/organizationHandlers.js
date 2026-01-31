@@ -1,7 +1,7 @@
-import { dbState } from "../../services/dbState.js";
+import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
 import { exportDb } from "../../services/exportDb.js";
-import { generateId } from "../../services/uidGenerator.js";
+import { generateId } from "../../services/utils/uidGenerator.js";
 
 export function handleOrganizationCreate(event) {
   const { dbWorker, isDbReady } = dbState;

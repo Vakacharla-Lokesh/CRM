@@ -1,4 +1,4 @@
-import { dbState } from "../../services/dbState.js";
+import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
 
 export function handleUserCreate(event) {
