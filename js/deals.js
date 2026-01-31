@@ -93,23 +93,59 @@ function loadAllDeals() {
 function loadLeadsForDropdown() {
   if (!dbWorker) return;
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  
+  const handler = (e) => {
+    const { action, data, storeName } = e.data;
+    
+    if (action === "getAllSuccess" && storeName === "Leads") {
+      dbWorker.removeEventListener("message", handler);
+      allLeads = data || [];
+      populateLeadDropdown();
+    }
+  };
+
+  dbWorker.addEventListener("message", handler);
   dbWorker.postMessage({
     action: "getAllLeads",
     storeName: "Leads",
+    user_id: user?.user_id,
+    tenant_id: user?.tenant_id,
+    role: user?.role,
   });
 
-  populateLeadDropdown();
+  setTimeout(() => {
+    dbWorker.removeEventListener("message", handler);
+  }, 5000);
 }
 
 function loadOrganizationsForDropdown() {
   if (!dbWorker) return;
 
+  const user = JSON.parse(localStorage.getItem("user"));
+
+  const handler = (e) => {
+    const { action, data, rows, storeName } = e.data;
+    
+    if (action === "getAllSuccess" && storeName === "Organizations") {
+      dbWorker.removeEventListener("message", handler);
+      allOrganizations = rows || data || [];
+      populateOrganizationDropdown();
+    }
+  };
+
+  dbWorker.addEventListener("message", handler);
   dbWorker.postMessage({
     action: "getAllOrganizations",
     storeName: "Organizations",
+    user_id: user?.user_id,
+    tenant_id: user?.tenant_id,
+    role: user?.role,
   });
 
-  populateOrganizationDropdown();
+  setTimeout(() => {
+    dbWorker.removeEventListener("message", handler);
+  }, 5000);
 }
 
 function populateLeadDropdown() {

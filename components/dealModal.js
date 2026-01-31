@@ -164,14 +164,19 @@ class DealModal extends HTMLElement {
     super();
     this.editMode = false;
     this.currentDealData = null;
+    this.leads = [];
+    this.organizations = [];
+    this.dbWorker = null;
   }
 
   connectedCallback() {
     if (!this.innerHTML.trim()) {
       this.innerHTML = template.innerHTML;
     }
+    this.dbWorker = window.dbWorker;
     this.render();
     this.setupListeners();
+    this.loadDropdownData();
   }
 
   setupListeners() {
@@ -214,7 +219,10 @@ class DealModal extends HTMLElement {
     if (modalTitle) modalTitle.textContent = "Edit Deal";
     if (submitBtn) submitBtn.textContent = "Update Deal";
 
-    this.populateForm(dealData);
+    // Reload dropdowns and then populate form with deal data
+    this.loadDropdownData().then(() => {
+      this.populateForm(dealData);
+    });
   }
 
   setCreateMode() {
@@ -231,6 +239,9 @@ class DealModal extends HTMLElement {
 
     const dealIdField = this.querySelector("#deal_id_hidden");
     if (dealIdField) dealIdField.value = "";
+
+    // Reload dropdowns for fresh data
+    this.loadDropdownData();
   }
 
   populateForm(data) {
@@ -271,14 +282,19 @@ class DealModal extends HTMLElement {
         if (action === "getAllSuccess" && storeName === "Organizations") {
           this.dbWorker.removeEventListener("message", handler);
           this.organizations = rows || [];
+          this.populateOrganizationDropdown();
           resolve();
         }
       };
 
+      const user = JSON.parse(localStorage.getItem("user"));
       this.dbWorker.addEventListener("message", handler);
       this.dbWorker.postMessage({
         action: "getAllOrganizations",
         storeName: "Organizations",
+        user_id: user?.user_id,
+        tenant_id: user?.tenant_id,
+        role: user?.role,
       });
 
       setTimeout(() => {
@@ -286,6 +302,80 @@ class DealModal extends HTMLElement {
         resolve();
       }, 3000);
     });
+  }
+
+  loadLeads() {
+    return new Promise((resolve) => {
+      const handler = (e) => {
+        const { action, data, storeName } = e.data;
+
+        if (action === "getAllSuccess" && storeName === "Leads") {
+          this.dbWorker.removeEventListener("message", handler);
+          this.leads = data || [];
+          this.populateLeadDropdown();
+          resolve();
+        }
+      };
+
+      const user = JSON.parse(localStorage.getItem("user"));
+      this.dbWorker.addEventListener("message", handler);
+      this.dbWorker.postMessage({
+        action: "getAllLeads",
+        storeName: "Leads",
+        user_id: user?.user_id,
+        tenant_id: user?.tenant_id,
+        role: user?.role,
+      });
+
+      setTimeout(() => {
+        this.dbWorker.removeEventListener("message", handler);
+        resolve();
+      }, 3000);
+    });
+  }
+
+  async loadDropdownData() {
+    if (!this.dbWorker) return;
+    await Promise.all([this.loadLeads(), this.loadOrganizations()]);
+  }
+
+  populateLeadDropdown() {
+    const leadSelect = this.querySelector("#lead_id");
+    if (!leadSelect) return;
+
+    const currentValue = leadSelect.value;
+    leadSelect.innerHTML = '<option value="">Select a Lead</option>';
+
+    this.leads.forEach((lead) => {
+      const leadName = `${lead.lead_first_name || ''} ${lead.lead_last_name || ''}`.trim();
+      const option = document.createElement("option");
+      option.value = lead.lead_id;
+      option.textContent = leadName || lead.lead_email || 'Unnamed Lead';
+      leadSelect.appendChild(option);
+    });
+
+    if (currentValue) {
+      leadSelect.value = currentValue;
+    }
+  }
+
+  populateOrganizationDropdown() {
+    const orgSelect = this.querySelector("#organization_id");
+    if (!orgSelect) return;
+
+    const currentValue = orgSelect.value;
+    orgSelect.innerHTML = '<option value="">Select an Organization</option>';
+
+    this.organizations.forEach((org) => {
+      const option = document.createElement("option");
+      option.value = org.organization_id;
+      option.textContent = org.organization_name || 'Unnamed Organization';
+      orgSelect.appendChild(option);
+    });
+
+    if (currentValue) {
+      orgSelect.value = currentValue;
+    }
   }
 
   async render() {
