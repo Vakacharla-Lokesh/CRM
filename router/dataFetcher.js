@@ -120,6 +120,7 @@ export class DataFetcher {
       storeName === "Organizations" &&
       currentPath === "/organizations"
     ) {
+      console.log("Inside populate organizations: ");
       populateOrganizationsTable(rows || []);
     } else if (storeName === "Deals" && currentPath === "/deals") {
       populateDealsTable(rows || []);

@@ -112,7 +112,7 @@ export function handleDealClick(e) {
   if (e.target.closest("#editDeal")) {
     console.log("Inside if statement of editdeal: ");
     e.preventDefault();
-    e.stopImmediatePropagation();
+    // e.stopImmediatePropagation();
     const editBtn = e.target.closest("#editDeal");
     const dealRow = editBtn.closest("tr");
     const deal_id = dealRow?.getAttribute("data-deal-id");

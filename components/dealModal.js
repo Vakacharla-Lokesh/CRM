@@ -98,7 +98,7 @@ template.innerHTML = `<div
                 <option value="">Select a Lead</option>
               </select>
             </div>
-            <div>
+            <div id="organization-select">
               <label
                 for="organization_id"
                 class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
@@ -170,7 +170,6 @@ class DealModal extends HTMLElement {
     if (!this.innerHTML.trim()) {
       this.innerHTML = template.innerHTML;
     }
-
     this.render();
     this.setupListeners();
   }
