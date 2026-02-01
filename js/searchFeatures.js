@@ -8,21 +8,10 @@
         ? document.getElementById(paginationId)
         : null;
       this.table = this.tbody?.closest("table");
+      this.allData = []; // Store all data for filtering
 
       if (this.filterInput && this.tbody) {
         this.setupFilter();
-      }
-
-      // Listen for pagination events if pagination is available
-      if (this.pagination) {
-        this.pagination.addEventListener('dataFiltered', (event) => {
-          const { filteredData, searchTerm } = event.detail;
-          // Remove our empty state since pagination will handle it
-          const existingEmptyState = this.tbody.querySelector(".filter-empty-state");
-          if (existingEmptyState) {
-            existingEmptyState.remove();
-          }
-        });
       }
     }
 
@@ -47,9 +36,18 @@
       });
     }
 
+    /**
+     * Set the data for the filter to work with
+     * This should be called when pagination is initialized
+     */
+    setData(data) {
+      this.allData = [...data];
+    }
+
     filterRows(searchTerm) {
       // If we have pagination, let it handle the filtering
       if (this.pagination) {
+        // Pass the search term to pagination, which handles all filtering
         this.pagination.filterData(searchTerm);
       } else {
         // Fallback to direct DOM manipulation if no pagination
@@ -57,10 +55,10 @@
         let visibleCount = 0;
 
         rows.forEach((row) => {
-          // Skip empty state rows and filter empty state
+          // Skip empty state rows
           if (
-            row.querySelector("td[colspan]") ||
-            row.classList.contains("filter-empty-state")
+            row.classList.contains("filter-empty-state") ||
+            row.classList.contains("pagination-empty-state")
           ) {
             return;
           }
@@ -391,7 +389,14 @@
         const pagination = document.getElementById(paginationId);
 
         if (searchInput && tbody && pagination) {
-          new TableFilter(tableBodyId, searchInputId, paginationId);
+          // Initialize filter
+          const tableFilter = new TableFilter(
+            tableBodyId,
+            searchInputId,
+            paginationId,
+          );
+
+          // Initialize bulk delete
           new BulkDeleteManager({
             tableBodyId: tableBodyId,
             selectAllId: selectAllId,
@@ -400,6 +405,14 @@
             paginationId: paginationId,
             storeName: storeName,
           });
+
+          // Listen to pagination initialization to set filter data
+          pagination.addEventListener("pageChanged", (e) => {
+            const { currentPageData } = e.detail;
+            // Don't set filter data on page change, only on initialization
+          });
+
+          console.log(`✓ Initialized table features for ${page}`);
         } else if (retryCount < maxRetries) {
           retryCount++;
           setTimeout(attemptInit, 100);

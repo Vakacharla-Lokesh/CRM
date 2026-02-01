@@ -73,10 +73,10 @@ class Pagination extends HTMLElement {
     this.tableBodyId = "";
     this.allData = [];
     this.filteredData = [];
-    
+
     this._isReady = false;
     this._pendingInit = null;
-    this._isFiltering = false;
+    this._currentSearchTerm = "";
   }
 
   connectedCallback() {
@@ -94,6 +94,7 @@ class Pagination extends HTMLElement {
     const prevBtn = this.shadowRoot.getElementById("prev-btn");
     const nextBtn = this.shadowRoot.getElementById("next-btn");
     const pageSizeSelect = this.shadowRoot.getElementById("page-size");
+
     if (prevBtn) {
       prevBtn.addEventListener("click", () => this.goToPreviousPage());
     }
@@ -117,34 +118,30 @@ class Pagination extends HTMLElement {
    * @param {Array} data - The full array of data
    */
   initialize(tableBodyId, data = []) {
-    // If component is not ready yet (connectedCallback hasn't run), queue the initialization
     if (!this._isReady) {
       this._pendingInit = { tableBodyId, data };
       return;
     }
-    
+
     this._doInitialize(tableBodyId, data);
   }
-  
+
   /**
    * Internal initialization logic
-   * @private
    */
   _doInitialize(tableBodyId, data = []) {
-    // Verify shadow DOM elements are available
     const pageNumbers = this.shadowRoot.getElementById("page-numbers");
     if (!pageNumbers) {
-      // Elements not ready yet, retry after a short delay
       setTimeout(() => this._doInitialize(tableBodyId, data), 10);
       return;
     }
-    
+
     this.tableBodyId = tableBodyId;
     this.allData = [...data];
     this.filteredData = [...data];
-    this._isFiltering = false; // Reset filter mode
+    this._currentSearchTerm = "";
     this.totalItems = this.filteredData.length;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
     this.currentPage = 1;
     this.renderPagination();
     this.displayCurrentPage();
@@ -155,17 +152,16 @@ class Pagination extends HTMLElement {
    * @param {Array} data - The new array of data
    */
   updateData(data) {
-    // If component is not ready yet, queue as pending init
     if (!this._isReady) {
       this._pendingInit = { tableBodyId: this.tableBodyId, data };
       return;
     }
-    
+
     this.allData = [...data];
     this.filteredData = [...data];
-    this._isFiltering = false; // Reset filter mode
+    this._currentSearchTerm = ""; // Reset search term
     this.totalItems = this.filteredData.length;
-    this.totalPages = Math.ceil(this.totalItems / this.pageSize);
+    this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
     this.currentPage = 1;
     this.renderPagination();
     this.displayCurrentPage();
@@ -173,21 +169,21 @@ class Pagination extends HTMLElement {
 
   /**
    * Filter data based on search term
-   * @param {string} searchTerm - The search term to filter by
+   * This is the key method that works with TableFilter
    */
   filterData(searchTerm) {
-    // If component is not ready yet, ignore filter request
     if (!this._isReady) {
       return;
     }
-    
+
+    // Store the search term for later use
+    this._currentSearchTerm = searchTerm;
+
     if (!searchTerm.trim()) {
-      // Clear filter mode when search is empty
-      this._isFiltering = false;
+      // Clear filter - show all data
       this.filteredData = [...this.allData];
     } else {
-      // Enable filter mode when searching
-      this._isFiltering = true;
+      // Filter based on search term
       const term = searchTerm.toLowerCase();
       this.filteredData = this.allData.filter((item) => {
         const text = JSON.stringify(item).toLowerCase();
@@ -195,23 +191,29 @@ class Pagination extends HTMLElement {
       });
     }
 
+    // Reset to first page when filtering
     this.totalItems = this.filteredData.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
     this.currentPage = 1;
     this.renderPagination();
     this.displayCurrentPage();
-    
+
     // Dispatch event to notify about data change
-    this.dispatchEvent(new CustomEvent('dataFiltered', {
-      detail: {
-        filteredData: this.filteredData,
-        searchTerm: searchTerm
-      }
-    }));
+    this.dispatchEvent(
+      new CustomEvent("dataFiltered", {
+        detail: {
+          filteredData: this.filteredData,
+          searchTerm: searchTerm,
+        },
+      }),
+    );
   }
 
+  /**
+   * Display the current page's data
+   * This method filters the DOM based on which rows should be visible
+   */
   displayCurrentPage() {
-    // Silently return if component not ready or table not set
     if (!this._isReady || !this.tableBodyId) {
       return;
     }
@@ -221,17 +223,17 @@ class Pagination extends HTMLElement {
       return;
     }
 
-    // Get the rows from the tbody (excluding empty state rows)
+    // Get all data rows (excluding empty state rows)
     const allRows = Array.from(tbody.querySelectorAll("tr")).filter(
-      (row) => !row.classList.contains("filter-empty-state") && !row.classList.contains("pagination-empty-state"),
+      (row) =>
+        !row.classList.contains("filter-empty-state") &&
+        !row.classList.contains("pagination-empty-state"),
     );
 
-    // Use filteredData when in filtering mode, otherwise use allData
-    const workingData = this._isFiltering ? this.filteredData : this.allData;
-    const totalItems = workingData.length;
+    const totalItems = this.filteredData.length;
 
+    // Handle empty state
     if (totalItems === 0) {
-      // Hide all rows and show empty state
       allRows.forEach((row) => (row.style.display = "none"));
       this.renderEmptyState(tbody);
       this.updatePaginationInfo(0, 0, 0);
@@ -244,64 +246,56 @@ class Pagination extends HTMLElement {
       existingEmptyState.remove();
     }
 
-    // Calculate start and end indices based on current page
+    // Calculate which items to show on this page
     const startIndex = (this.currentPage - 1) * this.pageSize;
     const endIndex = Math.min(startIndex + this.pageSize, totalItems);
+    const currentPageData = this.filteredData.slice(startIndex, endIndex);
 
     // Hide all rows first
     allRows.forEach((row) => (row.style.display = "none"));
 
-    // Show only the rows for the current page
-    // If we're in filter mode, we need to map data indices to row indices
-    if (this._isFiltering) {
-      // We're in filtered mode - need to find matching rows
-      const currentPageData = this.filteredData.slice(startIndex, endIndex);
-      
-      currentPageData.forEach((dataItem) => {
-        const matchingRow = allRows.find(row => {
-          // Try multiple possible ID attributes and data properties
-          const rowId = row.getAttribute('data-lead-id') || 
-                       row.getAttribute('data-deal-id') ||
-                       row.getAttribute('data-organization-id') ||
-                       row.getAttribute('data-user-id') ||
-                       row.getAttribute('data-id');
-          
-          const dataId = dataItem.lead_id || 
-                        dataItem.deal_id || 
-                        dataItem.organization_id || 
-                        dataItem.user_id || 
-                        dataItem.id;
-          
-          return rowId && dataId && String(rowId) === String(dataId);
-        });
-        
-        if (matchingRow) {
-          matchingRow.style.display = "";
-        }
-      });
-    } else {
-      // No filtering - show rows by index
-      for (let i = startIndex; i < endIndex; i++) {
-        if (allRows[i]) {
-          allRows[i].style.display = "";
-        }
-      }
-    }
+    // Show only rows that match the current page data
+    currentPageData.forEach((dataItem) => {
+      // Find the matching row in the DOM
+      const matchingRow = allRows.find((row) => {
+        const rowId =
+          row.getAttribute("data-lead-id") ||
+          row.getAttribute("data-deal-id") ||
+          row.getAttribute("data-organization-id") ||
+          row.getAttribute("data-user-id") ||
+          row.getAttribute("data-id");
 
-    // Update pagination info
-    this.updatePaginationInfo(startIndex, endIndex, totalItems);
-    
-    // Dispatch event to notify about page change
-    this.dispatchEvent(new CustomEvent('pageChanged', {
-      detail: {
-        currentPage: this.currentPage,
-        pageSize: this.pageSize,
-        totalItems: totalItems,
-        startIndex: startIndex,
-        endIndex: endIndex,
-        currentPageData: workingData.slice(startIndex, endIndex)
+        const dataId =
+          dataItem.lead_id ||
+          dataItem.deal_id ||
+          dataItem.organization_id ||
+          dataItem.user_id ||
+          dataItem.id;
+
+        return rowId && dataId && String(rowId) === String(dataId);
+      });
+
+      if (matchingRow) {
+        matchingRow.style.display = "";
       }
-    }));
+    });
+
+    // Update the info text
+    this.updatePaginationInfo(startIndex, endIndex, totalItems);
+
+    // Dispatch page change event
+    this.dispatchEvent(
+      new CustomEvent("pageChanged", {
+        detail: {
+          currentPage: this.currentPage,
+          pageSize: this.pageSize,
+          totalItems: totalItems,
+          startIndex: startIndex,
+          endIndex: endIndex,
+          currentPageData: currentPageData,
+        },
+      }),
+    );
   }
 
   renderEmptyState(tbody) {
@@ -327,7 +321,6 @@ class Pagination extends HTMLElement {
     const endItem = this.shadowRoot.getElementById("end-item");
     const totalItemsElement = this.shadowRoot.getElementById("total-items");
 
-    // Silently return if elements not ready yet
     if (!startItem || !endItem || !totalItemsElement) {
       return;
     }
@@ -368,17 +361,15 @@ class Pagination extends HTMLElement {
   }
 
   renderPagination() {
-    // Ensure component is ready and shadow DOM elements are available
     if (!this._isReady || !this.shadowRoot) {
       return;
     }
-    
-    // Verify key elements exist before rendering
+
     const pageNumbersContainer = this.shadowRoot.getElementById("page-numbers");
     if (!pageNumbersContainer) {
       return;
     }
-    
+
     this.updateButtonStates();
     this.renderPageNumbers();
   }
@@ -387,7 +378,6 @@ class Pagination extends HTMLElement {
     const prevBtn = this.shadowRoot.getElementById("prev-btn");
     const nextBtn = this.shadowRoot.getElementById("next-btn");
 
-    // Add null checks to prevent errors
     if (prevBtn) {
       prevBtn.disabled = this.currentPage === 1 || this.totalPages === 0;
     }
@@ -399,12 +389,11 @@ class Pagination extends HTMLElement {
 
   renderPageNumbers() {
     const pageNumbersContainer = this.shadowRoot.getElementById("page-numbers");
-    
-    // Silently return if element not ready yet
+
     if (!pageNumbersContainer) {
       return;
     }
-    
+
     pageNumbersContainer.innerHTML = "";
 
     if (this.totalPages === 0) return;
@@ -470,39 +459,42 @@ class Pagination extends HTMLElement {
   }
 
   getState() {
-    const workingData = this._isFiltering ? this.filteredData : this.allData;
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = Math.min(this.currentPage * this.pageSize, workingData.length);
-    
+    const endIndex = Math.min(
+      this.currentPage * this.pageSize,
+      this.filteredData.length,
+    );
+
     return {
       currentPage: this.currentPage,
       pageSize: this.pageSize,
-      totalItems: workingData.length,
+      totalItems: this.filteredData.length,
       totalPages: this.totalPages,
       startIndex: startIndex,
       endIndex: endIndex,
-      currentPageData: workingData.slice(startIndex, endIndex),
-      isFiltered: this._isFiltering
+      currentPageData: this.filteredData.slice(startIndex, endIndex),
+      isFiltered: this._currentSearchTerm !== "",
     };
   }
-  
+
   /**
    * Get current page data
-   * @returns {Array} The data for the current page
    */
   getCurrentPageData() {
-    const workingData = this._isFiltering ? this.filteredData : this.allData;
     const startIndex = (this.currentPage - 1) * this.pageSize;
-    const endIndex = Math.min(startIndex + this.pageSize, workingData.length);
-    return workingData.slice(startIndex, endIndex);
+    const endIndex = Math.min(
+      startIndex + this.pageSize,
+      this.filteredData.length,
+    );
+    return this.filteredData.slice(startIndex, endIndex);
   }
-  
+
   /**
    * Reset pagination to first page
    */
   reset() {
     this.currentPage = 1;
-    this._isFiltering = false; // Reset filter mode
+    this._currentSearchTerm = "";
     this.filteredData = [...this.allData];
     this.totalItems = this.filteredData.length;
     this.totalPages = Math.ceil(this.totalItems / this.pageSize) || 1;
