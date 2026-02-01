@@ -48,6 +48,20 @@ import {
   handleUserDeleted,
   handleUserClick,
 } from "./handlers/userHandlers.js";
+
+import {
+  handleTenantCreate,
+  handleTenantCreated,
+  handleTenantUpdate,
+  handleTenantUpdated,
+  handleTenantDelete,
+  handleTenantDeleted,
+  handleTenantExport,
+  handleTenantClick,
+  handleBulkDeleteTenants,
+  handleSelectAllTenants,
+  handleTenantCheckboxChange,
+} from "./handlers/tenantHandlers.js";
 // import user from "./handlers/userManager.js";
 
 export function initializeEventHandlers(worker) {
@@ -67,6 +81,7 @@ export function initializeEventHandlers(worker) {
   registerUIEvents();
   registerAuthEvents();
   registerUserEvents();
+  registerTenantEvents();
 
   // Initialize theme and DOM listeners
   initializeTheme();
@@ -129,6 +144,16 @@ function registerUserEvents() {
   eventBus.on(EVENTS.USER_DELETED, handleUserDeleted);
 }
 
+function registerTenantEvents() {
+  eventBus.on(EVENTS.TENANT_CREATE, handleTenantCreate);
+  eventBus.on(EVENTS.TENANT_CREATED, handleTenantCreated);
+  eventBus.on(EVENTS.TENANT_UPDATE, handleTenantUpdate);
+  eventBus.on(EVENTS.TENANT_UPDATED, handleTenantUpdated);
+  eventBus.on(EVENTS.TENANT_DELETE, handleTenantDelete);
+  eventBus.on(EVENTS.TENANT_DELETED, handleTenantDeleted);
+  eventBus.on(EVENTS.TENANT_EXPORT, handleTenantExport);
+}
+
 function initializeClickHandlers() {
   document.addEventListener("click", (e) => {
     // Modal handlers
@@ -157,13 +182,36 @@ function initializeClickHandlers() {
       return;
     }
 
-    if (e.target.closest("#export-organizations")) {
-      eventBus.emit(EVENTS.ORGANIZATION_EXPORT);
+    if (e.target.closest("#export-tenants")) {
+      eventBus.emit(EVENTS.TENANT_EXPORT);
       return;
     }
 
-    if (e.target.closest("#export-deals")) {
-      eventBus.emit(EVENTS.DEAL_EXPORT);
+    // Tenant modal handler
+    if (e.target.closest("#open-tenant-modal-btn")) {
+      const modal = document.querySelector("tenant-modal");
+      if (modal) modal.open();
+      return;
+    }
+
+    // Bulk delete buttons
+    if (e.target.closest("#bulk-delete-tenants")) {
+      handleBulkDeleteTenants();
+      return;
+    }
+
+    // Select all checkboxes
+    if (e.target.id === "select-all-tenants") {
+      handleSelectAllTenants(e);
+      return;
+    }
+
+    // Individual checkbox change
+    if (
+      e.target.classList.contains("item-checkbox") &&
+      e.target.closest("#tenants-table")
+    ) {
+      handleTenantCheckboxChange();
       return;
     }
 
@@ -178,9 +226,23 @@ function initializeClickHandlers() {
     if (handleOrganizationClick(e)) return;
     if (handleDealClick(e)) return;
     if (handleUserClick(e)) return;
+    if (handleTenantClick(e)) return;
+    if (e.target.closest(".dropdown-btn")) {
+      handleDropdownClick(e);
+      return;
+    }
+
+    // Delegate to specific handlers
+    if (handleLeadClick(e)) return;
+    if (handleOrganizationClick(e)) return;
+    if (handleDealClick(e)) return;
+    if (handleUserClick(e)) return;
 
     // Close dropdowns when clicking outside
-    if (
+    if (event.target.matches("form[data-form='createTenant']")) {
+      // Tenant form submission is handled in the component
+      return;
+    } else if (
       !e.target.closest(".dropdown-menu") &&
       !e.target.closest(".dropdown-btn")
     ) {

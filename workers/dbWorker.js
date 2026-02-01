@@ -273,6 +273,32 @@ self.onmessage = (e) => {
       insertData(e.data.userData, "Users", dbReady, db);
       break;
 
+    // Tenant cases:
+    case "createTenantWithAdmin":
+      // Create tenant first, then create admin user
+      insertData(e.data.tenantData, "Tenants", dbReady, db);
+      insertData(e.data.adminData, "Users", dbReady, db);
+      postMessage({ action: "tenantCreated" });
+      break;
+
+    case "getAllTenants":
+      getAllData("Tenants", dbReady, db);
+      break;
+
+    case "getTenantById":
+      getDataById("Tenants", e.data.id, dbReady, db);
+      break;
+
+    case "updateTenant":
+      updateData("Tenants", e.data.tenantData, dbReady, db);
+      postMessage({ action: "tenantUpdated" });
+      break;
+
+    case "deleteTenant":
+      deleteData(e.data.id, "Tenants", dbReady, db);
+      postMessage({ action: "tenantDeleted" });
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }

@@ -60,10 +60,17 @@ export class SidebarManager {
   isAdmin(role) {
     const sidebarElement = document.getElementById("sidebar");
     const usersTab = document.querySelector("#data-users-list");
-    if (role == "admin") {
-      usersTab.classList.remove("hidden");
+    const tenantsTab = document.querySelector("#data-tenants-list");
+    
+    if (role === "admin") {
+      usersTab?.classList.remove("hidden");
+      tenantsTab?.classList.add("hidden");
+    } else if (role === "super_admin") {
+      usersTab?.classList.remove("hidden");
+      tenantsTab?.classList.remove("hidden");
     } else {
-      usersTab.classList.add("hidden");
+      usersTab?.classList.add("hidden");
+      tenantsTab?.classList.add("hidden");
     }
   }
 }

@@ -66,4 +66,11 @@ export const EVENTS = {
   USER_DELETED: "user:deleted",
   LOGOUT_SUCCESS: "auth:logout-success",
   LEADS_SCORE: "leads:score",
+  TENANT_CREATE: "tenant:create",
+  TENANT_CREATED: "tenant:created",
+  TENANT_UPDATE: "tenant:update",
+  TENANT_UPDATED: "tenant:updated",
+  TENANT_DELETE: "tenant:delete",
+  TENANT_DELETED: "tenant:deleted",
+  TENANT_EXPORT: "tenant:export",
 };

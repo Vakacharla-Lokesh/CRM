@@ -64,6 +64,9 @@ class SearchBar extends HTMLElement {
       case "users-search-input":
         inputField.setAttribute("placeholder", "Search users");
         break;
+      case "tenants-search-input":
+        inputField.setAttribute("placeholder", "Search tenants");
+        break;
       default:
         console.log("Error in search input field");
         break;

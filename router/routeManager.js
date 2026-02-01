@@ -10,6 +10,7 @@ export class RouteManager {
       "/login": "/pages/login.html",
       "/signup": "/pages/signup.html",
       "/users": "/pages/users.html",
+      "/tenants": "/pages/tenants.html",
     };
 
     this.routeScripts = {

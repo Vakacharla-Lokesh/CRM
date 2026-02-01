@@ -3,6 +3,7 @@ import { populateLeadsTable } from "../controllers/populateLeads.js";
 import { populateOrganizationsTable } from "../controllers/populateOrganizations.js";
 import { populateDealsTable } from "../controllers/populateDeals.js";
 import { populateUsersTable } from "../controllers/populateUsers.js";
+import { populateTenantsTable } from "../controllers/populateTenants.js";
 import { updateUserDetails } from "../events/userProfile.js";
 
 export class DataFetcher {
@@ -69,6 +70,13 @@ export class DataFetcher {
         }
         break;
 
+      case "/tenants":
+        if (role === "super_admin") {
+          this.dbWorker.postMessage({ action: "getAllTenants" });
+          this.dbWorker.postMessage({ action: "getAllUsers" });
+        }
+        break;
+
       case "/home":
         this.dbWorker.postMessage({
           action: "getData",
@@ -126,6 +134,20 @@ export class DataFetcher {
       populateDealsTable(rows || []);
     } else if (storeName === "Users" && currentPath === "/users") {
       populateUsersTable(rows || []);
+    } else if (storeName === "Tenants" && currentPath === "/tenants") {
+      // Store tenants data temporarily
+      this.tenantsData = rows || [];
+      // If we already have users data, populate the table
+      if (this.usersData) {
+        populateTenantsTable(this.tenantsData, this.usersData);
+      }
+    } else if (storeName === "Users" && currentPath === "/tenants") {
+      // Store users data temporarily
+      this.usersData = rows || [];
+      // If we already have tenants data, populate the table
+      if (this.tenantsData) {
+        populateTenantsTable(this.tenantsData, this.usersData);
+      }
     }
   }
 
@@ -156,10 +178,13 @@ export class DataFetcher {
       this.dbWorker.postMessage({ action: "getAllDeals" });
     } else if (currentPath === "/users" && storeName === "Users") {
       this.dbWorker.postMessage({ action: "getAllUsers" });
+    } else if (currentPath === "/tenants" && storeName === "Tenants") {
+      this.dbWorker.postMessage({ action: "getAllTenants" });
+      this.dbWorker.postMessage({ action: "getAllUsers" });
     }
   }
 
-  handleOtherActions(data, currentPath) {
+  async handleOtherActions(data, currentPath) {
     const { action } = data;
 
     if (action === "getDataSuccess") {
@@ -170,11 +195,32 @@ export class DataFetcher {
       alert("Lead successfully converted to Deal!");
       if (window.router && window.router.loadRoute) {
         window.router.loadRoute("/deals");
-      }
-    }
+        if (action === "convertToDealError") {
+          alert("Error converting lead to deal: " + data.error);
+        }
 
-    if (action === "convertToDealError") {
-      alert("Error converting lead to deal: " + data.error);
+        // Handle tenant-specific actions
+        if (
+          action === "tenantCreated" ||
+          action === "tenantUpdated" ||
+          action === "tenantDeleted"
+        ) {
+          if (currentPath === "/tenants") {
+            this.dbWorker.postMessage({ action: "getAllTenants" });
+            this.dbWorker.postMessage({ action: "getAllUsers" });
+          }
+        }
+
+        // Handle getTenantById response
+        if (action === "getByIdSuccess" && data.storeName === "Tenants") {
+          const { openTenantModalForEdit } =
+            await import("../events/handlers/tenantHandlers.js");
+          openTenantModalForEdit(data.row);
+        }
+        if (action === "convertToDealError") {
+          alert("Error converting lead to deal: " + data.error);
+        }
+      }
     }
   }
 }
