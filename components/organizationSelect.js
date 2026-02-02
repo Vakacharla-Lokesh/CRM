@@ -1,3 +1,5 @@
+// components/organizationSelect.js
+
 export class OrganizationSelect {
   constructor(containerId, dbWorker) {
     this.containerId = containerId;
@@ -21,7 +23,6 @@ export class OrganizationSelect {
         const { action, rows, storeName } = e.data;
 
         if (action === "getAllSuccess" && storeName === "Organizations") {
-          console.log("Inside organization select: ");
           this.dbWorker.removeEventListener("message", handler);
           this.organizations = rows || [];
           resolve();
@@ -320,29 +321,6 @@ export function initializeOrgSelect(dbWorker) {
               .querySelector("div:first-child");
             if (container) {
               container.id = "org-select-container";
-              const orgSelect = new OrganizationSelect(
-                "org-select-container",
-                dbWorker,
-              );
-              orgSelect.initialize();
-            }
-          }
-        }, 150);
-      }
-    }
-
-    if (e.target.closest("#editDeal")) {
-      const currentTab = sessionStorage.getItem("currentTab");
-      if (currentTab === "/deals") {
-        console.log("Inside orgselect editDeal: ");
-        setTimeout(() => {
-          const orgNameField = document.getElementById("organization_id");
-          if (
-            orgNameField &&
-            !document.getElementById("org-select-container")
-          ) {
-            const container = document.getElementById("organization-select");
-            if (container) {
               const orgSelect = new OrganizationSelect(
                 "org-select-container",
                 dbWorker,

@@ -141,13 +141,13 @@ class AppNavbar extends HTMLElement {
       );
     }
 
-    this.dbStatusBtn = document.getElementById("data-createDb");
-    if (this.dbStatusBtn) {
-      this.dbStatusBtn.addEventListener(
-        "click",
-        this.handleDbCreate.bind(this),
-      );
-    }
+    // this.dbStatusBtn = document.getElementById("data-createDb");
+    // if (this.dbStatusBtn) {
+    //   this.dbStatusBtn.addEventListener(
+    //     "click",
+    //     this.handleDbCreate.bind(this),
+    //   );
+    // }
 
     this.diagnosticBtn = document.querySelector("#diagnostic-btn");
     if (this.diagnosticBtn) {
@@ -198,7 +198,7 @@ class AppNavbar extends HTMLElement {
   // }
 
   runTaskDiagnostics() {
-    console.log("0 Synchronous: Start");
+    console.log("0 Synchronous: start");
 
     // Microtask
     Promise.resolve().then(() => {
@@ -210,21 +210,21 @@ class AppNavbar extends HTMLElement {
       console.log("4 Macrotask: setTimeout");
     }, 0);
 
-    // Another Microtask
+    // Microtask
     queueMicrotask(() => {
       console.log("2 Microtask: queueMicrotask");
     });
 
-    console.log("1 Synchronous: End");
+    console.log("1 Synchronous: end");
   }
 }
 
 customElements.define("app-navbar", AppNavbar);
 
 // `<button
-//               id="theme-toggle"
-//               title="Toggle theme"
-//               class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-//             >
-//               🌙
-//             </button>`
+//   id="theme-toggle"
+//   title="Toggle theme"
+//   class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+// >
+//   🌙
+// </button>`

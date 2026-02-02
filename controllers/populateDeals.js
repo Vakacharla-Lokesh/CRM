@@ -102,11 +102,5 @@ export function populateDealsTable(deals) {
     `;
     tbody.appendChild(row);
   });
-
-  const pagination = document.getElementById("deals-pagination");
-  if (pagination) {
-    pagination.initialize("deals-body", deals);
-  }
-
   console.log(`Populated deals table with ${deals.length} deal(s)`);
 }

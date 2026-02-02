@@ -75,11 +75,5 @@ export function populateUsersTable(users) {
 
     tbody.appendChild(row);
   });
-
-  const pagination = document.getElementById("users-pagination");
-  if (pagination) {
-    pagination.initialize("users-body", users);
-  }
-
   console.log(`Populated users table with ${users.length} lead(s)`);
 }

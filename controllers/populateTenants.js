@@ -68,9 +68,4 @@ export function populateTenantsTable(tenants, users = []) {
 
     tbody.appendChild(row);
   });
-
-  const pagination = document.getElementById("tenants-pagination");
-  if (pagination) {
-    pagination.style.display = "none";
-  }
 }

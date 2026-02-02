@@ -1,14 +1,10 @@
 (function () {
   "use strict";
   class TableFilter {
-    constructor(tableBodyId, filterInputId, paginationId = null) {
+    constructor(tableBodyId, filterInputId) {
       this.tbody = document.getElementById(tableBodyId);
       this.filterInput = document.getElementById(filterInputId);
-      this.pagination = paginationId
-        ? document.getElementById(paginationId)
-        : null;
       this.table = this.tbody?.closest("table");
-      this.allData = []; // Store all data for filtering
 
       if (this.filterInput && this.tbody) {
         this.setupFilter();
@@ -24,6 +20,9 @@
     };
 
     performSearch = (searchTerm) => {
+      // if (!searchTerm) return;
+      // resultsDiv.innerHTML = `Searching for: ${query}`;
+      // console.log("API call for:", query);
       this.filterRows(searchTerm);
     };
 
@@ -32,50 +31,39 @@
     setupFilter() {
       this.filterInput.addEventListener("input", (e) => {
         const searchTerm = e.target.value.toLowerCase().trim();
+        // this.filterRows(searchTerm);
+        // if(searchTerm == ""){
+        //   return;
+        // }
         this.debouncedSearch(searchTerm);
       });
     }
 
-    /**
-     * Set the data for the filter to work with
-     * This should be called when pagination is initialized
-     */
-    setData(data) {
-      this.allData = [...data];
-    }
-
     filterRows(searchTerm) {
-      // If we have pagination, let it handle the filtering
-      if (this.pagination) {
-        // Pass the search term to pagination, which handles all filtering
-        this.pagination.filterData(searchTerm);
-      } else {
-        // Fallback to direct DOM manipulation if no pagination
-        const rows = this.tbody.querySelectorAll("tr");
-        let visibleCount = 0;
+      const rows = this.tbody.querySelectorAll("tr");
+      let visibleCount = 0;
 
-        rows.forEach((row) => {
-          // Skip empty state rows
-          if (
-            row.classList.contains("filter-empty-state") ||
-            row.classList.contains("pagination-empty-state")
-          ) {
-            return;
-          }
+      rows.forEach((row) => {
+        // Skip empty state rows and filter empty state
+        if (
+          row.querySelector("td[colspan]") ||
+          row.classList.contains("filter-empty-state")
+        ) {
+          return;
+        }
 
-          const text = row.textContent.toLowerCase();
-          const matches = text.includes(searchTerm);
+        const text = row.textContent.toLowerCase();
+        const matches = text.includes(searchTerm);
 
-          if (matches) {
-            row.style.display = "";
-            visibleCount++;
-          } else {
-            row.style.display = "none";
-          }
-        });
+        if (matches) {
+          row.style.display = "";
+          visibleCount++;
+        } else {
+          row.style.display = "none";
+        }
+      });
 
-        this.updateEmptyState(visibleCount, searchTerm);
-      }
+      this.updateEmptyState(visibleCount, searchTerm);
     }
 
     updateEmptyState(visibleCount, searchTerm) {
@@ -110,7 +98,6 @@
       return div.innerHTML;
     }
   }
-
   class BulkDeleteManager {
     constructor(path) {
       this.tableBodyId = path.tableBodyId;
@@ -118,14 +105,10 @@
       this.bulkDeleteBtnId = path.bulkDeleteBtnId;
       this.itemCheckboxClass = path.itemCheckboxClass || "item-checkbox";
       this.storeName = path.storeName;
-      this.paginationId = path.paginationId || null;
 
       this.selectAllCheckbox = document.getElementById(this.selectAllId);
       this.bulkDeleteBtn = document.getElementById(this.bulkDeleteBtnId);
       this.tbody = document.getElementById(this.tableBodyId);
-      this.pagination = this.paginationId
-        ? document.getElementById(this.paginationId)
-        : null;
       this.table = this.tbody?.closest("table");
 
       if (this.selectAllCheckbox && this.bulkDeleteBtn && this.tbody) {
@@ -362,7 +345,6 @@
       }, 3000);
     }
   }
-
   function initializeTableFeatures(currentPathParam) {
     let currentPath;
     if (typeof currentPathParam === "string") {
@@ -371,14 +353,12 @@
       currentPath = sessionStorage.getItem("currentTab");
     }
     console.log("Inside initializeTableFeatures: ", currentPath);
-
     const safeInitialize = (
       page,
       tableBodyId,
       searchInputId,
       selectAllId,
       bulkDeleteBtnId,
-      paginationId,
       storeName,
     ) => {
       const maxRetries = 5;
@@ -386,33 +366,16 @@
       const attemptInit = () => {
         const searchInput = document.getElementById(searchInputId);
         const tbody = document.getElementById(tableBodyId);
-        const pagination = document.getElementById(paginationId);
 
-        if (searchInput && tbody && pagination) {
-          // Initialize filter
-          const tableFilter = new TableFilter(
-            tableBodyId,
-            searchInputId,
-            paginationId,
-          );
-
-          // Initialize bulk delete
+        if (searchInput && tbody) {
+          new TableFilter(tableBodyId, searchInputId);
           new BulkDeleteManager({
             tableBodyId: tableBodyId,
             selectAllId: selectAllId,
             bulkDeleteBtnId: bulkDeleteBtnId,
             itemCheckboxClass: "item-checkbox",
-            paginationId: paginationId,
             storeName: storeName,
           });
-
-          // Listen to pagination initialization to set filter data
-          pagination.addEventListener("pageChanged", (e) => {
-            const { currentPageData } = e.detail;
-            // Don't set filter data on page change, only on initialization
-          });
-
-          console.log(`✓ Initialized table features for ${page}`);
         } else if (retryCount < maxRetries) {
           retryCount++;
           setTimeout(attemptInit, 100);
@@ -435,7 +398,6 @@
         "leads-search-input",
         "select-all-leads",
         "bulk-delete-leads",
-        "leads-pagination",
         "Leads",
       );
     }
@@ -448,7 +410,6 @@
         "organizations-search-input",
         "select-all-organizations",
         "bulk-delete-organizations",
-        "organizations-pagination",
         "Organizations",
       );
     }
@@ -461,7 +422,6 @@
         "deals-search-input",
         "select-all-deals",
         "bulk-delete-deals",
-        "deals-pagination",
         "Deals",
       );
     }
@@ -474,12 +434,28 @@
         "users-search-input",
         "select-all-users",
         "bulk-delete-users",
-        "users-pagination",
         "Users",
+      );
+    }
+
+    // TENANTS PAGE
+    if (currentPath === "/tenants") {
+      safeInitialize(
+        "/tenants",
+        "tenants-body",
+        "tenants-search-input",
+        "select-all-tenants",
+        "bulk-delete-tenants",
+        "Tenants",
       );
     }
   }
 
+  // if (document.readyState === "loading") {
+  //   document.addEventListener("DOMContentLoaded", initializeTableFeatures);
+  // } else {
+  //   setTimeout(initializeTableFeatures, 200);
+  // }
   document.addEventListener("DOMContentLoaded", initializeTableFeatures);
 
   window.addEventListener("popstate", () => {

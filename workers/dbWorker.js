@@ -12,6 +12,7 @@ import {
   buildStatusSegmentMap,
   buildIndustrySegmentMap,
 } from "../services/data/leadSegmentation.js";
+import { exportDb } from "../services/exportDb.js";
 
 // UNCOMMENT TO USE IN NEW BROWSER TO ADD TEST USERS
 // import { addTestUsers } from "../services/utils/addTestUsers.js";
@@ -58,6 +59,7 @@ self.onmessage = (e) => {
     //   console.log("Processing getAllLeads...");
     //   getAllData("Leads", dbReady, db);
     //   break;
+
     case "getAllLeads":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
         getDataByTenantAndUser(
@@ -106,6 +108,7 @@ self.onmessage = (e) => {
     //   // console.log("Processing getAllLeads...");
     //   getAllData("Organizations", dbReady, db);
     //   break;
+
     case "getAllOrganizations":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
         getDataByTenantAndUser(
@@ -143,6 +146,7 @@ self.onmessage = (e) => {
     // case "getAllDeals":
     //   getAllData("Deals", dbReady, db);
     //   break;
+
     case "getAllDeals":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
         getDataByTenantAndUser(
@@ -249,6 +253,8 @@ self.onmessage = (e) => {
     //   console.log("Inside get Users switch case: ");
     //   getAllData("Users", dbReady, db);
     //   break;
+
+    // User cases:
     case "getAllUsers":
       if (e.data.tenant_id && e.data.role) {
         getDataByTenantAndUser(
@@ -275,7 +281,6 @@ self.onmessage = (e) => {
 
     // Tenant cases:
     case "createTenantWithAdmin":
-      // Create tenant first, then create admin user
       insertData(e.data.tenantData, "Tenants", dbReady, db);
       insertData(e.data.adminData, "Users", dbReady, db);
       postMessage({ action: "tenantCreated" });
@@ -297,6 +302,33 @@ self.onmessage = (e) => {
     case "deleteTenant":
       deleteData(e.data.id, "Tenants", dbReady, db);
       postMessage({ action: "tenantDeleted" });
+      break;
+
+    case "exportData":
+      console.log("Inside export data: ", e.data);
+      if (dbReady && db) {
+        const storeName = e.data.storeName;
+        const tx = db.transaction(storeName, "readonly");
+        const store = tx.objectStore(storeName);
+        const request = store.getAll();
+        
+        request.onsuccess = () => {
+          const data = request.result;
+          // Send data back to main thread for download
+          postMessage({ 
+            action: "exportDataReady", 
+            storeName: storeName,
+            data: data 
+          });
+        };
+        
+        request.onerror = () => {
+          postMessage({ 
+            action: "exportDataError", 
+            error: request.error.message 
+          });
+        };
+      }
       break;
 
     default:

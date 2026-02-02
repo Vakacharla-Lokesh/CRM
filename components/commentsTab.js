@@ -23,10 +23,7 @@ class CommentsContent extends HTMLElement {
         return;
       }
 
-      const comments = await this.fetchCommentsByLeadId(
-        this.leadId,
-        dbWorker,
-      );
+      const comments = await this.fetchCommentsByLeadId(this.leadId, dbWorker);
 
       if (comments && comments.length > 0) {
         this.comments = comments;

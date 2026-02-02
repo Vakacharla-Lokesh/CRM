@@ -102,7 +102,11 @@ export function handleDealDeleted(event) {
 }
 
 export function handleDealExport() {
-  exportDb("Deals");
+  // exportDb("Deals");
+  const { dbWorker } = dbState;
+  if (dbWorker) {
+    dbWorker.postMessage({ action: "exportData", storeName: "Deals" });
+  }
 }
 
 export function handleDealClick(e) {

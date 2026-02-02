@@ -96,11 +96,5 @@ export function populateLeadsTable(leads) {
 
     tbody.appendChild(row);
   });
-
-  const pagination = document.getElementById("leads-pagination");
-  if (pagination) {
-    pagination.initialize("leads-body", leads);
-  }
-
-  // console.log(`Populated leads table with ${leads.length} lead(s)`);
+  console.log(`Populated leads table with ${leads.length} lead(s)`);
 }

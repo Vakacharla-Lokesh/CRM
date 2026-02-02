@@ -2,6 +2,7 @@ const objectKeys = {
   Leads: "lead_id",
   Organizations: "organization_id",
   Deals: "deal_id",
+  Tenants: "tenant_id",
 };
 
 export function exportToJson(idbDatabase) {
@@ -25,14 +26,10 @@ export function exportToJson(idbDatabase) {
           .addEventListener("success", (event) => {
             const cursor = event.target.result;
             if (cursor) {
-              // Cursor holds value, put it into store data
               allObjects.push(cursor.value);
               cursor.continue();
             } else {
-              // No more values, store is done
               exportObject[storeName] = allObjects;
-
-              // Last store was handled
               if (
                 idbDatabase.objectStoreNames.length ===
                 Object.keys(exportObject).length
@@ -65,6 +62,49 @@ export function exportDb(storeName) {
   };
 }
 
+export function downloadCsvFromData(storeName, data) {
+  const objectKeys = {
+    Leads: "lead_id",
+    Organizations: "organization_id",
+    Deals: "deal_id",
+    Tenants: "tenant_id",
+  };
+
+  if (!data || data.length === 0) {
+    console.warn("No data to export");
+    return;
+  }
+
+  const idKey = objectKeys[storeName];
+  
+  const headers = Array.from(
+    new Set(
+      data.flatMap((obj) =>
+        Object.keys(obj).filter((key) => key !== idKey),
+      ),
+    ),
+  );
+
+  const escapeCsv = (value) => {
+    if (value == null) return "";
+    const str = String(value);
+    return /[",\n]/.test(str) ? `"${str.replace(/"/g, '""')}"` : str;
+  };
+
+  const csv = [
+    headers.join(","),
+    ...data.map((row) => headers.map((h) => escapeCsv(row[h])).join(",")),
+  ].join("\n");
+
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${storeName}_export.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function exportStoreToJson(db, storeName) {
   return new Promise((resolve, reject) => {
     if (!db.objectStoreNames.contains(storeName)) {
@@ -86,7 +126,6 @@ export function exportStoreToJson(db, storeName) {
         allObjects.push(cursor.value);
         cursor.continue();
       } else {
-        // Finished reading the store
         resolve(JSON.stringify({ [storeName]: allObjects }, null, 2));
       }
     };
@@ -100,7 +139,7 @@ export function exportStoreToCsv(db, storeName) {
       return;
     }
 
-    const idKey = objectKeys[storeName]; // 👈 ID field for this store
+    const idKey = objectKeys[storeName];
 
     const tx = db.transaction(storeName, "readonly");
     const store = tx.objectStore(storeName);
@@ -120,8 +159,6 @@ export function exportStoreToCsv(db, storeName) {
           resolve("");
           return;
         }
-
-        // ✅ Build headers excluding the ID key
         const headers = Array.from(
           new Set(
             rows.flatMap((obj) =>

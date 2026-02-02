@@ -1,6 +1,6 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
-import { exportDb } from "../../services/exportDb.js";
+import { exportDb, downloadCsvFromData } from "../../services/exportDb.js";
 
 export function handleLeadCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -54,7 +54,11 @@ export function handleLeadDeleted(event) {
 }
 
 export function handleLeadExport() {
-  exportDb("Leads");
+  // exportDb("Leads");
+  const { dbWorker } = dbState;
+  if (dbWorker) {
+    dbWorker.postMessage({ action: "exportData", storeName: "Leads" });
+  }
 }
 
 export function calculateLeadScore() {

@@ -76,7 +76,7 @@ export function handleOrganizationUpdated(event) {
       role: user.role,
     });
   }
-  
+
   sessionStorage.removeItem("organization_id");
 }
 
@@ -107,7 +107,11 @@ export function handleOrganizationDeleted(event) {
 }
 
 export function handleOrganizationExport() {
-  exportDb("Organizations");
+  // exportDb("Organizations");
+  const { dbWorker } = dbState;
+  if (dbWorker) {
+    dbWorker.postMessage({ action: "exportData", storeName: "Organizations" });
+  }
 }
 
 // Click handler for organization actions

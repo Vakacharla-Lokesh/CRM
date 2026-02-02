@@ -1,4 +1,4 @@
-import { eventBus, EVENTS } from "../events/eventBus.js";
+import { eventBus, EVENTS } from "../../events/eventBus.js";
 
 const template = document.createElement("template");
 template.innerHTML = `<div

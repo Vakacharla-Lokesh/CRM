@@ -23,10 +23,7 @@ class CallsContent extends HTMLElement {
         return;
       }
 
-      const calls = await this.fetchCallsByLeadId(
-        this.leadId,
-        dbWorker,
-      );
+      const calls = await this.fetchCallsByLeadId(this.leadId, dbWorker);
 
       if (calls && calls.length > 0) {
         this.calls = calls;

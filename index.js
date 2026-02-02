@@ -175,6 +175,18 @@ dbWorker.addEventListener("message", (e) => {
       "success",
     );
   }
+
+  if (e.data.action === "exportDataReady") {
+    const { storeName, data } = e.data;
+    import("./services/exportDb.js").then(({ downloadCsvFromData }) => {
+      downloadCsvFromData(storeName, data);
+      addNotification(`${storeName} exported successfully`, "success");
+    });
+  }
+
+  if (e.data.action === "exportDataError") {
+    addNotification(`Export failed: ${e.data.error}`, "error");
+  }
 });
 
 // Initialize event handlers

@@ -59,11 +59,5 @@ export function populateOrganizationsTable(organizations) {
 
     tbody.appendChild(row);
   });
-
-  const pagination = document.getElementById("organizations-pagination");
-  if (pagination) {
-    pagination.initialize("organizations-body", organizations);
-  }
-
-  // console.log("Table populated with", organizations.length, "rows");
+  console.log("Table populated with", organizations.length, "rows");
 }

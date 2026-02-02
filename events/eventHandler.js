@@ -65,15 +65,13 @@ import {
 // import user from "./handlers/userManager.js";
 
 export function initializeEventHandlers(worker) {
-  // Initialize database state
   dbState.initialize(worker);
 
-  // Subscribe to state changes (optional, for debugging)
-  dbState.subscribe(({ dbWorker, isDbReady }) => {
-    console.log(`[DB State] Worker: ${!!dbWorker}, Ready: ${isDbReady}`);
-  });
+  // dbState.subscribe(({ dbWorker, isDbReady }) => {
+  //   console.log(`[DB State] Worker: ${!!dbWorker}, Ready: ${isDbReady}`);
+  // });
 
-  // Register all event listeners
+  // All event listeners
   registerDatabaseEvents();
   registerLeadEvents();
   registerOrganizationEvents();
@@ -83,7 +81,7 @@ export function initializeEventHandlers(worker) {
   registerUserEvents();
   registerTenantEvents();
 
-  // Initialize theme and DOM listeners
+  // Initialize listeners
   initializeTheme();
   initializeClickHandlers();
   initializeFormHandlers();
@@ -179,6 +177,16 @@ function initializeClickHandlers() {
 
     if (e.target.closest("#export-leads")) {
       eventBus.emit(EVENTS.LEADS_EXPORT);
+      return;
+    }
+
+    if (e.target.closest("#export-organizations")) {
+      eventBus.emit(EVENTS.ORGANIZATION_EXPORT);
+      return;
+    }
+
+    if (e.target.closest("#export-deals")) {
+      eventBus.emit(EVENTS.DEAL_EXPORT);
       return;
     }
 
@@ -310,18 +318,18 @@ function handleDropdownClick(e) {
 function handleDbReady(event) {
   dbState.isDbReady = true;
 
-  const createDbBtn = document.getElementById("data-createDb");
-  if (createDbBtn) {
-    createDbBtn.textContent = "DB Ready";
-    createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
-    createDbBtn.classList.add(
-      "bg-green-100",
-      "dark:bg-green-900",
-      "text-green-600",
-      "dark:text-green-300",
-    );
-    createDbBtn.disabled = true;
-  }
+  // const createDbBtn = document.getElementById("data-createDb");
+  // if (createDbBtn) {
+  //   createDbBtn.textContent = "DB Ready";
+  //   createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
+  //   createDbBtn.classList.add(
+  //     "bg-green-100",
+  //     "dark:bg-green-900",
+  //     "text-green-600",
+  //     "dark:text-green-300",
+  //   );
+  //   createDbBtn.disabled = true;
+  // }
 }
 
 function handleDbError(event) {

@@ -255,15 +255,13 @@ class AttachmentsContent extends HTMLElement {
     const uploadForm = this.querySelector("#upload-form");
     const uploadBtn = this.querySelector("#upload-btn");
 
-    // Show upload area
+    // upload area
     if (addBtn) {
       addBtn.addEventListener("click", () => {
         uploadArea?.classList.remove("hidden");
         addBtn.classList.add("hidden");
       });
     }
-
-    // Hide upload area
     if (cancelBtn) {
       cancelBtn.addEventListener("click", () => {
         uploadArea?.classList.add("hidden");
@@ -273,7 +271,7 @@ class AttachmentsContent extends HTMLElement {
       });
     }
 
-    // File selection
+    // file selection
     if (fileInput) {
       fileInput.addEventListener("change", (e) => {
         const files = Array.from(e.target.files);
@@ -282,7 +280,7 @@ class AttachmentsContent extends HTMLElement {
       });
     }
 
-    // Form submission
+    // Form
     if (uploadForm) {
       uploadForm.addEventListener("submit", (e) => {
         e.preventDefault();
@@ -290,7 +288,6 @@ class AttachmentsContent extends HTMLElement {
       });
     }
 
-    // Download and Delete buttons
     this.querySelectorAll(".download-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         const attachmentId = parseInt(e.target.dataset.attachmentId);
@@ -305,7 +302,6 @@ class AttachmentsContent extends HTMLElement {
       });
     });
 
-    // Drag and drop
     const dropZone = this.querySelector("#upload-form");
     if (dropZone) {
       dropZone.addEventListener("dragover", (e) => {
@@ -384,7 +380,6 @@ class AttachmentsContent extends HTMLElement {
     // Remove file buttons
     preview.querySelectorAll(".remove-file-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
-        // Note: Removing files from FileList is complex, so we'll clear and let user re-select
         const fileInput = this.querySelector("#file-input");
         fileInput.value = "";
         this.updateFilePreview([]);
@@ -430,18 +425,13 @@ class AttachmentsContent extends HTMLElement {
     uploadBtn.textContent = "Uploading...";
 
     try {
-      // Process each file
       for (const file of files) {
-        // Validate file size (10MB limit)
+        // file size - 10MB limit
         if (file.size > 10 * 1024 * 1024) {
           alert(`File ${file.name} is too large. Maximum size is 10MB.`);
           continue;
         }
-
-        // Read file as base64
         const base64Data = await this.fileToBase64(file);
-
-        // Create attachment object
         const attachment = {
           attachment_id: Date.now() + Math.random(),
           lead_id: leadId,
@@ -451,20 +441,13 @@ class AttachmentsContent extends HTMLElement {
           file_data: base64Data,
           upload_date: new Date().toISOString(),
         };
-
-        // Save to IndexedDB
         await this.saveAttachment(attachment, dbWorker);
       }
 
-      // Reload attachments
       await this.loadAttachmentsData();
-
-      // Reset form
       const fileInput = this.querySelector("#file-input");
       if (fileInput) fileInput.value = "";
       this.updateFilePreview([]);
-
-      // Hide upload area
       this.querySelector("#upload-area")?.classList.add("hidden");
       this.querySelector("#add-attachment")?.classList.remove("hidden");
 
@@ -523,8 +506,6 @@ class AttachmentsContent extends HTMLElement {
       alert("File not found");
       return;
     }
-
-    // Create download link
     const link = document.createElement("a");
     link.href = attachment.file_data;
     link.download = attachment.file_name;
