@@ -13,6 +13,11 @@ export async function longPolling() {
       lpsStatus
         .querySelector("span:first-child")
         .classList.remove("bg-gray-400");
+      if (data.message) {
+        lpsStatus
+          .querySelector("span:first-child")
+          .classList.remove("bg-red-500");
+      }
       lpsStatus.querySelector("span:first-child").classList.add("bg-green-500");
     }
 
@@ -21,6 +26,11 @@ export async function longPolling() {
       sseStatus
         .querySelector("span:first-child")
         .classList.remove("bg-gray-400");
+      if (data.message) {
+        sseStatus
+          .querySelector("span:first-child")
+          .classList.remove("bg-red-500");
+      }
       sseStatus.querySelector("span:first-child").classList.add("bg-green-500");
     }
 

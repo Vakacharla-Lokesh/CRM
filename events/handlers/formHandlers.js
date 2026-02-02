@@ -301,48 +301,84 @@ export function handleUserFormSubmit(event) {
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
-  const userData = {
-    user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-    user_name: document.getElementById("user_name")?.value?.trim() || "",
-    user_email: document.getElementById("user_email")?.value?.trim() || "",
-    password: document.getElementById("user_password")?.value?.trim() || "",
-    mobile: document.getElementById("user_mobile")?.value?.trim() || "",
-    first_name:
-      document.getElementById("user_name")?.value?.trim().split(" ")[0] || "",
-    last_name:
-      document
-        .getElementById("user_name")
-        ?.value?.trim()
-        .split(" ")
-        .slice(1)
-        .join(" ") || "",
-    tenant_id: currentUser.tenant_id,
-    role: "user",
-  };
+  // Get form values
+  const userName = document.getElementById("user_name")?.value?.trim() || "";
+  const userEmail = document.getElementById("user_email")?.value?.trim() || "";
+  const userPassword =
+    document.getElementById("user_password")?.value?.trim() || "";
+  const userMobile =
+    document.getElementById("user_mobile")?.value?.trim() || "";
 
-  if (!userData.user_name || !userData.user_email || !userData.password) {
+  // Check if current user is super_admin
+  const isSuperAdmin = currentUser && currentUser.role === "super_admin";
+
+  let tenantId = currentUser.tenant_id; // Default to current user's tenant
+  let userRole = "user"; // Default role
+
+  // If super_admin, get selected tenant and role
+  if (isSuperAdmin) {
+    tenantId = document.getElementById("user_tenant")?.value?.trim() || "";
+    userRole = document.getElementById("user_role")?.value?.trim() || "user";
+
+    // Validation: tenant is required for super_admin
+    if (!tenantId) {
+      alert("Please select a tenant for this user");
+      return;
+    }
+  }
+
+  // Validation
+  if (!userName || !userEmail || !userPassword) {
     alert("Please fill in all required fields");
     return;
   }
 
+  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(userData.user_email)) {
+  if (!emailRegex.test(userEmail)) {
     alert("Please enter a valid email address");
     return;
   }
 
-  if (userData.password.length < 6) {
+  // Password validation
+  if (userPassword.length < 6) {
     alert("Password must be at least 6 characters");
     return;
   }
 
-  const regex = /^[1-9]\d{9}$/;
-  if (userData.mobile && !regex.test(userData.mobile)) {
-    alert("Please enter a valid 10-digit mobile number.");
+  // Mobile validation (optional but if provided, must be 10 digits)
+  const mobileRegex = /^[1-9]\d{9}$/;
+  if (userMobile && !mobileRegex.test(userMobile)) {
+    alert("Please enter a valid 10-digit mobile number");
     return;
   }
 
+  // Create user data
+  const userData = {
+    user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    user_name: userName,
+    user_email: userEmail,
+    password: userPassword,
+    mobile: userMobile || "",
+    first_name: userName.split(" ")[0] || userName,
+    last_name: userName.split(" ").slice(1).join(" ") || "",
+    tenant_id: tenantId,
+    role: userRole,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
+
+  console.log("Creating user with data:", {
+    name: userData.user_name,
+    email: userData.user_email,
+    tenantId: userData.tenant_id,
+    role: userData.role,
+  });
+
+  // Emit event to create user
   eventBus.emit(EVENTS.USER_CREATE, { userData });
+
+  // Close modal and reset form
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
 }

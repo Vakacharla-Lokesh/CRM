@@ -39,6 +39,24 @@ template.innerHTML = `<div
         class="pt-4"
         data-form="createUser"
       >
+        <!-- Tenant Selection (visible only for super_admin) -->
+        <div class="mb-4 col-span-2" id="tenant-selection-wrapper" style="display: none;">
+          <label
+            for="user_tenant"
+            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+            >Select Tenant <span class="text-red-500">*</span></label
+          >
+          <select
+            id="user_tenant"
+            class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
+          >
+            <option value="">-- Select a Tenant --</option>
+          </select>
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            Choose which tenant this user will belong to
+          </p>
+        </div>
+
         <div
           class="grid grid-cols-2 gap-4 border-b border-gray-200 dark:border-gray-700 pb-4"
         >
@@ -46,7 +64,7 @@ template.innerHTML = `<div
             <label
               for="user_name"
               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >User Name</label
+              >User Name <span class="text-red-500">*</span></label
             >
             <input
               type="text"
@@ -61,7 +79,7 @@ template.innerHTML = `<div
             <label
               for="user_email"
               class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-              >Email Id</label
+              >Email Id <span class="text-red-500">*</span></label
             >
             <input
               type="email"
@@ -82,7 +100,6 @@ template.innerHTML = `<div
               type="text"
               id="user_mobile"
               placeholder="1234567890"
-              required
               class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
             />
           </div>
@@ -92,14 +109,31 @@ template.innerHTML = `<div
               for="user_password"
               class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
             >
-              Password
+              Password <span class="text-red-500">*</span>
             </label>
             <input
-              type="text"
+              type="password"
               id="user_password"
+              placeholder="••••••••"
               required
               class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
             />
+          </div>
+
+          <!-- Role Selection (visible only for super_admin) -->
+          <div class="mb-4" id="role-selection-wrapper" style="display: none;">
+            <label
+              for="user_role"
+              class="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+              >Role</label
+            >
+            <select
+              id="user_role"
+              class="w-full px-3 py-2 text-gray-900 dark:text-gray-100 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-blue-500 focus:border-blue-500 bg-gray-100 dark:bg-gray-700"
+            >
+              <option value="user">User</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
         </div>
         <button
@@ -112,9 +146,11 @@ template.innerHTML = `<div
     </div>
   </div>
 </div>`;
+
 class UserModal extends HTMLElement {
   constructor() {
     super();
+    this.tenants = [];
   }
 
   connectedCallback() {
@@ -123,11 +159,96 @@ class UserModal extends HTMLElement {
     }
 
     this.render();
+    this.setupEventListeners();
   }
 
   async render() {
-    console.log("Inside render()");
-    //   await searchFeature();
+    console.log("User Modal rendered");
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+    if (currentUser && currentUser.role === "super_admin") {
+      const tenantWrapper = this.querySelector("#tenant-selection-wrapper");
+      const roleWrapper = this.querySelector("#role-selection-wrapper");
+
+      if (tenantWrapper) tenantWrapper.style.display = "block";
+      if (roleWrapper) roleWrapper.style.display = "block";
+
+      await this.loadTenantsIfSuperAdmin();
+    }
+  }
+
+  async loadTenantsIfSuperAdmin() {
+    const currentUser = JSON.parse(localStorage.getItem("user"));
+
+    if (!currentUser || currentUser.role !== "super_admin") {
+      return;
+    }
+
+    const dbWorker = window.dbWorker;
+    if (!dbWorker) {
+      console.warn("Database worker not available");
+      return;
+    }
+
+    return new Promise((resolve) => {
+      const messageHandler = (e) => {
+        const { action, rows, storeName } = e.data;
+
+        if (action === "getAllSuccess" && storeName === "Tenants") {
+          dbWorker.removeEventListener("message", messageHandler);
+          this.tenants = rows || [];
+          this.populateTenantDropdown();
+          resolve();
+        }
+      };
+
+      dbWorker.addEventListener("message", messageHandler);
+      dbWorker.postMessage({
+        action: "getAllTenants",
+        storeName: "Tenants",
+      });
+      setTimeout(() => {
+        dbWorker.removeEventListener("message", messageHandler);
+        resolve();
+      }, 5000);
+    });
+  }
+
+  populateTenantDropdown() {
+    const tenantSelect = this.querySelector("#user_tenant");
+    if (!tenantSelect) return;
+
+    tenantSelect.innerHTML = '<option value="">Select a Tenant</option>';
+    this.tenants.forEach((tenant) => {
+      const option = document.createElement("option");
+      option.value = tenant.tenant_id;
+      option.textContent = tenant.tenant_name || "Unnamed Tenant";
+      tenantSelect.appendChild(option);
+    });
+
+    console.log(
+      `Populated tenant dropdown with ${this.tenants.length} tenants`,
+    );
+  }
+
+  setupEventListeners() {
+    const closeBtn = this.querySelector("#close-modal-btn");
+
+    if (closeBtn) {
+      closeBtn.addEventListener("click", () => {
+        const modal = this.querySelector("#form-modal");
+        if (modal) {
+          modal.classList.add("hidden");
+        }
+        this.resetForm();
+      });
+    }
+  }
+
+  resetForm() {
+    const form = this.querySelector('form[data-form="createUser"]');
+    if (form) {
+      form.reset();
+    }
   }
 }
 

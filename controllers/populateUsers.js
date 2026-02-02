@@ -37,8 +37,8 @@ export function populateUsersTable(users) {
     const mobile = user.mobile || "No mobile";
     const role = user.role || "Not defined";
 
-    const createdDate = user.createdAt
-      ? new Date(user.createdAt).toLocaleDateString()
+    const createdDate = user.created_at
+      ? new Date(user.created_at).toLocaleDateString()
       : "N/A";
 
     row.innerHTML = `

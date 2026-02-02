@@ -36,8 +36,8 @@ export function populateDealsTable(deals) {
       ? `$${Number(deal.deal_value).toLocaleString()}`
       : "$0";
     const status = deal.deal_status || "Prospecting";
-    const createdDate = deal.created_on
-      ? new Date(deal.created_on).toLocaleDateString()
+    const modifiedDate = deal.modified_on
+      ? new Date(deal.modified_on).toLocaleDateString()
       : "N/A";
 
     const statusColors = {
@@ -73,7 +73,7 @@ export function populateDealsTable(deals) {
         </span>
       </td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">
-        ${createdDate}
+        ${modifiedDate}
       </td>
       <td class="px-3 py-4">
         <div class="flex flex-row gap-1">

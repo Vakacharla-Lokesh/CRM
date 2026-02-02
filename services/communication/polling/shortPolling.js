@@ -26,6 +26,17 @@ export async function checkHealth() {
     const data = await res.json();
     console.log("API healthy:", data);
 
+    const spsStatus = document.querySelector("#status-short-polling");
+    if (spsStatus) {
+      spsStatus
+        .querySelector("span:first-child")
+        .classList.remove("bg-gray-400");
+      spsStatus
+        .querySelector("span:first-child")
+        .classList.remove("bg-red-500");
+      spsStatus.querySelector("span:first-child").classList.add("bg-green-500");
+    }
+
     backoff = 1000;
 
     setTimeout(checkHealth, HEALTH_INTERVAL);
@@ -34,6 +45,15 @@ export async function checkHealth() {
       console.error("Health check timed out");
     } else {
       console.error("Health check error:", err.message);
+    }
+
+    const spsStatus = document.querySelector("#status-short-polling");
+
+    if (spsStatus) {
+      spsStatus
+        .querySelector("span:first-child")
+        .classList.remove("bg-green-500");
+      spsStatus.querySelector("span:first-child").classList.add("bg-red-500");
     }
 
     backoff = Math.min(backoff * 2, MAX_BACKOFF);

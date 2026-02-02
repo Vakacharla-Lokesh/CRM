@@ -1,4 +1,3 @@
-/* Base reset */
 html,
 body {
   height: 100%;
@@ -11,7 +10,6 @@ body {
     sans-serif;
 }
 
-/* Typography helpers */
 p {
   margin-block-start: 0;
   text-indent: 1rem;
@@ -20,17 +18,15 @@ p {
 hr {
   border: none;
   height: 1px;
-  background-color: rgb(226 232 240); /* slate-200 */
+  background-color: rgb(226 232 240);
   width: 40px;
   margin: 1.5rem 0 1rem 0;
 }
 
-/* Small utility helpers (optional) */
 .align-center {
   align-items: center;
 }
 
-/* Legacy socials (keep only if still used) */
 .socials-container {
   display: flex;
   justify-content: space-between;
@@ -51,7 +47,7 @@ hr {
 }
 
 .socials-card:hover {
-  background-color: rgb(241 245 249); /* slate-100 */
+  background-color: rgb(241 245 249);
 }
 
 .socials-card > i {

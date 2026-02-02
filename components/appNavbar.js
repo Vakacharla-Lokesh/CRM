@@ -37,7 +37,14 @@ template.innerHTML = `
               Test Diagnostic
             </button>
             <div class="flex items-center gap-2">
-            <div
+              <div
+                id="status-short-polling"
+                class="flex items-center gap-1 px-2 py-1 rounded text-xs"
+              >
+                <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+                <span>SPS</span>
+              </div>
+              <div
                 id="status-long-polling"
                 class="flex items-center gap-1 px-2 py-1 rounded text-xs"
               >
