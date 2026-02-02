@@ -227,13 +227,18 @@ class OrganizationModal extends HTMLElement {
     this.editMode = false;
     this.currentOrgData = null;
 
+    const orgDraft = sessionStorage.getItem("organizationDraft");
+
     const modalTitle = this.querySelector("#modal-title");
     const submitBtn = this.querySelector("#submit-btn");
     const form = this.querySelector("#organization-form");
 
     if (modalTitle) modalTitle.textContent = "Add Organization";
     if (submitBtn) submitBtn.textContent = "Add Organization";
-    if (form) form.reset();
+
+    if (orgDraft != null) {
+      
+    } else if (form) form.reset();
     const orgIdField = this.querySelector("#organization_id");
     if (orgIdField) orgIdField.value = "";
     const fields = [

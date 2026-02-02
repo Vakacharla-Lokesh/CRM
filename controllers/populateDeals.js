@@ -32,10 +32,6 @@ export function populateDealsTable(deals) {
       "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
     const dealName = deal.deal_name || `Deal #${deal.deal_id}`;
-    const leadName = deal.lead_first_name
-      ? `${deal.lead_first_name} ${deal.lead_last_name || ""}`.trim()
-      : "N/A";
-    const organization = deal.organization_name || "N/A";
     const dealValue = deal.deal_value
       ? `$${Number(deal.deal_value).toLocaleString()}`
       : "$0";
@@ -68,12 +64,6 @@ export function populateDealsTable(deals) {
       <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
         ${dealName}
       </th>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-        ${leadName}
-      </td>
-      <td class="px-6 py-4 text-gray-600 dark:text-gray-400">
-        ${organization}
-      </td>
       <td class="px-6 py-4 text-gray-900 dark:text-white font-semibold">
         ${dealValue}
       </td>

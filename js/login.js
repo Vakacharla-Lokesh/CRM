@@ -95,7 +95,6 @@ loginForm.addEventListener("submit", async (e) => {
 
   if (hasErrors) return;
 
-  // Disable submit button while processing
   submitBtn.disabled = true;
   submitBtn.textContent = "Signing in...";
 

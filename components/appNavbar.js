@@ -1,3 +1,4 @@
+import { populateLeadsTable } from "../controllers/populateLeads.js";
 import { eventBus, EVENTS } from "../events/eventBus.js";
 
 const template = document.createElement("template");
@@ -21,7 +22,13 @@ template.innerHTML = `
           </a>
 
           <div class="flex items-center gap-3">
-            
+            <button
+              type="button"
+              id="stress-test-btn"
+              class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
+            >
+              Stress Test
+            </button>
             <button
               type="button"
               id="diagnostic-btn"
@@ -157,6 +164,14 @@ class AppNavbar extends HTMLElement {
       );
     }
 
+    this.stressTestBtn = document.querySelector("#stress-test-btn");
+    if (this.stressTestBtn) {
+      this.stressTestBtn.addEventListener(
+        "click",
+        this.runStressTest.bind(this),
+      );
+    }
+
     // eventBus.on(EVENTS.DB_READY, this.handleDbReady.bind(this));
   }
 
@@ -216,6 +231,12 @@ class AppNavbar extends HTMLElement {
     });
 
     console.log("1 Synchronous: end");
+  }
+
+  runStressTest() {
+    console.log("Inside stress test mode: ");
+    const tempLeads = [];
+    populateLeadsTable(tempLeads);
   }
 }
 

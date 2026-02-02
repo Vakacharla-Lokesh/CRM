@@ -1,4 +1,4 @@
-draft save
+>>> draft save
 
 stress test button
 
@@ -6,3 +6,4 @@ admin assigns leads to users
 
 fix the deal select options
 
+curl -X POST http://localhost:3000/update -H "Content-Type: application/json" -d '{"message":"Hello from curl!"}'

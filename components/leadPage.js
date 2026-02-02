@@ -108,6 +108,7 @@ class LeadPage extends HTMLElement {
         this.leadData.lead_last_name || ""
       }`.trim() || "Unknown Lead";
     const leadId = this.leadData.lead_id;
+    const status = this.leadData.lead_status;
 
     this.innerHTML = `
             <div class="w-full mx-auto bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
@@ -157,7 +158,7 @@ class LeadPage extends HTMLElement {
     }
 
     const convertToDealBtn = this.querySelector("#convert-to-lead");
-    if (convertToDealBtn) {
+    if (convertToDealBtn && status != "Converted") {
       const leadId = sessionStorage.getItem("lead_id");
       convertToDealBtn.addEventListener("click", () => {
         if (
@@ -168,6 +169,8 @@ class LeadPage extends HTMLElement {
           dbWorker.postMessage({ action: "convertToDeal", lead_id: leadId });
         }
       });
+    } else if(status == "Converted"){
+      convertToDealBtn.classList.add("hidden");
     }
 
     this.setupTabs();

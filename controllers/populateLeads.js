@@ -54,6 +54,16 @@ export function populateLeadsTable(leads) {
       statusColors[status] ||
       "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300";
 
+    const scoreColors = {
+      40: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
+      "Follow-Up":
+        "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
+      80: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+      0: "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300",
+    };
+
+    const scoreColor = score == 0 ? scoreColors[0] : score > 40 ? scoreColors[40] : scoreColors[80];
+
     row.innerHTML = `
       <td class="w-4 p-4">
         <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${lead.lead_id}" />
@@ -73,6 +83,11 @@ export function populateLeadsTable(leads) {
       <td class="px-6 py-4">
         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
           ${status}
+        </span>
+      </td>
+      <td class="px-6 py-4">
+        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${scoreColor}">
+          ${score}
         </span>
       </td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-400 text-sm">

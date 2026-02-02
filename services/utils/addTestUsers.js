@@ -2,8 +2,6 @@ import { dbCreate } from "../../init/dbInit.js";
 
 export async function addTestUsers(db) {
   try {
-    // const db = await dbCreate();
-
     const testTenants = [
       {
         tenant_id: "tenant_acme",
@@ -140,7 +138,6 @@ export async function addTestUsers(db) {
     tx.oncomplete = () => {
       console.log("\n✅ All test users and tenants have been added!");
       console.log("\nTest Accounts:");
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
       console.log("Acme Corporation (tenant_acme):");
       console.log("  Admin: admin@acme.com / admin123");
       console.log("  User:  john.doe@acme.com / john123");
@@ -149,7 +146,6 @@ export async function addTestUsers(db) {
       console.log("  Admin: jane.smith@techstart.com / jane123");
       console.log("\nSuper Admin (all tenants):");
       console.log("  Super: superadmin@crm.com / super123");
-      console.log("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
     };
 
     tx.onerror = () => {

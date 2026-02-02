@@ -8,7 +8,7 @@ export async function longPolling() {
 
     console.log("Received:", data.message);
 
-    const lpsStatus = document.getElementById("status-long-polling");
+    const lpsStatus = document.querySelector("#status-long-polling");
     if (lpsStatus) {
       lpsStatus
         .querySelector("span:first-child")
@@ -16,21 +16,36 @@ export async function longPolling() {
       lpsStatus.querySelector("span:first-child").classList.add("bg-green-500");
     }
 
-    addNotification(
-      `Long Polling message received: ${data.message}`,
-      "success",
-    );
+    const sseStatus = document.querySelector("#status-sse");
+    if (sseStatus) {
+      sseStatus
+        .querySelector("span:first-child")
+        .classList.remove("bg-gray-400");
+      sseStatus.querySelector("span:first-child").classList.add("bg-green-500");
+    }
+
+    addNotification(`Server sent message received: ${data.message}`, "success");
 
     longPolling();
   } catch (err) {
     console.error("Polling error:", err);
-    const lpsStatus = document.getElementById("status-long-polling");
+    const lpsStatus = document.querySelector("#status-long-polling");
+
     if (lpsStatus) {
       lpsStatus
         .querySelector("span:first-child")
         .classList.remove("bg-green-500");
       lpsStatus.querySelector("span:first-child").classList.add("bg-red-500");
     }
+
+    const sseStatus = document.querySelector("#status-sse");
+    if (sseStatus) {
+      sseStatus
+        .querySelector("span:first-child")
+        .classList.remove("bg-green-500");
+      sseStatus.querySelector("span:first-child").classList.add("bg-red-500");
+    }
+
     addNotification("Long Polling disconnected", "error");
     setTimeout(longPolling, 20000);
   }

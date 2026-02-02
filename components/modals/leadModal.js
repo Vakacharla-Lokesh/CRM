@@ -214,13 +214,13 @@ class LeadModal extends HTMLElement {
       this.innerHTML = template.innerHTML;
     }
 
-    this.render();
+    // this.render();
   }
 
-  async render() {
-    // console.log("Inside render()");
-    //   await searchFeature();
-  }
+  // async render() {
+  //   // console.log("Inside render()");
+  //   //   await searchFeature();
+  // }
 }
 
 customElements.define("lead-modal", LeadModal);
