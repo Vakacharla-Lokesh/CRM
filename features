@@ -1,14 +1,14 @@
 draft save
 
-stress test button - temporary leads
+>>> stress test button - temporary leads
 
 admin assigns leads to users
 
-fix the deal select options
+>>> fix the deal select options
 
 multiple pocs in Organizations
 
-calls object store should have user_id
+>>> calls object store should have user_id
 
 multiple users in leads
 

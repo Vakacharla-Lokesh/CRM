@@ -10,7 +10,7 @@ export function dbCreate() {
       return;
     }
 
-    const request = indexedDB.open("CRM_DB", 1);
+    const request = indexedDB.open("CRM_DB", 2);
 
     request.onerror = () => {
       console.error("IndexedDB open failed:", request.error);

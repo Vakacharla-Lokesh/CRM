@@ -186,10 +186,12 @@ dbWorker.addEventListener("message", (e) => {
 
   if (e.data.action === "exportDataReady") {
     const { storeName, data } = e.data;
-    import("./services/exportDb.js").then(({ downloadCsvFromData }) => {
-      downloadCsvFromData(storeName, data);
-      addNotification(`${storeName} exported successfully`, "success");
-    });
+    import("./services/database/exportDb.js").then(
+      ({ downloadCsvFromData }) => {
+        downloadCsvFromData(storeName, data);
+        addNotification(`${storeName} exported successfully`, "success");
+      },
+    );
   }
 
   if (e.data.action === "exportDataError") {

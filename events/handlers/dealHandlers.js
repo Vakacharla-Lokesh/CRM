@@ -1,6 +1,5 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
-import { exportDb } from "../../services/exportDb.js";
 
 export function handleDealCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -102,7 +101,6 @@ export function handleDealDeleted(event) {
 }
 
 export function handleDealExport() {
-  // exportDb("Deals");
   const { dbWorker } = dbState;
   if (dbWorker) {
     dbWorker.postMessage({ action: "exportData", storeName: "Deals" });

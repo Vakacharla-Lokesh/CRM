@@ -1,18 +1,17 @@
+// DB INITIALIZE
 import { dbCreate } from "../init/dbInit.js";
+
+// CRUD OPERATIONS IN DB
+import { getAllData, getDataById } from "../services/database/getDb.js";
+import { insertData } from "../services/database/insertDb.js";
+import { updateData } from "../services/database/updateDb.js";
+import { deleteData } from "../services/database/deleteDb.js";
+
 import { updateAllObjects } from "../services/calculateScore.js";
-// import { generateLeadScores } from "../services/calculateScore.js";
-import { deleteData } from "../services/deleteDb.js";
 import { getCount } from "../services/getCount.js";
 import { getDataByTenantAndUser } from "../services/getDataByTenant.js";
-import { getAllData, getDataById } from "../services/getDb.js";
-import { insertData } from "../services/insertDb.js";
 import { convertLeadToDeal } from "../services/leadToDeal.js";
-import { updateData } from "../services/updateDb.js";
-import {
-  buildStatusSegmentMap,
-  buildIndustrySegmentMap,
-} from "../services/data/leadSegmentation.js";
-import { exportDb } from "../services/exportDb.js";
+
 
 // UNCOMMENT TO USE IN NEW BROWSER TO ADD TEST USERS
 // import { addTestUsers } from "../services/utils/addTestUsers.js";

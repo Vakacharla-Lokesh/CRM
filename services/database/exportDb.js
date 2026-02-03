@@ -76,12 +76,10 @@ export function downloadCsvFromData(storeName, data) {
   }
 
   const idKey = objectKeys[storeName];
-  
+
   const headers = Array.from(
     new Set(
-      data.flatMap((obj) =>
-        Object.keys(obj).filter((key) => key !== idKey),
-      ),
+      data.flatMap((obj) => Object.keys(obj).filter((key) => key !== idKey)),
     ),
   );
 

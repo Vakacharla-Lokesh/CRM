@@ -88,11 +88,6 @@ class Filter extends HTMLElement {
             Clear
           </button>
         </div>
-
-        <!-- Filter Info Display -->
-        <div id="filter-info" class="mt-2 text-xs text-gray-500 dark:text-gray-400">
-          Showing all leads
-        </div>
       </div>
     `;
 
@@ -134,13 +129,13 @@ class Filter extends HTMLElement {
       this.updateFilterInfo(`Showing all ${this.allLeads.length} leads`);
     } else {
       const filteredLeadIds = this.statusLeadsMap.get(this.selectedStatus);
-      
+
       console.log(`Filtering by status: ${this.selectedStatus}`);
       console.log(`Filtered lead IDs:`, Array.from(filteredLeadIds));
 
       rows.forEach((row) => {
         const leadId = row.getAttribute("data-lead-id");
-        
+
         if (leadId && filteredLeadIds.has(leadId)) {
           row.style.display = "";
           visibleCount++;
@@ -150,18 +145,10 @@ class Filter extends HTMLElement {
       });
 
       console.log(`Visible rows after filter: ${visibleCount}`);
-      this.updateFilterInfo(
-        `Showing ${visibleCount} ${this.selectedStatus} lead(s) of ${this.allLeads.length} total`,
-      );
     }
     this.handleEmptyState(tableBody, visibleCount);
   }
-  updateFilterInfo(text) {
-    const infoDiv = this.querySelector("#filter-info");
-    if (infoDiv) {
-      infoDiv.textContent = text;
-    }
-  }
+
   handleEmptyState(tableBody, visibleCount) {
     let emptyRow = tableBody.querySelector(".filter-empty-state");
 

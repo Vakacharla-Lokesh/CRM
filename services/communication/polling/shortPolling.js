@@ -1,3 +1,5 @@
+import { addNotification } from "../../../index.js";
+
 let backoff = 1000;
 const MAX_BACKOFF = 30000;
 const HEALTH_INTERVAL = 5000;
@@ -25,6 +27,8 @@ export async function checkHealth() {
 
     const data = await res.json();
     console.log("API healthy:", data);
+
+    addNotification(`Health check: ${data}`, "success");
 
     const spsStatus = document.querySelector("#status-short-polling");
     if (spsStatus) {
@@ -55,6 +59,8 @@ export async function checkHealth() {
         .classList.remove("bg-green-500");
       spsStatus.querySelector("span:first-child").classList.add("bg-red-500");
     }
+
+    addNotification(`Health check: failed`, "error");
 
     backoff = Math.min(backoff * 2, MAX_BACKOFF);
     setTimeout(checkHealth, backoff);
