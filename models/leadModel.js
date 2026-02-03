@@ -22,7 +22,7 @@ export const leadsStructure = {
     {
       name: "lead_email",
       keyPath: "lead_email",
-      options: { unique: true },
+      options: { unique: false },
     },
     {
       name: "lead_status",

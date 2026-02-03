@@ -1,4 +1,5 @@
 import { dbState } from "../../services/state/dbState.js";
+import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
 
 export function handleDealCreate(event) {
@@ -43,6 +44,8 @@ export function handleDealUpdate(event) {
 export function handleDealCreated(event) {
   showNotification("Deal created successfully!", "success");
 
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal created." });
+
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
@@ -59,6 +62,7 @@ export function handleDealCreated(event) {
 
 export function handleDealUpdated(event) {
   showNotification("Deal updated successfully!", "success");
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal updated." });
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
@@ -85,6 +89,7 @@ export function handleDealDelete(event) {
 
 export function handleDealDeleted(event) {
   showNotification("Deal deleted successfully!", "success");
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal deleted." });
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
@@ -101,10 +106,23 @@ export function handleDealDeleted(event) {
 }
 
 export function handleDealExport() {
-  const { dbWorker } = dbState;
-  if (dbWorker) {
-    dbWorker.postMessage({ action: "exportData", storeName: "Deals" });
-  }
+  const progressBar = document.createElement("export-progress");
+  const exportDiv = document.querySelector("#export");
+  const exportBtn = document.querySelector("#export-deals");
+
+  exportBtn.classList.add("hidden");
+  exportDiv.appendChild(progressBar);
+
+  progressBar.onComplete = () => {
+    const { dbWorker } = dbState;
+    if (dbWorker) {
+      dbWorker.postMessage({ action: "exportData", storeName: "Deals" });
+    }
+  };
+
+  progressBar.onCleanup = () => {
+    exportBtn.classList.remove("hidden");
+  };
 }
 
 export function handleDealClick(e) {

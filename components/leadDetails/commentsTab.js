@@ -45,8 +45,6 @@ class CommentsContent extends HTMLElement {
 
         if (action === "getAllSuccess" && storeName === "Comments") {
           dbWorker.removeEventListener("message", messageHandler);
-
-          // Filter comments for this specific lead
           const leadComments = (rows || []).filter(
             (comment) => comment.lead_id == leadId,
           );
@@ -465,7 +463,6 @@ class CommentsContent extends HTMLElement {
   }
 
   showNotification(message, type = "info") {
-    // Simple notification - you can enhance this
     const notification = document.createElement("div");
     notification.className = `fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 z-50 ${
       type === "success"

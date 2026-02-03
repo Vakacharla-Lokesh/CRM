@@ -57,6 +57,6 @@ export async function longPolling() {
     }
 
     addNotification("Long Polling disconnected", "error");
-    setTimeout(longPolling, 20000);
+    setTimeout(longPolling, 10000);
   }
 }

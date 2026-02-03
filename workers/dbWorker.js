@@ -12,7 +12,6 @@ import { getCount } from "../services/getCount.js";
 import { getDataByTenantAndUser } from "../services/getDataByTenant.js";
 import { convertLeadToDeal } from "../services/leadToDeal.js";
 
-
 // UNCOMMENT TO USE IN NEW BROWSER TO ADD TEST USERS
 // import { addTestUsers } from "../services/utils/addTestUsers.js";
 
@@ -53,11 +52,6 @@ self.onmessage = (e) => {
     case "createLead":
       insertData(e.data.leadData, "Leads", dbReady, db);
       break;
-
-    // case "getAllLeads":
-    //   console.log("Processing getAllLeads...");
-    //   getAllData("Leads", dbReady, db);
-    //   break;
 
     case "getAllLeads":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
@@ -103,11 +97,6 @@ self.onmessage = (e) => {
       insertData(e.data.organizationData, "Organizations", dbReady, db);
       break;
 
-    // case "getAllOrganizations":
-    //   // console.log("Processing getAllLeads...");
-    //   getAllData("Organizations", dbReady, db);
-    //   break;
-
     case "getAllOrganizations":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
         getDataByTenantAndUser(
@@ -141,10 +130,6 @@ self.onmessage = (e) => {
     case "createDeal":
       insertData(e.data.dealData, "Deals", dbReady, db);
       break;
-
-    // case "getAllDeals":
-    //   getAllData("Deals", dbReady, db);
-    //   break;
 
     case "getAllDeals":
       if (e.data.tenant_id && e.data.user_id && e.data.role) {
@@ -180,7 +165,6 @@ self.onmessage = (e) => {
       break;
 
     // Attachment cases:
-
     case "createAttachment":
       insertData(e.data.attachmentData, "Attachments", dbReady, db);
       break;
@@ -247,12 +231,6 @@ self.onmessage = (e) => {
       updateAllObjects(db, dbReady);
       break;
 
-    // Users case:
-    // case "getAllUsers":
-    //   console.log("Inside get Users switch case: ");
-    //   getAllData("Users", dbReady, db);
-    //   break;
-
     // User cases:
     case "getAllUsers":
       if (e.data.tenant_id && e.data.role) {
@@ -303,6 +281,7 @@ self.onmessage = (e) => {
       postMessage({ action: "tenantDeleted" });
       break;
 
+    // export case:
     case "exportData":
       console.log("Inside export data: ", e.data);
       if (dbReady && db) {
@@ -310,21 +289,20 @@ self.onmessage = (e) => {
         const tx = db.transaction(storeName, "readonly");
         const store = tx.objectStore(storeName);
         const request = store.getAll();
-        
+
         request.onsuccess = () => {
           const data = request.result;
-          // Send data back to main thread for download
-          postMessage({ 
-            action: "exportDataReady", 
+          postMessage({
+            action: "exportDataReady",
             storeName: storeName,
-            data: data 
+            data: data,
           });
         };
-        
+
         request.onerror = () => {
-          postMessage({ 
-            action: "exportDataError", 
-            error: request.error.message 
+          postMessage({
+            action: "exportDataError",
+            error: request.error.message,
           });
         };
       }

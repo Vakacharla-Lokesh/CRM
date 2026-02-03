@@ -1,6 +1,7 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
+import { eventBus, EVENTS } from "../eventBus.js";
 
 export function handleOrganizationCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -45,6 +46,7 @@ export function handleOrganizationUpdate(event) {
 
 export function handleOrganizationCreated(event) {
   showNotification("Organization created successfully!", "success");
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization created." });
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
@@ -62,6 +64,7 @@ export function handleOrganizationCreated(event) {
 
 export function handleOrganizationUpdated(event) {
   showNotification("Organization updated successfully!", "success");
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization updated." });
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
@@ -90,6 +93,7 @@ export function handleOrganizationDelete(event) {
 
 export function handleOrganizationDeleted(event) {
   showNotification("Organization deleted successfully!", "success");
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization deleted." });
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
@@ -106,14 +110,28 @@ export function handleOrganizationDeleted(event) {
 }
 
 export function handleOrganizationExport() {
-  // exportDb("Organizations");
-  const { dbWorker } = dbState;
-  if (dbWorker) {
-    dbWorker.postMessage({ action: "exportData", storeName: "Organizations" });
-  }
+  const progressBar = document.createElement("export-progress");
+  const exportDiv = document.querySelector("#export");
+  const exportBtn = document.querySelector("#export-organizations");
+
+  exportBtn.classList.add("hidden");
+  exportDiv.appendChild(progressBar);
+
+  progressBar.onComplete = () => {
+    const { dbWorker } = dbState;
+    if (dbWorker) {
+      dbWorker.postMessage({
+        action: "exportData",
+        storeName: "Organizations",
+      });
+    }
+  };
+
+  progressBar.onCleanup = () => {
+    exportBtn.classList.remove("hidden");
+  };
 }
 
-// Click handler for organization actions
 export function handleOrganizationClick(e) {
   const { dbWorker } = dbState;
 
@@ -128,15 +146,10 @@ export function handleOrganizationClick(e) {
     );
 
     if (organization_id) {
-      // Set the organization_id in session storage
       sessionStorage.setItem("organization_id", organization_id);
-
-      // Open the modal
       const modal = document.getElementById("form-modal");
       if (modal) {
         modal.classList.remove("hidden");
-
-        // Request organization data from DB
         if (dbWorker) {
           dbWorker.postMessage({
             action: "getOrganizationById",
@@ -166,9 +179,7 @@ export function handleOrganizationClick(e) {
 
     if (organization_id) {
       if (confirm("Are you sure you want to delete this organization?")) {
-        import("../eventBus.js").then(({ eventBus, EVENTS }) => {
-          eventBus.emit(EVENTS.ORGANIZATION_DELETE, { id: organization_id });
-        });
+        eventBus.emit(EVENTS.ORGANIZATION_DELETE, { id: organization_id });
       }
     }
 

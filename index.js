@@ -219,11 +219,6 @@ eventBus.on(EVENTS.USER_CREATED, (event) => {
   }
 });
 
-eventBus.on(EVENTS.LOGIN_SUCCESS, (event) => {
-  const userData = event.detail;
-  addNotification(`Welcome back, ${userData.name}!`, "success");
-});
-
 // Theme control
 const themeToggle = document.getElementById("theme-toggle");
 if (themeToggle) {
@@ -264,6 +259,6 @@ longPolling();
 checkHealth();
 
 // Web sockers call
-initWebSocket({
+window.wsClient = initWebSocket({
   url: "ws://localhost:8080",
 });

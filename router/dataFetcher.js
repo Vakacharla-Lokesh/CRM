@@ -123,6 +123,10 @@ export class DataFetcher {
     });
 
     if (storeName === "Leads" && currentPath === "/leads") {
+      if (!window.isSync) {
+        let localLeads = JSON.parse(sessionStorage.getItem("leads"));
+        rows.push(...localLeads);
+      }
       populateLeadsTable(rows || []);
     } else if (
       storeName === "Organizations" &&
@@ -135,16 +139,12 @@ export class DataFetcher {
     } else if (storeName === "Users" && currentPath === "/users") {
       populateUsersTable(rows || []);
     } else if (storeName === "Tenants" && currentPath === "/tenants") {
-      // Store tenants data temporarily
       this.tenantsData = rows || [];
-      // If we already have users data, populate the table
       if (this.usersData) {
         populateTenantsTable(this.tenantsData, this.usersData);
       }
     } else if (storeName === "Users" && currentPath === "/tenants") {
-      // Store users data temporarily
       this.usersData = rows || [];
-      // If we already have tenants data, populate the table
       if (this.tenantsData) {
         populateTenantsTable(this.tenantsData, this.usersData);
       }
@@ -198,8 +198,6 @@ export class DataFetcher {
         if (action === "convertToDealError") {
           alert("Error converting lead to deal: " + data.error);
         }
-
-        // Handle tenant-specific actions
         if (
           action === "tenantCreated" ||
           action === "tenantUpdated" ||
@@ -211,7 +209,6 @@ export class DataFetcher {
           }
         }
 
-        // Handle getTenantById response
         if (action === "getByIdSuccess" && data.storeName === "Tenants") {
           const { openTenantModalForEdit } =
             await import("../events/handlers/tenantHandlers.js");

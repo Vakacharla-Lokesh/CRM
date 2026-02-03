@@ -8,41 +8,51 @@ class LeadDetails extends HTMLElement {
       const leadId = sessionStorage.getItem("lead_id");
       if (!leadId) {
         this.innerHTML = `
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
-                  <p class="text-red-600 dark:text-red-400">Error: No lead ID found</p>
-                </div>
-              `;
+          <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
+            <p class="text-red-600 dark:text-red-400">Error: No lead ID found</p>
+          </div>
+        `;
         return;
       }
 
       const dbWorker = window.dbWorker;
       if (!dbWorker) {
         this.innerHTML = `
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
-                  <p class="text-red-600 dark:text-red-400">Error: Database not available</p>
-                </div>
-              `;
+          <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
+            <p class="text-red-600 dark:text-red-400">Error: Database not available</p>
+          </div>
+        `;
         return;
       }
 
-      const lead = await this.fetchLeadById(leadId, dbWorker);
+      let lead;
+
+      if (window.isSync) {
+        lead = await this.fetchLeadById(leadId, dbWorker);
+      } else {
+        lead = JSON.parse(sessionStorage.getItem("leads")).filter(
+          (leadData) => {
+            return leadData.lead_id == leadId;
+          },
+        )[0];
+      }
 
       if (lead) {
         this.render(lead);
       } else {
         this.innerHTML = `
-                <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
-                  <p class="text-red-600 dark:text-red-400">Error: Lead not found</p>
-                </div>
-              `;
+          <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
+            <p class="text-red-600 dark:text-red-400">Error: Lead not found</p>
+          </div>
+        `;
       }
     } catch (error) {
       console.error("Error loading lead details:", error);
       this.innerHTML = `
-              <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
-                <p class="text-red-600 dark:text-red-400">Error: ${error.message}</p>
-              </div>
-            `;
+        <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
+          <p class="text-red-600 dark:text-red-400">Error: ${error.message}</p>
+        </div>
+      `;
     }
   }
 

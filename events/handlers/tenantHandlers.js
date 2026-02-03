@@ -117,15 +117,6 @@ export function handleTenantDeleted(event) {
   }
 }
 
-export function handleTenantExport() {
-  // exportDb("Tenants");
-  const { dbWorker } = dbState;
-  if (dbWorker) {
-    dbWorker.postMessage({ action: "exportData", storeName: "Tenants" });
-  }
-}
-
-// Click handler for tenant actions
 export function handleTenantClick(e) {
   const { dbWorker } = dbState;
 

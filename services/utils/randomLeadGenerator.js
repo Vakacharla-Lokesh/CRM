@@ -103,7 +103,7 @@ export async function generateRandomLeads(count) {
     "company.com",
     "business.net",
   ];
-  
+
   const sources = ["API", "Manual", "Import", "Form", "CSV"];
   const statuses = ["New", "Follow-Up", "Converted", "Dead"];
   const industries = ["Software", "Foods", "Textile", "Others"];

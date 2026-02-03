@@ -65,7 +65,6 @@ passwordInput.addEventListener("input", () => {
   }
 });
 
-// Form submission
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
   clearErrors();
@@ -74,8 +73,6 @@ loginForm.addEventListener("submit", async (e) => {
   const password = passwordInput.value;
 
   let hasErrors = false;
-
-  // Validate email
   if (!email) {
     showError("email", "Email is required");
     hasErrors = true;
@@ -84,7 +81,6 @@ loginForm.addEventListener("submit", async (e) => {
     hasErrors = true;
   }
 
-  // Validate password
   if (!password) {
     showError("password", "Password is required");
     hasErrors = true;
@@ -99,13 +95,9 @@ loginForm.addEventListener("submit", async (e) => {
   submitBtn.textContent = "Signing in...";
 
   try {
-    // Check user credentials from IndexedDB
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      // localStorage.setItem("user", result.user.userId);
-      // localStorage.setItem("userId", result.user.userId);
-      // localStorage.setItem("userName", result.user.name);
       localStorage.setItem(
         "user",
         JSON.stringify({

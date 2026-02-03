@@ -83,7 +83,14 @@ export function handleLeadFormSubmit(event) {
       tenant_id: user.tenant_id,
     };
 
-    eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
+    if (window.isSync) {
+      eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
+    } else {
+      console.log("Inside offline mode: ");
+      let localLeads = JSON.parse(sessionStorage.getItem("leads")) || [];
+      localLeads.push(leadData);
+      sessionStorage.setItem("leads", JSON.stringify(localLeads));
+    }
   } else if (leadFormData.organization_name) {
     createOrganizationAndLead(leadFormData);
   } else {
@@ -301,59 +308,47 @@ export function handleUserFormSubmit(event) {
 
   const currentUser = JSON.parse(localStorage.getItem("user"));
 
-  // Get form values
   const userName = document.getElementById("user_name")?.value?.trim() || "";
   const userEmail = document.getElementById("user_email")?.value?.trim() || "";
   const userPassword =
     document.getElementById("user_password")?.value?.trim() || "";
   const userMobile =
     document.getElementById("user_mobile")?.value?.trim() || "";
-
-  // Check if current user is super_admin
   const isSuperAdmin = currentUser && currentUser.role === "super_admin";
 
-  let tenantId = currentUser.tenant_id; // Default to current user's tenant
-  let userRole = "user"; // Default role
+  let tenantId = currentUser.tenant_id;
+  let userRole = "user";
 
-  // If super_admin, get selected tenant and role
   if (isSuperAdmin) {
     tenantId = document.getElementById("user_tenant")?.value?.trim() || "";
     userRole = document.getElementById("user_role")?.value?.trim() || "user";
-
-    // Validation: tenant is required for super_admin
     if (!tenantId) {
       alert("Please select a tenant for this user");
       return;
     }
   }
 
-  // Validation
   if (!userName || !userEmail || !userPassword) {
     alert("Please fill in all required fields");
     return;
   }
 
-  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(userEmail)) {
     alert("Please enter a valid email address");
     return;
   }
 
-  // Password validation
   if (userPassword.length < 6) {
     alert("Password must be at least 6 characters");
     return;
   }
-
-  // Mobile validation (optional but if provided, must be 10 digits)
   const mobileRegex = /^[1-9]\d{9}$/;
   if (userMobile && !mobileRegex.test(userMobile)) {
     alert("Please enter a valid 10-digit mobile number");
     return;
   }
 
-  // Create user data
   const userData = {
     user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     user_name: userName,
@@ -375,10 +370,8 @@ export function handleUserFormSubmit(event) {
     role: userData.role,
   });
 
-  // Emit event to create user
   eventBus.emit(EVENTS.USER_CREATE, { userData });
 
-  // Close modal and reset form
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
 }

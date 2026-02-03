@@ -1,4 +1,5 @@
 import { dbState } from "../../services/state/dbState.js";
+import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
 
 export function handleLeadCreate(event) {
@@ -8,6 +9,8 @@ export function handleLeadCreate(event) {
     showNotification("Database not ready yet. Please wait.", "error");
     return;
   }
+
+  // console.log(event.detail);
 
   const leadData = {
     ...event.detail.leadData,
@@ -24,11 +27,21 @@ export function handleLeadCreate(event) {
 export function handleLeadCreated(event) {
   showNotification("Lead created successfully!", "success");
 
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead created." });
+
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const { user_id, tenant_id, role } = user;
+
   if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
+    dbWorker.postMessage({
+      action: "getAllLeads",
+      user_id,
+      tenant_id,
+      role,
+    });
   }
 }
 
@@ -44,20 +57,39 @@ export function handleLeadDelete(event) {
 export function handleLeadDeleted(event) {
   showNotification("Lead deleted successfully!", "success");
 
+  eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead deleted." });
+
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
   if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
+    dbWorker.postMessage({
+      action: "getAllLeads",
+      user_id,
+      tenant_id,
+      role,
+    });
   }
 }
 
 export function handleLeadExport() {
-  // exportDb("Leads");
-  const { dbWorker } = dbState;
-  if (dbWorker) {
-    dbWorker.postMessage({ action: "exportData", storeName: "Leads" });
-  }
+  const progressBar = document.createElement("export-progress");
+  const exportDiv = document.querySelector("#export");
+  const exportBtn = document.querySelector("#export-leads");
+
+  exportBtn.classList.add("hidden");
+  exportDiv.appendChild(progressBar);
+
+  progressBar.onComplete = () => {
+    const { dbWorker } = dbState;
+    if (dbWorker) {
+      dbWorker.postMessage({ action: "exportData", storeName: "Leads" });
+    }
+  };
+
+  progressBar.onCleanup = () => {
+    exportBtn.classList.remove("hidden");
+  };
 }
 
 export function calculateLeadScore() {
@@ -125,7 +157,15 @@ export function handleLeadRefresh() {
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
+  const user = JSON.parse(localStorage.getItem("user"));
+  const { user_id, tenant_id, role } = user;
+
   if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllLeads" });
+    dbWorker.postMessage({
+      action: "getAllLeads",
+      user_id,
+      tenant_id,
+      role,
+    });
   }
 }

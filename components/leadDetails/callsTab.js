@@ -45,8 +45,6 @@ class CallsContent extends HTMLElement {
 
         if (action === "getAllSuccess" && storeName === "Calls") {
           dbWorker.removeEventListener("message", messageHandler);
-
-          // Filter calls for this specific lead
           const leadCalls = (rows || []).filter(
             (call) => call.lead_id == leadId,
           );
@@ -471,8 +469,6 @@ class CallsContent extends HTMLElement {
   handleEditCall(callId) {
     const call = this.calls.find((c) => c.call_id === callId);
     if (!call) return;
-
-    // Re-render with the modal populated
     const modalHTML = this.renderCallModal(call);
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = modalHTML;

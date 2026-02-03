@@ -1,3 +1,4 @@
+import { eventBus, EVENTS } from "../../../events/eventBus.js";
 import { addNotification } from "../../../index.js";
 import WSClient from "./client.js";
 
@@ -7,7 +8,6 @@ export function initWebSocket({
   pollInterval = 5000,
 }) {
   const ws = new WSClient(url);
-  window.ws = ws;
 
   let pollingInterval = null;
 
@@ -68,6 +68,9 @@ export function initWebSocket({
     },
     getClient() {
       return ws;
+    },
+    send(message) {
+      ws.send(message);
     },
   };
 }

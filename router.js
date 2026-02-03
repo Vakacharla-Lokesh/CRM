@@ -2,8 +2,6 @@ import { RouteManager } from "./router/routeManager.js";
 import { PageLoader } from "./router/pageLoader.js";
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
-import { switchEventListeners } from "./events/eventHandler.js";
-// import user from "./events/handlers/userManager.js";
 
 class Router {
   constructor() {
@@ -35,8 +33,6 @@ class Router {
 
     // initial route
     const user = localStorage.getItem("user");
-    // const initialRoute = user ? "/home" : "/login";
-    // user.initialize();
     const initialRoute = user ? "/home" : "/login";
     this.loadRoute(initialRoute);
   }
@@ -58,20 +54,15 @@ class Router {
   async loadRoute(path) {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
-      // user.initialize();
       const currentPath = sessionStorage.getItem("currentTab");
       if (currentPath === "/leads" && path !== "/leads") {
-        // Trigger cleanup
         const navbar = document.querySelector("app-navbar");
         if (navbar && navbar.clearStressTest) {
           navbar.clearStressTest();
         }
       }
       const resolvedPath = this.routeManager.resolvePath(path, user);
-
-      // Switch event listeners based on route
-      switchEventListeners(resolvedPath);
-
+      
       this.sidebarManager.toggleSidebar(resolvedPath);
 
       const html = await this.pageLoader.loadPage(resolvedPath);

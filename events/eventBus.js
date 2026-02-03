@@ -68,6 +68,7 @@ export const EVENTS = {
 
   ROUTE_CHANGE: "route:change",
   WEB_SOCKET_MESSAGE: "websocket:message",
+  WEB_SOCKET_SEND: "websocket:send",
 
   // LOGIN EVENTS
   LOGIN_SUCCESS: "auth:login-success",
@@ -87,5 +88,4 @@ export const EVENTS = {
   TENANT_UPDATED: "tenant:updated",
   TENANT_DELETE: "tenant:delete",
   TENANT_DELETED: "tenant:deleted",
-  TENANT_EXPORT: "tenant:export",
 };

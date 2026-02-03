@@ -2,7 +2,7 @@ import { eventBus, EVENTS } from "./eventBus.js";
 import { dbState } from "../services/state/dbState.js";
 import { showMessage } from "./notificationEvents.js";
 
-// LEAD EVENT FUNCTION HERE
+// LEAD EVENTS FUNCTIONS
 import {
   handleLeadCreate,
   handleLeadCreated,
@@ -14,7 +14,7 @@ import {
   handleLeadRefresh,
 } from "./handlers/leadHandlers.js";
 
-// ORGANIZATION EVENT FUNCTIONS HERE
+// ORGANIZATION EVENTS FUNCTIONS
 import {
   handleOrganizationCreate,
   handleOrganizationCreated,
@@ -26,7 +26,7 @@ import {
   handleOrganizationUpdated,
 } from "./handlers/organizationHandlers.js";
 
-// DEAL EVENT FUNCTIONS HERE
+// DEAL EVENTS FUNCTIONS
 import {
   handleDealCreate,
   handleDealCreated,
@@ -38,7 +38,7 @@ import {
   handleDealUpdated,
 } from "./handlers/dealHandlers.js";
 
-// FORM SUBMISSION FUNCTIONS HERE
+// FORM SUBMIT EVENT FUNCTIONS
 import {
   handleLeadFormSubmit,
   handleOrganizationFormSubmit,
@@ -46,7 +46,7 @@ import {
   handleUserFormSubmit,
 } from "./handlers/formHandlers.js";
 
-// USER EVENT FUNCTIONS HERE
+// USER EVENT FUNCTIONS
 import {
   handleUserCreate,
   handleUserCreated,
@@ -55,7 +55,7 @@ import {
   handleUserClick,
 } from "./handlers/userHandlers.js";
 
-// TENANT 
+// TENANT EVENT FUNCTIONS
 import {
   handleTenantCreate,
   handleTenantCreated,
@@ -63,108 +63,27 @@ import {
   handleTenantUpdated,
   handleTenantDelete,
   handleTenantDeleted,
-  handleTenantExport,
   handleTenantClick,
   handleBulkDeleteTenants,
   handleSelectAllTenants,
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
 
-
-const eventHandlers = {
-  database: {},
-  lead: {},
-  organization: {},
-  deal: {},
-  ui: {},
-  auth: {},
-  user: {},
-  tenant: {}
-};
-
-const routeEventMap = {
-  '/home': ['database', 'lead', 'organization', 'deal', 'ui', 'auth'],
-  '/leads': ['database', 'lead', 'organization', 'ui', 'auth'],
-  '/organizations': ['database', 'organization', 'ui', 'auth'],
-  '/deals': ['database', 'deal', 'organization', 'lead', 'ui', 'auth'],
-  '/users': ['database', 'user', 'ui', 'auth'],
-  '/tenants': ['database', 'tenant', 'ui', 'auth'],
-  '/login': ['auth'],
-  '/signup': ['auth']
-};
-
-let currentActiveGroups = [];
-
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);
+
+  // All event listeners
   registerDatabaseEvents();
+  registerLeadEvents();
+  registerOrganizationEvents();
+  registerDealEvents();
   registerUIEvents();
   registerAuthEvents();
-  currentActiveGroups = ['database', 'ui', 'auth'];
+  registerUserEvents();
+  registerTenantEvents();
   initializeClickHandlers();
   initializeFormHandlers();
   initializeDOMReady();
-}
-
-export function switchEventListeners(route) {
-  const requiredGroups = routeEventMap[route] || ['database', 'ui', 'auth'];
-  
-  // Unregister event listeners
-  currentActiveGroups.forEach(group => {
-    if (!requiredGroups.includes(group) && group !== 'database' && group !== 'ui' && group !== 'auth') {
-      unregisterEventGroup(group);
-    }
-  });
-  
-  // Register new event listeners
-  requiredGroups.forEach(group => {
-    if (!currentActiveGroups.includes(group)) {
-      registerEventGroup(group);
-    }
-  });
-  
-  currentActiveGroups = [...requiredGroups];
-  console.log(`[EventHandler] Active event groups for ${route}:`, currentActiveGroups);
-}
-
-function registerEventGroup(group) {
-  switch(group) {
-    case 'lead':
-      registerLeadEvents();
-      break;
-    case 'organization':
-      registerOrganizationEvents();
-      break;
-    case 'deal':
-      registerDealEvents();
-      break;
-    case 'user':
-      registerUserEvents();
-      break;
-    case 'tenant':
-      registerTenantEvents();
-      break;
-  }
-}
-
-function unregisterEventGroup(group) {
-  switch(group) {
-    case 'lead':
-      unregisterLeadEvents();
-      break;
-    case 'organization':
-      unregisterOrganizationEvents();
-      break;
-    case 'deal':
-      unregisterDealEvents();
-      break;
-    case 'user':
-      unregisterUserEvents();
-      break;
-    case 'tenant':
-      unregisterTenantEvents();
-      break;
-  }
 }
 
 function registerDatabaseEvents() {
@@ -173,111 +92,40 @@ function registerDatabaseEvents() {
 }
 
 function registerLeadEvents() {
-  eventHandlers.lead = {
-    create: handleLeadCreate,
-    created: handleLeadCreated,
-    delete: handleLeadDelete,
-    deleted: handleLeadDeleted,
-    export: handleLeadExport,
-    score: calculateLeadScore,
-    refresh: handleLeadRefresh
-  };
-  
-  eventBus.on(EVENTS.LEAD_CREATE, eventHandlers.lead.create);
-  eventBus.on(EVENTS.LEAD_CREATED, eventHandlers.lead.created);
-  eventBus.on(EVENTS.LEAD_DELETE, eventHandlers.lead.delete);
-  eventBus.on(EVENTS.LEAD_DELETED, eventHandlers.lead.deleted);
-  eventBus.on(EVENTS.LEADS_EXPORT, eventHandlers.lead.export);
-  eventBus.on(EVENTS.LEADS_SCORE, eventHandlers.lead.score);
-  eventBus.on(EVENTS.LEADS_REFRESH, eventHandlers.lead.refresh);
-}
-
-function unregisterLeadEvents() {
-  if (!eventHandlers.lead.create) return;
-  
-  eventBus.off(EVENTS.LEAD_CREATE, eventHandlers.lead.create);
-  eventBus.off(EVENTS.LEAD_CREATED, eventHandlers.lead.created);
-  eventBus.off(EVENTS.LEAD_DELETE, eventHandlers.lead.delete);
-  eventBus.off(EVENTS.LEAD_DELETED, eventHandlers.lead.deleted);
-  eventBus.off(EVENTS.LEADS_EXPORT, eventHandlers.lead.export);
-  eventBus.off(EVENTS.LEADS_SCORE, eventHandlers.lead.score);
-  eventBus.off(EVENTS.LEADS_REFRESH, eventHandlers.lead.refresh);
-  
-  eventHandlers.lead = {};
+  eventBus.on(EVENTS.LEAD_CREATE, handleLeadCreate);
+  eventBus.on(EVENTS.LEAD_CREATED, handleLeadCreated);
+  eventBus.on(EVENTS.LEAD_DELETE, handleLeadDelete);
+  eventBus.on(EVENTS.LEAD_DELETED, handleLeadDeleted);
+  eventBus.on(EVENTS.LEADS_EXPORT, handleLeadExport);
+  eventBus.on(EVENTS.LEADS_SCORE, calculateLeadScore);
+  eventBus.on(EVENTS.LEADS_REFRESH, handleLeadRefresh);
 }
 
 function registerOrganizationEvents() {
-  eventHandlers.organization = {
-    create: handleOrganizationCreate,
-    created: handleOrganizationCreated,
-    delete: handleOrganizationDelete,
-    deleted: handleOrganizationDeleted,
-    update: handleOrganizationUpdate,
-    updated: handleOrganizationUpdated,
-    export: handleOrganizationExport
-  };
-  
-  eventBus.on(EVENTS.ORGANIZATION_CREATE, eventHandlers.organization.create);
-  eventBus.on(EVENTS.ORGANIZATION_CREATED, eventHandlers.organization.created);
-  eventBus.on(EVENTS.ORGANIZATION_DELETE, eventHandlers.organization.delete);
-  eventBus.on(EVENTS.ORGANIZATION_DELETED, eventHandlers.organization.deleted);
-  eventBus.on(EVENTS.ORGANIZATION_UPDATE, eventHandlers.organization.update);
-  eventBus.on(EVENTS.ORGANIZATION_UPDATED, eventHandlers.organization.updated);
-  eventBus.on(EVENTS.ORGANIZATION_EXPORT, eventHandlers.organization.export);
-}
-
-function unregisterOrganizationEvents() {
-  if (!eventHandlers.organization.create) return;
-  
-  eventBus.off(EVENTS.ORGANIZATION_CREATE, eventHandlers.organization.create);
-  eventBus.off(EVENTS.ORGANIZATION_CREATED, eventHandlers.organization.created);
-  eventBus.off(EVENTS.ORGANIZATION_DELETE, eventHandlers.organization.delete);
-  eventBus.off(EVENTS.ORGANIZATION_DELETED, eventHandlers.organization.deleted);
-  eventBus.off(EVENTS.ORGANIZATION_UPDATE, eventHandlers.organization.update);
-  eventBus.off(EVENTS.ORGANIZATION_UPDATED, eventHandlers.organization.updated);
-  eventBus.off(EVENTS.ORGANIZATION_EXPORT, eventHandlers.organization.export);
-  
-  eventHandlers.organization = {};
+  eventBus.on(EVENTS.ORGANIZATION_CREATE, handleOrganizationCreate);
+  eventBus.on(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
+  eventBus.on(EVENTS.ORGANIZATION_DELETE, handleOrganizationDelete);
+  eventBus.on(EVENTS.ORGANIZATION_DELETED, handleOrganizationDeleted);
+  eventBus.on(EVENTS.ORGANIZATION_UPDATE, handleOrganizationUpdate);
+  eventBus.on(EVENTS.ORGANIZATION_UPDATED, handleOrganizationUpdated);
+  eventBus.on(EVENTS.ORGANIZATION_EXPORT, handleOrganizationExport);
 }
 
 function registerDealEvents() {
-  eventHandlers.deal = {
-    create: handleDealCreate,
-    created: handleDealCreated,
-    delete: handleDealDelete,
-    deleted: handleDealDeleted,
-    update: handleDealUpdate,
-    updated: handleDealUpdated,
-    export: handleDealExport
-  };
-  
-  eventBus.on(EVENTS.DEAL_CREATE, eventHandlers.deal.create);
-  eventBus.on(EVENTS.DEAL_CREATED, eventHandlers.deal.created);
-  eventBus.on(EVENTS.DEAL_DELETE, eventHandlers.deal.delete);
-  eventBus.on(EVENTS.DEAL_DELETED, eventHandlers.deal.deleted);
-  eventBus.on(EVENTS.DEAL_UPDATE, eventHandlers.deal.update);
-  eventBus.on(EVENTS.DEAL_UPDATED, eventHandlers.deal.updated);
-  eventBus.on(EVENTS.DEAL_EXPORT, eventHandlers.deal.export);
-}
-
-function unregisterDealEvents() {
-  if (!eventHandlers.deal.create) return;
-  
-  eventBus.off(EVENTS.DEAL_CREATE, eventHandlers.deal.create);
-  eventBus.off(EVENTS.DEAL_CREATED, eventHandlers.deal.created);
-  eventBus.off(EVENTS.DEAL_DELETE, eventHandlers.deal.delete);
-  eventBus.off(EVENTS.DEAL_DELETED, eventHandlers.deal.deleted);
-  eventBus.off(EVENTS.DEAL_UPDATE, eventHandlers.deal.update);
-  eventBus.off(EVENTS.DEAL_UPDATED, eventHandlers.deal.updated);
-  eventBus.off(EVENTS.DEAL_EXPORT, eventHandlers.deal.export);
-  
-  eventHandlers.deal = {};
+  eventBus.on(EVENTS.DEAL_CREATE, handleDealCreate);
+  eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
+  eventBus.on(EVENTS.DEAL_DELETE, handleDealDelete);
+  eventBus.on(EVENTS.DEAL_DELETED, handleDealDeleted);
+  eventBus.on(EVENTS.DEAL_UPDATE, handleDealUpdate);
+  eventBus.on(EVENTS.DEAL_UPDATED, handleDealUpdated);
+  eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
 }
 
 function registerUIEvents() {
   eventBus.on(EVENTS.MODAL_CLOSE, handleModalClose);
   eventBus.on(EVENTS.THEME_TOGGLE, handleThemeToggle);
   eventBus.on(EVENTS.WEB_SOCKET_MESSAGE, showMessage);
+  eventBus.on(EVENTS.WEB_SOCKET_SEND, handleWebSocketSend);
 }
 
 function registerAuthEvents() {
@@ -288,62 +136,19 @@ function registerAuthEvents() {
 }
 
 function registerUserEvents() {
-  eventHandlers.user = {
-    create: handleUserCreate,
-    created: handleUserCreated,
-    delete: handleUserDelete,
-    deleted: handleUserDeleted
-  };
-  
-  eventBus.on(EVENTS.USER_CREATE, eventHandlers.user.create);
-  eventBus.on(EVENTS.USER_CREATED, eventHandlers.user.created);
-  eventBus.on(EVENTS.USER_DELETE, eventHandlers.user.delete);
-  eventBus.on(EVENTS.USER_DELETED, eventHandlers.user.deleted);
-}
-
-function unregisterUserEvents() {
-  if (!eventHandlers.user.create) return;
-  
-  eventBus.off(EVENTS.USER_CREATE, eventHandlers.user.create);
-  eventBus.off(EVENTS.USER_CREATED, eventHandlers.user.created);
-  eventBus.off(EVENTS.USER_DELETE, eventHandlers.user.delete);
-  eventBus.off(EVENTS.USER_DELETED, eventHandlers.user.deleted);
-  
-  eventHandlers.user = {};
+  eventBus.on(EVENTS.USER_CREATE, handleUserCreate);
+  eventBus.on(EVENTS.USER_CREATED, handleUserCreated);
+  eventBus.on(EVENTS.USER_DELETE, handleUserDelete);
+  eventBus.on(EVENTS.USER_DELETED, handleUserDeleted);
 }
 
 function registerTenantEvents() {
-  eventHandlers.tenant = {
-    create: handleTenantCreate,
-    created: handleTenantCreated,
-    update: handleTenantUpdate,
-    updated: handleTenantUpdated,
-    delete: handleTenantDelete,
-    deleted: handleTenantDeleted,
-    export: handleTenantExport
-  };
-  
-  eventBus.on(EVENTS.TENANT_CREATE, eventHandlers.tenant.create);
-  eventBus.on(EVENTS.TENANT_CREATED, eventHandlers.tenant.created);
-  eventBus.on(EVENTS.TENANT_UPDATE, eventHandlers.tenant.update);
-  eventBus.on(EVENTS.TENANT_UPDATED, eventHandlers.tenant.updated);
-  eventBus.on(EVENTS.TENANT_DELETE, eventHandlers.tenant.delete);
-  eventBus.on(EVENTS.TENANT_DELETED, eventHandlers.tenant.deleted);
-  eventBus.on(EVENTS.TENANT_EXPORT, eventHandlers.tenant.export);
-}
-
-function unregisterTenantEvents() {
-  if (!eventHandlers.tenant.create) return;
-  
-  eventBus.off(EVENTS.TENANT_CREATE, eventHandlers.tenant.create);
-  eventBus.off(EVENTS.TENANT_CREATED, eventHandlers.tenant.created);
-  eventBus.off(EVENTS.TENANT_UPDATE, eventHandlers.tenant.update);
-  eventBus.off(EVENTS.TENANT_UPDATED, eventHandlers.tenant.updated);
-  eventBus.off(EVENTS.TENANT_DELETE, eventHandlers.tenant.delete);
-  eventBus.off(EVENTS.TENANT_DELETED, eventHandlers.tenant.deleted);
-  eventBus.off(EVENTS.TENANT_EXPORT, eventHandlers.tenant.export);
-  
-  eventHandlers.tenant = {};
+  eventBus.on(EVENTS.TENANT_CREATE, handleTenantCreate);
+  eventBus.on(EVENTS.TENANT_CREATED, handleTenantCreated);
+  eventBus.on(EVENTS.TENANT_UPDATE, handleTenantUpdate);
+  eventBus.on(EVENTS.TENANT_UPDATED, handleTenantUpdated);
+  eventBus.on(EVENTS.TENANT_DELETE, handleTenantDelete);
+  eventBus.on(EVENTS.TENANT_DELETED, handleTenantDeleted);
 }
 
 function initializeClickHandlers() {
@@ -532,6 +337,7 @@ function handleLoginSuccess(event) {
   setTimeout(() => {
     if (window.router && window.router.loadRoute) {
       window.router.loadRoute("/home");
+      addNotification(`Welcome back.`, "success");
     }
   }, 500);
 }
@@ -543,4 +349,19 @@ function handleLoginFailure(event) {
 function handleLogout() {
   console.log("User logged out");
   user.destroy();
+}
+
+function handleWebSocketSend(event) {
+  const { message } = event.detail;
+  if (!message) {
+    console.error("[EventHandlers] No message provided for websocket send");
+    return;
+  }
+
+  if (window.wsClient) {
+    window.wsClient.send(message);
+    console.log("[EventHandlers] Message sent to websocket:", message);
+  } else {
+    console.error("[EventHandlers] WebSocket client not initialized");
+  }
 }

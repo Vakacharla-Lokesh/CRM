@@ -28,7 +28,7 @@ export async function checkHealth() {
     const data = await res.json();
     console.log("API healthy:", data);
 
-    addNotification(`Health check: ${data}`, "success");
+    addNotification(`Health check: ${data.status}`, "success");
 
     const spsStatus = document.querySelector("#status-short-polling");
     if (spsStatus) {

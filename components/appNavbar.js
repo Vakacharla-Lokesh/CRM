@@ -25,6 +25,17 @@ template.innerHTML = `
           <div class="flex items-center gap-3">
             <button
               type="button"
+              id="sync-btn"
+              class="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600 rounded-lg shadow transition-colors"
+            >
+              <span
+                id="sync-status-dot"
+                class="w-2.5 h-2.5 rounded-full bg-green-400"
+              ></span>
+              <span id="sync-status-text">Online</span>
+            </button>
+            <button
+              type="button"
               id="stress-test-btn"
               class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
             >
@@ -138,6 +149,9 @@ class AppNavbar extends HTMLElement {
   constructor() {
     super();
     this.isStressTestActive = false;
+    this.isSync = true;
+
+    window.isSync = this.isSync;
   }
 
   connectedCallback() {
@@ -145,17 +159,13 @@ class AppNavbar extends HTMLElement {
       this.innerHTML = template.innerHTML;
     }
     this.setupEventListeners();
+
+    if (this.isSync) {
+      this.syncLeads();
+    }
   }
 
   setupEventListeners() {
-    this.themeToggle = document.getElementById("theme-toggle");
-    if (this.themeToggle) {
-      this.themeToggle.addEventListener(
-        "click",
-        this.handleThemeToggle.bind(this),
-      );
-    }
-
     this.diagnosticBtn = document.querySelector("#diagnostic-btn");
     if (this.diagnosticBtn) {
       this.diagnosticBtn.addEventListener(
@@ -170,6 +180,58 @@ class AppNavbar extends HTMLElement {
         "click",
         this.toggleStressTest.bind(this),
       );
+    }
+
+    this.syncBtn = document.querySelector("#sync-btn");
+    this.syncText = document.querySelector("#sync-status-text");
+    this.syncDot = document.querySelector("#sync-status-dot");
+
+    if (this.syncBtn) {
+      this.syncBtn.addEventListener("click", () => {
+        if (this.isSync === true) {
+          this.syncText.textContent = "Offline";
+          this.isSync = false;
+          window.isSync = false;
+
+          this.syncBtn.classList.remove(
+            "bg-green-600",
+            "hover:bg-green-700",
+            "dark:bg-green-500",
+            "dark:hover:bg-green-600",
+          );
+          this.syncBtn.classList.add(
+            "bg-red-600",
+            "hover:bg-red-700",
+            "dark:bg-red-500",
+            "dark:hover:bg-red-600",
+          );
+
+          this.syncDot.classList.remove("bg-green-400");
+          this.syncDot.classList.add("bg-red-400");
+        } else {
+          this.syncText.textContent = "Online";
+          this.isSync = true;
+          window.isSync = true;
+
+          this.syncBtn.classList.remove(
+            "bg-red-600",
+            "hover:bg-red-700",
+            "dark:bg-red-500",
+            "dark:hover:bg-red-600",
+          );
+          this.syncBtn.classList.add(
+            "bg-green-600",
+            "hover:bg-green-700",
+            "dark:bg-green-500",
+            "dark:hover:bg-green-600",
+          );
+
+          this.syncDot.classList.remove("bg-red-400");
+          this.syncDot.classList.add("bg-green-400");
+
+          this.syncLeads();
+        }
+      });
     }
   }
 
@@ -274,6 +336,20 @@ class AppNavbar extends HTMLElement {
       }
 
       console.log("Stress test cleared - memory should be freed");
+    }
+  }
+
+  syncLeads() {
+    if (window.dbWorker) {
+      let localLeads = JSON.parse(sessionStorage.getItem("leads"));
+
+      console.log("local leads: ", localLeads);
+
+      localLeads.forEach((lead) => {
+        eventBus.emit(EVENTS.LEAD_CREATE, { leadData: lead });
+      });
+
+      sessionStorage.removeItem("leads");
     }
   }
 }

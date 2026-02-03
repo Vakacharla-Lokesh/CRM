@@ -63,7 +63,6 @@ export function handleUserDeleted(event) {
   }
 }
 
-// Click handler for user actions
 export function handleUserClick(e) {
   if (e.target.closest("#deleteUser")) {
     e.preventDefault();
