@@ -2,6 +2,7 @@ import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
 import { showNotification } from "../notificationEvents.js";
+import userManager from "./userManager.js";
 import { offlineManager } from "../../services/offlineManager.js";
 import { notificationController } from "../../controllers/notificationController.js";
 
@@ -15,7 +16,11 @@ export function handleLeadFormSubmit(event) {
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) {
+    alert("Please sign in again to continue.");
+    return;
+  }
 
   const leadFormData = {
     lead_first_name: document.getElementById("first_name")?.value?.trim() || "",
@@ -146,7 +151,11 @@ export function handleOrganizationFormSubmit(event) {
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) {
+    alert("Please sign in again to continue.");
+    return;
+  }
 
   // Check if we're editing or creating
   const organizationId = document
@@ -232,7 +241,11 @@ export function handleDealFormSubmit(event) {
     return;
   }
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) {
+    alert("Please sign in again to continue.");
+    return;
+  }
 
   // Check if we're editing or creating
   const dealId = document.getElementById("deal_id_hidden")?.value?.trim();
@@ -317,7 +330,11 @@ function createOrganizationAndLead(formData) {
   const { dbWorker } = dbState;
   const organizationId = generateId("org");
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) {
+    showNotification("Please sign in again to continue.", "error");
+    return;
+  }
 
   const organizationData = {
     organization_id: organizationId,
@@ -373,7 +390,11 @@ export function handleUserFormSubmit(event) {
     return;
   }
 
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUser = userManager.getUser();
+  if (!currentUser) {
+    showNotification("Please sign in again to continue.", "error");
+    return;
+  }
 
   const userName = document.getElementById("user_name")?.value?.trim() || "";
   const userEmail = document.getElementById("user_email")?.value?.trim() || "";

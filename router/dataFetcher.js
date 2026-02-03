@@ -5,6 +5,7 @@ import { populateDealsTable } from "../controllers/populateDeals.js";
 import { populateUsersTable } from "../controllers/populateUsers.js";
 import { populateTenantsTable } from "../controllers/populateTenants.js";
 import { updateUserDetails } from "../events/userProfile.js";
+import userManager from "../events/handlers/userManager.js";
 
 export class DataFetcher {
   constructor() {
@@ -23,10 +24,10 @@ export class DataFetcher {
 
     console.log("Fetching data for route:", path);
 
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
 
     if (!user) {
-      console.warn("No user found in localStorage");
+      console.warn("No user available for data fetch");
       return;
     }
 

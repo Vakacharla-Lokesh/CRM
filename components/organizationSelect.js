@@ -1,4 +1,5 @@
 // components/organizationSelect.js
+import userManager from "../events/handlers/userManager.js";
 
 export class OrganizationSelect {
   constructor(containerId, dbWorker) {
@@ -16,8 +17,12 @@ export class OrganizationSelect {
   }
 
   loadOrganizations() {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
     console.log(user);
+    if (!user) {
+      console.warn("No user available for organization load.");
+      return Promise.resolve();
+    }
     return new Promise((resolve) => {
       const handler = (e) => {
         const { action, rows, storeName } = e.data;

@@ -1,58 +1,42 @@
-// class User {
-//   constructor() {
-//     this._authToken = null;
-//     this._role = null;
-//     this._user_id = null;
-//     this._user_name = null;
-//     this._tenant_id = null;
-//   }
+class UserManager {
+  constructor() {
+    this.user = null;
+    this.isInitialized = false;
+  }
 
-//   initialize() {
-//     const userDetails = JSON.parse(localStorage.getItem("user"));
-//     this._authToken = userDetails.authToken;
-//     this._role = userDetails.role;
-//     this._user_id = userDetails.user_id;
-//     this._user_name = userDetails.user_name;
-//     this._tenant_id = userDetails._tenant_id;
-//   }
+  initialize() {
+    if (this.isInitialized) return;
+    this.isInitialized = true;
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      this.user = JSON.parse(storedUser);
+    }
+  }
 
-//   destroy() {
-//     this._authToken = null;
-//     this._role = null;
-//     this._user_id = null;
-//     this._user_name = null;
-//     this._tenant_id = null;
-//   }
+  setUser(user) {
+    this.user = user;
+    this.isInitialized = true;
+    localStorage.setItem("user", JSON.stringify(user));
+  }
 
-//   isAdmin() {
-//     return this._role == "admin";
-//   }
+  clearUser() {
+    this.user = null;
+    this.isInitialized = true;
+    localStorage.removeItem("user");
+  }
 
-//   isSuperAdmin() {
-//     return this._role == "super_admin";
-//   }
+  getUser() {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    return this.user;
+  }
 
-//   get id() {
-//     return this._user_id;
-//   }
+  isAuthenticated() {
+    return Boolean(this.getUser());
+  }
+}
 
-//   get tenant_id() {
-//     return this._tenant_id;
-//   }
+const userManager = new UserManager();
 
-//   get role() {
-//     return this._role;
-//   }
-
-//   get exists() {
-//     return this._authToken !== null;
-//   }
-
-//   get name() {
-//     return this._user_name;
-//   }
-// }
-
-// const user = new User();
-
-// export { user as default };
+export default userManager;
