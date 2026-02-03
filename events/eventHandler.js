@@ -24,6 +24,7 @@ import {
   handleOrganizationClick,
   handleOrganizationUpdate,
   handleOrganizationUpdated,
+  handleOrganizationRefresh,
 } from "./handlers/organizationHandlers.js";
 
 // DEAL EVENTS FUNCTIONS
@@ -36,6 +37,7 @@ import {
   handleDealClick,
   handleDealUpdate,
   handleDealUpdated,
+  handleDealRefresh,
 } from "./handlers/dealHandlers.js";
 
 // FORM SUBMIT EVENT FUNCTIONS
@@ -109,6 +111,7 @@ function registerOrganizationEvents() {
   eventBus.on(EVENTS.ORGANIZATION_UPDATE, handleOrganizationUpdate);
   eventBus.on(EVENTS.ORGANIZATION_UPDATED, handleOrganizationUpdated);
   eventBus.on(EVENTS.ORGANIZATION_EXPORT, handleOrganizationExport);
+  eventBus.on(EVENTS.ORGANIZATION_REFRESH, handleOrganizationRefresh);
 }
 
 function registerDealEvents() {
@@ -119,6 +122,7 @@ function registerDealEvents() {
   eventBus.on(EVENTS.DEAL_UPDATE, handleDealUpdate);
   eventBus.on(EVENTS.DEAL_UPDATED, handleDealUpdated);
   eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
+  eventBus.on(EVENTS.DEAL_REFRESH, handleDealRefresh);
 }
 
 function registerUIEvents() {

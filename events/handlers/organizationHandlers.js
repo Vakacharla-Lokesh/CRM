@@ -196,3 +196,22 @@ export function handleOrganizationClick(e) {
 
   return false;
 }
+
+export function handleOrganizationRefresh() {
+  console.log("Inside handle organization refresh");
+  const currentTab = sessionStorage.getItem("currentTab");
+  const { dbWorker } = dbState;
+
+  const user = userManager.getUser();
+  if (!user) return;
+  const { user_id, tenant_id, role } = user;
+
+  if (currentTab === "/organizations" && dbWorker) {
+    dbWorker.postMessage({
+      action: "getAllOrganizations",
+      user_id,
+      tenant_id,
+      role,
+    });
+  }
+}

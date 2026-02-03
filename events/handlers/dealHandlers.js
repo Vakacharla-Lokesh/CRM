@@ -187,3 +187,22 @@ export function handleDealClick(e) {
 
   return false;
 }
+
+export function handleDealRefresh() {
+  console.log("Inside handle deal refresh");
+  const currentTab = sessionStorage.getItem("currentTab");
+  const { dbWorker } = dbState;
+
+  const user = userManager.getUser();
+  if (!user) return;
+  const { user_id, tenant_id, role } = user;
+
+  if (currentTab === "/deals" && dbWorker) {
+    dbWorker.postMessage({
+      action: "getAllDeals",
+      user_id,
+      tenant_id,
+      role,
+    });
+  }
+}

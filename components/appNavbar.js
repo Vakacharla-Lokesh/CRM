@@ -165,13 +165,16 @@ class AppNavbar extends HTMLElement {
     }
     this.setupEventListeners();
 
+    window.isSync = this.isSync;
     if (this.isSync) {
       this.syncLeads();
     }
-    
-    // Update offline count initially and every 5 seconds
+
     this.updateOfflineCount();
-    this.offlineCountInterval = setInterval(() => this.updateOfflineCount(), 5000);
+    this.offlineCountInterval = setInterval(
+      () => this.updateOfflineCount(),
+      5000,
+    );
   }
 
   setupEventListeners() {
@@ -197,7 +200,7 @@ class AppNavbar extends HTMLElement {
 
     if (this.syncBtn) {
       this.syncBtn.addEventListener("click", () => {
-        if (this.isSync === true) {
+        if (this.isSync == true) {
           this.syncText.textContent = "Offline";
           this.isSync = false;
           window.isSync = false;
@@ -368,58 +371,66 @@ class AppNavbar extends HTMLElement {
 
   async syncOfflineData() {
     const totalCount = offlineManager.getTotalOfflineCount();
-    
+
     if (totalCount === 0) {
-      notificationController.showToast('No offline data to sync', 'info');
+      notificationController.showToast("No offline data to sync", "info");
       return;
     }
-    
-    notificationController.showToast(`Syncing ${totalCount} offline items...`, 'info');
-    
+
+    notificationController.showToast(
+      `Syncing ${totalCount} offline items...`,
+      "info",
+    );
+
     try {
       // Sync all offline data via event bus
       offlineManager.syncAll(eventBus, EVENTS);
-      
+
       // Wait for sync to complete
       setTimeout(() => {
-        notificationController.showToast('Sync completed successfully!', 'success');
-        
+        notificationController.showToast(
+          "Sync completed successfully!",
+          "success",
+        );
+
         // Update offline count
         this.updateOfflineCount();
-        
+
         // Refresh current page data
-        const currentTab = sessionStorage.getItem('currentTab');
-        if (currentTab === '/leads') {
+        const currentTab = sessionStorage.getItem("currentTab");
+        if (currentTab === "/leads") {
           eventBus.emit(EVENTS.LEADS_REFRESH);
-        } else if (currentTab === '/organizations') {
+        } else if (currentTab === "/organizations") {
           // Trigger organization refresh if available
           if (window.dbWorker) {
-            window.dbWorker.postMessage({ action: 'getAllOrganizations' });
+            window.dbWorker.postMessage({ action: "getAllOrganizations" });
           }
-        } else if (currentTab === '/deals') {
+        } else if (currentTab === "/deals") {
           // Trigger deals refresh if available
           if (window.dbWorker) {
-            window.dbWorker.postMessage({ action: 'getAllDeals' });
+            window.dbWorker.postMessage({ action: "getAllDeals" });
           }
         }
       }, 2000);
-      
     } catch (error) {
-      console.error('Sync failed:', error);
-      notificationController.showToast('Sync failed. Please try again.', 'error');
+      console.error("Sync failed:", error);
+      notificationController.showToast(
+        "Sync failed. Please try again.",
+        "error",
+      );
     }
   }
 
   updateOfflineCount() {
     const count = offlineManager.getTotalOfflineCount();
-    const badge = document.querySelector('#offline-count');
-    
+    const badge = document.querySelector("#offline-count");
+
     if (badge) {
       if (count > 0) {
         badge.textContent = count;
-        badge.classList.remove('hidden');
+        badge.classList.remove("hidden");
       } else {
-        badge.classList.add('hidden');
+        badge.classList.add("hidden");
       }
     }
   }

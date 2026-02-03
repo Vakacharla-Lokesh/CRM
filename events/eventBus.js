@@ -52,6 +52,7 @@ export const EVENTS = {
   DEAL_UPDATE: "deal:update",
   DEAL_UPDATED: "deal:updated",
   DEAL_EXPORT: "deal:export",
+  DEAL_REFRESH: "deal:refresh",
 
   // ORGANIZATION EVENTS
   ORGANIZATION_CREATE: "organization:create",
@@ -61,6 +62,7 @@ export const EVENTS = {
   ORGANIZATION_UPDATE: "organization:update",
   ORGANIZATION_UPDATED: "organization:updated",
   ORGANIZATION_EXPORT: "organization:export",
+  ORGANIZATION_REFRESH: "organization:refresh",
 
   // DB EVENTS
   DB_READY: "db:ready",
