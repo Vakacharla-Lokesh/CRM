@@ -90,30 +90,28 @@ export function handleLeadFormSubmit(event) {
       tenant_id: user.tenant_id,
     };
 
-    // Check offline status
     if (!offlineManager.isOnline()) {
-      // Add offline flags
       leadData._offline = true;
       leadData._timestamp = Date.now();
-      
-      offlineManager.saveOffline('leads', leadData);
-      notificationController.showToast('Lead saved offline. Will sync when online.', 'warning');
-      
-      // Update UI immediately
+
+      offlineManager.saveOffline("leads", leadData);
+      notificationController.showToast(
+        "Lead saved offline. Will sync when online.",
+        "warning",
+      );
+
       document.getElementById("form-modal")?.classList.add("hidden");
       event.target.reset();
       document.getElementById("selected_organization_id")?.remove();
-      
-      // Trigger refresh if on leads page
-      const currentTab = sessionStorage.getItem('currentTab');
-      if (currentTab === '/leads') {
+
+      const currentTab = sessionStorage.getItem("currentTab");
+      if (currentTab === "/leads") {
         eventBus.emit(EVENTS.LEADS_REFRESH);
       }
       return;
+    } else {
+      eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
     }
-
-    // Online mode - normal flow
-    eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
   } else if (leadFormData.organization_name) {
     createOrganizationAndLead(leadFormData);
   } else {
@@ -157,7 +155,6 @@ export function handleOrganizationFormSubmit(event) {
     return;
   }
 
-  // Check if we're editing or creating
   const organizationId = document
     .getElementById("organization_id")
     ?.value?.trim();
@@ -198,29 +195,28 @@ export function handleOrganizationFormSubmit(event) {
     return;
   }
 
-  // Check offline status (skip for edits)
   if (!isEdit && !offlineManager.isOnline()) {
-    // Add offline flags
     organizationData._offline = true;
     organizationData._timestamp = Date.now();
     organizationData.created_on = new Date();
     organizationData.modified_on = new Date();
-    
-    offlineManager.saveOffline('organizations', organizationData);
-    notificationController.showToast('Organization saved offline. Will sync when online.', 'warning');
-    
+
+    offlineManager.saveOffline("organizations", organizationData);
+    notificationController.showToast(
+      "Organization saved offline. Will sync when online.",
+      "warning",
+    );
+
     document.getElementById("form-modal")?.classList.add("hidden");
     event.target.reset();
-    
-    // Trigger refresh if on organizations page
-    const currentTab = sessionStorage.getItem('currentTab');
-    if (currentTab === '/organizations') {
-      eventBus.emit(EVENTS.ORGANIZATION_EXPORT); // Use existing refresh pattern
+
+    const currentTab = sessionStorage.getItem("currentTab");
+    if (currentTab === "/organizations") {
+      eventBus.emit(EVENTS.ORGANIZATION_REFRESH);
     }
     return;
   }
 
-  // Online mode - normal flow
   if (isEdit) {
     eventBus.emit(EVENTS.ORGANIZATION_UPDATE, { organizationData });
   } else {
@@ -247,7 +243,6 @@ export function handleDealFormSubmit(event) {
     return;
   }
 
-  // Check if we're editing or creating
   const dealId = document.getElementById("deal_id_hidden")?.value?.trim();
   const isEdit = !!dealId;
 
@@ -285,15 +280,16 @@ export function handleDealFormSubmit(event) {
   }
   dealData.modified_on = new Date();
 
-  // Check offline status (skip for edits)
   if (!isEdit && !offlineManager.isOnline()) {
-    // Add offline flags
     dealData._offline = true;
     dealData._timestamp = Date.now();
-    
-    offlineManager.saveOffline('deals', dealData);
-    notificationController.showToast('Deal saved offline. Will sync when online.', 'warning');
-    
+
+    offlineManager.saveOffline("deals", dealData);
+    notificationController.showToast(
+      "Deal saved offline. Will sync when online.",
+      "warning",
+    );
+
     const modal =
       document.getElementById("deal-form-modal") ||
       document.getElementById("form-modal");
@@ -301,16 +297,14 @@ export function handleDealFormSubmit(event) {
       modal.classList.add("hidden");
     }
     event.target.reset();
-    
-    // Trigger refresh if on deals page
-    const currentTab = sessionStorage.getItem('currentTab');
-    if (currentTab === '/deals') {
-      eventBus.emit(EVENTS.DEAL_EXPORT); // Use existing refresh pattern
+
+    const currentTab = sessionStorage.getItem("currentTab");
+    if (currentTab === "/deals") {
+      eventBus.emit(EVENTS.DEAL_REFRESH);
     }
     return;
   }
 
-  // Online mode - normal flow
   if (isEdit) {
     eventBus.emit(EVENTS.DEAL_UPDATE, { dealData });
   } else {
@@ -463,16 +457,19 @@ export function handleUserFormSubmit(event) {
     // Add offline flags
     userData._offline = true;
     userData._timestamp = Date.now();
-    
-    offlineManager.saveOffline('users', userData);
-    notificationController.showToast('User saved offline. Will sync when online.', 'warning');
-    
+
+    offlineManager.saveOffline("users", userData);
+    notificationController.showToast(
+      "User saved offline. Will sync when online.",
+      "warning",
+    );
+
     document.getElementById("form-modal")?.classList.add("hidden");
     event.target.reset();
-    
+
     // Trigger refresh if on users page
-    const currentTab = sessionStorage.getItem('currentTab');
-    if (currentTab === '/users') {
+    const currentTab = sessionStorage.getItem("currentTab");
+    if (currentTab === "/users") {
       // Trigger user list refresh if available
     }
     return;

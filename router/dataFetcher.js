@@ -124,10 +124,6 @@ export class DataFetcher {
     });
 
     if (storeName === "Leads" && currentPath === "/leads") {
-      if (!window.isSync) {
-        let localLeads = JSON.parse(sessionStorage.getItem("leads"));
-        rows.push(...localLeads);
-      }
       populateLeadsTable(rows || []);
     } else if (
       storeName === "Organizations" &&

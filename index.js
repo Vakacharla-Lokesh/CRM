@@ -8,6 +8,7 @@ import { longPolling } from "./services/communication/polling/longPolling.js";
 import { checkHealth } from "./services/communication/polling/shortPolling.js";
 import { initWebSocket } from "./services/communication/websockets/wsManager.js";
 
+// user manager
 userManager.initialize();
 
 // Initialize DB Worker
