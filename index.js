@@ -260,5 +260,5 @@ checkHealth();
 
 // Web sockers call
 window.wsClient = initWebSocket({
-  url: "ws://localhost:8080",
+  url: "ws://localhost:3000",
 });

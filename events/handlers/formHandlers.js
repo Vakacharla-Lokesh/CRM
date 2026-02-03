@@ -2,6 +2,8 @@ import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
 import { showNotification } from "../notificationEvents.js";
+import { offlineManager } from "../../services/offlineManager.js";
+import { notificationController } from "../../controllers/notificationController.js";
 
 export function handleLeadFormSubmit(event) {
   event.preventDefault();
@@ -83,14 +85,30 @@ export function handleLeadFormSubmit(event) {
       tenant_id: user.tenant_id,
     };
 
-    if (window.isSync) {
-      eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
-    } else {
-      console.log("Inside offline mode: ");
-      let localLeads = JSON.parse(sessionStorage.getItem("leads")) || [];
-      localLeads.push(leadData);
-      sessionStorage.setItem("leads", JSON.stringify(localLeads));
+    // Check offline status
+    if (!offlineManager.isOnline()) {
+      // Add offline flags
+      leadData._offline = true;
+      leadData._timestamp = Date.now();
+      
+      offlineManager.saveOffline('leads', leadData);
+      notificationController.showToast('Lead saved offline. Will sync when online.', 'warning');
+      
+      // Update UI immediately
+      document.getElementById("form-modal")?.classList.add("hidden");
+      event.target.reset();
+      document.getElementById("selected_organization_id")?.remove();
+      
+      // Trigger refresh if on leads page
+      const currentTab = sessionStorage.getItem('currentTab');
+      if (currentTab === '/leads') {
+        eventBus.emit(EVENTS.LEADS_REFRESH);
+      }
+      return;
     }
+
+    // Online mode - normal flow
+    eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
   } else if (leadFormData.organization_name) {
     createOrganizationAndLead(leadFormData);
   } else {
@@ -171,6 +189,29 @@ export function handleOrganizationFormSubmit(event) {
     return;
   }
 
+  // Check offline status (skip for edits)
+  if (!isEdit && !offlineManager.isOnline()) {
+    // Add offline flags
+    organizationData._offline = true;
+    organizationData._timestamp = Date.now();
+    organizationData.created_on = new Date();
+    organizationData.modified_on = new Date();
+    
+    offlineManager.saveOffline('organizations', organizationData);
+    notificationController.showToast('Organization saved offline. Will sync when online.', 'warning');
+    
+    document.getElementById("form-modal")?.classList.add("hidden");
+    event.target.reset();
+    
+    // Trigger refresh if on organizations page
+    const currentTab = sessionStorage.getItem('currentTab');
+    if (currentTab === '/organizations') {
+      eventBus.emit(EVENTS.ORGANIZATION_EXPORT); // Use existing refresh pattern
+    }
+    return;
+  }
+
+  // Online mode - normal flow
   if (isEdit) {
     eventBus.emit(EVENTS.ORGANIZATION_UPDATE, { organizationData });
   } else {
@@ -231,6 +272,32 @@ export function handleDealFormSubmit(event) {
   }
   dealData.modified_on = new Date();
 
+  // Check offline status (skip for edits)
+  if (!isEdit && !offlineManager.isOnline()) {
+    // Add offline flags
+    dealData._offline = true;
+    dealData._timestamp = Date.now();
+    
+    offlineManager.saveOffline('deals', dealData);
+    notificationController.showToast('Deal saved offline. Will sync when online.', 'warning');
+    
+    const modal =
+      document.getElementById("deal-form-modal") ||
+      document.getElementById("form-modal");
+    if (modal) {
+      modal.classList.add("hidden");
+    }
+    event.target.reset();
+    
+    // Trigger refresh if on deals page
+    const currentTab = sessionStorage.getItem('currentTab');
+    if (currentTab === '/deals') {
+      eventBus.emit(EVENTS.DEAL_EXPORT); // Use existing refresh pattern
+    }
+    return;
+  }
+
+  // Online mode - normal flow
   if (isEdit) {
     eventBus.emit(EVENTS.DEAL_UPDATE, { dealData });
   } else {
@@ -370,6 +437,27 @@ export function handleUserFormSubmit(event) {
     role: userData.role,
   });
 
+  // Check offline status
+  if (!offlineManager.isOnline()) {
+    // Add offline flags
+    userData._offline = true;
+    userData._timestamp = Date.now();
+    
+    offlineManager.saveOffline('users', userData);
+    notificationController.showToast('User saved offline. Will sync when online.', 'warning');
+    
+    document.getElementById("form-modal")?.classList.add("hidden");
+    event.target.reset();
+    
+    // Trigger refresh if on users page
+    const currentTab = sessionStorage.getItem('currentTab');
+    if (currentTab === '/users') {
+      // Trigger user list refresh if available
+    }
+    return;
+  }
+
+  // Online mode - normal flow
   eventBus.emit(EVENTS.USER_CREATE, { userData });
 
   document.getElementById("form-modal")?.classList.add("hidden");
