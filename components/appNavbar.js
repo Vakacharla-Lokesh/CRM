@@ -1,6 +1,8 @@
 import { populateLeadsTable } from "../controllers/populateLeads.js";
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { generateRandomLeads } from "../services/utils/randomLeadGenerator.js";
+import { offlineManager } from "../services/offlineManager.js";
+import { notificationController } from "../controllers/notificationController.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -33,6 +35,9 @@ template.innerHTML = `
                 class="w-2.5 h-2.5 rounded-full bg-green-400"
               ></span>
               <span id="sync-status-text">Online</span>
+              <span id="offline-count" class="hidden ml-2 px-2 py-0.5 text-xs bg-yellow-500 text-white rounded-full">
+                0
+              </span>
             </button>
             <button
               type="button"
@@ -163,6 +168,10 @@ class AppNavbar extends HTMLElement {
     if (this.isSync) {
       this.syncLeads();
     }
+    
+    // Update offline count initially and every 5 seconds
+    this.updateOfflineCount();
+    this.offlineCountInterval = setInterval(() => this.updateOfflineCount(), 5000);
   }
 
   setupEventListeners() {
@@ -229,7 +238,8 @@ class AppNavbar extends HTMLElement {
           this.syncDot.classList.remove("bg-red-400");
           this.syncDot.classList.add("bg-green-400");
 
-          this.syncLeads();
+          // Trigger offline sync
+          this.syncOfflineData();
         }
       });
     }
@@ -340,16 +350,84 @@ class AppNavbar extends HTMLElement {
   }
 
   syncLeads() {
+    // Legacy support - check sessionStorage
     if (window.dbWorker) {
       let localLeads = JSON.parse(sessionStorage.getItem("leads"));
 
-      console.log("local leads: ", localLeads);
+      if (localLeads && localLeads.length > 0) {
+        console.log("local leads: ", localLeads);
 
-      localLeads.forEach((lead) => {
-        eventBus.emit(EVENTS.LEAD_CREATE, { leadData: lead });
-      });
+        localLeads.forEach((lead) => {
+          eventBus.emit(EVENTS.LEAD_CREATE, { leadData: lead });
+        });
 
-      sessionStorage.removeItem("leads");
+        sessionStorage.removeItem("leads");
+      }
+    }
+  }
+
+  async syncOfflineData() {
+    const totalCount = offlineManager.getTotalOfflineCount();
+    
+    if (totalCount === 0) {
+      notificationController.showToast('No offline data to sync', 'info');
+      return;
+    }
+    
+    notificationController.showToast(`Syncing ${totalCount} offline items...`, 'info');
+    
+    try {
+      // Sync all offline data via event bus
+      offlineManager.syncAll(eventBus, EVENTS);
+      
+      // Wait for sync to complete
+      setTimeout(() => {
+        notificationController.showToast('Sync completed successfully!', 'success');
+        
+        // Update offline count
+        this.updateOfflineCount();
+        
+        // Refresh current page data
+        const currentTab = sessionStorage.getItem('currentTab');
+        if (currentTab === '/leads') {
+          eventBus.emit(EVENTS.LEADS_REFRESH);
+        } else if (currentTab === '/organizations') {
+          // Trigger organization refresh if available
+          if (window.dbWorker) {
+            window.dbWorker.postMessage({ action: 'getAllOrganizations' });
+          }
+        } else if (currentTab === '/deals') {
+          // Trigger deals refresh if available
+          if (window.dbWorker) {
+            window.dbWorker.postMessage({ action: 'getAllDeals' });
+          }
+        }
+      }, 2000);
+      
+    } catch (error) {
+      console.error('Sync failed:', error);
+      notificationController.showToast('Sync failed. Please try again.', 'error');
+    }
+  }
+
+  updateOfflineCount() {
+    const count = offlineManager.getTotalOfflineCount();
+    const badge = document.querySelector('#offline-count');
+    
+    if (badge) {
+      if (count > 0) {
+        badge.textContent = count;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+    }
+  }
+
+  disconnectedCallback() {
+    // Clean up interval when component is removed
+    if (this.offlineCountInterval) {
+      clearInterval(this.offlineCountInterval);
     }
   }
 }

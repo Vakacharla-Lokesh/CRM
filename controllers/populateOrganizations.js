@@ -1,3 +1,5 @@
+import { offlineManager } from "../services/offlineManager.js";
+
 export function populateOrganizationsTable(organizations) {
   // console.log("populateLeadsTable called with:", leads);
   const tbody = document.querySelector("#organizations-body");
@@ -8,7 +10,11 @@ export function populateOrganizationsTable(organizations) {
     return;
   }
 
-  if (!organizations || organizations.length === 0) {
+  // Merge offline data
+  const offlineOrgs = offlineManager.getOfflineData('organizations') || [];
+  const allOrgs = [...organizations, ...offlineOrgs];
+
+  if (!allOrgs || allOrgs.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="7" class="px-6 py-4 text-center text-gray-500 dark:text-gray-400">
@@ -21,12 +27,18 @@ export function populateOrganizationsTable(organizations) {
 
   tbody.innerHTML = "";
 
-  organizations.forEach((organization) => {
+  allOrgs.forEach((organization) => {
+    const isOffline = organization._offline === true;
     // console.log(organization);
     const row = document.createElement("tr");
     row.setAttribute("data-organization-id", organization.organization_id);
-    row.className =
-      "border-b border-gray-100 dark:border-gray-700 even:bg-gray-50 dark:even:bg-gray-700/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors";
+    row.className = `
+      border-b border-gray-100 dark:border-gray-700 
+      even:bg-gray-50 dark:even:bg-gray-700/40 
+      hover:bg-blue-50 dark:hover:bg-blue-500/10 
+      transition-colors
+      ${isOffline ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-l-yellow-500' : ''}
+    `.trim();
 
     row.innerHTML = `
       <td class="w-4 p-4">
@@ -39,7 +51,10 @@ export function populateOrganizationsTable(organizations) {
       <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organization_website_name || ""}</td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organization_industry || ""}</td>
       <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
-        ${organization.created_on ? new Date(organization.created_on).toLocaleDateString() : "N/A"}
+        ${isOffline 
+          ? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">📴 Offline</span>'
+          : (organization.created_on ? new Date(organization.created_on).toLocaleDateString() : "N/A")
+        }
       </td>
       <td class="px-3 py-4">
         <div class="flex flex-row gap-1">
@@ -59,5 +74,5 @@ export function populateOrganizationsTable(organizations) {
 
     tbody.appendChild(row);
   });
-  console.log("Table populated with", organizations.length, "rows");
+  console.log("Table populated with", allOrgs.length, "rows (", offlineOrgs.length, "offline)");
 }

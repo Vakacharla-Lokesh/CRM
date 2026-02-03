@@ -5,30 +5,10 @@ import WSClient from "./client.js";
 export function initWebSocket({
   url,
   statusElementId = "status-wss",
-  pollInterval = 5000,
+  reconnectDelay = 5000,
 }) {
   const ws = new WSClient(url);
-
-  let pollingInterval = null;
-
-  function startShortPolling() {
-    if (pollingInterval) return;
-
-    pollingInterval = setInterval(() => {
-      try {
-        ws.connect();
-      } catch (err) {
-        console.error("Polling error:", err);
-      }
-    }, pollInterval);
-  }
-
-  function stopShortPolling() {
-    if (pollingInterval) {
-      clearInterval(pollingInterval);
-      pollingInterval = null;
-    }
-  }
+  let reconnectTimeout = null;
 
   function setStatus(color) {
     const el = document.getElementById(statusElementId);
@@ -39,16 +19,29 @@ export function initWebSocket({
     dot.classList.add(color);
   }
 
+  function scheduleReconnect() {
+    if (reconnectTimeout) return;
+
+    reconnectTimeout = setTimeout(() => {
+      reconnectTimeout = null;
+      ws.connect();
+    }, reconnectDelay);
+  }
+
   ws.onOpen = () => {
-    stopShortPolling();
     setStatus("bg-green-500");
     addNotification("WebSocket connected", "success");
   };
 
   ws.onClose = () => {
-    startShortPolling();
     setStatus("bg-red-500");
     addNotification("WebSocket disconnected", "error");
+    scheduleReconnect();
+  };
+
+  ws.onError = () => {
+    setStatus("bg-red-500");
+    scheduleReconnect();
   };
 
   ws.onMessage = (data) => {
@@ -56,21 +49,22 @@ export function initWebSocket({
       message: data?.message ?? data,
     });
 
-    const messageText = typeof data === "object" ? JSON.stringify(data) : data;
-
-    addNotification(`WS: ${messageText}`, "info");
+    const text = typeof data === "object" ? JSON.stringify(data) : data;
+    addNotification(`WS: ${text}`, "info");
   };
+
   ws.connect();
+
   return {
+    send(message) {
+      ws.send(message);
+    },
     disconnect() {
-      stopShortPolling();
-      ws.close?.();
+      if (reconnectTimeout) clearTimeout(reconnectTimeout);
+      ws.close();
     },
     getClient() {
       return ws;
-    },
-    send(message) {
-      ws.send(message);
     },
   };
 }

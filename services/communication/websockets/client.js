@@ -5,6 +5,14 @@ export default class WSClient {
   }
 
   connect() {
+    if (
+      this.ws &&
+      (this.ws.readyState === WebSocket.OPEN ||
+        this.ws.readyState === WebSocket.CONNECTING)
+    ) {
+      return;
+    }
+
     this.ws = new WebSocket(this.url);
 
     this.ws.onopen = () => {
@@ -19,7 +27,6 @@ export default class WSClient {
       } catch {
         data = event.data;
       }
-      console.log("Received:", data);
       this.onMessage && this.onMessage(data);
     };
 
@@ -38,8 +45,12 @@ export default class WSClient {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       const msg = typeof data === "string" ? data : JSON.stringify(data);
       this.ws.send(msg);
-    } else {
-      console.warn("WebSocket not open yet");
+    }
+  }
+
+  close() {
+    if (this.ws) {
+      this.ws.close();
     }
   }
 }
