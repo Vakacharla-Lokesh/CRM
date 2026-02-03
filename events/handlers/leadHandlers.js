@@ -121,6 +121,7 @@ export function handleLeadClick(e) {
 }
 
 export function handleLeadRefresh() {
+  console.log("Inside handle Refresh");
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 

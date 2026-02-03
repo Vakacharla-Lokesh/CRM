@@ -1,3 +1,4 @@
+// Show notification in top right drop down
 export function showNotification(message, type = "info") {
   const notification = document.createElement("div");
   notification.className = `fixed top-20 right-4 px-4 py-3 rounded-lg shadow-lg transition-all transform translate-x-0 z-50 ${
@@ -17,6 +18,7 @@ export function showNotification(message, type = "info") {
   }, 3000);
 }
 
+// show message on top right that a new event occured
 export function showMessage(event) {
   const payload = event?.detail || event;
   const message = payload?.message ?? payload;

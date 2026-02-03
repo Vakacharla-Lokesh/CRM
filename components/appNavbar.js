@@ -265,7 +265,13 @@ class AppNavbar extends HTMLElement {
           "dark:hover:bg-blue-600",
         );
       }
-      eventBus.emit(EVENTS.LEADS_REFRESH);
+
+      const currentPath = sessionStorage.getItem("currentTab");
+      if (currentPath === "/leads") {
+        console.log("Before event leads refresh emit: ");
+        eventBus.emit(EVENTS.LEADS_REFRESH);
+        console.log("After event leads refresh emit: ");
+      }
 
       console.log("Stress test cleared - memory should be freed");
     }
