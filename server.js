@@ -1,5 +1,7 @@
 import express from "express";
 import cors from "cors";
+import http from "http";
+import { setupWebSocket } from "./services/communication/websockets/server.js";
 
 const app = express();
 const PORT = 3000;
@@ -10,8 +12,9 @@ app.use(
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: false,
-  })
+  }),
 );
+const server = http.createServer(app);
 app.use(express.json());
 
 // long polling code
@@ -65,6 +68,8 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+setupWebSocket(server);
+
+server.listen(PORT, () => {
+  console.log(`HTTP + WebSocket running on http://localhost:${PORT}`);
 });
