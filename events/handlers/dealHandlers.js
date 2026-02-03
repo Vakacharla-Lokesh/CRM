@@ -1,6 +1,7 @@
 import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
+import userManager from "./userManager.js";
 
 export function handleDealCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -50,7 +51,8 @@ export function handleDealCreated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllDeals",
       user_id: user.user_id,
@@ -68,7 +70,8 @@ export function handleDealUpdated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllDeals",
       user_id: user.user_id,
@@ -95,7 +98,8 @@ export function handleDealDeleted(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllDeals",
       user_id: user.user_id,

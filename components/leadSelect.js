@@ -1,3 +1,5 @@
+import userManager from "../events/handlers/userManager.js";
+
 export class LeadSelect {
   constructor(containerId, dbWorker) {
     this.containerId = containerId;
@@ -14,7 +16,7 @@ export class LeadSelect {
   }
 
   loadLeads() {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
     return new Promise((resolve) => {
       const handler = (e) => {
         const { action, data, storeName } = e.data;

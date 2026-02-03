@@ -1,3 +1,5 @@
+import userManager from "../events/handlers/userManager.js";
+
 (function () {
   "use strict";
   class TableFilter {
@@ -317,7 +319,11 @@
     }
 
     refreshTable(dbWorker) {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = userManager.getUser();
+      if (!user) {
+        this.showNotification("Please sign in again.", "error");
+        return;
+      }
       const actionName = `getAll${this.storeName}`;
       const allCheckboxes = this.tbody.querySelectorAll(
         `.${this.itemCheckboxClass}`,

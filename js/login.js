@@ -1,6 +1,7 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { checkUserLogin } from "../services/checkUserLogin.js";
 import { generateId } from "../services/utils/uidGenerator.js";
+import userManager from "../events/handlers/userManager.js";
 
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("login-email");
@@ -98,16 +99,13 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          user_id: result.user.userId,
-          user_name: result.user.name,
-          authToken: generateId("user"),
-          role: result.user.role,
-          tenant_id: result.user.tenantId,
-        }),
-      );
+      userManager.setUser({
+        user_id: result.user.userId,
+        user_name: result.user.name,
+        authToken: generateId("user"),
+        role: result.user.role,
+        tenant_id: result.user.tenantId,
+      });
 
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
         email,

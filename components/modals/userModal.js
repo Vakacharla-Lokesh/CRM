@@ -1,3 +1,5 @@
+import userManager from "../../events/handlers/userManager.js";
+
 const template = document.createElement("template");
 template.innerHTML = `<div
   id="form-modal"
@@ -164,7 +166,7 @@ class UserModal extends HTMLElement {
 
   async render() {
     console.log("User Modal rendered");
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    const currentUser = userManager.getUser();
     if (currentUser && currentUser.role === "super_admin") {
       const tenantWrapper = this.querySelector("#tenant-selection-wrapper");
       const roleWrapper = this.querySelector("#role-selection-wrapper");
@@ -177,7 +179,7 @@ class UserModal extends HTMLElement {
   }
 
   async loadTenantsIfSuperAdmin() {
-    const currentUser = JSON.parse(localStorage.getItem("user"));
+    const currentUser = userManager.getUser();
 
     if (!currentUser || currentUser.role !== "super_admin") {
       return;

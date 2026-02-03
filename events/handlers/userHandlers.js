@@ -1,5 +1,6 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
+import userManager from "./userManager.js";
 
 export function handleUserCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -29,7 +30,8 @@ export function handleUserCreated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/users" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllUsers",
       tenant_id: user.tenant_id,
@@ -54,7 +56,8 @@ export function handleUserDeleted(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/users" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllUsers",
       tenant_id: user.tenant_id,
