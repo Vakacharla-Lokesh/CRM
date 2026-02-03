@@ -1,5 +1,10 @@
+import userManager from "./handlers/userManager.js";
+
 export function updateUserDetails() {
-  let userData = JSON.parse(localStorage.getItem("user"));
+  let userData = userManager.getUser();
+  if (!userData) {
+    return;
+  }
   // console.log(userData);
   const userProfile = `<div class="flex items-center gap-4 mb-6">
       <div

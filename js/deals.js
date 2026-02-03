@@ -1,5 +1,6 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { populateDealsTable } from "../controllers/populateDeals.js";
+import userManager from "../events/handlers/userManager.js";
 
 let dbWorker = null;
 let allLeads = [];
@@ -93,7 +94,7 @@ function loadAllDeals() {
 function loadLeadsForDropdown() {
   if (!dbWorker) return;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
   
   const handler = (e) => {
     const { action, data, storeName } = e.data;
@@ -122,7 +123,7 @@ function loadLeadsForDropdown() {
 function loadOrganizationsForDropdown() {
   if (!dbWorker) return;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
 
   const handler = (e) => {
     const { action, data, rows, storeName } = e.data;

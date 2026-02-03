@@ -1,6 +1,7 @@
 import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
+import userManager from "./userManager.js";
 
 export function handleLeadCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -32,7 +33,8 @@ export function handleLeadCreated(event) {
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) return;
   const { user_id, tenant_id, role } = user;
 
   if (currentTab === "/leads" && dbWorker) {
@@ -61,6 +63,10 @@ export function handleLeadDeleted(event) {
 
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
+
+  const user = userManager.getUser();
+  if (!user) return;
+  const { user_id, tenant_id, role } = user;
 
   if (currentTab === "/leads" && dbWorker) {
     dbWorker.postMessage({
@@ -157,7 +163,8 @@ export function handleLeadRefresh() {
   const currentTab = sessionStorage.getItem("currentTab");
   const { dbWorker } = dbState;
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = userManager.getUser();
+  if (!user) return;
   const { user_id, tenant_id, role } = user;
 
   if (currentTab === "/leads" && dbWorker) {

@@ -1,4 +1,5 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
+import userManager from "../events/handlers/userManager.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -181,7 +182,7 @@ class AppSidebar extends HTMLElement {
       event.preventDefault();
       event.stopPropagation();
       console.log("Inside logout eventlistener");
-      localStorage.removeItem("user");
+      userManager.clearUser();
       window.router.loadRoute("/login");
       eventBus.emit(EVENTS.LOGOUT_SUCCESS);
     });

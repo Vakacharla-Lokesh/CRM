@@ -2,6 +2,7 @@ import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
 import { eventBus, EVENTS } from "../eventBus.js";
+import userManager from "./userManager.js";
 
 export function handleOrganizationCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -52,7 +53,8 @@ export function handleOrganizationCreated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllOrganizations",
       user_id: user.user_id,
@@ -70,7 +72,8 @@ export function handleOrganizationUpdated(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllOrganizations",
       user_id: user.user_id,
@@ -99,7 +102,8 @@ export function handleOrganizationDeleted(event) {
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
+    if (!user) return;
     dbWorker.postMessage({
       action: "getAllOrganizations",
       user_id: user.user_id,

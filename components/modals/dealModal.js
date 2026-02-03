@@ -1,3 +1,5 @@
+import userManager from "../../events/handlers/userManager.js";
+
 const template = document.createElement("template");
 template.innerHTML = `<div
   id="deal-form-modal"
@@ -354,7 +356,7 @@ class DealModal extends HTMLElement {
 
   loadDropdownData() {
     if (!this.dbWorker) return;
-    const user = JSON.parse(localStorage.getItem("user"));
+    const user = userManager.getUser();
     console.log("Loading dropdown data...");
     this.dbWorker.postMessage({
       action: "getAllLeads",

@@ -2,6 +2,7 @@ import { RouteManager } from "./router/routeManager.js";
 import { PageLoader } from "./router/pageLoader.js";
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
+import userManager from "./events/handlers/userManager.js";
 
 class Router {
   constructor() {
@@ -32,8 +33,7 @@ class Router {
     });
 
     // initial route
-    const user = localStorage.getItem("user");
-    const initialRoute = user ? "/home" : "/login";
+    const initialRoute = userManager.isAuthenticated() ? "/home" : "/login";
     this.loadRoute(initialRoute);
   }
 
@@ -53,7 +53,7 @@ class Router {
   // loads routes and scripts
   async loadRoute(path) {
     try {
-      const user = JSON.parse(localStorage.getItem("user"));
+      const user = userManager.getUser();
       const currentPath = sessionStorage.getItem("currentTab");
       if (currentPath === "/leads" && path !== "/leads") {
         const navbar = document.querySelector("app-navbar");
