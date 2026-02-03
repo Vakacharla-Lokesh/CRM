@@ -10,6 +10,7 @@ import {
   handleLeadExport,
   calculateLeadScore,
   handleLeadClick,
+  handleLeadRefresh,
 } from "./handlers/leadHandlers.js";
 
 import {
@@ -62,14 +63,9 @@ import {
   handleSelectAllTenants,
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
-// import user from "./handlers/userManager.js";
 
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);
-
-  // dbState.subscribe(({ dbWorker, isDbReady }) => {
-  //   console.log(`[DB State] Worker: ${!!dbWorker}, Ready: ${isDbReady}`);
-  // });
 
   // All event listeners
   registerDatabaseEvents();
@@ -82,7 +78,6 @@ export function initializeEventHandlers(worker) {
   registerTenantEvents();
 
   // Initialize listeners
-  initializeTheme();
   initializeClickHandlers();
   initializeFormHandlers();
   initializeDOMReady();
@@ -100,6 +95,7 @@ function registerLeadEvents() {
   eventBus.on(EVENTS.LEAD_DELETED, handleLeadDeleted);
   eventBus.on(EVENTS.LEADS_EXPORT, handleLeadExport);
   eventBus.on(EVENTS.LEADS_SCORE, calculateLeadScore);
+  eventBus.on(EVENTS.LEADS_REFRESH, handleLeadRefresh);
 }
 
 function registerOrganizationEvents() {
@@ -248,7 +244,6 @@ function initializeClickHandlers() {
 
     // Close dropdowns when clicking outside
     if (event.target.matches("form[data-form='createTenant']")) {
-      // Tenant form submission is handled in the component
       return;
     } else if (
       !e.target.closest(".dropdown-menu") &&
@@ -319,19 +314,6 @@ function handleDropdownClick(e) {
 
 function handleDbReady(event) {
   dbState.isDbReady = true;
-
-  // const createDbBtn = document.getElementById("data-createDb");
-  // if (createDbBtn) {
-  //   createDbBtn.textContent = "DB Ready";
-  //   createDbBtn.classList.remove("bg-blue-100", "dark:bg-blue-900");
-  //   createDbBtn.classList.add(
-  //     "bg-green-100",
-  //     "dark:bg-green-900",
-  //     "text-green-600",
-  //     "dark:text-green-300",
-  //   );
-  //   createDbBtn.disabled = true;
-  // }
 }
 
 function handleDbError(event) {
@@ -354,7 +336,6 @@ function handleLoginSuccess(event) {
       window.router.loadRoute("/home");
     }
   }, 500);
-  // user.initialize();
 }
 
 function handleLoginFailure(event) {
@@ -364,17 +345,4 @@ function handleLoginFailure(event) {
 function handleLogout() {
   console.log("User logged out");
   user.destroy();
-}
-
-function initializeTheme() {
-  const root = document.documentElement;
-  const toggleBtn = document.getElementById("theme-toggle");
-  const savedTheme = localStorage.getItem("theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const initialTheme = savedTheme || (prefersDark ? "dark" : "light");
-
-  root.classList.toggle("dark", initialTheme === "dark");
-  if (toggleBtn) {
-    toggleBtn.textContent = initialTheme === "dark" ? "☀️" : "🌙";
-  }
 }

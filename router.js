@@ -58,6 +58,14 @@ class Router {
     try {
       const user = JSON.parse(localStorage.getItem("user"));
       // user.initialize();
+      const currentPath = sessionStorage.getItem("currentTab");
+      if (currentPath === "/leads" && path !== "/leads") {
+        // Trigger cleanup
+        const navbar = document.querySelector("app-navbar");
+        if (navbar && navbar.clearStressTest) {
+          navbar.clearStressTest();
+        }
+      }
       const resolvedPath = this.routeManager.resolvePath(path, user);
 
       this.sidebarManager.toggleSidebar(resolvedPath);

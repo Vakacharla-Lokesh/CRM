@@ -2,7 +2,7 @@ class TabHeader extends HTMLElement {
   connectedCallback() {
     this.innerHTML = `
       <div class="bg-white dark:bg-gray-800">
-        <div class="flex gap-6 px-6 py-3 text-sm font-medium border-b border-gray-200 dark:border-gray-700">
+        <div class="flex gap-6 px-6 text-sm font-medium">
           ${["Details", "Calls", "Comments", "Attachments"]
             .map(
               (tab, i) => `

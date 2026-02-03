@@ -1,6 +1,5 @@
 export function populateHome(data) {
   const template = `
-  <!-- Basic Stats -->
   <div class="w-full h-full md:h-1/2 lg:h-1/4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
     <div class="flex flex-col justify-between rounded-xl bg-white dark:bg-neutral-800 p-6 shadow">
       <p class="text-sm text-neutral-500 dark:text-neutral-400">Total Leads</p>
@@ -31,7 +30,6 @@ export function populateHome(data) {
     </div>
   </div>
 
-  <!-- Segment Analysis Section -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Status Segments -->
     <div class="rounded-xl bg-white dark:bg-neutral-800 p-6 shadow">
@@ -41,7 +39,6 @@ export function populateHome(data) {
       </div>
     </div>
 
-    <!-- Industry Segments -->
     <div class="rounded-xl bg-white dark:bg-neutral-800 p-6 shadow">
       <h3 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Leads by Industry</h3>
       <div id="industry-segments-container" class="space-y-3">
@@ -57,17 +54,11 @@ export function populateHome(data) {
   }
 }
 
-/**
- * Render status segments with visual bars
- * @param {Array} statusSegments - Array of segment data
- * @returns {string} HTML string
- */
 function renderStatusSegments(statusSegments) {
   if (!statusSegments || statusSegments.length === 0) {
     return '<p class="text-neutral-500 dark:text-neutral-400">No data available</p>';
   }
 
-  // Find max count for progress bar calculation
   const maxCount = Math.max(...statusSegments.map((s) => s.count));
 
   return statusSegments
@@ -109,17 +100,10 @@ function renderStatusSegments(statusSegments) {
     .join("");
 }
 
-/**
- * Render industry segments with visual bars
- * @param {Array} industrySegments - Array of segment data
- * @returns {string} HTML string
- */
 function renderIndustrySegments(industrySegments) {
   if (!industrySegments || industrySegments.length === 0) {
     return '<p class="text-neutral-500 dark:text-neutral-400">No data available</p>';
   }
-
-  // Find max count for progress bar calculation
   const maxCount = Math.max(...industrySegments.map((s) => s.count));
 
   return industrySegments

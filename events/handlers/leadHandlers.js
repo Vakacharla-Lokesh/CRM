@@ -1,6 +1,5 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
-import { exportDb, downloadCsvFromData } from "../../services/exportDb.js";
 
 export function handleLeadCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -119,4 +118,13 @@ export function handleLeadClick(e) {
   }
 
   return false;
+}
+
+export function handleLeadRefresh() {
+  const currentTab = sessionStorage.getItem("currentTab");
+  const { dbWorker } = dbState;
+
+  if (currentTab === "/leads" && dbWorker) {
+    dbWorker.postMessage({ action: "getAllLeads" });
+  }
 }
