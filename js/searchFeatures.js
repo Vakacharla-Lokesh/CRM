@@ -319,6 +319,14 @@
     refreshTable(dbWorker) {
       const user = JSON.parse(localStorage.getItem("user"));
       const actionName = `getAll${this.storeName}`;
+      const allCheckboxes = this.tbody.querySelectorAll(
+        `.${this.itemCheckboxClass}`,
+      );
+      allCheckboxes.forEach((cb) => (cb.checked = false));
+      this.selectAllCheckbox.checked = false;
+      this.selectAllCheckbox.indeterminate = false;
+      this.bulkDeleteBtn.style.display = "none";
+
       dbWorker.postMessage({
         action: actionName,
         tenant_id: user.tenant_id,

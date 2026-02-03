@@ -9,6 +9,8 @@ export function convertLeadToDeal(leadId, dbReady, db) {
     return;
   }
 
+  console.log("Converting lead:", leadId);
+
   try {
     const tx = db.transaction(["Leads", "Deals"], "readwrite");
     const leadsStore = tx.objectStore("Leads");
@@ -19,6 +21,8 @@ export function convertLeadToDeal(leadId, dbReady, db) {
     getRequest.onsuccess = () => {
       const lead = getRequest.result;
 
+      console.log("Lead data retrieved:", lead);
+
       if (!lead) {
         postMessage({
           action: "convertToDealError",
@@ -27,7 +31,6 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         return;
       }
 
-      // Create deal from lead data
       const dealData = {
         deal_id: generateId("deal"),
         deal_name: `Deal - ${lead.lead_first_name} ${lead.lead_last_name}`,
@@ -38,15 +41,18 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         organization_id: lead.organization_id || null,
         organization_name: lead.organization_name || "",
         tenant_id: lead.tenant_id,
+        user_id: lead.user_id,
         deal_status: "Prospecting",
         created_on: new Date(),
         modified_on: new Date(),
       };
 
+      console.log("Deal data to create:", dealData);
+
       const addRequest = dealsStore.add(dealData);
 
       addRequest.onsuccess = () => {
-        // Update lead status to "Converted"
+        console.log("Deal created successfully");
         const updatedLead = {
           ...lead,
           lead_status: "Converted",
@@ -56,6 +62,7 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         const updateRequest = leadsStore.put(updatedLead);
 
         updateRequest.onsuccess = () => {
+          console.log("Lead status updated to Converted");
           postMessage({
             action: "convertToDealSuccess",
             dealData,
@@ -64,6 +71,7 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         };
 
         updateRequest.onerror = (e) => {
+          console.error("Error updating lead status:", e.target.error);
           postMessage({
             action: "convertToDealError",
             error: e.target.error?.message || "Failed to update lead status",
@@ -72,6 +80,7 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       };
 
       addRequest.onerror = (e) => {
+        console.error("Error creating deal:", e.target.error);
         postMessage({
           action: "convertToDealError",
           error: e.target.error?.message || "Failed to create deal",
@@ -80,6 +89,7 @@ export function convertLeadToDeal(leadId, dbReady, db) {
     };
 
     getRequest.onerror = (e) => {
+      console.error("Error fetching lead:", e.target.error);
       postMessage({
         action: "convertToDealError",
         error: e.target.error?.message || "Failed to fetch lead",

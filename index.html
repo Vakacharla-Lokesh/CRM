@@ -109,6 +109,19 @@
       src="./js/searchFeatures.js"
       defer
     ></script>
+    <script
+      type="module"
+      src="./components/filter.js"
+    ></script>
+
+    <script type="module">
+      import {
+        initializeSmartFilter,
+        setupFilterEventListeners,
+      } from "./js/filterIntegeration.js";
+      window.initializeSmartFilter = initializeSmartFilter;
+      window.setupFilterEventListeners = setupFilterEventListeners;
+    </script>
 
     <!-- MAIN INDEX IMPORT -->
     <script

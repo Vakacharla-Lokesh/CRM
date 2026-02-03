@@ -252,7 +252,9 @@ function initializeClickHandlers() {
       return;
     } else if (
       !e.target.closest(".dropdown-menu") &&
-      !e.target.closest(".dropdown-btn")
+      !e.target.closest(".dropdown-btn") &&
+      !e.target.closest("[data-org-id]") &&
+      !e.target.closest("[data-lead-id]")
     ) {
       document.querySelectorAll(".dropdown-menu").forEach((dropdown) => {
         dropdown.classList.add("hidden");

@@ -114,6 +114,14 @@ dbWorker.addEventListener("message", (e) => {
     // Initialize router with dbWorker
     router.initialize(dbWorker);
 
+    // Setup filter event listeners after a brief delay to ensure DOM is ready
+    setTimeout(() => {
+      if (window.setupFilterEventListeners) {
+        window.setupFilterEventListeners();
+        console.log("Filter event listeners setup complete");
+      }
+    }, 100);
+
     initializeOrgSelect(dbWorker);
   }
 

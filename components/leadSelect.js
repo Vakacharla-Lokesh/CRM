@@ -145,10 +145,15 @@ export class LeadSelect {
     if (!leadList) return;
 
     const filtered = this.leads.filter((lead) => {
-      const fullName = `${lead.lead_first_name || ''} ${lead.lead_last_name || ''}`.toLowerCase();
-      const email = (lead.lead_email || '').toLowerCase();
-      const company = (lead.lead_company || '').toLowerCase();
-      return fullName.includes(query) || email.includes(query) || company.includes(query);
+      const fullName =
+        `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.toLowerCase();
+      const email = (lead.lead_email || "").toLowerCase();
+      const company = (lead.lead_company || "").toLowerCase();
+      return (
+        fullName.includes(query) ||
+        email.includes(query) ||
+        company.includes(query)
+      );
     });
 
     if (filtered.length === 0) {
@@ -162,9 +167,9 @@ export class LeadSelect {
         .map(
           (lead) => `
         <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0" data-lead-id="${lead.lead_id}">
-          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(`${lead.lead_first_name || ''} ${lead.lead_last_name || ''}`.trim() || 'Unnamed Lead')}</p>
+          <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(`${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim() || "Unnamed Lead")}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">
-            ${lead.lead_email ? this.escapeHtml(lead.lead_email) : ''} 
+            ${lead.lead_email ? this.escapeHtml(lead.lead_email) : ""} 
             ${lead.lead_company ? `• ${this.escapeHtml(lead.lead_company)}` : ""}
           </p>
         </div>
@@ -176,6 +181,7 @@ export class LeadSelect {
     leadList.querySelectorAll("[data-lead-id]").forEach((item) => {
       item.addEventListener("mousedown", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         const leadId = e.currentTarget.getAttribute("data-lead-id");
         this.selectLead(leadId);
       });
@@ -201,9 +207,9 @@ export class LeadSelect {
 
     // Also update any existing lead_id select/input if present
     const leadIdField = document.getElementById("lead_id");
-    if (leadIdField && leadIdField.tagName === 'SELECT') {
+    if (leadIdField && leadIdField.tagName === "SELECT") {
       leadIdField.value = lead.lead_id;
-    } else if (leadIdField && leadIdField.tagName === 'INPUT') {
+    } else if (leadIdField && leadIdField.tagName === "INPUT") {
       leadIdField.value = lead.lead_id;
     }
   }
@@ -214,11 +220,13 @@ export class LeadSelect {
     const detailsEl = document.getElementById("lead-display-details");
     const searchInput = document.getElementById("lead-search-input");
 
-    const fullName = `${lead.lead_first_name || ''} ${lead.lead_last_name || ''}`.trim() || 'Unnamed Lead';
+    const fullName =
+      `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim() ||
+      "Unnamed Lead";
 
     if (display && nameEl && detailsEl) {
       nameEl.textContent = fullName;
-      detailsEl.textContent = `${lead.lead_email || 'No email'} • ${lead.lead_company || 'No company'}`;
+      detailsEl.textContent = `${lead.lead_email || "No email"} • ${lead.lead_company || "No company"}`;
       display.classList.remove("hidden");
     }
 
@@ -308,11 +316,17 @@ export function initializeLeadSelect(dbWorker) {
       if (currentTab === "/deals") {
         setTimeout(() => {
           const leadIdField = document.getElementById("lead_id");
-          if (leadIdField && !document.getElementById("lead-select-container")) {
+          if (
+            leadIdField &&
+            !document.getElementById("lead-select-container")
+          ) {
             const container = leadIdField.closest("div");
             if (container) {
               container.id = "lead-select-container";
-              const leadSelect = new LeadSelect("lead-select-container", dbWorker);
+              const leadSelect = new LeadSelect(
+                "lead-select-container",
+                dbWorker,
+              );
               leadSelect.initialize();
             }
           }

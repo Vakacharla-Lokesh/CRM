@@ -105,7 +105,7 @@ export class OrganizationSelect {
       });
 
       searchInput.addEventListener("blur", () => {
-        this.hideDropdown();
+        setTimeout(() => this.hideDropdown(), 100);
       });
 
       searchInput.addEventListener("input", (e) => {
@@ -121,6 +121,7 @@ export class OrganizationSelect {
     if (dropdownBtn) {
       dropdownBtn.addEventListener("click", (e) => {
         e.preventDefault();
+        e.stopPropagation();
         this.toggleDropdown();
       });
     }
@@ -170,7 +171,9 @@ export class OrganizationSelect {
     }
 
     orgList.querySelectorAll("[data-org-id]").forEach((item) => {
-      item.addEventListener("click", (e) => {
+      item.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const orgId = e.currentTarget.getAttribute("data-org-id");
         this.selectOrganization(orgId);
       });

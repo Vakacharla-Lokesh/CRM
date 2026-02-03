@@ -112,4 +112,9 @@ export function populateLeadsTable(leads) {
     tbody.appendChild(row);
   });
   console.log(`Populated leads table with ${leads.length} lead(s)`);
+  
+  // Dispatch event for filter to update
+  document.dispatchEvent(new CustomEvent('leadsPopulated', {
+    detail: { leads }
+  }));
 }
