@@ -186,6 +186,10 @@ dbWorker.addEventListener("message", (e) => {
       `Lead scores updated! ${updatedCount} of ${totalLeads} leads modified.`,
       "success",
     );
+    eventBus.emit(EVENTS.WEB_SOCKET_SEND, {
+      message: `Lead score updated: ${updatedCount}.`,
+    });
+    eventBus.emit(EVENTS.LEADS_REFRESH);
   }
 
   if (e.data.action === "exportDataReady") {
@@ -263,6 +267,27 @@ longPolling();
 checkHealth();
 
 // Web sockers call
-window.wsClient = initWebSocket({
-  url: "ws://localhost:3000",
-});
+// window.wsClient = initWebSocket({
+//   url: "ws://localhost:3000",
+// });
+
+export function connectWebSocketIfAuthenticated() {
+  if (!userManager.isAuthenticated()) return;
+
+  let tenantId = userManager.getTenantId();
+
+  if (!tenantId && userManager.isSuperAdmin()) {
+    tenantId = "__GLOBAL__";
+  }
+
+  if (!tenantId) {
+    console.warn("No tenant or global scope, skipping WebSocket");
+    return;
+  }
+
+  window.wsClient = initWebSocket({
+    url: `ws://localhost:3000?tenant_id=${tenantId}`,
+  });
+}
+
+connectWebSocketIfAuthenticated();

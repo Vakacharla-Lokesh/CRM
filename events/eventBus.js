@@ -69,6 +69,8 @@ export const EVENTS = {
   DB_ERROR: "db:error",
 
   ROUTE_CHANGE: "route:change",
+
+  // WEBSOCKET EVENTS
   WEB_SOCKET_MESSAGE: "websocket:message",
   WEB_SOCKET_SEND: "websocket:send",
 

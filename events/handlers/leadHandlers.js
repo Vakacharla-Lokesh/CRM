@@ -101,15 +101,22 @@ export function handleLeadExport() {
 export function calculateLeadScore() {
   const { dbWorker } = dbState;
 
+  const user = userManager.getUser();
+  if (!user) return;
+  const { user_id, tenant_id, role } = user;
+
   if (dbWorker) {
-    dbWorker.postMessage({ action: "calculateScore" });
+    dbWorker.postMessage({
+      action: "calculateScore",
+      user_id,
+      tenant_id,
+      role,
+    });
   }
 }
 
 // Click handler for lead actions
 export function handleLeadClick(e) {
-  const { dbWorker } = dbState;
-
   if (e.target.closest("#editLead")) {
     e.preventDefault();
     e.stopImmediatePropagation();

@@ -6,7 +6,6 @@ import userManager from "../events/handlers/userManager.js";
 const loginForm = document.getElementById("login-form");
 const emailInput = document.getElementById("login-email");
 const passwordInput = document.getElementById("login-password");
-const rememberCheckbox = document.getElementById("remember-me");
 const submitBtn = document.getElementById("login-submit");
 const formError = document.getElementById("form-error");
 const emailError = document.getElementById("email-error");
@@ -125,20 +124,6 @@ loginForm.addEventListener("submit", async (e) => {
     submitBtn.textContent = "Sign In";
   }
 });
-
-function attachSignUpListener() {
-  const rememberedEmail = localStorage.getItem("rememberEmail");
-  if (rememberedEmail) {
-    const emailField = document.getElementById("login-email");
-    if (emailField) {
-      emailField.value = rememberedEmail;
-      const rememberCheckboxField = document.getElementById("remember-me");
-      if (rememberCheckboxField) {
-        rememberCheckboxField.checked = true;
-      }
-    }
-  }
-}
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Inside dom content loaded fn in login js");

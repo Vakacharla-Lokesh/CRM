@@ -35,6 +35,21 @@ class UserManager {
   isAuthenticated() {
     return Boolean(this.getUser());
   }
+
+  getTenantId() {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    // console.log(this.user);
+    return this.user.tenant_id;
+  }
+
+  isSuperAdmin() {
+    if (!this.isInitialized) {
+      this.initialize();
+    }
+    return this.user?.role === "super_admin";
+  }
 }
 
 const userManager = new UserManager();
