@@ -24,7 +24,7 @@ lead activity in db
 
 when new lead is created do not call all the db
 
-export data tenant wise
+>>>export data tenant wise
 
 fix the ui of lead details
 

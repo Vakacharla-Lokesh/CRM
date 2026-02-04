@@ -289,29 +289,42 @@ self.onmessage = (e) => {
 
     // export case:
     case "exportData":
-      console.log("Inside export data: ", e.data);
-      if (dbReady && db) {
-        const storeName = e.data.storeName;
-        const tx = db.transaction(storeName, "readonly");
-        const store = tx.objectStore(storeName);
-        const request = store.getAll();
+      if (!dbReady || !db) return;
 
-        request.onsuccess = () => {
-          const data = request.result;
-          postMessage({
-            action: "exportDataReady",
-            storeName: storeName,
-            data: data,
-          });
-        };
+      const { storeName, user_id, tenant_id, role } = e.data;
 
-        request.onerror = () => {
-          postMessage({
-            action: "exportDataError",
-            error: request.error.message,
-          });
-        };
-      }
+      const tx = db.transaction(storeName, "readonly");
+      const store = tx.objectStore(storeName);
+      const request = store.getAll();
+
+      request.onsuccess = () => {
+        let data = request.result;
+        if (role === "admin") {
+          data = data.filter(
+            (item) => String(item.tenant_id) === String(tenant_id),
+          );
+        } else {
+          data = data.filter(
+            (item) =>
+              String(item.tenant_id) === String(tenant_id) &&
+              String(item.user_id) === String(user_id),
+          );
+        }
+
+        postMessage({
+          action: "exportDataReady",
+          storeName,
+          data,
+        });
+      };
+
+      request.onerror = () => {
+        postMessage({
+          action: "exportDataError",
+          error: request.error?.message || "Export failed",
+        });
+      };
+
       break;
 
     default:

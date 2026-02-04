@@ -117,10 +117,20 @@ export function handleDealExport() {
   exportBtn.classList.add("hidden");
   exportDiv.appendChild(progressBar);
 
+  const user = userManager.getUser();
+  if (!user) return;
+  const { user_id, tenant_id, role } = user;
+
   progressBar.onComplete = () => {
     const { dbWorker } = dbState;
     if (dbWorker) {
-      dbWorker.postMessage({ action: "exportData", storeName: "Deals" });
+      dbWorker.postMessage({
+        action: "exportData",
+        storeName: "Deals",
+        user_id,
+        tenant_id,
+        role,
+      });
     }
   };
 

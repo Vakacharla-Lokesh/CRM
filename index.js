@@ -86,7 +86,6 @@ function hideNotificationBadge() {
   }
 }
 
-// Notification dropdown handlers
 document.addEventListener("click", (e) => {
   const notificationBtn = document.getElementById("notification-btn");
   const notificationDropdown = document.getElementById("notification-dropdown");
@@ -106,7 +105,6 @@ document.addEventListener("click", (e) => {
   }
 });
 
-// DB Worker message handling
 dbWorker.addEventListener("message", (e) => {
   const payload = e.data || {};
 
@@ -117,8 +115,6 @@ dbWorker.addEventListener("message", (e) => {
 
     // Initialize router with dbWorker
     router.initialize(dbWorker);
-
-    // Setup filter event listeners after a brief delay to ensure DOM is ready
     setTimeout(() => {
       if (window.setupFilterEventListeners) {
         window.setupFilterEventListeners();
@@ -194,6 +190,8 @@ dbWorker.addEventListener("message", (e) => {
 
   if (e.data.action === "exportDataReady") {
     const { storeName, data } = e.data;
+    const { user_id, tenant_id, role } = userManager.getUser();
+
     import("./services/database/exportDb.js").then(
       ({ downloadCsvFromData }) => {
         downloadCsvFromData(storeName, data);
