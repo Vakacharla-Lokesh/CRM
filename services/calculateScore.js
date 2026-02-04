@@ -37,7 +37,21 @@ function scoreLead(lead) {
   return Math.max(0, score);
 }
 
-export function updateAllObjects(db, dbReady) {
+function canUpdateLead(lead, user_id, tenant_id, role) {
+  if (role === "super_admin") return true;
+
+  if (role === "admin") {
+    return lead.tenant_id === tenant_id;
+  }
+
+  if (role === "user") {
+    return lead.user_id === user_id;
+  }
+
+  return false;
+}
+
+export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
   if (!dbReady || !db) {
     console.error("Database not ready");
     postMessage({
@@ -61,7 +75,12 @@ export function updateAllObjects(db, dbReady) {
   const leadsRequest = leadsStore.getAll();
 
   leadsRequest.onsuccess = function () {
-    const leads = leadsRequest.result;
+    const allLeads = leadsRequest.result;
+
+    const leads = allLeads.filter((lead) =>
+      canUpdateLead(lead, user_id, tenant_id, role),
+    );
+
     const commentsRequest = commentsStore.getAll();
     const callsRequest = callsStore.getAll();
     const attachmentsRequest = attachmentsStore.getAll();

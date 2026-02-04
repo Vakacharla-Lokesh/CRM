@@ -183,6 +183,7 @@ class AppSidebar extends HTMLElement {
       event.stopPropagation();
       console.log("Inside logout eventlistener");
       userManager.clearUser();
+      window.wsClient?.disconnect();
       window.router.loadRoute("/login");
       eventBus.emit(EVENTS.LOGOUT_SUCCESS);
     });

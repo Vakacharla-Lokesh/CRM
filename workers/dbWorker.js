@@ -228,7 +228,13 @@ self.onmessage = (e) => {
     // Lead score generation case:
     case "calculateScore":
       console.log("Inside calculate score switch case");
-      updateAllObjects(db, dbReady);
+      updateAllObjects(
+        db,
+        dbReady,
+        e.data.user_id,
+        e.data.tenant_id,
+        e.data.role,
+      );
       break;
 
     // User cases:

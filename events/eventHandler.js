@@ -70,6 +70,8 @@ import {
   handleSelectAllTenants,
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
+import userManager from "./handlers/userManager.js";
+import { connectWebSocketIfAuthenticated } from "../index.js";
 
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);
@@ -341,6 +343,7 @@ function handleLoginSuccess(event) {
   setTimeout(() => {
     if (window.router && window.router.loadRoute) {
       window.router.loadRoute("/home");
+      connectWebSocketIfAuthenticated();
       addNotification(`Welcome back.`, "success");
     }
   }, 500);
@@ -352,7 +355,6 @@ function handleLoginFailure(event) {
 
 function handleLogout() {
   console.log("User logged out");
-  user.destroy();
 }
 
 function handleWebSocketSend(event) {

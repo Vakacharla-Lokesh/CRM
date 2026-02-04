@@ -24,4 +24,10 @@ lead activity in db
 
 when new lead is created do not call all the db
 
+export data tenant wise
+
+fix the ui of lead details
+
+>>>calculate score also based on user_id and role and tenant_id
+
 curl -X POST http://localhost:3000/update -H "Content-Type: application/json" -d '{"message":"Hello from curl!"}'
