@@ -1,5 +1,5 @@
 import { eventBus, EVENTS } from "../../../events/eventBus.js";
-import { addNotification } from "../../../index.js";
+import { addNotification } from "../../../events/notificationEvents.js";
 import WSClient from "./client.js";
 
 export function initWebSocket({
