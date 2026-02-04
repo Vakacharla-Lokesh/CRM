@@ -70,12 +70,26 @@ import {
   handleSelectAllTenants,
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
-import userManager from "./handlers/userManager.js";
 
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);
 
   // All event listeners
+  registerDatabaseEvents();
+  registerLeadEvents();
+  registerOrganizationEvents();
+  registerDealEvents();
+  registerUIEvents();
+  registerAuthEvents();
+  registerUserEvents();
+  registerTenantEvents();
+  initializeClickHandlers();
+  initializeFormHandlers();
+  initializeDOMReady();
+}
+
+export function initializeEventHandlersByRoute(worker) {
+  dbState.initialize(worker);
   registerDatabaseEvents();
   registerLeadEvents();
   registerOrganizationEvents();
@@ -104,6 +118,16 @@ function registerLeadEvents() {
   eventBus.on(EVENTS.LEADS_REFRESH, handleLeadRefresh);
 }
 
+function unregisterLeadEvents() {
+  eventBus.off(EVENTS.LEAD_CREATE, handleLeadCreate);
+  eventBus.off(EVENTS.LEAD_CREATED, handleLeadCreated);
+  eventBus.off(EVENTS.LEAD_DELETE, handleLeadDelete);
+  eventBus.off(EVENTS.LEAD_DELETED, handleLeadDeleted);
+  eventBus.off(EVENTS.LEADS_EXPORT, handleLeadExport);
+  eventBus.off(EVENTS.LEADS_SCORE, calculateLeadScore);
+  eventBus.off(EVENTS.LEADS_REFRESH, handleLeadRefresh);
+}
+
 function registerOrganizationEvents() {
   eventBus.on(EVENTS.ORGANIZATION_CREATE, handleOrganizationCreate);
   eventBus.on(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
@@ -115,6 +139,17 @@ function registerOrganizationEvents() {
   eventBus.on(EVENTS.ORGANIZATION_REFRESH, handleOrganizationRefresh);
 }
 
+function unregisterOrganizationEvents() {
+  eventBus.off(EVENTS.ORGANIZATION_CREATE, handleOrganizationCreate);
+  eventBus.off(EVENTS.ORGANIZATION_CREATED, handleOrganizationCreated);
+  eventBus.off(EVENTS.ORGANIZATION_DELETE, handleOrganizationDelete);
+  eventBus.off(EVENTS.ORGANIZATION_DELETED, handleOrganizationDeleted);
+  eventBus.off(EVENTS.ORGANIZATION_UPDATE, handleOrganizationUpdate);
+  eventBus.off(EVENTS.ORGANIZATION_UPDATED, handleOrganizationUpdated);
+  eventBus.off(EVENTS.ORGANIZATION_EXPORT, handleOrganizationExport);
+  eventBus.off(EVENTS.ORGANIZATION_REFRESH, handleOrganizationRefresh);
+}
+
 function registerDealEvents() {
   eventBus.on(EVENTS.DEAL_CREATE, handleDealCreate);
   eventBus.on(EVENTS.DEAL_CREATED, handleDealCreated);
@@ -124,6 +159,17 @@ function registerDealEvents() {
   eventBus.on(EVENTS.DEAL_UPDATED, handleDealUpdated);
   eventBus.on(EVENTS.DEAL_EXPORT, handleDealExport);
   eventBus.on(EVENTS.DEAL_REFRESH, handleDealRefresh);
+}
+
+function unregisterDealEvents() {
+  eventBus.off(EVENTS.DEAL_CREATE, handleDealCreate);
+  eventBus.off(EVENTS.DEAL_CREATED, handleDealCreated);
+  eventBus.off(EVENTS.DEAL_DELETE, handleDealDelete);
+  eventBus.off(EVENTS.DEAL_DELETED, handleDealDeleted);
+  eventBus.off(EVENTS.DEAL_UPDATE, handleDealUpdate);
+  eventBus.off(EVENTS.DEAL_UPDATED, handleDealUpdated);
+  eventBus.off(EVENTS.DEAL_EXPORT, handleDealExport);
+  eventBus.off(EVENTS.DEAL_REFRESH, handleDealRefresh);
 }
 
 function registerUIEvents() {
@@ -154,6 +200,15 @@ function registerTenantEvents() {
   eventBus.on(EVENTS.TENANT_UPDATED, handleTenantUpdated);
   eventBus.on(EVENTS.TENANT_DELETE, handleTenantDelete);
   eventBus.on(EVENTS.TENANT_DELETED, handleTenantDeleted);
+}
+
+function unregisterTenantEvents() {
+  eventBus.off(EVENTS.TENANT_CREATE, handleTenantCreate);
+  eventBus.off(EVENTS.TENANT_CREATED, handleTenantCreated);
+  eventBus.off(EVENTS.TENANT_UPDATE, handleTenantUpdate);
+  eventBus.off(EVENTS.TENANT_UPDATED, handleTenantUpdated);
+  eventBus.off(EVENTS.TENANT_DELETE, handleTenantDelete);
+  eventBus.off(EVENTS.TENANT_DELETED, handleTenantDeleted);
 }
 
 function initializeClickHandlers() {

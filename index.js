@@ -11,6 +11,7 @@ import {
   addNotification,
 } from "./services/notificationManager.js";
 import userManager from "./events/handlers/userManager.js";
+import { setupFilterEventListeners } from "./js/filterIntegeration.js";
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
@@ -28,15 +29,12 @@ dbWorker.addEventListener("message", (e) => {
     eventBus.emit(EVENTS.DB_READY, payload);
     addNotification("Database initialized successfully", "success");
 
-    // Initialize router with dbWorker
+    // Initialize router
     router.initialize(dbWorker);
 
-    // Setup filter event listeners after a brief delay to ensure DOM is ready
     setTimeout(() => {
-      if (window.setupFilterEventListeners) {
-        window.setupFilterEventListeners();
-        console.log("Filter event listeners setup complete");
-      }
+      setupFilterEventListeners();
+      console.log("Filter event listeners setup complete");
     }, 100);
 
     initializeOrgSelect(dbWorker);
@@ -133,39 +131,6 @@ eventBus.on(EVENTS.USER_CREATED, (event) => {
       data: userData,
       timestamp: new Date().toISOString(),
     });
-  }
-});
-
-// Theme control
-const themeToggle = document.getElementById("theme-toggle");
-if (themeToggle) {
-  themeToggle.addEventListener("click", () => {
-    const html = document.documentElement;
-    const isDark = html.classList.contains("dark");
-
-    if (isDark) {
-      html.classList.remove("dark");
-      themeToggle.textContent = "🌙";
-      localStorage.setItem("theme", "light");
-    } else {
-      html.classList.add("dark");
-      themeToggle.textContent = "☀️";
-      localStorage.setItem("theme", "dark");
-    }
-  });
-}
-
-// Initialize theme on page load
-document.addEventListener("DOMContentLoaded", () => {
-  const savedTheme = localStorage.getItem("theme");
-  const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-  const theme = savedTheme || (prefersDark ? "dark" : "light");
-
-  if (theme === "dark") {
-    document.documentElement.classList.add("dark");
-    if (themeToggle) themeToggle.textContent = "☀️";
-  } else {
-    if (themeToggle) themeToggle.textContent = "🌙";
   }
 });
 

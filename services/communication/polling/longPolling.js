@@ -1,4 +1,4 @@
-import { addNotification } from "../../../events/notificationEvents.js";
+import { showMessage } from "../../../events/notificationEvents.js";
 
 // Long polling code
 export async function longPolling() {
@@ -34,7 +34,7 @@ export async function longPolling() {
       sseStatus.querySelector("span:first-child").classList.add("bg-green-500");
     }
 
-    addNotification(`Server sent message received: ${data.message}`, "success");
+    showMessage(`Server sent message received: ${data.message}`, "success");
 
     longPolling();
   } catch (err) {
@@ -56,7 +56,7 @@ export async function longPolling() {
       sseStatus.querySelector("span:first-child").classList.add("bg-red-500");
     }
 
-    addNotification("Long Polling disconnected", "error");
+    showMessage("Long Polling disconnected", "error");
     setTimeout(longPolling, 10000);
   }
 }

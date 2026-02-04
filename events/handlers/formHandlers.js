@@ -4,7 +4,7 @@ import { generateId } from "../../services/utils/uidGenerator.js";
 import { showNotification } from "../notificationEvents.js";
 import userManager from "./userManager.js";
 import { offlineManager } from "../../services/offlineManager.js";
-import { notificationController } from "../../controllers/notificationController.js";
+import { notificationManager } from "../../services/notificationManager.js";
 
 export function handleLeadFormSubmit(event) {
   event.preventDefault();
@@ -95,7 +95,7 @@ export function handleLeadFormSubmit(event) {
       leadData._timestamp = Date.now();
 
       offlineManager.saveOffline("leads", leadData);
-      notificationController.showToast(
+      notificationManager.showToast(
         "Lead saved offline. Will sync when online.",
         "warning",
       );
@@ -202,7 +202,7 @@ export function handleOrganizationFormSubmit(event) {
     organizationData.modified_on = new Date();
 
     offlineManager.saveOffline("organizations", organizationData);
-    notificationController.showToast(
+    notificationManager.showToast(
       "Organization saved offline. Will sync when online.",
       "warning",
     );
@@ -285,7 +285,7 @@ export function handleDealFormSubmit(event) {
     dealData._timestamp = Date.now();
 
     offlineManager.saveOffline("deals", dealData);
-    notificationController.showToast(
+    notificationManager.showToast(
       "Deal saved offline. Will sync when online.",
       "warning",
     );
@@ -459,7 +459,7 @@ export function handleUserFormSubmit(event) {
     userData._timestamp = Date.now();
 
     offlineManager.saveOffline("users", userData);
-    notificationController.showToast(
+    notificationManager.showToast(
       "User saved offline. Will sync when online.",
       "warning",
     );
