@@ -1,3 +1,6 @@
+import { eventBus, EVENTS } from "../../events/eventBus.js";
+import { generateId } from "../../services/utils/uidGenerator.js";
+
 class CallsContent extends HTMLElement {
   constructor() {
     super();
@@ -437,14 +440,14 @@ class CallsContent extends HTMLElement {
     }
 
     const callData = {
-      call_id: callId ? Number(callId) : Date.now(),
+      call_id: callId ? callId : generateId("calls"),
       lead_id: this.leadId,
       call_type: type,
       call_status: status,
       duration: duration,
       call_notes: notes || "",
       created_on: callId
-        ? this.calls.find((c) => c.call_id === Number(callId))?.created_on
+        ? this.calls.find((c) => c.call_id == callId)?.created_on
         : new Date(),
       modified_on: new Date(),
     };
@@ -456,6 +459,9 @@ class CallsContent extends HTMLElement {
       } else {
         await this.createCall(callData, dbWorker);
         this.showNotification("Call logged successfully!", "success");
+        eventBus.emit(EVENTS.WEB_SOCKET_SEND, {
+          message: "Call created for lead ",
+        });
       }
 
       this.closeModal();
@@ -467,7 +473,7 @@ class CallsContent extends HTMLElement {
   }
 
   handleEditCall(callId) {
-    const call = this.calls.find((c) => c.call_id === callId);
+    const call = this.calls.find((c) => c.call_id == callId);
     if (!call) return;
     const modalHTML = this.renderCallModal(call);
     const tempDiv = document.createElement("div");

@@ -1,3 +1,6 @@
+import { eventBus, EVENTS } from "../../events/eventBus.js";
+import { generateId } from "../../services/utils/uidGenerator.js";
+
 class AttachmentsContent extends HTMLElement {
   connectedCallback() {
     this.attachments = [];
@@ -433,7 +436,7 @@ class AttachmentsContent extends HTMLElement {
         }
         const base64Data = await this.fileToBase64(file);
         const attachment = {
-          attachment_id: Date.now() + Math.random(),
+          attachment_id: generateId("attachment"),
           lead_id: leadId,
           file_name: file.name,
           file_size: this.formatFileSize(file.size),
@@ -471,12 +474,16 @@ class AttachmentsContent extends HTMLElement {
   }
 
   saveAttachment(attachment, dbWorker) {
+    const leadId = this.getAttribute("lead-id");
     return new Promise((resolve, reject) => {
       const messageHandler = (e) => {
         const { action, error, storeName } = e.data;
 
         if (action === "insertSuccess" && storeName === "Attachments") {
           dbWorker.removeEventListener("message", messageHandler);
+          eventBus.emit(EVENTS.WEB_SOCKET_SEND, {
+            message: `Attachment uploaded for ${leadId}`,
+          });
           resolve();
         } else if (action === "insertError" && storeName === "Attachments") {
           dbWorker.removeEventListener("message", messageHandler);
