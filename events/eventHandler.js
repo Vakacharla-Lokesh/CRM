@@ -71,7 +71,6 @@ import {
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
 import userManager from "./handlers/userManager.js";
-import { addNotification, connectWebSocketIfAuthenticated } from "../index.js";
 
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);

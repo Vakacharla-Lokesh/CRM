@@ -2,109 +2,24 @@ import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
 import { initializeOrgSelect } from "./components/organizationSelect.js";
-import userManager from "./events/handlers/userManager.js";
 
 import { longPolling } from "./services/communication/polling/longPolling.js";
 import { checkHealth } from "./services/communication/polling/shortPolling.js";
 import { initWebSocket } from "./services/communication/websockets/wsManager.js";
-
-// user manager
-userManager.initialize();
+import {
+  notificationManager,
+  addNotification,
+} from "./services/notificationManager.js";
+import userManager from "./events/handlers/userManager.js";
 
 // Initialize DB Worker
 window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
 const dbWorker = window.dbWorker;
 
-// Notification management
-const notifications = [];
-const MAX_NOTIFICATIONS = 10;
+// Initialize notification dropdown
+notificationManager.initializeDropdown();
 
-export function addNotification(message, type = "info") {
-  const notification = {
-    id: Date.now(),
-    message,
-    type,
-    timestamp: new Date().toLocaleTimeString(),
-  };
-
-  notifications.unshift(notification);
-  if (notifications.length > MAX_NOTIFICATIONS) {
-    notifications.pop();
-  }
-
-  updateNotificationUI();
-  showNotificationBadge();
-}
-
-function updateNotificationUI() {
-  const notificationList = document.getElementById("notification-list");
-  if (!notificationList) return;
-
-  if (notifications.length === 0) {
-    notificationList.innerHTML = `
-      <div class="px-4 py-8 text-center text-gray-500 dark:text-gray-400 text-sm">
-        No notifications yet
-      </div>
-    `;
-    return;
-  }
-
-  notificationList.innerHTML = notifications
-    .map(
-      (notif) => `
-    <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-      <div class="flex items-start gap-2">
-        <div class="w-2 h-2 mt-1.5 rounded-full ${
-          notif.type === "success"
-            ? "bg-green-500"
-            : notif.type === "error"
-              ? "bg-red-500"
-              : "bg-blue-500"
-        }"></div>
-        <div class="flex-1 min-w-0">
-          <p class="text-sm text-gray-900 dark:text-gray-100 break-words">${notif.message}</p>
-          <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${notif.timestamp}</p>
-        </div>
-      </div>
-    </div>
-  `,
-    )
-    .join("");
-}
-
-function showNotificationBadge() {
-  const badge = document.getElementById("notification-badge");
-  if (badge) {
-    badge.classList.remove("hidden");
-  }
-}
-
-function hideNotificationBadge() {
-  const badge = document.getElementById("notification-badge");
-  if (badge) {
-    badge.classList.add("hidden");
-  }
-}
-
-document.addEventListener("click", (e) => {
-  const notificationBtn = document.getElementById("notification-btn");
-  const notificationDropdown = document.getElementById("notification-dropdown");
-
-  if (e.target.closest("#notification-btn")) {
-    e.stopPropagation();
-    notificationDropdown.classList.toggle("hidden");
-    hideNotificationBadge();
-  } else if (!e.target.closest("#notification-dropdown")) {
-    notificationDropdown.classList.add("hidden");
-  }
-
-  if (e.target.closest("#clear-notifications")) {
-    notifications.length = 0;
-    updateNotificationUI();
-    hideNotificationBadge();
-  }
-});
-
+// DB Worker message handling
 dbWorker.addEventListener("message", (e) => {
   const payload = e.data || {};
 
@@ -115,6 +30,8 @@ dbWorker.addEventListener("message", (e) => {
 
     // Initialize router with dbWorker
     router.initialize(dbWorker);
+
+    // Setup filter event listeners after a brief delay to ensure DOM is ready
     setTimeout(() => {
       if (window.setupFilterEventListeners) {
         window.setupFilterEventListeners();
@@ -182,16 +99,10 @@ dbWorker.addEventListener("message", (e) => {
       `Lead scores updated! ${updatedCount} of ${totalLeads} leads modified.`,
       "success",
     );
-    eventBus.emit(EVENTS.WEB_SOCKET_SEND, {
-      message: `Lead score updated: ${updatedCount}.`,
-    });
-    eventBus.emit(EVENTS.LEADS_REFRESH);
   }
 
   if (e.data.action === "exportDataReady") {
     const { storeName, data } = e.data;
-    const { user_id, tenant_id, role } = userManager.getUser();
-
     import("./services/database/exportDb.js").then(
       ({ downloadCsvFromData }) => {
         downloadCsvFromData(storeName, data);
@@ -264,11 +175,7 @@ longPolling();
 // short polling call
 checkHealth();
 
-// Web sockers call
-// window.wsClient = initWebSocket({
-//   url: "ws://localhost:3000",
-// });
-
+// Web sockets call
 export function connectWebSocketIfAuthenticated() {
   if (!userManager.isAuthenticated()) return;
 

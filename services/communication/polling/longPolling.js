@@ -1,4 +1,4 @@
-import { addNotification } from "../../../index.js";
+import { addNotification } from "../../../events/notificationEvents.js";
 
 // Long polling code
 export async function longPolling() {

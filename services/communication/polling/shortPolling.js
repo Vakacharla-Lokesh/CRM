@@ -1,4 +1,4 @@
-import { addNotification } from "../../../index.js";
+import { addNotification } from "../../../events/notificationEvents.js";
 
 let backoff = 1000;
 const MAX_BACKOFF = 30000;
