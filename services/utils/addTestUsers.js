@@ -1,4 +1,4 @@
-import { dbCreate } from "../../init/dbInit.js";
+import { dbCreate } from "../init/dbInit.js";
 
 export async function addTestUsers(db) {
   try {

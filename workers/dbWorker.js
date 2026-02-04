@@ -1,5 +1,5 @@
 // DB INITIALIZE
-import { dbCreate } from "../init/dbInit.js";
+import { dbCreate } from "../services/init/dbInit.js";
 
 // CRUD OPERATIONS IN DB
 import { getAllData, getDataById } from "../services/database/getDb.js";

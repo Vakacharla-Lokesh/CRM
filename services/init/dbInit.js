@@ -1,4 +1,4 @@
-import { stores } from "../models/stores.js";
+import { stores } from "../../models/stores.js";
 
 let db = null;
 let dbReady = false;
