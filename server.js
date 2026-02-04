@@ -68,6 +68,30 @@ app.get("/health", (req, res) => {
   });
 });
 
+const INTERVAL_MS = 10007;
+
+setInterval(async () => {
+  try {
+    const message = `New message at ${new Date().toISOString()}`;
+
+    const response = await fetch("http://localhost:3000/update", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ message }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    console.log("Message sent:", message);
+  } catch (err) {
+    console.error("Failed to send message:", err.message);
+  }
+}, INTERVAL_MS);
+
 setupWebSocket(server);
 
 server.listen(PORT, () => {

@@ -126,7 +126,6 @@ class Filter extends HTMLElement {
           visibleCount++;
         }
       });
-      this.updateFilterInfo(`Showing all ${this.allLeads.length} leads`);
     } else {
       const filteredLeadIds = this.statusLeadsMap.get(this.selectedStatus);
 
