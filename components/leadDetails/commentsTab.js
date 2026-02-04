@@ -1,3 +1,6 @@
+import { generateId } from "../../services/utils/uidGenerator.js";
+import { eventBus, EVENTS } from "../../events/eventBus.js";
+
 class CommentsContent extends HTMLElement {
   constructor() {
     super();
@@ -367,7 +370,7 @@ class CommentsContent extends HTMLElement {
     }
 
     const commentData = {
-      comment_id: Date.now(),
+      comment_id: generateId("comment"),
       comment_title: title,
       comment_desc: desc,
       lead_id: this.leadId,
@@ -379,6 +382,9 @@ class CommentsContent extends HTMLElement {
       this.closeModal();
       this.loadCommentsData();
       this.showNotification("Comment added successfully!", "success");
+      eventBus.emit(EVENTS.WEB_SOCKET_SEND, {
+        message: `Comment created for lead ${this.leadId}.`,
+      });
     } catch (error) {
       console.error("Error adding comment:", error);
       alert("Error adding comment: " + error.message);

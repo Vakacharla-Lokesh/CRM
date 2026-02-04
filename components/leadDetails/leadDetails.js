@@ -99,7 +99,7 @@ class LeadDetails extends HTMLElement {
     const status = lead.lead_status || "New";
 
     this.innerHTML = `
-            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
+            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 w-full">
               <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Lead Details</h2>
                 <button id="edit-lead-btn" class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors">

@@ -23,13 +23,13 @@
     >
       <app-navbar></app-navbar>
       <div
-        class="flex flex-1 pt-16"
+        class="flex flex-1 pt-16 overflow-hidden"
         id="data-sidebar"
       >
         <app-sidebar></app-sidebar>
         <main
           id="main-page"
-          class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6"
+          class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 h-[calc(100vh-4rem)]"
         ></main>
       </div>
     </div>
@@ -51,10 +51,12 @@
     ></script>
     <script
       src="./components/leadDetails/leadPage.js"
+      type="module"
       defer
     ></script>
     <script
       src="./components/leadDetails/attachmentsTab.js"
+      type="module"
       defer
     ></script>
     <script
@@ -64,14 +66,17 @@
     ></script>
     <script
       src="./components/leadDetails/tabContent.js"
+      type="module"
       defer
     ></script>
     <script
       src="./components/leadDetails/tabHeader.js"
+      type="module"
       defer
     ></script>
     <script
       src="./components/leadDetails/commentsTab.js"
+      type="module"
       defer
     ></script>
     <script
