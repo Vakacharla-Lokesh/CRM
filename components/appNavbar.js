@@ -2,7 +2,7 @@ import { populateLeadsTable } from "../controllers/populateLeads.js";
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { generateRandomLeads } from "../services/utils/randomLeadGenerator.js";
 import { offlineManager } from "../services/offlineManager.js";
-import { notificationManager } from "../services/notificationManager.js";
+import { showMessage } from "../controllers/notificationManager.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -373,11 +373,11 @@ class AppNavbar extends HTMLElement {
     const totalCount = offlineManager.getTotalOfflineCount();
 
     if (totalCount === 0) {
-      notificationManager.showToast("No offline data to sync", "info");
+      showMessage("No offline data to sync", "info");
       return;
     }
 
-    notificationManager.showToast(
+    showMessage(
       `Syncing ${totalCount} offline items...`,
       "info",
     );
@@ -388,7 +388,7 @@ class AppNavbar extends HTMLElement {
 
       // Wait for sync to complete
       setTimeout(() => {
-        notificationManager.showToast(
+        showMessage(
           "Sync completed successfully!",
           "success",
         );
@@ -414,7 +414,7 @@ class AppNavbar extends HTMLElement {
       }, 2000);
     } catch (error) {
       console.error("Sync failed:", error);
-      notificationManager.showToast("Sync failed. Please try again.", "error");
+      showMessage("Sync failed. Please try again.", "error");
     }
   }
 

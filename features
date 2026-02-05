@@ -22,7 +22,7 @@ multiple users in leads
 
 lead activity in db
 
-when new lead is created do not call all the db
+>>>when new lead is created do not call all the db
 
 >>>export data tenant wise
 
