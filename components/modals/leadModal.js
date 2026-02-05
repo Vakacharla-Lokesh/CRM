@@ -112,7 +112,7 @@ template.innerHTML = `<div
         </div>
 
         <!-- Organization Information -->
-        <div class="mb-6">
+        <div class="mb-4">
           <h4 class="text-base font-medium text-gray-900 dark:text-white mb-3">
             Organization Information
           </h4>
@@ -183,6 +183,14 @@ template.innerHTML = `<div
               </select>
             </div>
           </div>
+        </div>
+
+        <!-- User Assignment (Admin Only) -->
+        <div id="user-assignment-section" class="mb-6 hidden">
+          <h4 class="text-base font-medium text-gray-900 dark:text-white mb-3">
+            Assign Lead
+          </h4>
+          <div id="user-select-container"></div>
         </div>
         <!-- Submit Button -->
         <div class="flex gap-3">

@@ -22,6 +22,10 @@ export function handleLeadFormSubmit(event) {
     return;
   }
 
+  // Check if an admin has assigned this lead to a specific user
+  const assignedUserId = document.getElementById("assigned_user_id")?.value;
+  const finalUserId = assignedUserId || user.user_id;
+
   const leadFormData = {
     lead_first_name: document.getElementById("first_name")?.value?.trim() || "",
     lead_last_name: document.getElementById("last_name")?.value?.trim() || "",
@@ -38,7 +42,7 @@ export function handleLeadFormSubmit(event) {
       document.getElementById("organization_size")?.value?.trim() || "",
     organization_industry:
       document.getElementById("organization_industry")?.value?.trim() || "",
-    user_id: user.user_id,
+    user_id: finalUserId,
     tenant_id: user.tenant_id,
   };
 
@@ -103,6 +107,7 @@ export function handleLeadFormSubmit(event) {
       document.getElementById("form-modal")?.classList.add("hidden");
       event.target.reset();
       document.getElementById("selected_organization_id")?.remove();
+      document.getElementById("assigned_user_id")?.remove();
 
       const currentTab = sessionStorage.getItem("currentTab");
       if (currentTab === "/leads") {
@@ -137,6 +142,7 @@ export function handleLeadFormSubmit(event) {
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
   document.getElementById("selected_organization_id")?.remove();
+  document.getElementById("assigned_user_id")?.remove();
 }
 
 export function handleOrganizationFormSubmit(event) {

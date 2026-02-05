@@ -1,4 +1,3 @@
-// components/organizationSelect.js
 import userManager from "../events/handlers/userManager.js";
 
 export class OrganizationSelect {
@@ -268,8 +267,6 @@ export class OrganizationSelect {
       const field = document.getElementById(id);
       if (field) field.value = "";
     });
-
-    // Remove the hidden organization_id field
     const hiddenOrgIdField = document.getElementById(
       "selected_organization_id",
     );

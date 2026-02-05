@@ -2,6 +2,7 @@ import { eventBus, EVENTS } from "./events/eventBus.js";
 import { initializeEventHandlers } from "./events/eventHandler.js";
 import router from "./router.js";
 import { initializeOrgSelect } from "./components/organizationSelect.js";
+import { initializeUserSelect } from "./components/userSelect.js";
 
 import { longPolling } from "./services/communication/polling/longPolling.js";
 import { checkHealth } from "./services/communication/polling/shortPolling.js";
@@ -38,6 +39,7 @@ dbWorker.addEventListener("message", (e) => {
     }, 100);
 
     initializeOrgSelect(dbWorker);
+    initializeUserSelect(dbWorker);
   }
 
   if (payload.action === "insertSuccess") {
