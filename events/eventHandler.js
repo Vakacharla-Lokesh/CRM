@@ -225,6 +225,12 @@ function initializeClickHandlers() {
       sessionStorage.removeItem("lead_id");
       sessionStorage.removeItem("organization_id");
       sessionStorage.removeItem("deal_id");
+      
+      const userSelectContainer = document.getElementById("user-select-container");
+      if (userSelectContainer) {
+        userSelectContainer.removeAttribute('data-initialized');
+      }
+      
       return;
     }
 
