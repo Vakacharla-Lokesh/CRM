@@ -9,7 +9,7 @@ import { initWebSocket } from "./services/communication/websockets/wsManager.js"
 import {
   notificationManager,
   addNotification,
-} from "./services/notificationManager.js";
+} from "./controllers/notificationManager.js";
 import userManager from "./events/handlers/userManager.js";
 import { setupFilterEventListeners } from "./js/filterIntegeration.js";
 

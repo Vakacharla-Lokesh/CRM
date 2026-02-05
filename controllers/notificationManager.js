@@ -24,9 +24,6 @@ class NotificationManager {
     this.showBadge();
   }
 
-  /**
-   * Show toast notification (temporary popup)
-   */
   showToast(message, type = "info") {
     if (!this.toastContainer) {
       this.toastContainer = document.createElement("div");
@@ -110,9 +107,6 @@ class NotificationManager {
     }
   }
 
-  /**
-   * Update the dropdown UI
-   */
   updateDropdownUI() {
     const notificationList = document.getElementById("notification-list");
     if (!notificationList) return;

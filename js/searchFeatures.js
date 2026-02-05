@@ -22,9 +22,6 @@ import userManager from "../events/handlers/userManager.js";
     };
 
     performSearch = (searchTerm) => {
-      // if (!searchTerm) return;
-      // resultsDiv.innerHTML = `Searching for: ${query}`;
-      // console.log("API call for:", query);
       this.filterRows(searchTerm);
     };
 
@@ -33,10 +30,6 @@ import userManager from "../events/handlers/userManager.js";
     setupFilter() {
       this.filterInput.addEventListener("input", (e) => {
         const searchTerm = e.target.value.toLowerCase().trim();
-        // this.filterRows(searchTerm);
-        // if(searchTerm == ""){
-        //   return;
-        // }
         this.debouncedSearch(searchTerm);
       });
     }
@@ -46,7 +39,6 @@ import userManager from "../events/handlers/userManager.js";
       let visibleCount = 0;
 
       rows.forEach((row) => {
-        // Skip empty state rows and filter empty state
         if (
           row.querySelector("td[colspan]") ||
           row.classList.contains("filter-empty-state")
@@ -220,7 +212,7 @@ import userManager from "../events/handlers/userManager.js";
         return;
       }
 
-      const itemName = this.storeName.slice(0, -1).toLowerCase(); // "Leads" -> "lead"
+      const itemName = this.storeName.slice(0, -1).toLowerCase();
       const confirmMessage = `Are you sure you want to delete ${selectedIds.length} ${itemName}(s)?\n\nThis action cannot be undone.`;
 
       if (!confirm(confirmMessage)) {
@@ -464,12 +456,6 @@ import userManager from "../events/handlers/userManager.js";
       );
     }
   }
-
-  // if (document.readyState === "loading") {
-  //   document.addEventListener("DOMContentLoaded", initializeTableFeatures);
-  // } else {
-  //   setTimeout(initializeTableFeatures, 200);
-  // }
   document.addEventListener("DOMContentLoaded", initializeTableFeatures);
 
   window.addEventListener("popstate", () => {
