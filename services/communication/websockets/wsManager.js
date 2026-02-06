@@ -1,5 +1,5 @@
 import { eventBus, EVENTS } from "../../../events/eventBus.js";
-import { addNotification } from "../../../events/notificationEvents.js";
+import { showMessage } from "../../../events/notificationEvents.js";
 import WSClient from "./client.js";
 
 export function initWebSocket({
@@ -30,12 +30,12 @@ export function initWebSocket({
 
   ws.onOpen = () => {
     setStatus("bg-green-500");
-    addNotification("WebSocket connected", "success");
+    showMessage("WebSocket connected", "success");
   };
 
   ws.onClose = () => {
     setStatus("bg-red-500");
-    addNotification("WebSocket disconnected", "error");
+    showMessage("WebSocket disconnected", "error");
     scheduleReconnect();
   };
 
@@ -50,7 +50,7 @@ export function initWebSocket({
     });
 
     const text = typeof data === "object" ? JSON.stringify(data) : data;
-    addNotification(`WS: ${text}`, "info");
+    showMessage(`WS: ${text}`, "info");
   };
 
   ws.connect();
