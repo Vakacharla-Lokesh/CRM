@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Campaign Flux</title>
+    <link
+      rel="stylesheet"
+      href="./styles.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body
+    class="min-h-screen bg-white text-gray-900 dark:bg-slate-900 dark:text-slate-200"
+  >
+    <div
+      id="root"
+      class="flex min-h-screen flex-col"
+    >
+      <app-navbar></app-navbar>
+      <div
+        class="flex flex-1 pt-16 overflow-hidden"
+        id="data-sidebar"
+      >
+        <app-sidebar></app-sidebar>
+        <main
+          id="main-page"
+          class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 h-[calc(100vh-4rem)]"
+        >
+          <div class="flex flex-1">
+            <main
+              id="home-main"
+              class="flex-1 overflow-y-auto bg-neutral-primary-soft p-6"
+            >
+              <div
+                class="w-full h-full grid grid-cols-1 gap-6"
+                id="data-home-fields"
+              ></div>
+            </main>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- COMPONENTS IMPORT -->
+    <script
+      type="module"
+      src="./components/appNavbar.js"
+    ></script>
+    <script
+      type="module"
+      src="./components/appSidebar.js"
+    ></script>
+
+    <!-- LEAD DETAILS COMPONENTS -->
+    <script
+      src="./components/exportProgress.js"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/leadPage.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/attachmentsTab.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/callsTab.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/tabContent.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/tabHeader.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/leadDetails/commentsTab.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      type="module"
+      src="./components/leadDetails/leadDetails.js"
+      defer
+    ></script>
+
+    <!-- MODAL COMPONENTS IMPORT -->
+    <script
+      src="./components/modals/organizationModal.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/modals/userModal.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/modals/dealModal.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/modals/leadModal.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/modals/tenantModal.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./components/searchBar.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="./js/searchFeatures.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      type="module"
+      src="./components/filter.js"
+    ></script>
+
+    <script
+      src="https://gist.githubusercontent.com/loilo/ed43739361ec718129a15ae5d531095b/raw/idb-backup-and-restore.js"
+      async
+    ></script>
+
+    <!-- MAIN INDEX IMPORT -->
+    <script
+      type="module"
+      src="./index.js"
+    ></script>
+    <!-- ROUTING IMPORT -->
+    <script
+      type="module"
+      src="./router.js"
+      defer
+    ></script>
+  </body>
+</html>

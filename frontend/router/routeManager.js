@@ -1,7 +1,7 @@
 export class RouteManager {
   constructor() {
     this.routes = {
-      "/": "/pages/home.html",
+      "/": "/frontend/pages/home.html",
       "/home": "/pages/home.html",
       "/leads": "/pages/leads.html",
       "/organizations": "/pages/organizations.html",
