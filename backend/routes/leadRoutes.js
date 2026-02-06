@@ -1,7 +1,7 @@
 import { Router } from "express";
 import leadModel from "../models/leadModel.js";
 import { validate } from "../middlewares/validate.js";
-import { createLeadSchema } from "../validators/leads.validators.js";
+import { createLeadSchema } from "../validators/leads.validator.js";
 
 const router = Router();
 
