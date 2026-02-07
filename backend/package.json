@@ -1,12 +1,14 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "CRM Backend API with Express.js and MongoDB",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["crm", "express", "mongodb", "rest-api", "jwt", "rbac"],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -20,5 +22,8 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.1.6",
     "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
   }
 }

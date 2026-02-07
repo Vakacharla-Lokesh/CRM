@@ -1,46 +1,54 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
-  getAllLeads,
-  getLeadById,
-  createLead,
-  updateLead,
-  deleteLead,
-  getLeadsByTenant,
-  getLeadsByUser,
-  getLeadsByOrganization,
-  updateLeadStatus,
-  updateLeadScore,
-} from "../controllers/leadController.js";
+  getAllDeals,
+  getDealById,
+  createDeal,
+  updateDeal,
+  deleteDeal,
+  getDealsByTenant,
+  getDealsByUser,
+  getDealsByLead,
+  getDealsByOrganization,
+  updateDealStatus,
+} from "../controllers/dealController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
-import { createLeadSchema } from "../validators/leads.validator.js";
+import { createDealSchema } from "../validators/deals.validator.js";
 
 const router = Router();
 
 // Validation schemas
-const updateLeadSchema = z
+const updateDealSchema = z
   .object({
-    leadFirstName: z.string().min(1).optional(),
-    leadLastName: z.string().optional(),
-    leadEmail: z.string().email().optional(),
-    leadSource: z.enum(["API", "Outsource"]).optional(),
-    leadScore: z.number().min(0).max(100).optional(),
-    leadStatus: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
+    dealName: z.string().min(1).max(100).optional(),
+    dealValue: z.number().min(0).max(1_000_000).optional(),
+    dealStatus: z
+      .enum([
+        "Prospecting",
+        "Qualification",
+        "Negotiation",
+        "Ready to close",
+        "Won",
+        "Lost",
+      ])
+      .optional(),
+    leadId: z.string().optional(),
     organizationId: z.string().optional(),
   })
   .strict();
 
-const updateLeadStatusSchema = z
+const updateDealStatusSchema = z
   .object({
-    leadStatus: z.enum(["New", "Converted", "Dead", "Follow-Up"]),
-  })
-  .strict();
-
-const updateLeadScoreSchema = z
-  .object({
-    leadScore: z.number().min(0).max(100),
+    dealStatus: z.enum([
+      "Prospecting",
+      "Qualification",
+      "Negotiation",
+      "Ready to close",
+      "Won",
+      "Lost",
+    ]),
   })
   .strict();
 
@@ -50,74 +58,73 @@ router.get(
   authenticate,
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
-  getAllLeads,
+  getAllDeals,
 );
 
 router.get(
   "/:id",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  getLeadById,
+  getDealById,
 );
 
 router.post(
   "/",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  validate(createLeadSchema),
-  createLead,
+  validate(createDealSchema),
+  createDeal,
 );
 
 router.put(
   "/:id",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  validate(updateLeadSchema),
-  updateLead,
+  validate(updateDealSchema),
+  updateDeal,
 );
 
 router.delete(
   "/:id",
   authenticate,
   authorize("admin", "super_admin"),
-  deleteLead,
+  deleteDeal,
 );
 
 router.get(
   "/tenant/:tenantId",
   authenticate,
   authorize("admin", "super_admin"),
-  getLeadsByTenant,
+  getDealsByTenant,
 );
 
 router.get(
   "/user/:userId",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  getLeadsByUser,
+  getDealsByUser,
+);
+
+router.get(
+  "/lead/:leadId",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  getDealsByLead,
 );
 
 router.get(
   "/organization/:organizationId",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  getLeadsByOrganization,
+  getDealsByOrganization,
 );
 
 router.patch(
   "/:id/status",
   authenticate,
   authorize("user", "admin", "super_admin"),
-  validate(updateLeadStatusSchema),
-  updateLeadStatus,
-);
-
-router.patch(
-  "/:id/score",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  validate(updateLeadScoreSchema),
-  updateLeadScore,
+  validate(updateDealStatusSchema),
+  updateDealStatus,
 );
 
 export default router;

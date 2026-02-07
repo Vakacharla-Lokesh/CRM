@@ -4,7 +4,7 @@ const attachmentsSchema = new Schema(
   {
     _id: { type: Schema.Types.UUID, default: () => crypto.randomUUID() },
     leadId: { type: String, required: true },
-    fileData: { binData: Buffer, required: true },
+    fileData: { type: Buffer, required: true },
     fileName: { type: String, required: true },
     fileSize: { type: Number },
     fileType: { type: String, required: true },
