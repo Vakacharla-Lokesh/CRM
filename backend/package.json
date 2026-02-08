@@ -8,7 +8,14 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["crm", "express", "mongodb", "rest-api", "jwt", "rbac"],
+  "keywords": [
+    "crm",
+    "express",
+    "mongodb",
+    "rest-api",
+    "jwt",
+    "rbac"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",

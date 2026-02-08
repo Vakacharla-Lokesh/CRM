@@ -202,10 +202,10 @@ signupForm.addEventListener("submit", async (e) => {
     if (result.success) {
       // Emit user creation event
       eventBus.emit(EVENTS.USER_CREATED, {
-        userId: result.user.userId,
-        name: result.user.name,
-        email: result.user.email,
-        tenantId: result.user.tenantId,
+        userId: result.user.user_id,
+        name: result.user.user_name,
+        email: result.user.user_email,
+        tenantId: result.user.tenant_id,
         role: result.user.role,
       });
 
@@ -218,7 +218,7 @@ signupForm.addEventListener("submit", async (e) => {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        window.router.loadRoute("/login");
+        window.router.navigate("/login");
       }, 2000);
     } else {
       formError.textContent =

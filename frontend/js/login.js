@@ -98,18 +98,12 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      userManager.setUser({
-        user_id: result.user.userId,
-        user_name: result.user.name,
-        authToken: generateId("user"),
-        role: result.user.role,
-        tenant_id: result.user.tenantId,
-      });
+      userManager.initialize();
 
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
         email,
-        userId: result.user.userId,
-        name: result.user.name,
+        userId: result.user.user_id,
+        name: result.user.user_name,
       });
     } else {
       formError.textContent = result.error || "Login failed. Please try again.";
@@ -127,14 +121,4 @@ loginForm.addEventListener("submit", async (e) => {
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("Inside dom content loaded fn in login js");
-  attachSignUpListener();
-});
-
-attachSignUpListener();
-
-loginForm.addEventListener("click", (event) => {
-  // console.log("Inside login form");
-  if (event.target.closest("[data-link]")) {
-    window.router.loadRoute("/signup");
-  }
 });

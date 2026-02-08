@@ -109,7 +109,7 @@ export function handleLeadFormSubmit(event) {
       document.getElementById("selected_organization_id")?.remove();
       document.getElementById("assigned_user_id")?.remove();
 
-      const currentTab = sessionStorage.getItem("currentTab");
+      const currentTab = window.location.pathname;
       if (currentTab === "/leads") {
         eventBus.emit(EVENTS.LEADS_REFRESH);
       }
@@ -216,7 +216,7 @@ export function handleOrganizationFormSubmit(event) {
     document.getElementById("form-modal")?.classList.add("hidden");
     event.target.reset();
 
-    const currentTab = sessionStorage.getItem("currentTab");
+    const currentTab = window.location.pathname;
     if (currentTab === "/organizations") {
       eventBus.emit(EVENTS.ORGANIZATION_REFRESH);
     }
@@ -304,7 +304,7 @@ export function handleDealFormSubmit(event) {
     }
     event.target.reset();
 
-    const currentTab = sessionStorage.getItem("currentTab");
+    const currentTab = window.location.pathname;
     if (currentTab === "/deals") {
       eventBus.emit(EVENTS.DEAL_REFRESH);
     }
@@ -474,7 +474,7 @@ export function handleUserFormSubmit(event) {
     event.target.reset();
 
     // Trigger refresh if on users page
-    const currentTab = sessionStorage.getItem("currentTab");
+    const currentTab = window.location.pathname;
     if (currentTab === "/users") {
       // Trigger user list refresh if available
     }

@@ -56,7 +56,7 @@ export function handleTenantCreate(event) {
 export function handleTenantCreated(event) {
   showNotification("Tenant created successfully!", "success");
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {
@@ -87,7 +87,7 @@ export function handleTenantUpdate(event) {
 export function handleTenantUpdated(event) {
   showNotification("Tenant updated successfully!", "success");
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {
@@ -108,7 +108,7 @@ export function handleTenantDelete(event) {
 export function handleTenantDeleted(event) {
   showNotification("Tenant deleted successfully!", "success");
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {

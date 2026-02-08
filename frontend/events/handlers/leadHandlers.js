@@ -30,7 +30,7 @@ export function handleLeadCreated(event) {
 
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead created." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   const user = userManager.getUser();
@@ -61,7 +61,7 @@ export function handleLeadDeleted(event) {
 
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead deleted." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   const user = userManager.getUser();
@@ -136,15 +136,14 @@ export function handleLeadClick(e) {
     const lead_id = leadRow?.getAttribute("data-lead-id");
 
     sessionStorage.setItem("lead_id", lead_id);
-    sessionStorage.setItem("currentTab", "/leadDetails");
 
     const dropdown = editBtn.closest(".dropdown-menu");
     if (dropdown) {
       dropdown.classList.add("hidden");
     }
 
-    if (window.router && window.router.loadRoute) {
-      window.router.loadRoute("/leadDetails");
+    if (window.router && window.router.navigate) {
+      window.router.navigate("/leadDetails");
     }
     return true;
   }
@@ -177,7 +176,7 @@ export function handleLeadClick(e) {
 
 export function handleLeadRefresh() {
   console.log("Inside handle Refresh");
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   const user = userManager.getUser();

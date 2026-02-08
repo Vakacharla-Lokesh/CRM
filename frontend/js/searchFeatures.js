@@ -356,7 +356,7 @@ import userManager from "../events/handlers/userManager.js";
     if (typeof currentPathParam === "string") {
       currentPath = currentPathParam;
     } else {
-      currentPath = sessionStorage.getItem("currentTab");
+      currentPath = window.location.pathname;
     }
     console.log("Inside initializeTableFeatures: ", currentPath);
     const safeInitialize = (

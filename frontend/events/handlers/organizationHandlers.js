@@ -49,7 +49,7 @@ export function handleOrganizationCreated(event) {
   showNotification("Organization created successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization created." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
@@ -68,7 +68,7 @@ export function handleOrganizationUpdated(event) {
   showNotification("Organization updated successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization updated." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
@@ -98,7 +98,7 @@ export function handleOrganizationDeleted(event) {
   showNotification("Organization deleted successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization deleted." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/organizations" && dbWorker) {
@@ -206,7 +206,7 @@ export function handleOrganizationClick(e) {
 
 export function handleOrganizationRefresh() {
   console.log("Inside handle organization refresh");
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   const user = userManager.getUser();

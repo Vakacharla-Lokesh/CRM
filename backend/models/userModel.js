@@ -15,7 +15,7 @@ const userSchema = new Schema(
     },
     mobile: {
       type: String,
-      required: String,
+      required: false,
       match: [/^[1-9]\d{9}$/, "Please provide valid mobile number"],
     },
     role: {

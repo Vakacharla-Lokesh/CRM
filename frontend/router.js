@@ -1,17 +1,20 @@
-import { RouteManager } from "./router/routeManager.js";
-import { PageLoader } from "./router/pageLoader.js";
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
 import userManager from "./events/handlers/userManager.js";
 
 class Router {
   constructor() {
-    this.routeManager = new RouteManager();
-    this.pageLoader = new PageLoader();
     this.dataFetcher = new DataFetcher();
     this.sidebarManager = new SidebarManager();
     this.dbWorker = null;
     this.isInitialized = false;
+    
+    // Route scripts mapping
+    this.routeScripts = {
+      "/login": "/js/login.js",
+      "/signup": "/js/signup.js",
+      "/deals": "/js/deals.js",
+    };
   }
 
   // initializes router
@@ -27,14 +30,22 @@ class Router {
 
     window.addEventListener("popstate", () => {
       const path = window.location.pathname;
-      if (this.routeManager.isValidRoute(path)) {
-        this.loadRoute(path);
-      }
+      this.loadRoute(path);
     });
 
     // initial route
-    const initialRoute = userManager.isAuthenticated() ? "/home" : "/login";
-    this.loadRoute(initialRoute);
+    const currentPath = window.location.pathname;
+    const initialRoute = userManager.isAuthenticated()
+      ? currentPath === "/" || currentPath === "/login" || currentPath === "/signup"
+        ? "/home"
+        : currentPath
+      : "/login";
+    
+    if (currentPath !== initialRoute) {
+      this.navigate(initialRoute);
+    } else {
+      this.loadRoute(initialRoute);
+    }
   }
 
   setupDbWorkerListener() {
@@ -44,35 +55,86 @@ class Router {
     }
 
     this.dbWorker.addEventListener("message", (e) => {
-      const { action, storeName, rows, data, error } = e.data;
-      const currentPath = sessionStorage.getItem("currentTab");
+      const currentPath = window.location.pathname;
       this.dataFetcher.handleDbWorkerMessage(e.data, currentPath);
     });
+  }
+
+  // Navigate to a new route
+  navigate(path) {
+    if (window.location.pathname !== path) {
+      window.history.pushState({}, "", path);
+    }
+    this.loadRoute(path);
   }
 
   // loads routes and scripts
   async loadRoute(path) {
     try {
       const user = userManager.getUser();
-      const currentPath = sessionStorage.getItem("currentTab");
+      const currentPath = window.location.pathname;
+      
+      // Clear stress test if leaving leads page
       if (currentPath === "/leads" && path !== "/leads") {
         const navbar = document.querySelector("app-navbar");
         if (navbar && navbar.clearStressTest) {
           navbar.clearStressTest();
         }
       }
-      const resolvedPath = this.routeManager.resolvePath(path, user);
-      
-      this.sidebarManager.toggleSidebar(resolvedPath);
 
-      const html = await this.pageLoader.loadPage(resolvedPath);
+      // Check authentication
+      const publicRoutes = ["/login", "/signup"];
+      if (!user && !publicRoutes.includes(path)) {
+        this.navigate("/login");
+        return;
+      }
+
+      this.sidebarManager.toggleSidebar(path);
+
+      // Map routes to their HTML page files
+      const pageMap = {
+        "/home": "/pages/home.html",
+        "/leads": "/pages/leads.html",
+        "/organizations": "/pages/organizations.html",
+        "/deals": "/pages/deals.html",
+        "/leadDetails": "/pages/leadDetailPage.html",
+        "/login": "/pages/login.html",
+        "/signup": "/pages/signup.html",
+        "/users": "/pages/users.html",
+        "/tenants": "/pages/tenants.html",
+      };
+
+      const pagePath = pageMap[path] || pageMap["/home"];
+
+      // Fetch page content directly
+      const response = await fetch(pagePath);
+      if (!response.ok) {
+        throw new Error(`Failed to load page: ${response.statusText}`);
+      }
+      
+      const html = await response.text();
       const mainPage = document.getElementById("main-page");
 
       if (mainPage) {
-        mainPage.innerHTML = html;
+        // Extract only the main content from the page HTML
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, "text/html");
+        const mainContent = doc.querySelector("#main-page");
+        
+        if (mainContent) {
+          mainPage.innerHTML = mainContent.innerHTML;
+        } else {
+          // Fallback: use the body content if no main-page found
+          const bodyContent = doc.querySelector("body");
+          if (bodyContent) {
+            mainPage.innerHTML = bodyContent.innerHTML;
+          } else {
+            mainPage.innerHTML = html;
+          }
+        }
       }
 
-      await this.pageLoader.loadPageScript(path);
+      await this.loadPageScript(path);
 
       this.scheduleDataFetch(path);
 
@@ -81,14 +143,49 @@ class Router {
       if (user) {
         this.sidebarManager.isAdmin(user.role);
       }
+
+      if (window.TableFeatures) {
+        window.TableFeatures.initialize(path);
+      }
     } catch (error) {
       console.error("Error loading route:", error);
       this.handleRouteError(error);
     }
   }
 
+  async loadPageScript(path) {
+    const scriptPath = this.routeScripts[path];
+    
+    if (scriptPath) {
+      try {
+        // Remove existing script if present
+        const existingScript = document.querySelector(`script[src="${scriptPath}"]`);
+        if (existingScript) {
+          existingScript.remove();
+        }
+
+        // Load new script
+        const script = document.createElement("script");
+        script.type = "module";
+        script.src = scriptPath;
+        document.body.appendChild(script);
+
+        await new Promise((resolve, reject) => {
+          script.onload = resolve;
+          script.onerror = reject;
+        });
+      } catch (error) {
+        console.error(`Failed to load script for ${path}:`, error);
+      }
+    }
+  }
+
   scheduleDataFetch(path) {
-    sessionStorage.setItem("currentTab", path);
+    // Skip data fetching for public routes
+    const publicRoutes = ["/login", "/signup"];
+    if (publicRoutes.includes(path)) {
+      return;
+    }
 
     setTimeout(() => {
       if (!this.dbWorker) {
@@ -98,9 +195,6 @@ class Router {
 
       this.dataFetcher.fetchDataForRoute(path);
     }, 100);
-    if (window.TableFeatures) {
-      window.TableFeatures.initialize(path);
-    }
   }
 
   handleRouteError(error) {

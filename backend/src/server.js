@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import path from "path";
+import { fileURLToPath } from "url";
 
 // ROUTES HANDLER
 import authRoutes from "../routes/authRoutes.js";
@@ -19,9 +21,14 @@ import { errorHandler, notFound } from "../middlewares/errorHandler.js";
 // DB
 import "../db/initDb.js";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Allow inline scripts for frontend
+}));
 app.use(
   cors({
     origin: "*",
@@ -38,7 +45,7 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
-// ROUTE HANDLING
+// ROUTE HANDLING - API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/users", userRoutes);
@@ -48,6 +55,34 @@ app.use("/api/deals", dealRoutes);
 app.use("/api/calls", callRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/attachments", attachmentRoutes);
+
+// STATIC FILES - Serve frontend static files
+const frontendPath = path.join(__dirname, "../../frontend");
+app.use(express.static(frontendPath));
+
+// FRONTEND ROUTES - Serve complete HTML pages from pages folder
+const pageRoutes = {
+  "/home": "home.html",
+  "/leads": "leads.html",
+  "/organizations": "organizations.html",
+  "/deals": "deals.html",
+  "/leadDetails": "leadDetailPage.html",
+  "/login": "login.html",
+  "/signup": "signup.html",
+  "/users": "users.html",
+  "/tenants": "tenants.html",
+};
+
+Object.entries(pageRoutes).forEach(([route, htmlFile]) => {
+  app.get(route, (req, res) => {
+    res.sendFile(path.join(frontendPath, "pages", htmlFile));
+  });
+});
+
+// Root route - serve index.html for authenticated area
+app.get("/", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
+});
 
 // ERROR HANDLING
 app.use(notFound);

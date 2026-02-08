@@ -1,9 +1,13 @@
-import { RouteManager } from "./routeManager.js";
-
 export class PageLoader {
   constructor() {
-    this.routeManager = new RouteManager();
     this.loadedScripts = new Set();
+    
+    // Route scripts mapping
+    this.routeScripts = {
+      "/login": "/js/login.js",
+      "/signup": "/js/signup.js",
+      "/deals": "/js/deals.js",
+    };
   }
 
   async loadPage(routePath) {
@@ -25,7 +29,7 @@ export class PageLoader {
   }
 
   async loadPageScript(path) {
-    const scriptPath = this.routeManager.getRouteScript(path);
+    const scriptPath = this.routeScripts[path];
 
     if (!scriptPath) return;
 

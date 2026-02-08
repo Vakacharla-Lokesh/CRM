@@ -14,7 +14,7 @@ template.innerHTML = `
               class="flex flex-col gap-2"
             >
               <a
-                data-link="/home"
+                href="/home"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <svg
@@ -29,7 +29,7 @@ template.innerHTML = `
                 <span>Home</span>
               </a>
               <a
-                data-link="/organizations"
+                href="/organizations"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <svg
@@ -46,7 +46,7 @@ template.innerHTML = `
                 <span>Organizations</span>
               </a>
               <a
-                data-link="/leads"
+                href="/leads"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <svg
@@ -61,7 +61,7 @@ template.innerHTML = `
                 <span>Leads</span>
               </a>
               <a
-                data-link="/deals"
+                href="/deals"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
                 <svg
@@ -81,7 +81,7 @@ template.innerHTML = `
                 <span>Deals</span>
               </a>
               <a
-                data-link="/users"
+                href="/users"
                 id="data-users-list"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
@@ -98,7 +98,7 @@ template.innerHTML = `
                 <span>Users</span>
               </a>
               <a
-                data-link="/tenants"
+                href="/tenants"
                 id="data-tenants-list"
                 class="flex items-center gap-2 px-3 py-2 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors cursor-pointer"
               >
@@ -151,7 +151,7 @@ template.innerHTML = `
 class AppSidebar extends HTMLElement {
   constructor() {
     super();
-    this.currentRoute = sessionStorage.getItem("currentTab");
+    this.currentRoute = window.location.pathname;
     // console.log(this.userData);
   }
 
@@ -164,15 +164,15 @@ class AppSidebar extends HTMLElement {
 
   setupEventListeners() {
     // console.log("Inside setup event listener");
-    const links = this.querySelectorAll("a[data-link]");
+    const links = this.querySelectorAll("a[href]");
     links.forEach((link) => {
       // console.log(link);
       link.addEventListener("click", (event) => {
         event.preventDefault();
         if (!link) return;
 
-        const path = link.getAttribute("data-link");
-        window.router.loadRoute(path);
+        const path = link.getAttribute("href");
+        window.router.navigate(path);
       });
     });
 
@@ -184,15 +184,15 @@ class AppSidebar extends HTMLElement {
       console.log("Inside logout eventlistener");
       userManager.clearUser();
       window.wsClient?.disconnect();
-      window.router.loadRoute("/login");
+      window.router.navigate("/login");
       eventBus.emit(EVENTS.LOGOUT_SUCCESS);
     });
   }
 
   updateActiveLink(route) {
-    const links = this.querySelectorAll("a[data-link]");
+    const links = this.querySelectorAll("a[href]");
     links.forEach((link) => {
-      const linkRoute = link.getAttribute("data-lnik");
+      const linkRoute = link.getAttribute("href");
       link.classList.toggle("active", linkRoute === route);
     });
   }
