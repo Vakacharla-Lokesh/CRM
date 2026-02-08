@@ -1,6 +1,5 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
-import { checkUserLogin } from "../services/checkUserLogin.js";
-import { generateId } from "../services/utils/uidGenerator.js";
+import { checkUserLogin } from "../services/auth/authService.js";
 import userManager from "../events/handlers/userManager.js";
 
 const loginForm = document.getElementById("login-form");
@@ -98,10 +97,12 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      userManager.initialize();
+      // Set user data directly in userManager
+      userManager.setUser(result.user);
 
+      // Emit login success event
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
-        email,
+        email: result.user.user_email,
         userId: result.user.user_id,
         name: result.user.user_name,
       });
