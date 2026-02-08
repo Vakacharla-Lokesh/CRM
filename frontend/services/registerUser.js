@@ -1,3 +1,8 @@
+// Re-export registration function from the new auth service
+// This maintains backward compatibility with existing code
+import { registerUser as apiRegisterUser } from "./auth/authService.js";
+import { apiClient, API_ENDPOINTS } from "./api/apiClient.js";
+
 export async function registerUser(
   name,
   email,
@@ -5,49 +10,42 @@ export async function registerUser(
   isNewTenant = false,
   tenantName = "",
 ) {
-  return new Promise((resolve, reject) => {
-    try {
-      const request = indexedDB.open("CRM_DB");
+  try {
+    // Split name into firstName and lastName
+    const nameParts = name.trim().split(" ");
+    const firstName = nameParts[0] || name;
+    const lastName = nameParts.slice(1).join(" ") || "";
 
-      request.onsuccess = (event) => {
-        const db = event.target.result;
-        const userTx = db.transaction("Users", "readonly");
-        const userStore = userTx.objectStore("Users");
-        const getAllUsersRequest = userStore.getAll();
+    // Prepare registration data
+    const registrationData = {
+      firstName,
+      lastName: lastName || undefined,
+      userEmail: email,
+      password,
+      mobile: "", // Optional, can be empty
+    };
 
-        getAllUsersRequest.onsuccess = () => {
-          const users = getAllUsersRequest.result;
+    // If creating a new tenant, include tenant information
+    if (isNewTenant) {
+      registrationData.tenantName = tenantName;
+      registrationData.role = "admin"; // First user of a new tenant is admin
+    } else {
+      registrationData.role = "user"; // Default role
+    }
 
-          const userExists = users.some(
-            (u) => u.user_email?.toLowerCase() === email.toLowerCase(),
-          );
+    // Call API to register user
+    const result = await apiRegisterUser(registrationData);
 
-          if (userExists) {
-            resolve({
-              success: false,
-              error:
-                "Email already registered. Please use a different email or login.",
-            });
-            return;
-          }
+    return result;
+  } catch (error) {
+    console.error("Registration error:", error);
+    return {
+      success: false,
+      error: error.message || "Failed to register. Please try again.",
+    };
+  }
+}
 
-          // Handle tenant creation/selection
-          if (isNewTenant) {
-            // Create new tenant
-            const tenantId = `tenant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-            const tenantData = {
-              tenant_id: tenantId,
-              tenant_name: tenantName,
-              created_at: new Date().toISOString(),
-            };
-
-            const tenantTx = db.transaction("Tenants", "readwrite");
-            const tenantStore = tenantTx.objectStore("Tenants");
-            const addTenantRequest = tenantStore.add(tenantData);
-
-            addTenantRequest.onsuccess = () => {
-              // Create admin user for new tenant
-              createUser(
                 db,
                 name,
                 email,

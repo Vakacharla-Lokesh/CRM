@@ -1,88 +1,171 @@
-<div class="w-full h-full">
-  <!-- Header Section -->
-  <div class="flex flex-row justify-between items-center pb-6">
-    <div>
-      <h2 class="text-2xl font-semibold text-gray-900 dark:text-white">
-        Deals
-      </h2>
-    </div>
-    <div class="flex gap-2">
-      <button
-        type="button"
-        id="bulk-delete-deals"
-        style="display: none"
-        class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors items-center gap-2"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Campaign Flux</title>
+    <link
+      rel="stylesheet"
+      href="../styles.css"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  </head>
+
+  <body
+    class="min-h-screen bg-white text-gray-900 dark:bg-slate-900 dark:text-slate-200"
+  >
+    <div
+      id="root"
+      class="flex min-h-screen flex-col"
+    >
+      <app-navbar></app-navbar>
+      <div
+        class="flex flex-1 pt-16 overflow-hidden"
+        id="data-sidebar"
       >
-        Delete Selected
-      </button>
-      <div id="export">
-        <button
-          type="button"
-          id="export-deals"
-          class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+        <app-sidebar></app-sidebar>
+        <main
+          id="main-page"
+          class="flex-1 overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 h-[calc(100vh-4rem)]"
         >
-          Export
-        </button>
+          <div class="w-full h-full">
+            <div class="flex flex-row justify-between items-center pb-6">
+              <div>
+                <h2
+                  class="text-2xl font-semibold text-gray-900 dark:text-white"
+                >
+                  Deals
+                </h2>
+              </div>
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  id="bulk-delete-deals"
+                  style="display: none"
+                  class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors items-center gap-2"
+                >
+                  Delete Selected
+                </button>
+                <div id="export">
+                  <button
+                    type="button"
+                    id="export-deals"
+                    class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    Export
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <search-bar data-search-type="deals-search-input"></search-bar>
+
+            <div
+              class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
+            >
+              <table class="w-full text-sm text-left">
+                <thead
+                  class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600"
+                >
+                  <tr>
+                    <th
+                      scope="col"
+                      class="p-4"
+                    >
+                      <input
+                        type="checkbox"
+                        id="select-all-deals"
+                        class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2"
+                      />
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3"
+                    >
+                      Deal Name
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3"
+                    >
+                      Deal Value
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3"
+                    >
+                      Status
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-6 py-3"
+                    >
+                      Modified
+                    </th>
+                    <th
+                      scope="col"
+                      class="px-3 py-3"
+                    >
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="deals-body"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <deal-modal></deal-modal>
+        </main>
       </div>
     </div>
-  </div>
 
-  <search-bar data-search-type="deals-search-input"></search-bar>
+    <!-- COMPONENTS IMPORT -->
+    <script
+      type="module"
+      src="../components/appNavbar.js"
+    ></script>
+    <script
+      type="module"
+      src="../components/appSidebar.js"
+    ></script>
+    <script
+      src="../components/exportProgress.js"
+      defer
+    ></script>
 
-  <!-- Table Section -->
-  <div
-    class="relative overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm"
-  >
-    <table class="w-full text-sm text-left">
-      <thead
-        class="sticky top-0 z-10 bg-gray-50 dark:bg-gray-700 text-xs font-semibold uppercase text-gray-600 dark:text-gray-300 border-b border-gray-200 dark:border-gray-600"
-      >
-        <tr>
-          <th
-            scope="col"
-            class="p-4"
-          >
-            <input
-              type="checkbox"
-              id="select-all-deals"
-              class="w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2"
-            />
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3"
-          >
-            Deal Name
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3"
-          >
-            Deal Value
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3"
-          >
-            Status
-          </th>
-          <th
-            scope="col"
-            class="px-6 py-3"
-          >
-            Modified
-          </th>
-          <th
-            scope="col"
-            class="px-3 py-3"
-          >
-            Actions
-          </th>
-        </tr>
-      </thead>
-      <tbody id="deals-body"></tbody>
-    </table>
-  </div>
-</div>
+    <!-- MODAL COMPONENTS IMPORT -->
+    <script
+      src="../components/modals/dealModal.js"
+      type="module"
+      defer
+    ></script>
 
-<deal-modal></deal-modal>
+    <!-- SEARCH BAR IMPORT -->
+    <script
+      src="../components/searchBar.js"
+      type="module"
+      defer
+    ></script>
+    <script
+      src="../js/searchFeatures.js"
+      type="module"
+      defer
+    ></script>
+
+    <!-- MAIN INDEX IMPORT -->
+    <script
+      type="module"
+      src="../index.js"
+    ></script>
+    <!-- ROUTING IMPORT -->
+    <script
+      type="module"
+      src="../router.js"
+      defer
+    ></script>
+  </body>
+</html>

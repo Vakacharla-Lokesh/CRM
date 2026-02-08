@@ -26,7 +26,7 @@ export function handleUserCreate(event) {
 export function handleUserCreated(event) {
   showNotification("User created successfully!", "success");
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/users" && dbWorker) {
@@ -52,7 +52,7 @@ export function handleUserDelete(event) {
 export function handleUserDeleted(event) {
   showNotification("User deleted successfully!", "success");
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/users" && dbWorker) {

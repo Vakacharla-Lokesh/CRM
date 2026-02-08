@@ -401,8 +401,8 @@ function handleThemeToggle(event) {
 
 function handleLoginSuccess(event) {
   setTimeout(() => {
-    if (window.router && window.router.loadRoute) {
-      window.router.loadRoute("/home");
+    if (window.router && window.router.navigate) {
+      window.router.navigate("/home");
       connectWebSocketIfAuthenticated();
       addNotification(`Welcome back.`, "success");
     }

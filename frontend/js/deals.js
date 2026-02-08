@@ -75,7 +75,7 @@ function loadAllDeals() {
   };
 
   // Use a unique identifier to track this listener
-  const currentPath = sessionStorage.getItem("currentTab");
+  const currentPath = window.location.pathname;
   if (currentPath === "/deals") {
     // Remove any old deal message handlers
     if (dealsMessageHandler) {

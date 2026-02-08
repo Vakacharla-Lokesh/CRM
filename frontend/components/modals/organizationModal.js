@@ -183,7 +183,7 @@ class OrganizationModal extends HTMLElement {
   setupModalOpenListener() {
     document.addEventListener("click", (e) => {
       if (e.target.closest("#open-modal-btn")) {
-        const currentPath = sessionStorage.getItem("currentTab");
+        const currentPath = window.location.pathname;
         if (currentPath === "/organizations") {
           sessionStorage.removeItem("organization_id");
           setTimeout(() => {

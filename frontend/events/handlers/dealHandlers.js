@@ -47,7 +47,7 @@ export function handleDealCreated(event) {
 
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal created." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
@@ -66,7 +66,7 @@ export function handleDealUpdated(event) {
   showNotification("Deal updated successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal updated." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
@@ -94,7 +94,7 @@ export function handleDealDeleted(event) {
   showNotification("Deal deleted successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal deleted." });
 
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/deals" && dbWorker) {
@@ -200,7 +200,7 @@ export function handleDealClick(e) {
 
 export function handleDealRefresh() {
   console.log("Inside handle deal refresh");
-  const currentTab = sessionStorage.getItem("currentTab");
+  const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   const user = userManager.getUser();

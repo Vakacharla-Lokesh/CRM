@@ -312,7 +312,7 @@ export class OrganizationSelect {
 export function initializeOrgSelect(dbWorker) {
   document.addEventListener("click", (e) => {
     if (e.target.closest("#open-modal-btn")) {
-      const currentTab = sessionStorage.getItem("currentTab");
+      const currentTab = window.location.pathname;
 
       if (currentTab === "/leads") {
         setTimeout(() => {

@@ -313,7 +313,7 @@ export function initializeLeadSelect(dbWorker) {
   document.addEventListener("click", (e) => {
     // Initialize lead select when deal modal opens
     if (e.target.closest("#open-modal-btn") || e.target.closest("#editDeal")) {
-      const currentTab = sessionStorage.getItem("currentTab");
+      const currentTab = window.location.pathname;
 
       if (currentTab === "/deals") {
         setTimeout(() => {

@@ -2,15 +2,17 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
 
-// Register a new user
 export const register = async (req, res, next) => {
   try {
     const { password, ...userData } = req.body;
 
-    // Check if user already exists
-    const existingUser = await userModel.findOne({
-      $or: [{ userEmail: userData.userEmail }, { mobile: userData.mobile }],
-    });
+    // Build the query to check for existing user
+    const existingUserQuery = { $or: [{ userEmail: userData.userEmail }] };
+    if (userData.mobile) {
+      existingUserQuery.$or.push({ mobile: userData.mobile });
+    }
+
+    const existingUser = await userModel.findOne(existingUserQuery);
 
     if (existingUser) {
       return res.status(409).json({
@@ -18,10 +20,8 @@ export const register = async (req, res, next) => {
       });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
     const user = await userModel.create({
       ...userData,
       password: hashedPassword,
@@ -29,21 +29,24 @@ export const register = async (req, res, next) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, role: user.role, tenantId: req.body.tenantId },
+      { userId: user._id, role: user.role, tenantId: user.tenantId },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
     );
 
     res.status(201).json({
       message: "User registered successfully",
+      success: true,
       token,
       user: {
-        id: user._id,
+        user_id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        userEmail: user.userEmail,
+        user_email: user.userEmail,
+        user_name: `${user.firstName} ${user.lastName || ""}`.trim(),
         mobile: user.mobile,
         role: user.role,
+        tenant_id: user.tenantId,
       },
     });
   } catch (err) {
@@ -80,21 +83,24 @@ export const login = async (req, res, next) => {
 
     // Generate token
     const token = jwt.sign(
-      { userId: user._id, role: user.role, tenantId: req.body.tenantId },
+      { userId: user._id, role: user.role, tenantId: user.tenantId },
       process.env.JWT_SECRET,
       { expiresIn: "24h" },
     );
 
     res.json({
       message: "Login successful",
+      success: true,
       token,
       user: {
-        id: user._id,
+        user_id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        userEmail: user.userEmail,
+        user_email: user.userEmail,
+        user_name: `${user.firstName} ${user.lastName || ""}`.trim(),
         mobile: user.mobile,
         role: user.role,
+        tenant_id: user.tenantId,
       },
     });
   } catch (err) {

@@ -15,8 +15,7 @@ export class SidebarManager {
 
     if (!sidebar) return;
 
-    const isPublicRoute =
-      routePath === "/pages/login.html" || routePath === "/pages/signup.html";
+    const isPublicRoute = routePath === "/login" || routePath === "/signup";
 
     if (isPublicRoute) {
       sidebar.classList.add("hidden");
@@ -30,10 +29,10 @@ export class SidebarManager {
 
     if (!sidebarElement) return;
 
-    const links = sidebarElement.querySelectorAll("a[data-link]");
+    const links = sidebarElement.querySelectorAll("a[href]");
 
     links.forEach((link) => {
-      const linkPath = link.getAttribute("data-link");
+      const linkPath = link.getAttribute("href");
 
       if (linkPath === path) {
         link.classList.remove("text-gray-700", "dark:text-gray-300");
@@ -61,7 +60,7 @@ export class SidebarManager {
     const sidebarElement = document.getElementById("sidebar");
     const usersTab = document.querySelector("#data-users-list");
     const tenantsTab = document.querySelector("#data-tenants-list");
-    
+
     if (role === "admin") {
       usersTab?.classList.remove("hidden");
       tenantsTab?.classList.add("hidden");

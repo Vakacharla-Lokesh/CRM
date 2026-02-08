@@ -17,6 +17,11 @@ export class DataFetcher {
   }
 
   fetchDataForRoute(path) {
+    const publicRoutes = ["/login", "/signup"];
+    if (publicRoutes.includes(path)) {
+      return;
+    }
+
     if (!this.dbWorker) {
       console.warn("Database worker not ready");
       return;
@@ -190,8 +195,8 @@ export class DataFetcher {
 
     if (action === "convertToDealSuccess") {
       alert("Lead successfully converted to Deal!");
-      if (window.router && window.router.loadRoute) {
-        window.router.loadRoute("/deals");
+      if (window.router && window.router.navigate) {
+        window.router.navigate("/deals");
         if (action === "convertToDealError") {
           alert("Error converting lead to deal: " + data.error);
         }

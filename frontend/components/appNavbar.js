@@ -341,7 +341,7 @@ class AppNavbar extends HTMLElement {
         );
       }
 
-      const currentPath = sessionStorage.getItem("currentTab");
+      const currentPath = window.location.pathname;
       if (currentPath === "/leads") {
         console.log("Before event leads refresh emit: ");
         eventBus.emit(EVENTS.LEADS_REFRESH);
@@ -397,7 +397,7 @@ class AppNavbar extends HTMLElement {
         this.updateOfflineCount();
 
         // Refresh current page data
-        const currentTab = sessionStorage.getItem("currentTab");
+        const currentTab = window.location.pathname;
         if (currentTab === "/leads") {
           eventBus.emit(EVENTS.LEADS_REFRESH);
         } else if (currentTab === "/organizations") {

@@ -12,7 +12,6 @@ import { authenticate } from "../middlewares/auth.js";
 
 const router = Router();
 
-// Validation schemas
 const registerSchema = z
   .object({
     firstName: z.string().min(1),
@@ -20,7 +19,8 @@ const registerSchema = z
     userEmail: z.string().email("Please provide a valid email address"),
     mobile: z
       .string()
-      .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
+      .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number")
+      .optional(),
     role: z.enum(["user", "admin", "super_admin"]),
     password: z.string().min(8),
     tenantId: z.string().optional(),
@@ -39,7 +39,6 @@ const loginSchema = z
     message: "Either email or mobile is required",
   });
 
-// Routes
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);
