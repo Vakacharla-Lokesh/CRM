@@ -400,13 +400,11 @@ function handleThemeToggle(event) {
 }
 
 function handleLoginSuccess(event) {
-  setTimeout(() => {
-    if (window.router && window.router.navigate) {
-      window.router.navigate("/home");
-      connectWebSocketIfAuthenticated();
-      addNotification(`Welcome back.`, "success");
-    }
-  }, 500);
+  if (window.router && window.router.navigate) {
+    window.router.navigate("/home");
+    connectWebSocketIfAuthenticated();
+    addNotification(`Welcome back.`, "success");
+  }
 }
 
 function handleLoginFailure(event) {
