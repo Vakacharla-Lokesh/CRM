@@ -31,3 +31,8 @@ lead activity in db
 >>> calculate score also based on user_id and role and tenant_id
 
 curl -X POST http://localhost:3000/update -H "Content-Type: application/json" -d '{"message":"Hello from curl!"}'
+
+add email, phone, plan
+
+s3 for storing images
+

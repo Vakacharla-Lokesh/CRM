@@ -3,7 +3,7 @@ import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
 import userManager from "./userManager.js";
 
-export function handleLeadCreate(event) {
+export async function handleLeadCreate(event) {
   const { dbWorker, isDbReady } = dbState;
 
   if (!isDbReady || !dbWorker) {
@@ -11,18 +11,33 @@ export function handleLeadCreate(event) {
     return;
   }
 
-  // console.log(event.detail);
-
   const leadData = {
     ...event.detail.leadData,
-    created_on: new Date(),
-    modified_on: new Date(),
+    created_at: new Date(),
+    updated_at: new Date(),
   };
 
-  dbWorker.postMessage({
-    action: "createLead",
-    leadData,
-  });
+  try {
+    await apiClient.post(API_ENDPOINTS.LEADS.CREATE, leadData);
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Leads",
+      operation: "insert",
+      data: leadData,
+    });
+
+    eventBus.emit(EVENTS.LEAD_CREATED);
+  } catch (error) {
+    console.error("Failed to create lead:", error);
+    showNotification("Failed to create lead: " + error.message, "error");
+
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Leads",
+      operation: "insert",
+      data: leadData,
+    });
+  }
 }
 
 export function handleLeadCreated(event) {

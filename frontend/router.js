@@ -89,6 +89,12 @@ class Router {
         return;
       }
 
+      // If user is logged in and trying to access public routes, redirect to home
+      if (user && publicRoutes.includes(path)) {
+        this.navigate("/home");
+        return;
+      }
+
       this.sidebarManager.toggleSidebar(path);
 
       // Map routes to their HTML page files
@@ -106,7 +112,6 @@ class Router {
 
       const pagePath = pageMap[path] || pageMap["/home"];
 
-      // Fetch page content directly
       const response = await fetch(pagePath);
       if (!response.ok) {
         throw new Error(`Failed to load page: ${response.statusText}`);
@@ -116,7 +121,6 @@ class Router {
       const mainPage = document.getElementById("main-page");
 
       if (mainPage) {
-        // Extract only the main content from the page HTML
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, "text/html");
         const mainContent = doc.querySelector("#main-page");
@@ -124,7 +128,6 @@ class Router {
         if (mainContent) {
           mainPage.innerHTML = mainContent.innerHTML;
         } else {
-          // Fallback: use the body content if no main-page found
           const bodyContent = doc.querySelector("body");
           if (bodyContent) {
             mainPage.innerHTML = bodyContent.innerHTML;

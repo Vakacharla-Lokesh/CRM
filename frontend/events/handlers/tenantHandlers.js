@@ -1,8 +1,10 @@
 import { dbState } from "../../services/state/dbState.js";
 import { showNotification } from "../notificationEvents.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
+import { apiClient, API_ENDPOINTS } from "../../services/api/apiClient.js";
+import { eventBus, EVENTS } from "../eventBus.js";
 
-export function handleTenantCreate(event) {
+export async function handleTenantCreate(event) {
   const { dbWorker, isDbReady } = dbState;
 
   if (!isDbReady || !dbWorker) {
@@ -45,27 +47,100 @@ export function handleTenantCreate(event) {
     updated_at: new Date().toISOString(),
   };
 
-  // Send message to create tenant and admin
-  dbWorker.postMessage({
-    action: "createTenantWithAdmin",
-    tenantData,
-    adminData,
-  });
+  try {
+    // Make API call first
+    await apiClient.post(API_ENDPOINTS.TENANTS.CREATE, {
+      ...tenantData,
+      admin: adminData,
+    });
+    
+    // Then sync to IndexedDB
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "insert",
+      data: tenantData,
+    });
+    
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Users",
+      operation: "insert",
+      data: adminData,
+    });
+    
+    eventBus.emit(EVENTS.TENANT_CREATED);
+  } catch (error) {
+    console.error("Failed to create tenant:", error);
+    showNotification("Failed to create tenant: " + error.message, "error");
+    
+    // Still try to save locally
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "insert",
+      data: tenantData,
+    });
+    
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Users",
+      operation: "insert",
+      data: adminData,
+    });
+  }
 }
 
-export function handleTenantCreated(event) {
+export async function handleTenantCreated(event) {
   showNotification("Tenant created successfully!", "success");
 
   const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllTenants" });
-    dbWorker.postMessage({ action: "getAllUsers" });
+    try {
+      // Fetch fresh data from API
+      const tenantsResponse = await apiClient.get(API_ENDPOINTS.TENANTS.GET_ALL);
+      const tenantsData = tenantsResponse.data || tenantsResponse;
+
+      const usersResponse = await apiClient.get(API_ENDPOINTS.USERS.GET_ALL);
+      const usersData = usersResponse.data || usersResponse;
+
+      // Sync to IndexedDB
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Tenants",
+        operation: "replaceAll",
+        data: tenantsData,
+      });
+      
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Users",
+        operation: "replaceAll",
+        data: usersData,
+      });
+
+      // Emit data fetched events for UI update
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Tenants",
+        rows: tenantsData,
+      });
+      
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Users",
+        rows: usersData,
+      });
+    } catch (error) {
+      console.error("Failed to fetch tenants/users:", error);
+      // Fallback to IndexedDB
+      dbWorker.postMessage({ action: "getData", storeName: "Tenants" });
+      dbWorker.postMessage({ action: "getData", storeName: "Users" });
+    }
   }
 }
 
-export function handleTenantUpdate(event) {
+export async function handleTenantUpdate(event) {
   const { dbWorker, isDbReady } = dbState;
 
   if (!isDbReady || !dbWorker) {
@@ -78,42 +153,165 @@ export function handleTenantUpdate(event) {
     updated_at: new Date().toISOString(),
   };
 
-  dbWorker.postMessage({
-    action: "updateTenant",
-    tenantData,
-  });
+  try {
+    // Make API call first
+    await apiClient.put(
+      API_ENDPOINTS.TENANTS.UPDATE(tenantData.tenant_id),
+      tenantData
+    );
+    
+    // Then sync to IndexedDB
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "update",
+      data: tenantData,
+    });
+    
+    eventBus.emit(EVENTS.TENANT_UPDATED);
+  } catch (error) {
+    console.error("Failed to update tenant:", error);
+    showNotification("Failed to update tenant: " + error.message, "error");
+    
+    // Still try to update locally
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "update",
+      data: tenantData,
+    });
+  }
 }
 
-export function handleTenantUpdated(event) {
+export async function handleTenantUpdated(event) {
   showNotification("Tenant updated successfully!", "success");
 
   const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllTenants" });
-    dbWorker.postMessage({ action: "getAllUsers" });
+    try {
+      // Fetch fresh data from API
+      const tenantsResponse = await apiClient.get(API_ENDPOINTS.TENANTS.GET_ALL);
+      const tenantsData = tenantsResponse.data || tenantsResponse;
+
+      const usersResponse = await apiClient.get(API_ENDPOINTS.USERS.GET_ALL);
+      const usersData = usersResponse.data || usersResponse;
+
+      // Sync to IndexedDB
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Tenants",
+        operation: "replaceAll",
+        data: tenantsData,
+      });
+      
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Users",
+        operation: "replaceAll",
+        data: usersData,
+      });
+
+      // Emit data fetched events for UI update
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Tenants",
+        rows: tenantsData,
+      });
+      
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Users",
+        rows: usersData,
+      });
+    } catch (error) {
+      console.error("Failed to fetch tenants/users:", error);
+      // Fallback to IndexedDB
+      dbWorker.postMessage({ action: "getData", storeName: "Tenants" });
+      dbWorker.postMessage({ action: "getData", storeName: "Users" });
+    }
   }
 }
 
-export function handleTenantDelete(event) {
+export async function handleTenantDelete(event) {
   const { dbWorker } = dbState;
 
   if (!dbWorker) return;
 
   const id = event.detail.id;
-  dbWorker.postMessage({ action: "deleteTenant", id });
+  
+  try {
+    // Delete from API first
+    await apiClient.delete(API_ENDPOINTS.TENANTS.DELETE(id));
+    
+    // Then delete from IndexedDB
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "delete",
+      id: id,
+    });
+    
+    eventBus.emit(EVENTS.TENANT_DELETED);
+  } catch (error) {
+    console.error("Failed to delete tenant:", error);
+    showNotification("Failed to delete tenant: " + error.message, "error");
+    
+    // Still try to delete locally
+    dbWorker.postMessage({
+      action: "syncData",
+      storeName: "Tenants",
+      operation: "delete",
+      id: id,
+    });
+  }
 }
 
-export function handleTenantDeleted(event) {
+export async function handleTenantDeleted(event) {
   showNotification("Tenant deleted successfully!", "success");
 
   const currentTab = window.location.pathname;
   const { dbWorker } = dbState;
 
   if (currentTab === "/tenants" && dbWorker) {
-    dbWorker.postMessage({ action: "getAllTenants" });
-    dbWorker.postMessage({ action: "getAllUsers" });
+    try {
+      // Fetch fresh data from API
+      const tenantsResponse = await apiClient.get(API_ENDPOINTS.TENANTS.GET_ALL);
+      const tenantsData = tenantsResponse.data || tenantsResponse;
+
+      const usersResponse = await apiClient.get(API_ENDPOINTS.USERS.GET_ALL);
+      const usersData = usersResponse.data || usersResponse;
+
+      // Sync to IndexedDB
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Tenants",
+        operation: "replaceAll",
+        data: tenantsData,
+      });
+      
+      dbWorker.postMessage({
+        action: "syncData",
+        storeName: "Users",
+        operation: "replaceAll",
+        data: usersData,
+      });
+
+      // Emit data fetched events for UI update
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Tenants",
+        rows: tenantsData,
+      });
+      
+      eventBus.emit(EVENTS.DATA_FETCHED, {
+        storeName: "Users",
+        rows: usersData,
+      });
+    } catch (error) {
+      console.error("Failed to fetch tenants/users:", error);
+      // Fallback to IndexedDB
+      dbWorker.postMessage({ action: "getData", storeName: "Tenants" });
+      dbWorker.postMessage({ action: "getData", storeName: "Users" });
+    }
   }
 }
 

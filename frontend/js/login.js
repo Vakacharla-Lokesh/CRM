@@ -98,7 +98,7 @@ loginForm.addEventListener("submit", async (e) => {
     const result = await checkUserLogin(email, password);
 
     if (result.success) {
-      userManager.initialize();
+      userManager.setUser(result.user);
 
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
         email,

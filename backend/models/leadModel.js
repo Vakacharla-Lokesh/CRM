@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 
 const leadsSchema = new Schema(
   {
-    _id: { type: Schema.Types.UUID, default: () => crypto.randomUUID() },
     organizationId: { type: String, required: true },
     userId: { type: String, required: true },
     tenantId: { type: String },

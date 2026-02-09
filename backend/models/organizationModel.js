@@ -2,7 +2,6 @@ import { Schema, model } from "mongoose";
 
 const organizationsSchema = new Schema(
   {
-    _id: { type: Schema.Types.UUID, default: () => crypto.randomUUID() },
     tenantId: { type: String, required: true },
     userId: { type: String, required: true },
     organizationName: { type: String, required: true },
