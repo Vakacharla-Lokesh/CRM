@@ -6,15 +6,14 @@ export const leadsStructure = {
     lead_first_name: "lead1",
     lead_last_name: "lead1",
     lead_email: "lead1@gmail.com",
-    lead_mobile_number: "99000000000",
+    lead_mobile_number: "1234567890",
     organization_id: null,
     organization_name: "",
     lead_source: "API",
     lead_score: 0,
     lead_status: "New",
-    comment_ids: [],
-    call_ids: [],
     user_id: "1",
+    tenant_id: null,
     created_on: new Date(),
     modified_on: new Date(),
   },
@@ -37,6 +36,13 @@ export const leadsStructure = {
     {
       name: "user_id",
       keyPath: "user_id",
+      options: {
+        unique: false,
+      },
+    },
+    {
+      name: "tenant_id",
+      keyPath: "tenant_id",
       options: {
         unique: false,
       },

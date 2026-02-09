@@ -8,6 +8,14 @@ export const attachmentsStructure = {
     file_size: "2.5 MB",
     file_type: "application/pdf",
     file_data: null,
-    upload_date: new Date(),
+    created_at: new Date(),
+    updated_at: new Date(),
   },
+  indexes: [
+    {
+      name: "lead_id",
+      keyPath: "lead_id",
+      options: { unique: false },
+    },
+  ],
 };

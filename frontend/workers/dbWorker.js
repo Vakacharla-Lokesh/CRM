@@ -318,6 +318,85 @@ self.onmessage = (e) => {
       }
       break;
 
+    case "clearAndPopulate":
+      if (dbReady && db) {
+        const storeName = e.data.storeName;
+        const data = e.data.data;
+        
+        try {
+          const tx = db.transaction(storeName, "readwrite");
+          const store = tx.objectStore(storeName);
+          
+          // Clear the store first
+          const clearRequest = store.clear();
+          
+          clearRequest.onsuccess = () => {
+            // Then add all new data
+            let successCount = 0;
+            let errorCount = 0;
+            
+            if (data && data.length > 0) {
+              data.forEach((item) => {
+                const addRequest = store.add(item);
+                
+                addRequest.onsuccess = () => {
+                  successCount++;
+                  if (successCount + errorCount === data.length) {
+                    postMessage({
+                      action: "clearAndPopulateSuccess",
+                      storeName: storeName,
+                      count: successCount
+                    });
+                  }
+                };
+                
+                addRequest.onerror = () => {
+                  errorCount++;
+                  console.error(`Error adding item to ${storeName}:`, addRequest.error);
+                  if (successCount + errorCount === data.length) {
+                    postMessage({
+                      action: "clearAndPopulateSuccess",
+                      storeName: storeName,
+                      count: successCount
+                    });
+                  }
+                };
+              });
+            } else {
+              // No data to add, just cleared
+              postMessage({
+                action: "clearAndPopulateSuccess",
+                storeName: storeName,
+                count: 0
+              });
+            }
+          };
+          
+          clearRequest.onerror = () => {
+            console.error(`Error clearing ${storeName}:`, clearRequest.error);
+            postMessage({
+              action: "clearAndPopulateError",
+              storeName: storeName,
+              error: clearRequest.error.message
+            });
+          };
+        } catch (error) {
+          console.error(`Error in clearAndPopulate for ${storeName}:`, error);
+          postMessage({
+            action: "clearAndPopulateError",
+            storeName: storeName,
+            error: error.message
+          });
+        }
+      } else {
+        postMessage({
+          action: "clearAndPopulateError",
+          storeName: e.data.storeName,
+          error: "Database not ready"
+        });
+      }
+      break;
+
     default:
       console.warn("Unknown action:", e.data.action);
   }

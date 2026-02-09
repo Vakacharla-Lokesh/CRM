@@ -2,7 +2,8 @@ import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
 import userManager from "./userManager.js";
-import { apiClient, API_ENDPOINTS } from "../../services/api/apiClient.js";
+import { syncSingleEntityToBackend } from "../../services/data/initialDataSync.js";
+import { appendDealRow, removeRowById, updateRowById } from "../../utils/tableRowUtils.js";
 
 export async function handleDealCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -16,30 +17,28 @@ export async function handleDealCreate(event) {
     ...event.detail.dealData,
   };
 
+  // 1. First, save to IndexedDB
+  dbWorker.postMessage({
+    action: "createDeal",
+    dealData: dealData,
+  });
+  
+  // 2. Then try to sync to backend
   try {
-    // Make API call first
-    await apiClient.post(API_ENDPOINTS.DEALS.CREATE, dealData);
+    const response = await syncSingleEntityToBackend("deals", dealData, "create");
     
-    // Then sync to IndexedDB
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "insert",
-      data: dealData,
-    });
+    // If backend returns an ID, update the local record
+    if (response && response.deal_id) {
+      dealData.deal_id = response.deal_id;
+    }
     
-    eventBus.emit(EVENTS.DEAL_CREATED);
+    eventBus.emit(EVENTS.DEAL_CREATED, { dealData });
   } catch (error) {
-    console.error("Failed to create deal:", error);
-    showNotification("Failed to create deal: " + error.message, "error");
+    console.error("Failed to sync deal to backend:", error);
+    showNotification("Deal saved offline. Will sync when connection is restored.", "warning");
     
-    // Still try to save locally
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "insert",
-      data: dealData,
-    });
+    // Still emit created event so UI updates
+    eventBus.emit(EVENTS.DEAL_CREATED, { dealData });
   }
 }
 
@@ -56,146 +55,55 @@ export async function handleDealUpdate(event) {
     modified_on: new Date(),
   };
 
+  // 1. First, update in IndexedDB
+  dbWorker.postMessage({
+    action: "updateDeal",
+    dealData: dealData,
+  });
+  
+  // 2. Then try to sync to backend
   try {
-    // Make API call first
-    await apiClient.put(
-      API_ENDPOINTS.DEALS.UPDATE(dealData.deal_id),
-      dealData
-    );
+    await syncSingleEntityToBackend("deals", dealData, "update");
     
-    // Then sync to IndexedDB
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "update",
-      data: dealData,
-    });
-    
-    eventBus.emit(EVENTS.DEAL_UPDATED);
+    eventBus.emit(EVENTS.DEAL_UPDATED, { dealData });
   } catch (error) {
-    console.error("Failed to update deal:", error);
-    showNotification("Failed to update deal: " + error.message, "error");
+    console.error("Failed to sync deal update to backend:", error);
+    showNotification("Deal updated locally. Will sync when connection is restored.", "warning");
     
-    // Still try to update locally
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "update",
-      data: dealData,
-    });
+    // Still emit updated event so UI updates
+    eventBus.emit(EVENTS.DEAL_UPDATED, { dealData });
   }
 }
 
-export async function handleDealCreated(event) {
+export function handleDealCreated(event) {
   showNotification("Deal created successfully!", "success");
 
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal created." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
-
-  if (currentTab === "/deals" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-    
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.DEALS.GET_ALL);
-      const dealsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredDeals = dealsData;
-      if (role === "admin") {
-        filteredDeals = dealsData.filter(
-          (deal) => String(deal.tenant_id) === String(tenant_id)
-        );
-      } else {
-        filteredDeals = dealsData.filter(
-          (deal) =>
-            String(deal.tenant_id) === String(tenant_id) &&
-            String(deal.user_id) === String(user_id)
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Deals",
-        operation: "replaceAll",
-        data: filteredDeals,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Deals",
-        rows: filteredDeals,
-      });
-    } catch (error) {
-      console.error("Failed to fetch deals:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Deals",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  
+  // Append the new deal row to the table instead of refetching all data
+  if (currentTab === "/deals" && event.detail && event.detail.dealData) {
+    appendDealRow(event.detail.dealData);
   }
 }
 
-export async function handleDealUpdated(event) {
+export function handleDealUpdated(event) {
   showNotification("Deal updated successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal updated." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
 
-  if (currentTab === "/deals" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-    
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.DEALS.GET_ALL);
-      const dealsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredDeals = dealsData;
-      if (role === "admin") {
-        filteredDeals = dealsData.filter(
-          (deal) => String(deal.tenant_id) === String(tenant_id)
-        );
-      } else {
-        filteredDeals = dealsData.filter(
-          (deal) =>
-            String(deal.tenant_id) === String(tenant_id) &&
-            String(deal.user_id) === String(user_id)
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Deals",
-        operation: "replaceAll",
-        data: filteredDeals,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Deals",
-        rows: filteredDeals,
-      });
-    } catch (error) {
-      console.error("Failed to fetch deals:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Deals",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  // Update the deal row in the table instead of refetching all data
+  if (currentTab === "/deals" && event.detail && event.detail.dealData) {
+    const dealData = event.detail.dealData;
+    updateRowById(
+      "deals-body", 
+      "data-deal-id", 
+      dealData.deal_id, 
+      dealData, 
+      appendDealRow
+    );
   }
 }
 
@@ -206,86 +114,34 @@ export async function handleDealDelete(event) {
 
   const id = event.detail.id;
   
+  // 1. First, delete from IndexedDB
+  dbWorker.postMessage({
+    action: "deleteDeal",
+    id: id,
+  });
+  
+  // 2. Then try to sync to backend
   try {
-    // Delete from API first
-    await apiClient.delete(API_ENDPOINTS.DEALS.DELETE(id));
-    
-    // Then delete from IndexedDB
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "delete",
-      id: id,
-    });
-    
-    eventBus.emit(EVENTS.DEAL_DELETED);
+    await syncSingleEntityToBackend("deals", { deal_id: id }, "delete");
+    eventBus.emit(EVENTS.DEAL_DELETED, { id });
   } catch (error) {
-    console.error("Failed to delete deal:", error);
-    showNotification("Failed to delete deal: " + error.message, "error");
+    console.error("Failed to sync deal deletion to backend:", error);
+    showNotification("Deal deleted locally. Will sync when connection is restored.", "warning");
     
-    // Still try to delete locally
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Deals",
-      operation: "delete",
-      id: id,
-    });
+    // Still emit deleted event so UI updates
+    eventBus.emit(EVENTS.DEAL_DELETED, { id });
   }
 }
 
-export async function handleDealDeleted(event) {
+export function handleDealDeleted(event) {
   showNotification("Deal deleted successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Deal deleted." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
 
-  if (currentTab === "/deals" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-    
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.DEALS.GET_ALL);
-      const dealsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredDeals = dealsData;
-      if (role === "admin") {
-        filteredDeals = dealsData.filter(
-          (deal) => String(deal.tenant_id) === String(tenant_id)
-        );
-      } else {
-        filteredDeals = dealsData.filter(
-          (deal) =>
-            String(deal.tenant_id) === String(tenant_id) &&
-            String(deal.user_id) === String(user_id)
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Deals",
-        operation: "replaceAll",
-        data: filteredDeals,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Deals",
-        rows: filteredDeals,
-      });
-    } catch (error) {
-      console.error("Failed to fetch deals:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Deals",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  // Remove the deal row from the table instead of refetching all data
+  if (currentTab === "/deals" && event.detail && event.detail.id) {
+    removeRowById("deals-body", "data-deal-id", event.detail.id);
   }
 }
 

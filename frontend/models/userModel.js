@@ -4,12 +4,15 @@ export const usersStructure = {
   default_obj: {
     user_id: 1,
     user_email: "hello@gmail.com",
+    user_name: "Lokesh Testing",
     password: "testing",
     first_name: "Lokesh",
     last_name: "Testing",
     mobile: "909090",
-    role: "Admin",
+    role: "admin",
     tenant_id: "tenant_123",
+    created_at: new Date(),
+    updated_at: new Date(),
   },
   indexes: [
     {
@@ -18,8 +21,13 @@ export const usersStructure = {
       options: { unique: true },
     },
     {
-      name: "tenant",
+      name: "tenant_id",
       keyPath: "tenant_id",
+      options: { unique: false },
+    },
+    {
+      name: "role",
+      keyPath: "role",
       options: { unique: false },
     },
   ],
