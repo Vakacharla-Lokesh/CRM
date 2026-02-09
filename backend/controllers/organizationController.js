@@ -1,6 +1,5 @@
 import organizationModel from "../models/organizationModel.js";
 
-// Get all organizations
 export const getAllOrganizations = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
@@ -15,7 +14,6 @@ export const getAllOrganizations = async (req, res, next) => {
   }
 };
 
-// Get organization by ID
 export const getOrganizationById = async (req, res, next) => {
   try {
     const organization = await organizationModel.findById(req.params.id);
@@ -40,17 +38,16 @@ export const getOrganizationById = async (req, res, next) => {
   }
 };
 
-// Create a new organization
 export const createOrganization = async (req, res, next) => {
   try {
-    // Ensure userId from authenticated user
     const organizationData = {
       ...req.body,
       userId: req.user.userId,
     };
 
-    // For non-super_admin, ensure tenantId matches
-    if (req.user.role !== "super_admin") {
+    if (!organizationData.tenantId) {
+      organizationData.tenantId = req.user.tenantId;
+    } else if (req.user.role !== "super_admin") {
       organizationData.tenantId = req.user.tenantId;
     }
 

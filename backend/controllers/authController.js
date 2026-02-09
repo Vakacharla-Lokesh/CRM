@@ -72,7 +72,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Verify password
     const isValidPassword = await bcrypt.compare(password, user.password);
 
     if (!isValidPassword) {
@@ -81,7 +80,6 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Generate token
     const token = jwt.sign(
       { userId: user._id, role: user.role, tenantId: user.tenantId },
       process.env.JWT_SECRET,

@@ -1,3 +1,5 @@
+import userManager from "../../events/handlers/userManager.js";
+
 const API_BASE_URL = "http://localhost:4000/api";
 
 class ApiClient {
@@ -5,10 +7,11 @@ class ApiClient {
     this.baseURL = API_BASE_URL;
   }
 
-  // Get auth token from localStorage
+  // Get auth token from userManager
   getAuthToken() {
-    const user = JSON.parse(localStorage.getItem("user") || "{}");
-    return user.token || "";
+    const user = userManager.getUser();
+    // console.log("User token: ", user?.token);
+    return user?.token || "";
   }
 
   // Create headers with auth token
@@ -18,6 +21,7 @@ class ApiClient {
     };
 
     const token = this.getAuthToken();
+    console.log("User token: ", token);
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
@@ -38,10 +42,14 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
-        const error = await response.json().catch(() => ({ message: response.statusText }));
-        throw new Error(error.message || `HTTP error! status: ${response.status}`);
+        const error = await response
+          .json()
+          .catch(() => ({ message: response.statusText }));
+        throw new Error(
+          error.message || `HTTP error! status: ${response.status}`,
+        );
       }
 
       return await response.json();
