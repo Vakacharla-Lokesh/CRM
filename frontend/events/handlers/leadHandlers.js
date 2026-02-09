@@ -2,6 +2,8 @@ import { dbState } from "../../services/state/dbState.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import { showNotification } from "../notificationEvents.js";
 import userManager from "./userManager.js";
+import { syncSingleEntityToBackend } from "../../services/data/initialDataSync.js";
+import { appendLeadRow, removeRowById } from "../../utils/tableRowUtils.js";
 
 export async function handleLeadCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -17,26 +19,28 @@ export async function handleLeadCreate(event) {
     updated_at: new Date(),
   };
 
+  // 1. First, save to IndexedDB
+  dbWorker.postMessage({
+    action: "createLead",
+    leadData: leadData,
+  });
+
+  // 2. Then try to sync to backend
   try {
-    await apiClient.post(API_ENDPOINTS.LEADS.CREATE, leadData);
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Leads",
-      operation: "insert",
-      data: leadData,
-    });
-
-    eventBus.emit(EVENTS.LEAD_CREATED);
+    const response = await syncSingleEntityToBackend("leads", leadData, "create");
+    
+    // If backend returns an ID, update the local record
+    if (response && response.lead_id) {
+      leadData.lead_id = response.lead_id;
+    }
+    
+    eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
   } catch (error) {
-    console.error("Failed to create lead:", error);
-    showNotification("Failed to create lead: " + error.message, "error");
-
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Leads",
-      operation: "insert",
-      data: leadData,
-    });
+    console.error("Failed to sync lead to backend:", error);
+    showNotification("Lead saved offline. Will sync when connection is restored.", "warning");
+    
+    // Still emit created event so UI updates
+    eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
   }
 }
 
@@ -46,29 +50,34 @@ export function handleLeadCreated(event) {
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead created." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
-
-  const user = userManager.getUser();
-  if (!user) return;
-  const { user_id, tenant_id, role } = user;
-
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({
-      action: "getAllLeads",
-      user_id,
-      tenant_id,
-      role,
-    });
+  
+  // Append the new lead row to the table instead of refetching all data
+  if (currentTab === "/leads" && event.detail && event.detail.leadData) {
+    appendLeadRow(event.detail.leadData);
   }
 }
 
-export function handleLeadDelete(event) {
+export async function handleLeadDelete(event) {
   const { dbWorker } = dbState;
 
   if (!dbWorker) return;
 
   const id = event.detail.id;
+  
+  // 1. First, delete from IndexedDB
   dbWorker.postMessage({ action: "deleteLead", id });
+
+  // 2. Then try to sync to backend
+  try {
+    await syncSingleEntityToBackend("leads", { lead_id: id }, "delete");
+    eventBus.emit(EVENTS.LEAD_DELETED, { id });
+  } catch (error) {
+    console.error("Failed to sync lead deletion to backend:", error);
+    showNotification("Lead deleted locally. Will sync when connection is restored.", "warning");
+    
+    // Still emit deleted event so UI updates
+    eventBus.emit(EVENTS.LEAD_DELETED, { id });
+  }
 }
 
 export function handleLeadDeleted(event) {
@@ -77,19 +86,10 @@ export function handleLeadDeleted(event) {
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead deleted." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
-
-  const user = userManager.getUser();
-  if (!user) return;
-  const { user_id, tenant_id, role } = user;
-
-  if (currentTab === "/leads" && dbWorker) {
-    dbWorker.postMessage({
-      action: "getAllLeads",
-      user_id,
-      tenant_id,
-      role,
-    });
+  
+  // Remove the lead row from the table instead of refetching all data
+  if (currentTab === "/leads" && event.detail && event.detail.id) {
+    removeRowById("leads-body", "data-lead-id", event.detail.id);
   }
 }
 

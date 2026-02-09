@@ -5,9 +5,14 @@ export const organizationsStructure = {
     organization_id: 1,
     organization_name: "ORG1",
     organization_website_name: "www.google.com/",
-    organization_size: 50,
+    organization_size: "50",
     organization_industry: "Software",
+    contact_name: "",
+    contact_number: "",
     tenant_id: "tenant_123",
+    user_id: "user_123",
+    created_on: new Date(),
+    modified_on: new Date(),
   },
   indexes: [
     {
@@ -21,8 +26,13 @@ export const organizationsStructure = {
       options: { unique: false },
     },
     {
-      name: "tenant",
+      name: "tenant_id",
       keyPath: "tenant_id",
+      options: { unique: false },
+    },
+    {
+      name: "user_id",
+      keyPath: "user_id",
       options: { unique: false },
     },
   ],

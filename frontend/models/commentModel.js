@@ -6,6 +6,14 @@ export const commentsStructure = {
     comment_title: "Title",
     comment_desc: "Testing comments",
     lead_id: 1,
-    created_on: new Date(),
+    created_at: new Date(),
+    updated_at: new Date(),
   },
+  indexes: [
+    {
+      name: "lead_id",
+      keyPath: "lead_id",
+      options: { unique: false },
+    },
+  ],
 };

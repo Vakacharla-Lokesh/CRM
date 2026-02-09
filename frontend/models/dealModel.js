@@ -6,10 +6,7 @@ export const dealsStructure = {
     deal_name: "Sample Deal",
     deal_value: 50000,
     lead_id: null,
-    lead_first_name: "",
-    lead_last_name: "",
     organization_id: null,
-    organization_name: "",
     deal_status: "Prospecting",
     tenant_id: "tenant_123",
     user_id: "user_123",
@@ -20,6 +17,16 @@ export const dealsStructure = {
     {
       name: "tenant_id",
       keyPath: "tenant_id",
+      options: { unique: false },
+    },
+    {
+      name: "user_id",
+      keyPath: "user_id",
+      options: { unique: false },
+    },
+    {
+      name: "deal_status",
+      keyPath: "deal_status",
       options: { unique: false },
     },
   ],

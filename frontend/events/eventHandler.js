@@ -399,12 +399,22 @@ function handleThemeToggle(event) {
   localStorage.setItem("theme", theme);
 }
 
-function handleLoginSuccess(event) {
-  setTimeout(() => {
+async function handleLoginSuccess(event) {
+  // Import the data sync service
+  const { syncAllDataOnLogin } = await import("../services/data/initialDataSync.js");
+  const userManager = (await import("./handlers/userManager.js")).default;
+  
+  setTimeout(async () => {
     if (window.router && window.router.navigate) {
       window.router.navigate("/home");
       connectWebSocketIfAuthenticated();
       addNotification(`Welcome back.`, "success");
+      
+      // Sync all data from backend to IndexedDB on login
+      const user = userManager.getUser();
+      if (user) {
+        await syncAllDataOnLogin(user);
+      }
     }
   }, 500);
 }

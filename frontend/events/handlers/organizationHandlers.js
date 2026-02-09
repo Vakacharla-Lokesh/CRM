@@ -3,7 +3,8 @@ import { showNotification } from "../notificationEvents.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
 import { eventBus, EVENTS } from "../eventBus.js";
 import userManager from "./userManager.js";
-import { apiClient, API_ENDPOINTS } from "../../services/api/apiClient.js";
+import { syncSingleEntityToBackend } from "../../services/data/initialDataSync.js";
+import { appendOrganizationRow, removeRowById, updateRowById } from "../../utils/tableRowUtils.js";
 
 export async function handleOrganizationCreate(event) {
   const { dbWorker, isDbReady } = dbState;
@@ -16,50 +17,41 @@ export async function handleOrganizationCreate(event) {
   const rawData = event.detail.organizationData;
   
   const organizationData = {
-    organization_id: generateId("org"),
+    organization_id: rawData.organization_id || generateId("org"),
     ...rawData,
-    created_at: new Date(),
-    updated_at: new Date(),
-  };
-  const apiData = {
-    organizationName: rawData.organization_name,
-    organizationWebsite: rawData.organization_website_name,
-    organizationIndustry: rawData.organization_industry,
+    created_on: new Date(),
+    modified_on: new Date(),
   };
 
-  if (rawData.organization_size) {
-    apiData.organizationSize = parseInt(rawData.organization_size, 10);
-  }
+  // 1. First, save to IndexedDB
+  dbWorker.postMessage({
+    action: "createOrganization",
+    organizationData: organizationData,
+  });
 
+  // 2. Then try to sync to backend
   try {
-    const response = await apiClient.post(API_ENDPOINTS.ORGANIZATIONS.CREATE, apiData);
+    const response = await syncSingleEntityToBackend("organizations", organizationData, "create");
 
-    if (response.organization?._id) {
+    // Store MongoDB _id if returned
+    if (response && response.organization && response.organization._id) {
       organizationData._id = response.organization._id;
+      
+      // Update the record in IndexedDB with the MongoDB _id
+      dbWorker.postMessage({
+        action: "updateOrganization",
+        organizationData: organizationData,
+      });
     }
 
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "insert",
-      data: organizationData,
-    });
-
-    eventBus.emit(EVENTS.ORGANIZATION_CREATED);
+    eventBus.emit(EVENTS.ORGANIZATION_CREATED, { organizationData });
     showNotification("Organization created successfully", "success");
   } catch (error) {
-    console.error("Failed to create organization:", error);
-    showNotification(
-      "Failed to create organization: " + error.message,
-      "error",
-    );
-
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "insert",
-      data: organizationData,
-    });
+    console.error("Failed to sync organization to backend:", error);
+    showNotification("Organization saved offline. Will sync when connection is restored.", "warning");
+    
+    // Still emit created event so UI updates
+    eventBus.emit(EVENTS.ORGANIZATION_CREATED, { organizationData });
   }
 }
 
@@ -73,181 +65,61 @@ export async function handleOrganizationUpdate(event) {
 
   const rawData = event.detail.organizationData;
   
-  // Data for IndexedDB (snake_case with extra fields)
   const organizationData = {
     ...rawData,
-    updated_at: new Date(),
+    modified_on: new Date(),
   };
 
-  // Transform data for API (camelCase, only allowed fields)
-  const apiData = {};
-  
-  if (rawData.organization_name) {
-    apiData.organizationName = rawData.organization_name;
-  }
-  if (rawData.organization_website_name) {
-    apiData.organizationWebsite = rawData.organization_website_name;
-  }
-  if (rawData.organization_industry) {
-    apiData.organizationIndustry = rawData.organization_industry;
-  }
-  if (rawData.organization_size) {
-    apiData.organizationSize = parseInt(rawData.organization_size, 10);
-  }
+  // 1. First, update in IndexedDB
+  dbWorker.postMessage({
+    action: "updateOrganization",
+    organizationData: organizationData,
+  });
 
+  // 2. Then try to sync to backend
   try {
-    // Use MongoDB _id for API call, not organization_id
-    const mongoId = rawData._id || rawData.organization_id;
-    
-    if (!mongoId) {
-      throw new Error("Organization ID is missing");
-    }
+    await syncSingleEntityToBackend("organizations", organizationData, "update");
 
-    // Make API call first
-    await apiClient.put(
-      API_ENDPOINTS.ORGANIZATIONS.UPDATE(mongoId),
-      apiData,
-    );
-
-    // Then sync to IndexedDB
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "update",
-      data: organizationData,
-    });
-
-    eventBus.emit(EVENTS.ORGANIZATION_UPDATED);
+    eventBus.emit(EVENTS.ORGANIZATION_UPDATED, { organizationData });
     showNotification("Organization updated successfully", "success");
   } catch (error) {
-    console.error("Failed to update organization:", error);
-    showNotification(
-      "Failed to update organization: " + error.message,
-      "error",
-    );
-
-    // Still try to update locally
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "update",
-      data: organizationData,
-    });
+    console.error("Failed to sync organization update to backend:", error);
+    showNotification("Organization updated locally. Will sync when connection is restored.", "warning");
+    
+    // Still emit updated event so UI updates
+    eventBus.emit(EVENTS.ORGANIZATION_UPDATED, { organizationData });
   }
 }
 
-export async function handleOrganizationCreated(event) {
+export function handleOrganizationCreated(event) {
   showNotification("Organization created successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization created." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
 
-  if (currentTab === "/organizations" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.ORGANIZATIONS.GET_ALL);
-      const orgsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredOrgs = orgsData;
-      if (role === "admin") {
-        filteredOrgs = orgsData.filter(
-          (org) => String(org.tenant_id) === String(tenant_id),
-        );
-      } else {
-        filteredOrgs = orgsData.filter(
-          (org) =>
-            String(org.tenant_id) === String(tenant_id) &&
-            String(org.user_id) === String(user_id),
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Organizations",
-        operation: "replaceAll",
-        data: filteredOrgs,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Organizations",
-        rows: filteredOrgs,
-      });
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Organizations",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  // Append the new organization row to the table instead of refetching all data
+  if (currentTab === "/organizations" && event.detail && event.detail.organizationData) {
+    appendOrganizationRow(event.detail.organizationData);
   }
 }
 
-export async function handleOrganizationUpdated(event) {
+export function handleOrganizationUpdated(event) {
   showNotification("Organization updated successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization updated." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
 
-  if (currentTab === "/organizations" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.ORGANIZATIONS.GET_ALL);
-      const orgsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredOrgs = orgsData;
-      if (role === "admin") {
-        filteredOrgs = orgsData.filter(
-          (org) => String(org.tenant_id) === String(tenant_id),
-        );
-      } else {
-        filteredOrgs = orgsData.filter(
-          (org) =>
-            String(org.tenant_id) === String(tenant_id) &&
-            String(org.user_id) === String(user_id),
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Organizations",
-        operation: "replaceAll",
-        data: filteredOrgs,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Organizations",
-        rows: filteredOrgs,
-      });
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Organizations",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  // Update the organization row in the table instead of refetching all data
+  if (currentTab === "/organizations" && event.detail && event.detail.organizationData) {
+    const orgData = event.detail.organizationData;
+    updateRowById(
+      "organizations-body", 
+      "data-organization-id", 
+      orgData.organization_id, 
+      orgData, 
+      appendOrganizationRow
+    );
   }
-
-  sessionStorage.removeItem("organization_id");
 }
 
 export async function handleOrganizationDelete(event) {
@@ -257,89 +129,34 @@ export async function handleOrganizationDelete(event) {
 
   const id = event.detail.id;
 
+  // 1. First, delete from IndexedDB
+  dbWorker.postMessage({
+    action: "deleteOrganization",
+    id: id,
+  });
+
+  // 2. Then try to sync to backend
   try {
-    // Delete from API first
-    await apiClient.delete(API_ENDPOINTS.ORGANIZATIONS.DELETE(id));
-
-    // Then delete from IndexedDB
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "delete",
-      id: id,
-    });
-
-    eventBus.emit(EVENTS.ORGANIZATION_DELETED);
+    await syncSingleEntityToBackend("organizations", { organization_id: id, _id: id }, "delete");
+    eventBus.emit(EVENTS.ORGANIZATION_DELETED, { id });
   } catch (error) {
-    console.error("Failed to delete organization:", error);
-    showNotification(
-      "Failed to delete organization: " + error.message,
-      "error",
-    );
-
-    // Still try to delete locally
-    dbWorker.postMessage({
-      action: "syncData",
-      storeName: "Organizations",
-      operation: "delete",
-      id: id,
-    });
+    console.error("Failed to sync organization deletion to backend:", error);
+    showNotification("Organization deleted locally. Will sync when connection is restored.", "warning");
+    
+    // Still emit deleted event so UI updates
+    eventBus.emit(EVENTS.ORGANIZATION_DELETED, { id });
   }
 }
 
-export async function handleOrganizationDeleted(event) {
+export function handleOrganizationDeleted(event) {
   showNotification("Organization deleted successfully!", "success");
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Organization deleted." });
 
   const currentTab = window.location.pathname;
-  const { dbWorker } = dbState;
 
-  if (currentTab === "/organizations" && dbWorker) {
-    const user = userManager.getUser();
-    if (!user) return;
-    const { user_id, tenant_id, role } = user;
-
-    try {
-      // Fetch fresh data from API
-      const response = await apiClient.get(API_ENDPOINTS.ORGANIZATIONS.GET_ALL);
-      const orgsData = response.data || response;
-
-      // Filter by tenant and user
-      let filteredOrgs = orgsData;
-      if (role === "admin") {
-        filteredOrgs = orgsData.filter(
-          (org) => String(org.tenant_id) === String(tenant_id),
-        );
-      } else {
-        filteredOrgs = orgsData.filter(
-          (org) =>
-            String(org.tenant_id) === String(tenant_id) &&
-            String(org.user_id) === String(user_id),
-        );
-      }
-
-      // Sync to IndexedDB
-      dbWorker.postMessage({
-        action: "syncData",
-        storeName: "Organizations",
-        operation: "replaceAll",
-        data: filteredOrgs,
-      });
-
-      // Emit data fetched event for UI update
-      eventBus.emit(EVENTS.DATA_FETCHED, {
-        storeName: "Organizations",
-        rows: filteredOrgs,
-      });
-    } catch (error) {
-      console.error("Failed to fetch organizations:", error);
-      // Fallback to IndexedDB
-      dbWorker.postMessage({
-        action: "getData",
-        storeName: "Organizations",
-        filters: { user_id, tenant_id, role },
-      });
-    }
+  // Remove the organization row from the table instead of refetching all data
+  if (currentTab === "/organizations" && event.detail && event.detail.id) {
+    removeRowById("organizations-body", "data-organization-id", event.detail.id);
   }
 }
 

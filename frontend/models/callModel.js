@@ -5,10 +5,17 @@ export const callsStructure = {
     call_id: 1,
     lead_id: 1,
     call_notes: "",
-    call_status: "",
-    call_type: "Incoming",
+    status: "",
+    call_type: "incoming",
     duration: 100,
-    created_on: new Date(),
-    modified_on: new Date(),
+    created_at: new Date(),
+    updated_at: new Date(),
   },
+  indexes: [
+    {
+      name: "lead_id",
+      keyPath: "lead_id",
+      options: { unique: false },
+    },
+  ],
 };
