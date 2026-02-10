@@ -1,6 +1,5 @@
 import { eventBus, EVENTS } from "../events/eventBus.js";
 import { registerUser } from "../services/registerUser.js";
-import { loadRoute } from "../router.js";
 
 const signupForm = document.getElementById("signup-form");
 const tenantNameInput = document.getElementById("signup-tenant-name");
@@ -218,7 +217,11 @@ signupForm.addEventListener("submit", async (e) => {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        window.router.navigate("/login");
+        if (window.router && window.router.navigate) {
+          window.router.navigate("/login");
+        } else {
+          window.location.href = "/login";
+        }
       }, 2000);
     } else {
       formError.textContent =

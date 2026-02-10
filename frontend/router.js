@@ -8,13 +8,6 @@ class Router {
     this.sidebarManager = new SidebarManager();
     this.dbWorker = null;
     this.isInitialized = false;
-    
-    // Route scripts mapping
-    this.routeScripts = {
-      "/login": "/js/login.js",
-      "/signup": "/js/signup.js",
-      "/deals": "/js/deals.js",
-    };
   }
 
   // initializes router
@@ -97,7 +90,6 @@ class Router {
 
       this.sidebarManager.toggleSidebar(path);
 
-      // Map routes to their HTML page files
       const pageMap = {
         "/home": "/pages/home.html",
         "/leads": "/pages/leads.html",
@@ -137,8 +129,6 @@ class Router {
         }
       }
 
-      await this.loadPageScript(path);
-
       this.scheduleDataFetch(path);
 
       this.sidebarManager.updateActive(path);
@@ -156,35 +146,7 @@ class Router {
     }
   }
 
-  async loadPageScript(path) {
-    const scriptPath = this.routeScripts[path];
-    
-    if (scriptPath) {
-      try {
-        // Remove existing script if present
-        const existingScript = document.querySelector(`script[src="${scriptPath}"]`);
-        if (existingScript) {
-          existingScript.remove();
-        }
-
-        // Load new script
-        const script = document.createElement("script");
-        script.type = "module";
-        script.src = scriptPath;
-        document.body.appendChild(script);
-
-        await new Promise((resolve, reject) => {
-          script.onload = resolve;
-          script.onerror = reject;
-        });
-      } catch (error) {
-        console.error(`Failed to load script for ${path}:`, error);
-      }
-    }
-  }
-
   scheduleDataFetch(path) {
-    // Skip data fetching for public routes
     const publicRoutes = ["/login", "/signup"];
     if (publicRoutes.includes(path)) {
       return;
