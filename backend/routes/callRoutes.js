@@ -11,21 +11,12 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
-import { createCallSchema } from "../validators/calls.validator.js";
+import {
+  createCallSchema,
+  updateCallSchema,
+} from "../validators/calls.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateCallSchema = z
-  .object({
-    callType: z.enum(["incoming", "outgoing"]).optional(),
-    callNotes: z.string().max(250).optional(),
-    status: z
-      .enum(["completed", "missed", "no-answer", "voicemail"])
-      .optional(),
-    duration: z.number().int().min(1).max(1000).optional(),
-  })
-  .strict();
 
 // Routes
 router.get(

@@ -42,7 +42,7 @@ const loginSchema = z
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);
-router.post("/refresh", refreshToken);
+// router.post("/refresh", refreshToken);
 router.get("/profile", authenticate, getProfile);
 
 export default router;

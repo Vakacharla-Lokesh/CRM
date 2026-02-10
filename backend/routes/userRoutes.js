@@ -12,27 +12,13 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
-import { createUserSchema } from "../validators/user.validators.js";
+import {
+  createUserSchema,
+  updateUserSchema,
+  updateRoleSchema,
+} from "../validators/user.validators.js";
 
 const router = Router();
-
-// Validation schemas
-const updateUserSchema = z
-  .object({
-    firstName: z.string().min(1).optional(),
-    lastName: z.string().optional(),
-    userEmail: z.string().email().optional(),
-    mobile: z.string().regex(/^[1-9]\d{9}$/).optional(),
-    role: z.enum(["user", "admin", "super_admin"]).optional(),
-    password: z.string().min(8).optional(),
-  })
-  .strict();
-
-const updateRoleSchema = z
-  .object({
-    role: z.enum(["user", "admin", "super_admin"]),
-  })
-  .strict();
 
 // Routes
 router.get(

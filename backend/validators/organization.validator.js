@@ -10,3 +10,14 @@ export const createOrganizationSchema = z
     organizationIndustry: z.enum(["Software", "Textile", "Foods", "Others"]),
   })
   .strict();
+
+export const updateOrganizationSchema = z
+  .object({
+    organizationName: z.string().min(1).optional(),
+    organizationSize: z.number().int().min(1).max(10_000_000).optional(),
+    organizationWebsite: z.string().url().optional(),
+    organizationIndustry: z
+      .enum(["Software", "Textile", "Foods", "Others"])
+      .optional(),
+  })
+  .strict();

@@ -10,16 +10,12 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
-import { createTenantSchema } from "../validators/tenants.validator.js";
+import {
+  createTenantSchema,
+  updateTenantSchema,
+} from "../validators/tenants.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateTenantSchema = z
-  .object({
-    tenantName: z.string().min(1).optional(),
-  })
-  .strict();
 
 // Routes - Only super_admin can manage tenants
 router.get("/", authenticate, authorize("super_admin"), getAllTenants);

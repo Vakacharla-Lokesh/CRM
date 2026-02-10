@@ -15,42 +15,13 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
-import { createDealSchema } from "../validators/deals.validator.js";
+import {
+  createDealSchema,
+  updateDealSchema,
+  updateDealStatusSchema,
+} from "../validators/deals.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateDealSchema = z
-  .object({
-    dealName: z.string().min(1).max(100).optional(),
-    dealValue: z.number().min(0).max(1_000_000).optional(),
-    dealStatus: z
-      .enum([
-        "Prospecting",
-        "Qualification",
-        "Negotiation",
-        "Ready to close",
-        "Won",
-        "Lost",
-      ])
-      .optional(),
-    leadId: z.string().optional(),
-    organizationId: z.string().optional(),
-  })
-  .strict();
-
-const updateDealStatusSchema = z
-  .object({
-    dealStatus: z.enum([
-      "Prospecting",
-      "Qualification",
-      "Negotiation",
-      "Ready to close",
-      "Won",
-      "Lost",
-    ]),
-  })
-  .strict();
 
 // Routes
 router.get(

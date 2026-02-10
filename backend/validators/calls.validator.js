@@ -9,3 +9,14 @@ export const createCallSchema = z
     duration: z.number().int().min(1).max(1000).optional(),
   })
   .strict();
+
+export const updateCallSchema = z
+  .object({
+    callType: z.enum(["incoming", "outgoing"]).optional(),
+    callNotes: z.string().max(250).optional(),
+    status: z
+      .enum(["completed", "missed", "no-answer", "voicemail"])
+      .optional(),
+    duration: z.number().int().min(1).max(1000).optional(),
+  })
+  .strict();

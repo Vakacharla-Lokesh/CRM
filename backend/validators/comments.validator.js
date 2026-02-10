@@ -7,3 +7,10 @@ export const createCommentSchema = z
     commentDesc: z.string().optional(),
   })
   .strict();
+
+export const updateCommentSchema = z
+  .object({
+    commentTitle: z.string().min(1).optional(),
+    commentDesc: z.string().optional(),
+  })
+  .strict();
