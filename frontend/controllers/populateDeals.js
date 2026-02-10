@@ -1,5 +1,3 @@
-import { offlineManager } from "../services/offlineManager.js";
-
 export function populateDealsTable(deals) {
   const tbody = document.querySelector("#deals-body");
   // console.log(tbody);
@@ -10,11 +8,7 @@ export function populateDealsTable(deals) {
     return;
   }
 
-  // Merge offline data
-  const offlineDeals = offlineManager.getOfflineData('deals') || [];
-  const allDeals = [...deals, ...offlineDeals];
-
-  if (!allDeals || allDeals.length === 0) {
+  if (!deals || deals.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -31,15 +25,13 @@ export function populateDealsTable(deals) {
 
   tbody.innerHTML = "";
 
-  allDeals.forEach((deal, index) => {
-    const isOffline = deal._offline === true;
+  deals.forEach((deal, index) => {
     const row = document.createElement("tr");
     row.setAttribute("data-deal-id", deal.deal_id);
     row.className = `
       border-b border-gray-200 dark:border-gray-700 
       hover:bg-gray-50 dark:hover:bg-gray-700/50 
       transition-colors
-      ${isOffline ? 'bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-l-yellow-500' : ''}
     `.trim();
 
     const dealName = deal.deal_name || `Deal #${deal.deal_id}`;
@@ -68,11 +60,7 @@ export function populateDealsTable(deals) {
       statusColors[status] ||
       "bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-300";
 
-    const statusHTML = isOffline 
-      ? `<span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300">
-           📴 Offline
-         </span>`
-      : `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
+    const statusHTML = `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}">
            ${status}
          </span>`;
 
@@ -109,5 +97,7 @@ export function populateDealsTable(deals) {
     `;
     tbody.appendChild(row);
   });
-  console.log(`Populated deals table with ${allDeals.length} deal(s) (${offlineDeals.length} offline)`);
+  // console.log(
+  //   `Populated deals table with ${allDeals.length} deal(s) (${offlineDeals.length} offline)`,
+  // );
 }

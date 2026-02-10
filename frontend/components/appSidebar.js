@@ -172,7 +172,7 @@ class AppSidebar extends HTMLElement {
         if (!link) return;
 
         const path = link.getAttribute("href");
-        window.router.navigate(path);
+        window.location.href = path;
       });
     });
 
@@ -184,7 +184,7 @@ class AppSidebar extends HTMLElement {
       console.log("Inside logout eventlistener");
       userManager.clearUser();
       window.wsClient?.disconnect();
-      window.router.navigate("/login");
+      window.location.href = "/login";
       eventBus.emit(EVENTS.LOGOUT_SUCCESS);
     });
   }

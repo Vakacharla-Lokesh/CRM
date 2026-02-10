@@ -1,5 +1,3 @@
-import { offlineManager } from "../services/offlineManager.js";
-
 export function populateLeadsTable(leads) {
   const tbody = document.querySelector("#leads-body");
 
@@ -8,10 +6,7 @@ export function populateLeadsTable(leads) {
     return;
   }
 
-  const offlineLeads = offlineManager.getOfflineData("leads") || [];
-  const allLeads = [...leads, ...offlineLeads];
-
-  if (!allLeads || allLeads.length === 0) {
+  if (!leads || leads.length === 0) {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -28,7 +23,7 @@ export function populateLeadsTable(leads) {
 
   tbody.innerHTML = "";
 
-  allLeads.forEach((lead, index) => {
+  leads.forEach((lead, index) => {
     const row = document.createElement("tr");
     row.setAttribute("data-lead-id", lead.lead_id);
     row.className =
@@ -121,9 +116,9 @@ export function populateLeadsTable(leads) {
 
     tbody.appendChild(row);
   });
-  console.log(
-    `Populated leads table with ${allLeads.length} lead(s) (${offlineLeads.length} offline)`,
-  );
+  // console.log(
+  //   `Populated leads table with ${allLeads.length} lead(s) (${offlineLeads.length} offline)`,
+  // );
 
   // Dispatch event for filter to update
   document.dispatchEvent(

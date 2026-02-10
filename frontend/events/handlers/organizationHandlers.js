@@ -26,32 +26,37 @@ export async function handleOrganizationCreate(event) {
     created_on: new Date(),
     modified_on: new Date(),
   };
-  dbWorker.postMessage({
-    action: "createOrganization",
-    organizationData: organizationData,
-  });
+  
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      const response = await syncSingleEntityToBackend(
+        "organizations",
+        organizationData,
+        "create",
+      );
+      if (response && response.organization && response.organization._id) {
+        organizationData._id = response.organization._id;
+      }
 
-  try {
-    const response = await syncSingleEntityToBackend(
-      "organizations",
-      organizationData,
-      "create",
-    );
-    if (response && response.organization && response.organization._id) {
-      organizationData._id = response.organization._id;
-      dbWorker.postMessage({
-        action: "updateOrganization",
-        organizationData: organizationData,
-      });
+      showNotification("Organization created successfully", "success");
+      eventBus.emit(EVENTS.ORGANIZATION_CREATED, { organizationData });
+    } catch (error) {
+      console.error("Failed to create organization:", error);
+      showNotification(
+        "Failed to create organization. Please try again.",
+        "error",
+      );
     }
-
-    eventBus.emit(EVENTS.ORGANIZATION_CREATED, { organizationData });
-    showNotification("Organization created successfully", "success");
-  } catch (error) {
-    console.error("Failed to sync organization to backend:", error);
+  } else {
+    // Offline - save to IndexedDB only
+    dbWorker.postMessage({
+      action: "createOrganization",
+      organizationData: organizationData,
+    });
     showNotification(
-      "Organization saved offline. Will sync when connection is restored.",
-      "warning",
+      "Organization saved offline. Will sync when you go back online.",
+      "info",
     );
     eventBus.emit(EVENTS.ORGANIZATION_CREATED, { organizationData });
   }
@@ -71,24 +76,34 @@ export async function handleOrganizationUpdate(event) {
     ...rawData,
     modified_on: new Date(),
   };
-  dbWorker.postMessage({
-    action: "updateOrganization",
-    organizationData: organizationData,
-  });
-  try {
-    await syncSingleEntityToBackend(
-      "organizations",
-      organizationData,
-      "update",
-    );
+  
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      await syncSingleEntityToBackend(
+        "organizations",
+        organizationData,
+        "update",
+      );
 
-    eventBus.emit(EVENTS.ORGANIZATION_UPDATED, { organizationData });
-    showNotification("Organization updated successfully", "success");
-  } catch (error) {
-    console.error("Failed to sync organization update to backend:", error);
+      showNotification("Organization updated successfully", "success");
+      eventBus.emit(EVENTS.ORGANIZATION_UPDATED, { organizationData });
+    } catch (error) {
+      console.error("Failed to update organization:", error);
+      showNotification(
+        "Failed to update organization. Please try again.",
+        "error",
+      );
+    }
+  } else {
+    // Offline - update in IndexedDB only
+    dbWorker.postMessage({
+      action: "updateOrganization",
+      organizationData: organizationData,
+    });
     showNotification(
-      "Organization updated locally. Will sync when connection is restored.",
-      "warning",
+      "Organization updated offline. Will sync when you go back online.",
+      "info",
     );
     eventBus.emit(EVENTS.ORGANIZATION_UPDATED, { organizationData });
   }

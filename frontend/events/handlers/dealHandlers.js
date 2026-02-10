@@ -17,27 +17,29 @@ export async function handleDealCreate(event) {
     ...event.detail.dealData,
   };
 
-  // 1. First, save to IndexedDB
-  dbWorker.postMessage({
-    action: "createDeal",
-    dealData: dealData,
-  });
-  
-  // 2. Then try to sync to backend
-  try {
-    const response = await syncSingleEntityToBackend("deals", dealData, "create");
-    
-    // If backend returns an ID, update the local record
-    if (response && response.deal_id) {
-      dealData.deal_id = response.deal_id;
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      const response = await syncSingleEntityToBackend("deals", dealData, "create");
+      
+      // If backend returns an ID, update the local record
+      if (response && response.deal_id) {
+        dealData.deal_id = response.deal_id;
+      }
+      
+      showNotification("Deal created successfully!", "success");
+      eventBus.emit(EVENTS.DEAL_CREATED, { dealData });
+    } catch (error) {
+      console.error("Failed to create deal:", error);
+      showNotification("Failed to create deal. Please try again.", "error");
     }
-    
-    eventBus.emit(EVENTS.DEAL_CREATED, { dealData });
-  } catch (error) {
-    console.error("Failed to sync deal to backend:", error);
-    showNotification("Deal saved offline. Will sync when connection is restored.", "warning");
-    
-    // Still emit created event so UI updates
+  } else {
+    // Offline - save to IndexedDB only
+    dbWorker.postMessage({
+      action: "createDeal",
+      dealData: dealData,
+    });
+    showNotification("Deal saved offline. Will sync when you go back online.", "info");
     eventBus.emit(EVENTS.DEAL_CREATED, { dealData });
   }
 }
@@ -55,22 +57,24 @@ export async function handleDealUpdate(event) {
     modified_on: new Date(),
   };
 
-  // 1. First, update in IndexedDB
-  dbWorker.postMessage({
-    action: "updateDeal",
-    dealData: dealData,
-  });
-  
-  // 2. Then try to sync to backend
-  try {
-    await syncSingleEntityToBackend("deals", dealData, "update");
-    
-    eventBus.emit(EVENTS.DEAL_UPDATED, { dealData });
-  } catch (error) {
-    console.error("Failed to sync deal update to backend:", error);
-    showNotification("Deal updated locally. Will sync when connection is restored.", "warning");
-    
-    // Still emit updated event so UI updates
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      await syncSingleEntityToBackend("deals", dealData, "update");
+      
+      showNotification("Deal updated successfully!", "success");
+      eventBus.emit(EVENTS.DEAL_UPDATED, { dealData });
+    } catch (error) {
+      console.error("Failed to update deal:", error);
+      showNotification("Failed to update deal. Please try again.", "error");
+    }
+  } else {
+    // Offline - update in IndexedDB only
+    dbWorker.postMessage({
+      action: "updateDeal",
+      dealData: dealData,
+    });
+    showNotification("Deal updated offline. Will sync when you go back online.", "info");
     eventBus.emit(EVENTS.DEAL_UPDATED, { dealData });
   }
 }

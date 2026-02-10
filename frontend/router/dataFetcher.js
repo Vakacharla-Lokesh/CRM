@@ -4,8 +4,6 @@ import { populateOrganizationsTable } from "../controllers/populateOrganizations
 import { populateDealsTable } from "../controllers/populateDeals.js";
 import { populateUsersTable } from "../controllers/populateUsers.js";
 import { populateTenantsTable } from "../controllers/populateTenants.js";
-import { updateUserDetails } from "../events/userProfile.js";
-import userManager from "../events/handlers/userManager.js";
 
 export class DataFetcher {
   constructor() {
@@ -14,92 +12,6 @@ export class DataFetcher {
 
   setDbWorker(worker) {
     this.dbWorker = worker;
-  }
-
-  fetchDataForRoute(path) {
-    const publicRoutes = ["/login", "/signup"];
-    if (publicRoutes.includes(path)) {
-      return;
-    }
-
-    if (!this.dbWorker) {
-      console.warn("Database worker not ready");
-      return;
-    }
-
-    console.log("Fetching data for route:", path);
-
-    const user = userManager.getUser();
-
-    if (!user) {
-      console.warn("No user available for data fetch");
-      return;
-    }
-
-    const { user_id, tenant_id, role } = user;
-
-    switch (path) {
-      case "/leads":
-        this.dbWorker.postMessage({
-          action: "getAllLeads",
-          user_id,
-          tenant_id,
-          role,
-        });
-        break;
-
-      case "/organizations":
-        this.dbWorker.postMessage({
-          action: "getAllOrganizations",
-          user_id,
-          tenant_id,
-          role,
-        });
-        break;
-
-      case "/deals":
-        this.dbWorker.postMessage({
-          action: "getAllDeals",
-          user_id,
-          tenant_id,
-          role,
-        });
-        break;
-
-      case "/users":
-        if (role === "admin" || role === "super_admin") {
-          this.dbWorker.postMessage({
-            action: "getAllUsers",
-            tenant_id,
-            role,
-          });
-        }
-        break;
-
-      case "/tenants":
-        if (role === "super_admin") {
-          this.dbWorker.postMessage({ action: "getAllTenants" });
-          this.dbWorker.postMessage({ action: "getAllUsers" });
-        }
-        break;
-
-      case "/home":
-        this.dbWorker.postMessage({
-          action: "getData",
-          user_id,
-          tenant_id,
-          role,
-        });
-        break;
-
-      default:
-        console.log("No data fetch needed for:", path);
-        break;
-    }
-
-    if (path !== "/login" && path !== "/signup") {
-      updateUserDetails();
-    }
   }
 
   handleDbWorkerMessage(data, currentPath) {
@@ -195,31 +107,27 @@ export class DataFetcher {
 
     if (action === "convertToDealSuccess") {
       alert("Lead successfully converted to Deal!");
-      if (window.router && window.router.navigate) {
-        window.router.navigate("/deals");
-        if (action === "convertToDealError") {
-          alert("Error converting lead to deal: " + data.error);
-        }
-        if (
-          action === "tenantCreated" ||
-          action === "tenantUpdated" ||
-          action === "tenantDeleted"
-        ) {
-          if (currentPath === "/tenants") {
-            this.dbWorker.postMessage({ action: "getAllTenants" });
-            this.dbWorker.postMessage({ action: "getAllUsers" });
-          }
-        }
+      window.location.href = "/deals";
+    }
 
-        if (action === "getByIdSuccess" && data.storeName === "Tenants") {
-          const { openTenantModalForEdit } =
-            await import("../events/handlers/tenantHandlers.js");
-          openTenantModalForEdit(data.row);
-        }
-        if (action === "convertToDealError") {
-          alert("Error converting lead to deal: " + data.error);
-        }
+    if (action === "convertToDealError") {
+      alert("Error converting lead to deal: " + data.error);
+    }
+    if (
+      action === "tenantCreated" ||
+      action === "tenantUpdated" ||
+      action === "tenantDeleted"
+    ) {
+      if (currentPath === "/tenants") {
+        this.dbWorker.postMessage({ action: "getAllTenants" });
+        this.dbWorker.postMessage({ action: "getAllUsers" });
       }
+    }
+
+    if (action === "getByIdSuccess" && data.storeName === "Tenants") {
+      const { openTenantModalForEdit } =
+        await import("../events/handlers/tenantHandlers.js");
+      openTenantModalForEdit(data.row);
     }
   }
 }

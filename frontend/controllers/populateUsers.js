@@ -75,5 +75,5 @@ export function populateUsersTable(users) {
 
     tbody.appendChild(row);
   });
-  console.log(`Populated users table with ${users.length} lead(s)`);
+  // console.log(`Populated users table with ${users.length} lead(s)`);
 }
