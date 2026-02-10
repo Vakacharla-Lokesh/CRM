@@ -19,26 +19,35 @@ export async function handleLeadCreate(event) {
     updated_at: new Date(),
   };
 
-  dbWorker.postMessage({
-    action: "createLead",
-    leadData: leadData,
-  });
-
-  try {
-    const response = await syncSingleEntityToBackend(
-      "leads",
-      leadData,
-      "create",
-    );
-    if (response && response.lead_id) {
-      leadData.lead_id = response.lead_id;
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      const response = await syncSingleEntityToBackend(
+        "leads",
+        leadData,
+        "create",
+      );
+      if (response && response.lead_id) {
+        leadData.lead_id = response.lead_id;
+      }
+      showNotification("Lead created successfully!", "success");
+      eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
+    } catch (error) {
+      console.error("Failed to create lead:", error);
+      showNotification(
+        "Failed to create lead. Please try again.",
+        "error",
+      );
     }
-    eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
-  } catch (error) {
-    console.error("Failed to sync lead to backend:", error);
+  } else {
+    // Offline - save to IndexedDB only
+    dbWorker.postMessage({
+      action: "createLead",
+      leadData: leadData,
+    });
     showNotification(
-      "Lead saved offline. Will sync when connection is restored.",
-      "warning",
+      "Lead saved offline. Will sync when you go back online.",
+      "info",
     );
     eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
   }
@@ -63,16 +72,25 @@ export async function handleLeadDelete(event) {
 
   const id = event.detail.id;
 
-  dbWorker.postMessage({ action: "deleteLead", id });
-
-  try {
-    await syncSingleEntityToBackend("leads", { lead_id: id }, "delete");
-    eventBus.emit(EVENTS.LEAD_DELETED, { id });
-  } catch (error) {
-    console.error("Failed to sync lead deletion to backend:", error);
+  if (window.isSync) {
+    // Online - make API call directly
+    try {
+      await syncSingleEntityToBackend("leads", { lead_id: id }, "delete");
+      showNotification("Lead deleted successfully!", "success");
+      eventBus.emit(EVENTS.LEAD_DELETED, { id });
+    } catch (error) {
+      console.error("Failed to delete lead:", error);
+      showNotification(
+        "Failed to delete lead. Please try again.",
+        "error",
+      );
+    }
+  } else {
+    // Offline - delete from IndexedDB only
+    dbWorker.postMessage({ action: "deleteLead", id });
     showNotification(
-      "Lead deleted locally. Will sync when connection is restored.",
-      "warning",
+      "Lead deleted locally. Will sync when you go back online.",
+      "info",
     );
     eventBus.emit(EVENTS.LEAD_DELETED, { id });
   }
@@ -151,9 +169,7 @@ export function handleLeadClick(e) {
       dropdown.classList.add("hidden");
     }
 
-    if (window.router && window.router.navigate) {
-      window.router.navigate("/leadDetails");
-    }
+    window.location.href = "/leadDetails";
     return true;
   }
 

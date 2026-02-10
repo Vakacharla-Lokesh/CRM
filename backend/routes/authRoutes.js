@@ -8,6 +8,7 @@ import {
 } from "../controllers/authController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
+import { loginSchema, registerSchema } from "../validators/authValidator.js";
 
 const router = Router();
 

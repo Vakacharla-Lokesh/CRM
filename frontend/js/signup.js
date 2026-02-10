@@ -125,6 +125,7 @@ confirmPasswordInput.addEventListener("input", () => {
 // Form submission
 signupForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  e.stopPropagation();
   clearErrors();
 
   const tenantName = tenantNameInput.value.trim();
@@ -217,11 +218,7 @@ signupForm.addEventListener("submit", async (e) => {
 
       // Redirect to login after 2 seconds
       setTimeout(() => {
-        if (window.router && window.router.navigate) {
-          window.router.navigate("/login");
-        } else {
-          window.location.href = "/login";
-        }
+        window.location.href = "/login";
       }, 2000);
     } else {
       formError.textContent =

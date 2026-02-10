@@ -150,9 +150,7 @@ class LeadPage extends HTMLElement {
     const backBtn = this.querySelector("#back-to-leads");
     if (backBtn) {
       backBtn.addEventListener("click", () => {
-        if (window.router && window.router.navigate) {
-          window.router.navigate("/leads");
-        }
+        window.location.href = "/leads";
       });
     }
 

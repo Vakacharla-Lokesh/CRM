@@ -136,11 +136,9 @@ eventBus.on(EVENTS.USER_CREATED, (event) => {
   }
 });
 
-// Long polling call
-longPolling();
-
-// short polling call
-checkHealth();
+// Polling disabled - causing repeated requests
+// longPolling();
+// checkHealth();
 
 // Web sockets call
 export function connectWebSocketIfAuthenticated() {

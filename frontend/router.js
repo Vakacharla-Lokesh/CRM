@@ -78,63 +78,32 @@ class Router {
       // Check authentication
       const publicRoutes = ["/login", "/signup"];
       if (!user && !publicRoutes.includes(path)) {
-        this.navigate("/login");
+        // Navigate to backend-served login page
+        window.location.href = "/login";
         return;
       }
 
       // If user is logged in and trying to access public routes, redirect to home
       if (user && publicRoutes.includes(path)) {
-        this.navigate("/home");
+        window.location.href = "/home";
         return;
       }
 
-      this.sidebarManager.toggleSidebar(path);
-
-      const pageMap = {
-        "/home": "/pages/home.html",
-        "/leads": "/pages/leads.html",
-        "/organizations": "/pages/organizations.html",
-        "/deals": "/pages/deals.html",
-        "/leadDetails": "/pages/leadDetailPage.html",
-        "/login": "/pages/login.html",
-        "/signup": "/pages/signup.html",
-        "/users": "/pages/users.html",
-        "/tenants": "/pages/tenants.html",
-      };
-
-      const pagePath = pageMap[path] || pageMap["/home"];
-
-      const response = await fetch(pagePath);
-      if (!response.ok) {
-        throw new Error(`Failed to load page: ${response.statusText}`);
-      }
-      
-      const html = await response.text();
-      const mainPage = document.getElementById("main-page");
-
-      if (mainPage) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, "text/html");
-        const mainContent = doc.querySelector("#main-page");
-        
-        if (mainContent) {
-          mainPage.innerHTML = mainContent.innerHTML;
-        } else {
-          const bodyContent = doc.querySelector("body");
-          if (bodyContent) {
-            mainPage.innerHTML = bodyContent.innerHTML;
-          } else {
-            mainPage.innerHTML = html;
-          }
-        }
+      // Since backend serves pages, just navigate directly
+      if (currentPath !== path) {
+        window.location.href = path;
+        return;
       }
 
-      this.scheduleDataFetch(path);
-
+      // Only update UI elements for current page
       this.sidebarManager.updateActive(path);
 
       if (user) {
         this.sidebarManager.isAdmin(user.role);
+        
+        // Update user profile in sidebar
+        const { updateUserDetails } = await import("./events/userProfile.js");
+        updateUserDetails();
       }
 
       if (window.TableFeatures) {
@@ -147,19 +116,9 @@ class Router {
   }
 
   scheduleDataFetch(path) {
-    const publicRoutes = ["/login", "/signup"];
-    if (publicRoutes.includes(path)) {
-      return;
-    }
-
-    setTimeout(() => {
-      if (!this.dbWorker) {
-        console.warn("Database worker not ready");
-        return;
-      }
-
-      this.dataFetcher.fetchDataForRoute(path);
-    }, 100);
+    // Disabled: Backend now serves data with pages
+    // IndexedDB is only used for offline storage
+    console.log("Data fetching disabled - backend serves data");
   }
 
   handleRouteError(error) {

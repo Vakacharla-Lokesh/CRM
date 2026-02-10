@@ -402,22 +402,24 @@ function handleThemeToggle(event) {
 }
 
 async function handleLoginSuccess(event) {
-  // Import the data sync service
-  const { syncAllDataOnLogin } = await import("../services/data/initialDataSync.js");
   const userManager = (await import("./handlers/userManager.js")).default;
+  const { syncAllDataOnLogin } = await import("../services/data/initialDataSync.js");
+  const { updateUserDetails } = await import("./userProfile.js");
   
   setTimeout(async () => {
-    if (window.router && window.router.navigate) {
-      window.router.navigate("/home");
-      connectWebSocketIfAuthenticated();
-      addNotification(`Welcome back.`, "success");
-      
-      // Sync all data from backend to IndexedDB on login
-      const user = userManager.getUser();
-      if (user) {
-        await syncAllDataOnLogin(user);
-      }
+    const user = userManager.getUser();
+    if (user) {
+      // Sync data from backend
+      await syncAllDataOnLogin(user);
+      // Update user profile in sidebar
+      updateUserDetails();
     }
+    
+    connectWebSocketIfAuthenticated();
+    addNotification(`Welcome back.`, "success");
+    
+    // Navigate using browser navigation since backend serves pages
+    window.location.href = "/home";
   }, 500);
 }
 

@@ -66,6 +66,7 @@ passwordInput.addEventListener("input", () => {
 
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
+  e.stopPropagation();
   clearErrors();
 
   const email = emailInput.value.trim();

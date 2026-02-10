@@ -370,7 +370,12 @@ class AppNavbar extends HTMLElement {
   }
 
   async syncOfflineData() {
-    const totalCount = offlineManager.getTotalOfflineCount();
+    if (!window.dbWorker) {
+      showMessage("Database not ready", "error");
+      return;
+    }
+
+    const totalCount = await offlineManager.getIndexedDBCount(window.dbWorker);
 
     if (totalCount === 0) {
       showMessage("No offline data to sync", "info");
@@ -383,14 +388,12 @@ class AppNavbar extends HTMLElement {
     );
 
     try {
-      // Sync all offline data via event bus
-      offlineManager.syncAll(eventBus, EVENTS);
+      const result = await offlineManager.syncAllFromIndexedDB(window.dbWorker);
 
-      // Wait for sync to complete
-      setTimeout(() => {
+      if (result.success) {
         showMessage(
-          "Sync completed successfully!",
-          "success",
+          `Sync completed! ${result.synced} items synced${result.errors > 0 ? `, ${result.errors} errors` : ""}.`,
+          result.errors > 0 ? "warning" : "success",
         );
 
         // Update offline count
@@ -401,25 +404,30 @@ class AppNavbar extends HTMLElement {
         if (currentTab === "/leads") {
           eventBus.emit(EVENTS.LEADS_REFRESH);
         } else if (currentTab === "/organizations") {
-          // Trigger organization refresh if available
           if (window.dbWorker) {
             window.dbWorker.postMessage({ action: "getAllOrganizations" });
           }
         } else if (currentTab === "/deals") {
-          // Trigger deals refresh if available
           if (window.dbWorker) {
             window.dbWorker.postMessage({ action: "getAllDeals" });
           }
         }
-      }, 2000);
+      } else {
+        showMessage(
+          `Sync failed: ${result.message}`,
+          "error",
+        );
+      }
     } catch (error) {
       console.error("Sync failed:", error);
       showMessage("Sync failed. Please try again.", "error");
     }
   }
 
-  updateOfflineCount() {
-    const count = offlineManager.getTotalOfflineCount();
+  async updateOfflineCount() {
+    if (!window.dbWorker) return;
+
+    const count = await offlineManager.getIndexedDBCount(window.dbWorker);
     const badge = document.querySelector("#offline-count");
 
     if (badge) {
