@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllUsers,
   getUserById,
@@ -16,7 +15,7 @@ import {
   createUserSchema,
   updateUserSchema,
   updateRoleSchema,
-} from "../validators/user.validators.js";
+} from "../validators/userValidators.js";
 
 const router = Router();
 

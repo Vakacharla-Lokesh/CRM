@@ -10,7 +10,7 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
-import { createAttachmentSchema } from "../validators/attachments.validator.js";
+import { createAttachmentSchema } from "../validators/attachmentsValidator.js";
 
 const router = Router();
 

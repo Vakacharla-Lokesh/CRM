@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllComments,
   getCommentById,
@@ -14,7 +13,7 @@ import { authorize } from "../middlewares/rbac.js";
 import {
   createCommentSchema,
   updateCommentSchema,
-} from "../validators/comments.validator.js";
+} from "../validators/commentsValidator.js";
 
 const router = Router();
 

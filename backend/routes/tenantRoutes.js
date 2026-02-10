@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllTenants,
   getTenantById,
@@ -13,7 +12,7 @@ import { authorize } from "../middlewares/rbac.js";
 import {
   createTenantSchema,
   updateTenantSchema,
-} from "../validators/tenants.validator.js";
+} from "../validators/tenantsValidator.js";
 
 const router = Router();
 

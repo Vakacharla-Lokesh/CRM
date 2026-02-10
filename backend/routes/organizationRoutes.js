@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllOrganizations,
   getOrganizationById,
@@ -15,7 +14,7 @@ import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
 import {
   createOrganizationSchema,
   updateOrganizationSchema,
-} from "../validators/organization.validator.js";
+} from "../validators/organizationValidator.js";
 
 const router = Router();
 

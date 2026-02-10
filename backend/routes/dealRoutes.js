@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllDeals,
   getDealById,
@@ -19,7 +18,7 @@ import {
   createDealSchema,
   updateDealSchema,
   updateDealStatusSchema,
-} from "../validators/deals.validator.js";
+} from "../validators/dealsValidator.js";
 
 const router = Router();
 

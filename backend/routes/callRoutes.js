@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllCalls,
   getCallById,
@@ -14,7 +13,7 @@ import { authorize } from "../middlewares/rbac.js";
 import {
   createCallSchema,
   updateCallSchema,
-} from "../validators/calls.validator.js";
+} from "../validators/callsValidator.js";
 
 const router = Router();
 
