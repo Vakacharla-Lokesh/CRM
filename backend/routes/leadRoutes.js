@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { z } from "zod";
 import {
   getAllLeads,
   getLeadById,
@@ -20,7 +19,7 @@ import {
   updateLeadSchema,
   updateLeadStatusSchema,
   updateLeadScoreSchema,
-} from "../validators/leads.validator.js";
+} from "../validators/leadsValidator.js";
 
 const router = Router();
 
