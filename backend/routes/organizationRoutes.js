@@ -12,21 +12,12 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
-import { createOrganizationSchema } from "../validators/organization.validator.js";
+import {
+  createOrganizationSchema,
+  updateOrganizationSchema,
+} from "../validators/organization.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateOrganizationSchema = z
-  .object({
-    organizationName: z.string().min(1).optional(),
-    organizationSize: z.number().int().min(1).max(10_000_000).optional(),
-    organizationWebsite: z.string().url().optional(),
-    organizationIndustry: z
-      .enum(["Software", "Textile", "Foods", "Others"])
-      .optional(),
-  })
-  .strict();
 
 // Routes
 router.get(

@@ -11,17 +11,12 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
-import { createCommentSchema } from "../validators/comments.validator.js";
+import {
+  createCommentSchema,
+  updateCommentSchema,
+} from "../validators/comments.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateCommentSchema = z
-  .object({
-    commentTitle: z.string().min(1).optional(),
-    commentDesc: z.string().optional(),
-  })
-  .strict();
 
 // Routes
 router.get(

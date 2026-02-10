@@ -19,27 +19,27 @@ export async function handleLeadCreate(event) {
     updated_at: new Date(),
   };
 
-  // 1. First, save to IndexedDB
   dbWorker.postMessage({
     action: "createLead",
     leadData: leadData,
   });
 
-  // 2. Then try to sync to backend
   try {
-    const response = await syncSingleEntityToBackend("leads", leadData, "create");
-    
-    // If backend returns an ID, update the local record
+    const response = await syncSingleEntityToBackend(
+      "leads",
+      leadData,
+      "create",
+    );
     if (response && response.lead_id) {
       leadData.lead_id = response.lead_id;
     }
-    
     eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
   } catch (error) {
     console.error("Failed to sync lead to backend:", error);
-    showNotification("Lead saved offline. Will sync when connection is restored.", "warning");
-    
-    // Still emit created event so UI updates
+    showNotification(
+      "Lead saved offline. Will sync when connection is restored.",
+      "warning",
+    );
     eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
   }
 }
@@ -50,8 +50,7 @@ export function handleLeadCreated(event) {
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead created." });
 
   const currentTab = window.location.pathname;
-  
-  // Append the new lead row to the table instead of refetching all data
+
   if (currentTab === "/leads" && event.detail && event.detail.leadData) {
     appendLeadRow(event.detail.leadData);
   }
@@ -63,19 +62,18 @@ export async function handleLeadDelete(event) {
   if (!dbWorker) return;
 
   const id = event.detail.id;
-  
-  // 1. First, delete from IndexedDB
+
   dbWorker.postMessage({ action: "deleteLead", id });
 
-  // 2. Then try to sync to backend
   try {
     await syncSingleEntityToBackend("leads", { lead_id: id }, "delete");
     eventBus.emit(EVENTS.LEAD_DELETED, { id });
   } catch (error) {
     console.error("Failed to sync lead deletion to backend:", error);
-    showNotification("Lead deleted locally. Will sync when connection is restored.", "warning");
-    
-    // Still emit deleted event so UI updates
+    showNotification(
+      "Lead deleted locally. Will sync when connection is restored.",
+      "warning",
+    );
     eventBus.emit(EVENTS.LEAD_DELETED, { id });
   }
 }
@@ -84,10 +82,7 @@ export function handleLeadDeleted(event) {
   showNotification("Lead deleted successfully!", "success");
 
   eventBus.emit(EVENTS.WEB_SOCKET_SEND, { message: "Lead deleted." });
-
   const currentTab = window.location.pathname;
-  
-  // Remove the lead row from the table instead of refetching all data
   if (currentTab === "/leads" && event.detail && event.detail.id) {
     removeRowById("leads-body", "data-lead-id", event.detail.id);
   }
@@ -140,7 +135,6 @@ export function calculateLeadScore() {
   }
 }
 
-// Click handler for lead actions
 export function handleLeadClick(e) {
   if (e.target.closest("#editLead")) {
     e.preventDefault();

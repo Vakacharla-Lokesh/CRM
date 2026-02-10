@@ -1,6 +1,8 @@
 import { eventBus, EVENTS } from "./eventBus.js";
 import { dbState } from "../services/state/dbState.js";
 import { showMessage } from "./notificationEvents.js";
+import { connectWebSocketIfAuthenticated } from "../index.js";
+import { addNotification } from "./notificationEvents.js";
 
 // LEAD EVENTS FUNCTIONS
 import {

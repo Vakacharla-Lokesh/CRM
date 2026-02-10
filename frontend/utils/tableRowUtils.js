@@ -1,12 +1,4 @@
-/**
- * Utility functions to append, update, and remove individual rows from tables
- * without re-rendering the entire table
- */
 
-/**
- * Append a single lead row to the leads table
- * @param {object} lead - Lead data
- */
 export function appendLeadRow(lead) {
   const tbody = document.querySelector("#leads-body");
   if (!tbody) {
@@ -14,7 +6,6 @@ export function appendLeadRow(lead) {
     return;
   }
 
-  // Remove "no leads found" message if it exists
   const noDataRow = tbody.querySelector('td[colspan]');
   if (noDataRow) {
     tbody.innerHTML = "";
@@ -114,14 +105,9 @@ export function appendLeadRow(lead) {
     </td>
   `;
 
-  // Add the row at the beginning of the table
   tbody.insertBefore(row, tbody.firstChild);
 }
 
-/**
- * Append a single organization row to the organizations table
- * @param {object} organization - Organization data
- */
 export function appendOrganizationRow(organization) {
   const tbody = document.querySelector("#organizations-body");
   if (!tbody) {
@@ -129,7 +115,6 @@ export function appendOrganizationRow(organization) {
     return;
   }
 
-  // Remove "no organizations found" message if it exists
   const noDataRow = tbody.querySelector('td[colspan]');
   if (noDataRow) {
     tbody.innerHTML = "";
@@ -172,10 +157,6 @@ export function appendOrganizationRow(organization) {
   tbody.insertBefore(row, tbody.firstChild);
 }
 
-/**
- * Append a single deal row to the deals table
- * @param {object} deal - Deal data
- */
 export function appendDealRow(deal) {
   const tbody = document.querySelector("#deals-body");
   if (!tbody) {
@@ -183,7 +164,6 @@ export function appendDealRow(deal) {
     return;
   }
 
-  // Remove "no deals found" message if it exists
   const noDataRow = tbody.querySelector('td[colspan]');
   if (noDataRow) {
     tbody.innerHTML = "";
@@ -257,12 +237,6 @@ export function appendDealRow(deal) {
   tbody.insertBefore(row, tbody.firstChild);
 }
 
-/**
- * Remove a row from any table by ID
- * @param {string} tableBodyId - ID of the table body
- * @param {string} dataAttribute - Data attribute name (e.g., 'data-lead-id')
- * @param {string} id - ID of the row to remove
- */
 export function removeRowById(tableBodyId, dataAttribute, id) {
   const tbody = document.querySelector(`#${tableBodyId}`);
   if (!tbody) {
@@ -273,33 +247,17 @@ export function removeRowById(tableBodyId, dataAttribute, id) {
   const row = tbody.querySelector(`tr[${dataAttribute}="${id}"]`);
   if (row) {
     row.remove();
-    
-    // If no rows left, show "no data" message
     if (tbody.querySelectorAll('tr').length === 0) {
       showNoDataMessage(tableBodyId);
     }
   }
 }
 
-/**
- * Update an existing row in the table
- * @param {string} tableBodyId - ID of the table body
- * @param {string} dataAttribute - Data attribute name
- * @param {string} id - ID of the row to update
- * @param {object} data - New data for the row
- * @param {Function} renderFunction - Function to render the row (appendLeadRow, etc.)
- */
 export function updateRowById(tableBodyId, dataAttribute, id, data, renderFunction) {
-  // Remove the old row
   removeRowById(tableBodyId, dataAttribute, id);
-  // Add the new row with updated data
   renderFunction(data);
 }
 
-/**
- * Show "no data" message when table is empty
- * @param {string} tableBodyId - ID of the table body
- */
 function showNoDataMessage(tableBodyId) {
   const tbody = document.querySelector(`#${tableBodyId}`);
   if (!tbody) return;

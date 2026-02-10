@@ -15,34 +15,14 @@ import {
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
-import { createLeadSchema } from "../validators/leads.validator.js";
+import {
+  createLeadSchema,
+  updateLeadSchema,
+  updateLeadStatusSchema,
+  updateLeadScoreSchema,
+} from "../validators/leads.validator.js";
 
 const router = Router();
-
-// Validation schemas
-const updateLeadSchema = z
-  .object({
-    leadFirstName: z.string().min(1).optional(),
-    leadLastName: z.string().optional(),
-    leadEmail: z.string().email().optional(),
-    leadSource: z.enum(["API", "Outsource"]).optional(),
-    leadScore: z.number().min(0).max(100).optional(),
-    leadStatus: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
-    organizationId: z.string().optional(),
-  })
-  .strict();
-
-const updateLeadStatusSchema = z
-  .object({
-    leadStatus: z.enum(["New", "Converted", "Dead", "Follow-Up"]),
-  })
-  .strict();
-
-const updateLeadScoreSchema = z
-  .object({
-    leadScore: z.number().min(0).max(100),
-  })
-  .strict();
 
 // Routes
 router.get(
