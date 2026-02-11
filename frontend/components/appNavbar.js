@@ -3,6 +3,7 @@ import { eventBus, EVENTS } from "../events/eventBus.js";
 import { generateRandomLeads } from "../services/utils/randomLeadGenerator.js";
 import { offlineManager } from "../services/offlineManager.js";
 import { showMessage } from "../controllers/notificationManager.js";
+import { getWorker } from "../workers/workerManager.js";
 
 const template = document.createElement("template");
 template.innerHTML = `
@@ -249,8 +250,9 @@ class AppNavbar extends HTMLElement {
   }
 
   handleDbCreate() {
-    if (window.dbWorker) {
-      window.dbWorker.postMessage({ action: "initialize" });
+    const dbWorker = getWorker();
+    if (dbWorker) {
+      dbWorker.postMessage({ action: "initialize" });
     }
   }
 
@@ -354,7 +356,8 @@ class AppNavbar extends HTMLElement {
 
   syncLeads() {
     // Legacy support - check sessionStorage
-    if (window.dbWorker) {
+    const dbWorker = getWorker();
+    if (dbWorker) {
       let localLeads = JSON.parse(sessionStorage.getItem("leads"));
 
       if (localLeads && localLeads.length > 0) {
@@ -370,12 +373,13 @@ class AppNavbar extends HTMLElement {
   }
 
   async syncOfflineData() {
-    if (!window.dbWorker) {
+    const dbWorker = getWorker();
+    if (!dbWorker) {
       showMessage("Database not ready", "error");
       return;
     }
 
-    const totalCount = await offlineManager.getIndexedDBCount(window.dbWorker);
+    const totalCount = await offlineManager.getIndexedDBCount(dbWorker);
 
     if (totalCount === 0) {
       showMessage("No offline data to sync", "info");
@@ -388,7 +392,7 @@ class AppNavbar extends HTMLElement {
     );
 
     try {
-      const result = await offlineManager.syncAllFromIndexedDB(window.dbWorker);
+      const result = await offlineManager.syncAllFromIndexedDB(dbWorker);
 
       if (result.success) {
         showMessage(
@@ -404,12 +408,14 @@ class AppNavbar extends HTMLElement {
         if (currentTab === "/leads") {
           eventBus.emit(EVENTS.LEADS_REFRESH);
         } else if (currentTab === "/organizations") {
-          if (window.dbWorker) {
-            window.dbWorker.postMessage({ action: "getAllOrganizations" });
+          const dbWorker = getWorker();
+          if (dbWorker) {
+            dbWorker.postMessage({ action: "getAllOrganizations" });
           }
         } else if (currentTab === "/deals") {
-          if (window.dbWorker) {
-            window.dbWorker.postMessage({ action: "getAllDeals" });
+          const dbWorker = getWorker();
+          if (dbWorker) {
+            dbWorker.postMessage({ action: "getAllDeals" });
           }
         }
       } else {
@@ -425,9 +431,10 @@ class AppNavbar extends HTMLElement {
   }
 
   async updateOfflineCount() {
-    if (!window.dbWorker) return;
+    const dbWorker = getWorker();
+    if (!dbWorker) return;
 
-    const count = await offlineManager.getIndexedDBCount(window.dbWorker);
+    const count = await offlineManager.getIndexedDBCount(dbWorker);
     const badge = document.querySelector("#offline-count");
 
     if (badge) {

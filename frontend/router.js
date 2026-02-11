@@ -1,10 +1,11 @@
 import { DataFetcher } from "./router/dataFetcher.js";
 import { SidebarManager } from "./router/sidebarManager.js";
 import userManager from "./events/handlers/userManager.js";
+import { updateUserDetails } from "./events/userProfile.js";
 
 class Router {
   constructor() {
-    if(!window.isSync){
+    if (!window.isSync) {
       this.dataFetcher = new DataFetcher();
     }
     this.sidebarManager = new SidebarManager();
@@ -17,7 +18,7 @@ class Router {
     if (this.isInitialized) return;
 
     this.dbWorker = dbWorker;
-    if(!window.isSync){
+    if (!window.isSync) {
       this.dataFetcher.setDbWorker(dbWorker);
     }
     this.isInitialized = true;
@@ -43,7 +44,7 @@ class Router {
 
     this.dbWorker.addEventListener("message", (e) => {
       const currentPath = window.location.pathname;
-      if(!window.isSync){
+      if (!window.isSync) {
         this.dataFetcher.handleDbWorkerMessage(e.data, currentPath);
       }
     });
@@ -61,9 +62,10 @@ class Router {
   async loadRoute(path) {
     try {
       const user = userManager.getUser();
-      
-      // Clear stress test if leaving leads page
-      if (window.location.pathname !== path && window.location.pathname === "/leads") {
+      if (
+        window.location.pathname !== path &&
+        window.location.pathname === "/leads"
+      ) {
         const navbar = document.querySelector("app-navbar");
         if (navbar && navbar.clearStressTest) {
           navbar.clearStressTest();
@@ -75,14 +77,14 @@ class Router {
 
       if (user) {
         this.sidebarManager.isAdmin(user.role);
-        
+
         // Update user profile in sidebar
-        const { updateUserDetails } = await import("./events/userProfile.js");
         updateUserDetails();
-        
+
         // Sync data from backend on home page load
         if (path === "/home") {
-          const { syncAllDataOnLogin } = await import("./services/data/initialDataSync.js");
+          const { syncAllDataOnLogin } =
+            await import("./services/data/initialDataSync.js");
           syncAllDataOnLogin(user);
         }
       }

@@ -1,4 +1,5 @@
 import userManager from "../events/handlers/userManager.js";
+import { getWorker } from "../workers/workerManager.js";
 
 (function () {
   "use strict";
@@ -219,7 +220,7 @@ import userManager from "../events/handlers/userManager.js";
         return;
       }
 
-      const dbWorker = window.dbWorker;
+      const dbWorker = getWorker();
       if (!dbWorker) {
         this.showNotification("Database not available", "error");
         return;

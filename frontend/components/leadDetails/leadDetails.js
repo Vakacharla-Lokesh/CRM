@@ -1,3 +1,5 @@
+import { getWorker } from "../../workers/workerManager.js";
+
 class LeadDetails extends HTMLElement {
   connectedCallback() {
     this.loadLeadData();
@@ -15,7 +17,7 @@ class LeadDetails extends HTMLElement {
         return;
       }
 
-      const dbWorker = window.dbWorker;
+      const dbWorker = getWorker();
       if (!dbWorker) {
         this.innerHTML = `
           <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
@@ -284,7 +286,7 @@ class LeadDetails extends HTMLElement {
       return;
     }
 
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) {
       alert("Database not available");
       return;

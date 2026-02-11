@@ -2,7 +2,8 @@ import { Schema, model } from "mongoose";
 
 const callsSchema = new Schema(
   {
-    leadId: { type: String, required: true },
+    _id: { type: Schema.Types.ObjectId, alias: "callId" },
+    leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
     callType: { type: String, required: true, enum: ["incoming", "outgoing"] },
     callNotes: { type: String, maxLength: 250 },
     status: {

@@ -2,6 +2,7 @@ import { Schema, model } from "mongoose";
 
 const tenantSchema = new Schema(
   {
+    _id: { type: Schema.Types.ObjectId, alias: "tenantId" },
     tenantName: { type: String, required: true },
     email: {
       type: String,

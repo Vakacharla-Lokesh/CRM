@@ -2,7 +2,8 @@ import { Schema, model } from "mongoose";
 
 const attachmentsSchema = new Schema(
   {
-    leadId: { type: String, required: true },
+    _id: { type: Schema.Types.ObjectId, alias: "attachmentId" },
+    leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
     fileData: { type: Buffer, required: true },
     fileName: { type: String, required: true },
     fileSize: { type: Number },

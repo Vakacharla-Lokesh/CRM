@@ -72,6 +72,7 @@ import {
   handleSelectAllTenants,
   handleTenantCheckboxChange,
 } from "./handlers/tenantHandlers.js";
+import { updateUserDetails } from "./userProfile.js";
 
 export function initializeEventHandlers(worker) {
   dbState.initialize(worker);
@@ -227,12 +228,14 @@ function initializeClickHandlers() {
       sessionStorage.removeItem("leadId");
       sessionStorage.removeItem("organization_id");
       sessionStorage.removeItem("deal_id");
-      
-      const userSelectContainer = document.getElementById("user-select-container");
+
+      const userSelectContainer = document.getElementById(
+        "user-select-container",
+      );
       if (userSelectContainer) {
-        userSelectContainer.removeAttribute('data-initialized');
+        userSelectContainer.removeAttribute("data-initialized");
       }
-      
+
       return;
     }
 
@@ -402,12 +405,12 @@ function handleThemeToggle(event) {
 }
 
 async function handleLoginSuccess(event) {
-  const userManager = (await import("./handlers/userManager.js")).default;
-  
+  updateUserDetails();
+
   // Quick redirect - data sync will happen on home page load
   connectWebSocketIfAuthenticated();
   addNotification(`Welcome back.`, "success");
-  
+
   // Navigate immediately for fast login
   window.location.href = "/home";
 }

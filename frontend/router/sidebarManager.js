@@ -1,6 +1,9 @@
+import { updateUserDetails } from "../events/userProfile";
+
 export class SidebarManager {
   constructor() {
     this.sidebar = null;
+    updateUserDetails();
   }
 
   getSidebar() {

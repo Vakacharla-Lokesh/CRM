@@ -1,3 +1,5 @@
+import { getWorker } from "../../workers/workerManager.js";
+
 class LeadPage extends HTMLElement {
   connectedCallback() {
     this.style.display = "block";
@@ -20,7 +22,7 @@ class LeadPage extends HTMLElement {
         return;
       }
 
-      const dbWorker = window.dbWorker;
+      const dbWorker = getWorker();
       if (!dbWorker) {
         this.innerHTML = `
                 <div class="w-full mx-auto mt-6 bg-red-50 rounded-lg p-6 text-red-600">

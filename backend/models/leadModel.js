@@ -2,9 +2,14 @@ import { Schema, model } from "mongoose";
 
 const leadsSchema = new Schema(
   {
-    organizationId: { type: String, required: true },
-    userId: { type: String, required: true },
-    tenantId: { type: String },
+    _id: { type: Schema.Types.ObjectId, alias: "leadId" },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      rel: "Organizations",
+    },
+    userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
+    tenantId: { type: Schema.Types.ObjectId, rel: "Tenants" },
     leadFirstName: { type: String, required: true },
     leadLastName: { type: String, default: null },
     leadEmail: {

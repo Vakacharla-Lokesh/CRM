@@ -1,5 +1,6 @@
 import { generateId } from "../../services/utils/uidGenerator.js";
 import { eventBus, EVENTS } from "../../events/eventBus.js";
+import { getWorker } from "../../workers/workerManager.js";
 
 class CommentsContent extends HTMLElement {
   constructor() {
@@ -20,7 +21,7 @@ class CommentsContent extends HTMLElement {
         return;
       }
 
-      const dbWorker = window.dbWorker;
+      const dbWorker = getWorker();
       if (!dbWorker) {
         this.renderEmptyState("Database not available");
         return;
@@ -363,7 +364,7 @@ class CommentsContent extends HTMLElement {
       return;
     }
 
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) {
       alert("Database not available");
       return;
@@ -424,7 +425,7 @@ class CommentsContent extends HTMLElement {
       return;
     }
 
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) {
       alert("Database not available");
       return;

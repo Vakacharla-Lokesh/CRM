@@ -2,10 +2,15 @@ import { Schema, model } from "mongoose";
 
 const dealsSchema = new Schema(
   {
-    leadId: { type: String, required: true },
-    organizationId: { type: String, required: true },
-    tenantId: { type: String, required: true },
-    userId: { type: String, required: true },
+    _id: { type: Schema.Types.ObjectId, alias: "dealId" },
+    leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
+    organizationId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      rel: "Organizations",
+    },
+    tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
+    userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
     dealName: { type: String, minLength: 1, maxLength: 100, required: true },
     dealValue: { type: Number, min: 0, max: 1000000, default: 0 },
     dealStatus: {
