@@ -2,10 +2,9 @@ import { Schema, model } from "mongoose";
 
 const leadsSchema = new Schema(
   {
-    _id: { type: Schema.Types.ObjectId, alias: "leadId" },
+    _id: { type: Schema.Types.ObjectId, alias: "leadId", auto: true },
     organizationId: {
       type: Schema.Types.ObjectId,
-      required: true,
       rel: "Organizations",
     },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },

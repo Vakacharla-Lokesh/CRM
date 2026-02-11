@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 
 const organizationsSchema = new Schema(
   {
-    _id: { type: Schema.Types.ObjectId, alias: "organizationId" },
+    _id: { type: Schema.Types.ObjectId, alias: "organizationId", auto: true },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
     organizationName: { type: String, required: true },
