@@ -1,3 +1,5 @@
+import { getWorker } from "../../workers/workerManager.js";
+
 const template = document.createElement("template");
 template.innerHTML = `<div
   id="form-modal"
@@ -195,7 +197,7 @@ class OrganizationModal extends HTMLElement {
   }
 
   setupListeners() {
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) return;
 
     dbWorker.addEventListener("message", (e) => {

@@ -3,7 +3,8 @@ import bcrypt from "bcryptjs";
 
 const userSchema = new Schema(
   {
-    tenantId: { type: String, required: true },
+    _id: { type: Schema.Types.ObjectId, alias: "userId" },
+    tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     firstName: { type: String, required: true },
     lastName: { type: String },
     userEmail: {
@@ -31,7 +32,6 @@ const userSchema = new Schema(
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {
-  // Only hash the password if it has been modified (or is new)
   if (!this.isModified("password")) {
     return next();
   }
@@ -45,7 +45,6 @@ userSchema.pre("save", async function (next) {
   }
 });
 
-// Method to compare password for login
 userSchema.methods.comparePassword = async function (candidatePassword) {
   try {
     return await bcrypt.compare(candidatePassword, this.password);

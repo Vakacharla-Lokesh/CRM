@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -26,18 +27,20 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(helmet({
-  contentSecurityPolicy: false, // Allow inline scripts for frontend
-}));
+app.use(
+  helmet({
+    contentSecurityPolicy: false,
+  }),
+);
+app.use(morgan("dev"));
 app.use(
   cors({
     origin: "*",
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: false,
+    credentials: true,
   }),
 );
-app.use(express.json({ limit: "10mb" })); // Increased limit for file uploads
+app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Health check route

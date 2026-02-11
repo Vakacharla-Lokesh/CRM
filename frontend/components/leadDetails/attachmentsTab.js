@@ -1,5 +1,6 @@
 import { eventBus, EVENTS } from "../../events/eventBus.js";
 import { generateId } from "../../services/utils/uidGenerator.js";
+import { getWorker } from "../../workers/workerManager.js";
 
 class AttachmentsContent extends HTMLElement {
   connectedCallback() {
@@ -15,7 +16,7 @@ class AttachmentsContent extends HTMLElement {
         return;
       }
 
-      const dbWorker = window.dbWorker;
+      const dbWorker = getWorker();
       if (!dbWorker) {
         this.renderEmpty();
         return;
@@ -416,7 +417,7 @@ class AttachmentsContent extends HTMLElement {
 
   async handleFileUpload(files) {
     const leadId = this.getAttribute("lead-id");
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
 
     if (!dbWorker || !files || files.length === 0) {
       alert("No files selected");
@@ -526,7 +527,7 @@ class AttachmentsContent extends HTMLElement {
       return;
     }
 
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) return;
 
     try {

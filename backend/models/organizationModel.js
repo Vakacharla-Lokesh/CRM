@@ -2,8 +2,9 @@ import { Schema, model } from "mongoose";
 
 const organizationsSchema = new Schema(
   {
-    tenantId: { type: String, required: true },
-    userId: { type: String, required: true },
+    _id: { type: Schema.Types.ObjectId, alias: "organizationId" },
+    tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
+    userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
     organizationName: { type: String, required: true },
     organizationSize: { type: Number, min: 1, max: 10000000 },
     organizationWebsite: {

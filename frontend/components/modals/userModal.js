@@ -1,4 +1,5 @@
 import userManager from "../../events/handlers/userManager.js";
+import { getWorker } from "../../workers/workerManager.js";
 
 const template = document.createElement("template");
 template.innerHTML = `<div
@@ -185,7 +186,7 @@ class UserModal extends HTMLElement {
       return;
     }
 
-    const dbWorker = window.dbWorker;
+    const dbWorker = getWorker();
     if (!dbWorker) {
       console.warn("Database worker not available");
       return;

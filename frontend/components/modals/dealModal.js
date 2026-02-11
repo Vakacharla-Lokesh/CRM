@@ -1,4 +1,5 @@
 import userManager from "../../events/handlers/userManager.js";
+import { getWorker } from "../../workers/workerManager.js";
 
 const template = document.createElement("template");
 template.innerHTML = `<div
@@ -177,7 +178,7 @@ class DealModal extends HTMLElement {
     if (!this.innerHTML.trim()) {
       this.innerHTML = template.innerHTML;
     }
-    this.dbWorker = window.dbWorker;
+    this.dbWorker = getWorker();
     this.render();
     this.setupListeners();
     this.setupDbWorkerListener();

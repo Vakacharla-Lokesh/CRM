@@ -13,10 +13,10 @@ import {
 } from "./controllers/notificationManager.js";
 import userManager from "./events/handlers/userManager.js";
 import { setupFilterEventListeners } from "./js/filterIntegeration.js";
+import { getWorker } from "./workers/workerManager.js";
 
 // Initialize DB Worker
-window.dbWorker = new Worker("workers/dbWorker.js", { type: "module" });
-const dbWorker = window.dbWorker;
+const dbWorker = getWorker();
 
 // Initialize notification dropdown
 notificationManager.initializeDropdown();
