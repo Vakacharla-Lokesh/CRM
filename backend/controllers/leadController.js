@@ -24,7 +24,6 @@ export const getLeadById = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       lead.tenantId !== req.user.tenantId
@@ -43,13 +42,11 @@ export const getLeadById = async (req, res, next) => {
 // Create a new lead
 export const createLead = async (req, res, next) => {
   try {
-    // Ensure userId from authenticated user
     const leadData = {
       ...req.body,
       userId: req.user.userId,
     };
 
-    // For non-super_admin, ensure tenantId matches
     if (req.user.role !== "super_admin") {
       leadData.tenantId = req.user.tenantId;
     }
@@ -74,10 +71,9 @@ export const updateLead = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId.toString()
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this lead",
@@ -109,7 +105,6 @@ export const deleteLead = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       lead.tenantId !== req.user.tenantId
@@ -130,10 +125,9 @@ export const deleteLead = async (req, res, next) => {
 // Get leads by tenant
 export const getLeadsByTenant = async (req, res, next) => {
   try {
-    // Check tenant access
     if (
       req.user.role !== "super_admin" &&
-      req.params.tenantId !== req.user.tenantId
+      req.params.tenantId.toString() !== req.user.tenantId.toString()
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access leads from other tenants",
@@ -156,7 +150,6 @@ export const getLeadsByUser = async (req, res, next) => {
   try {
     const filter = { userId: req.params.userId };
 
-    // Add tenant filter for non-super_admin
     if (req.user.role !== "super_admin") {
       filter.tenantId = req.user.tenantId;
     }
@@ -177,7 +170,6 @@ export const getLeadsByOrganization = async (req, res, next) => {
   try {
     const filter = { organizationId: req.params.organizationId };
 
-    // Add tenant filter for non-super_admin
     if (req.user.role !== "super_admin") {
       filter.tenantId = req.user.tenantId;
     }
@@ -193,7 +185,6 @@ export const getLeadsByOrganization = async (req, res, next) => {
   }
 };
 
-// Update lead status
 export const updateLeadStatus = async (req, res, next) => {
   try {
     const { leadStatus } = req.body;
@@ -203,7 +194,6 @@ export const updateLeadStatus = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       lead.tenantId !== req.user.tenantId
@@ -235,7 +225,6 @@ export const updateLeadScore = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       lead.tenantId !== req.user.tenantId

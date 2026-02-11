@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 
 const userSchema = new Schema(
   {
-    _id: { type: Schema.Types.ObjectId, alias: "userId" },
+    _id: { type: Schema.Types.ObjectId, alias: "userId", auto: true },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     firstName: { type: String, required: true },
     lastName: { type: String },

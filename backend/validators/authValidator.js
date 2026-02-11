@@ -3,7 +3,7 @@ export const registerSchema = z
   .object({
     firstName: z.string().min(1),
     lastName: z.string().optional(),
-    userEmail: z.string().email("Please provide a valid email address"),
+    userEmail: z.email("Please provide a valid email address"),
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number")
@@ -16,7 +16,7 @@ export const registerSchema = z
 
 export const loginSchema = z
   .object({
-    userEmail: z.string().email().optional(),
+    userEmail: z.email().optional(),
     mobile: z.string().optional(),
     password: z.string().min(1),
     tenantId: z.string().optional(),
