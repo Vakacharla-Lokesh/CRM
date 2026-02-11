@@ -1,4 +1,4 @@
-export function getDataByTenantAndUser(storeName, user_id, tenant_id, role, dbReady, db) {
+export function getDataByTenantAndUser(storeName, userId, tenantId, role, dbReady, db) {
   if (!dbReady || !db) {
     postMessage({
       action: "getAllError",
@@ -24,7 +24,7 @@ export function getDataByTenantAndUser(storeName, user_id, tenant_id, role, dbRe
         return;
       }
       if (role === "admin") {
-        filteredData = filteredData.filter(item => item.tenant_id === tenant_id);
+        filteredData = filteredData.filter(item => item.tenantId === tenantId);
         postMessage({
           action: "getAllSuccess",
           rows: filteredData,
@@ -33,7 +33,7 @@ export function getDataByTenantAndUser(storeName, user_id, tenant_id, role, dbRe
         return;
       }
       filteredData = filteredData.filter(item =>
-        item.user_id === user_id && item.tenant_id === tenant_id
+        item.userId === userId && item.tenantId === tenantId
       );
       postMessage({
         action: "getAllSuccess",

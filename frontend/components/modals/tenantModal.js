@@ -243,7 +243,7 @@ class TenantModal extends HTMLElement {
   open(tenantData = null) {
     if (tenantData) {
       this.isEditMode = true;
-      this.currentTenantId = tenantData.tenant_id;
+      this.currentTenantId = tenantData.tenantId;
       this.populateForm(tenantData);
       
       // Update modal title and button
@@ -296,7 +296,7 @@ class TenantModal extends HTMLElement {
       // Handle update
       eventBus.emit(EVENTS.TENANT_UPDATE, {
         tenantData: {
-          tenant_id: this.currentTenantId,
+          tenantId: this.currentTenantId,
           tenant_name: tenantName,
           updated_at: new Date().toISOString(),
         },

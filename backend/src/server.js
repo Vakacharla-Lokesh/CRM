@@ -79,9 +79,8 @@ Object.entries(pageRoutes).forEach(([route, htmlFile]) => {
   });
 });
 
-// Root route - serve index.html for authenticated area
 app.get("/", (req, res) => {
-  res.sendFile(path.join(frontendPath, "index.html"));
+  res.redirect("/login");
 });
 
 // ERROR HANDLING

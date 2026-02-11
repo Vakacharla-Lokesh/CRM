@@ -4,7 +4,7 @@ import {
   mapToArray,
 } from "./data/leadSegmentation.js";
 
-export function getCount(db, dbReady, tenant_id, user_id, role, metadata = {}) {
+export function getCount(db, dbReady, tenantId, userId, role, metadata = {}) {
   if (!dbReady || !db) {
     postMessage({
       action: "getDataError",
@@ -35,14 +35,14 @@ export function getCount(db, dbReady, tenant_id, user_id, role, metadata = {}) {
         let deals = dealsReq.result || [];
         if (role === "super_admin") {
         } else if (role === "admin") {
-          leads = leads.filter((l) => l.tenant_id === tenant_id);
-          deals = deals.filter((d) => d.tenant_id === tenant_id);
+          leads = leads.filter((l) => l.tenantId === tenantId);
+          deals = deals.filter((d) => d.tenantId === tenantId);
         } else {
           leads = leads.filter(
-            (l) => l.tenant_id === tenant_id && l.user_id === user_id,
+            (l) => l.tenantId === tenantId && l.userId === userId,
           );
           deals = deals.filter(
-            (d) => d.tenant_id === tenant_id && d.user_id === user_id,
+            (d) => d.tenantId === tenantId && d.userId === userId,
           );
         }
 

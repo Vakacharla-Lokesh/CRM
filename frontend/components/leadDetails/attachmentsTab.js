@@ -44,11 +44,11 @@ class AttachmentsContent extends HTMLElement {
 
         if (action === "getAllSuccess" && storeName === "Attachments") {
           dbWorker.removeEventListener("message", messageHandler);
-          // Filter attachments by lead_id
+          // Filter attachments by leadId
           const filtered = (rows || []).filter((att) => {
-            console.log("inside attach filter:", att.lead_id);
-            console.log("testing equals: ", att.lead_id == leadId);
-            return att.lead_id == leadId;
+            console.log("inside attach filter:", att.leadId);
+            console.log("testing equals: ", att.leadId == leadId);
+            return att.leadId == leadId;
           });
           resolve(filtered);
         } else if (action === "getAllError" && storeName === "Attachments") {
@@ -437,7 +437,7 @@ class AttachmentsContent extends HTMLElement {
         const base64Data = await this.fileToBase64(file);
         const attachment = {
           attachment_id: generateId("attachment"),
-          lead_id: leadId,
+          leadId: leadId,
           file_name: file.name,
           file_size: this.formatFileSize(file.size),
           file_type: file.type,

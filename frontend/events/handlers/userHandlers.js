@@ -14,7 +14,7 @@ export async function handleUserCreate(event) {
 
   const userData = {
     ...event.detail.userData,
-    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -54,7 +54,7 @@ export async function handleUserCreated(event) {
   if (currentTab === "/users" && dbWorker) {
     const user = userManager.getUser();
     if (!user) return;
-    const { tenant_id, role } = user;
+    const { tenantId, role } = user;
     
     try {
       // Fetch fresh data from API
@@ -63,7 +63,7 @@ export async function handleUserCreated(event) {
 
       // Filter by tenant
       const filteredUsers = usersData.filter(
-        (u) => String(u.tenant_id) === String(tenant_id)
+        (u) => String(u.tenantId) === String(tenantId)
       );
 
       // Sync to IndexedDB
@@ -85,7 +85,7 @@ export async function handleUserCreated(event) {
       dbWorker.postMessage({
         action: "getData",
         storeName: "Users",
-        filters: { tenant_id, role },
+        filters: { tenantId, role },
       });
     }
   }
@@ -134,7 +134,7 @@ export async function handleUserDeleted(event) {
   if (currentTab === "/users" && dbWorker) {
     const user = userManager.getUser();
     if (!user) return;
-    const { tenant_id, role } = user;
+    const { tenantId, role } = user;
     
     try {
       // Fetch fresh data from API
@@ -143,7 +143,7 @@ export async function handleUserDeleted(event) {
 
       // Filter by tenant
       const filteredUsers = usersData.filter(
-        (u) => String(u.tenant_id) === String(tenant_id)
+        (u) => String(u.tenantId) === String(tenantId)
       );
 
       // Sync to IndexedDB
@@ -165,7 +165,7 @@ export async function handleUserDeleted(event) {
       dbWorker.postMessage({
         action: "getData",
         storeName: "Users",
-        filters: { tenant_id, role },
+        filters: { tenantId, role },
       });
     }
   }
@@ -178,12 +178,12 @@ export function handleUserClick(e) {
 
     const deleteBtn = e.target.closest("#deleteUser");
     const userRow = deleteBtn.closest("tr");
-    const user_id = userRow?.getAttribute("data-user-id");
+    const userId = userRow?.getAttribute("data-user-id");
 
-    if (user_id) {
+    if (userId) {
       if (confirm("Are you sure you want to delete this user?")) {
         import("../eventBus.js").then(({ eventBus, EVENTS }) => {
-          eventBus.emit(EVENTS.USER_DELETE, { id: user_id });
+          eventBus.emit(EVENTS.USER_DELETE, { id: userId });
         });
       }
     }

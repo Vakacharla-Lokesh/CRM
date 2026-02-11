@@ -22,28 +22,28 @@ export async function handleTenantCreate(event) {
   } = event.detail.tenantData;
 
   // Generate unique IDs
-  const tenant_id = generateId("tenant");
-  const user_id = generateId("user");
+  const tenantId = generateId("tenant");
+  const userId = generateId("user");
 
   // Create tenant data
   const tenantData = {
-    tenant_id,
+    tenantId,
     tenant_name,
-    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
   // Create admin user data
   const adminData = {
-    user_id,
+    userId,
     user_email: admin_email,
     password: admin_password,
     first_name: admin_first_name,
     last_name: admin_last_name,
     mobile: admin_mobile || "",
     role: "admin",
-    tenant_id,
-    created_at: new Date().toISOString(),
+    tenantId,
+    createdAt: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
@@ -156,7 +156,7 @@ export async function handleTenantUpdate(event) {
   try {
     // Make API call first
     await apiClient.put(
-      API_ENDPOINTS.TENANTS.UPDATE(tenantData.tenant_id),
+      API_ENDPOINTS.TENANTS.UPDATE(tenantData.tenantId),
       tenantData
     );
     
@@ -324,10 +324,10 @@ export function handleTenantClick(e) {
 
     const editBtn = e.target.closest("#editTenant");
     const tenantRow = editBtn.closest("tr");
-    const tenant_id = tenantRow?.getAttribute("data-tenant-id");
+    const tenantId = tenantRow?.getAttribute("data-tenant-id");
 
-    if (tenant_id && dbWorker) {
-      dbWorker.postMessage({ action: "getTenantById", id: tenant_id });
+    if (tenantId && dbWorker) {
+      dbWorker.postMessage({ action: "getTenantById", id: tenantId });
     }
     return true;
   }
@@ -338,9 +338,9 @@ export function handleTenantClick(e) {
 
     const deleteBtn = e.target.closest("#deleteTenant");
     const tenantRow = deleteBtn.closest("tr");
-    const tenant_id = tenantRow?.getAttribute("data-tenant-id");
+    const tenantId = tenantRow?.getAttribute("data-tenant-id");
 
-    if (!tenant_id) return;
+    if (!tenantId) return;
 
     if (
       confirm(
@@ -348,7 +348,7 @@ export function handleTenantClick(e) {
       )
     ) {
       const event = new CustomEvent("tenant:delete", {
-        detail: { id: tenant_id },
+        detail: { id: tenantId },
         bubbles: true,
         composed: true,
       });
@@ -380,8 +380,8 @@ export function handleBulkDeleteTenants() {
   if (!dbWorker) return;
 
   checkboxes.forEach((checkbox) => {
-    const tenant_id = checkbox.value;
-    dbWorker.postMessage({ action: "deleteTenant", id: tenant_id });
+    const tenantId = checkbox.value;
+    dbWorker.postMessage({ action: "deleteTenant", id: tenantId });
   });
 }
 

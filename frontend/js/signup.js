@@ -202,10 +202,10 @@ signupForm.addEventListener("submit", async (e) => {
     if (result.success) {
       // Emit user creation event
       eventBus.emit(EVENTS.USER_CREATED, {
-        userId: result.user.user_id,
+        userId: result.user.userId,
         name: result.user.user_name,
         email: result.user.user_email,
-        tenantId: result.user.tenant_id,
+        tenantId: result.user.tenantId,
         role: result.user.role,
       });
 

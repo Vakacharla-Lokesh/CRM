@@ -32,8 +32,8 @@ export class LeadSelect {
       this.dbWorker.postMessage({
         action: "getAllLeads",
         storeName: "Leads",
-        user_id: user?.user_id,
-        tenant_id: user?.tenant_id,
+        userId: user?.userId,
+        tenantId: user?.tenantId,
         role: user?.role,
       });
 
@@ -91,7 +91,7 @@ export class LeadSelect {
         </div>
 
         <!-- Hidden field to store selected lead ID -->
-        <input type="hidden" id="selected_lead_id" name="selected_lead_id" value="" />
+        <input type="hidden" id="selected_leadId" name="selected_leadId" value="" />
       </div>
     `;
   }
@@ -168,7 +168,7 @@ export class LeadSelect {
       leadList.innerHTML = filtered
         .map(
           (lead) => `
-        <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0" data-lead-id="${lead.lead_id}">
+        <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0" data-lead-id="${lead.leadId}">
           <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(`${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim() || "Unnamed Lead")}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">
             ${lead.lead_email ? this.escapeHtml(lead.lead_email) : ""} 
@@ -191,7 +191,7 @@ export class LeadSelect {
   }
 
   selectLead(leadId) {
-    const lead = this.leads.find((l) => l.lead_id === leadId);
+    const lead = this.leads.find((l) => l.leadId === leadId);
     if (!lead) return;
 
     this.selectedLead = lead;
@@ -201,18 +201,18 @@ export class LeadSelect {
   }
 
   updateFormFields(lead) {
-    // Update the hidden lead_id field
-    const hiddenLeadIdField = document.getElementById("selected_lead_id");
+    // Update the hidden leadId field
+    const hiddenLeadIdField = document.getElementById("selected_leadId");
     if (hiddenLeadIdField) {
-      hiddenLeadIdField.value = lead.lead_id;
+      hiddenLeadIdField.value = lead.leadId;
     }
 
-    // Also update any existing lead_id select/input if present
-    const leadIdField = document.getElementById("lead_id");
+    // Also update any existing leadId select/input if present
+    const leadIdField = document.getElementById("leadId");
     if (leadIdField && leadIdField.tagName === "SELECT") {
-      leadIdField.value = lead.lead_id;
+      leadIdField.value = lead.leadId;
     } else if (leadIdField && leadIdField.tagName === "INPUT") {
-      leadIdField.value = lead.lead_id;
+      leadIdField.value = lead.leadId;
     }
   }
 
@@ -253,13 +253,13 @@ export class LeadSelect {
     this.hideSelectedDisplay();
 
     // Clear the hidden field
-    const hiddenLeadIdField = document.getElementById("selected_lead_id");
+    const hiddenLeadIdField = document.getElementById("selected_leadId");
     if (hiddenLeadIdField) {
       hiddenLeadIdField.value = "";
     }
 
-    // Clear any existing lead_id field
-    const leadIdField = document.getElementById("lead_id");
+    // Clear any existing leadId field
+    const leadIdField = document.getElementById("leadId");
     if (leadIdField) {
       leadIdField.value = "";
     }
@@ -294,7 +294,7 @@ export class LeadSelect {
 
   // Set a lead as selected (useful for edit mode)
   setSelectedLead(leadId) {
-    const lead = this.leads.find((l) => l.lead_id === leadId);
+    const lead = this.leads.find((l) => l.leadId === leadId);
     if (lead) {
       this.selectedLead = lead;
       this.showSelectedDisplay(lead);
@@ -317,7 +317,7 @@ export function initializeLeadSelect(dbWorker) {
 
       if (currentTab === "/deals") {
         setTimeout(() => {
-          const leadIdField = document.getElementById("lead_id");
+          const leadIdField = document.getElementById("leadId");
           if (
             leadIdField &&
             !document.getElementById("lead-select-container")

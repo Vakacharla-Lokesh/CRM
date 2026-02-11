@@ -54,7 +54,7 @@ export async function handleDealUpdate(event) {
 
   const dealData = {
     ...event.detail.dealData,
-    modified_on: new Date(),
+    updatedAt: new Date(),
   };
 
   if (window.isSync) {
@@ -159,7 +159,7 @@ export function handleDealExport() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   progressBar.onComplete = () => {
     const { dbWorker } = dbState;
@@ -167,8 +167,8 @@ export function handleDealExport() {
       dbWorker.postMessage({
         action: "exportData",
         storeName: "Deals",
-        user_id,
-        tenant_id,
+        userId,
+        tenantId,
         role,
       });
     }
@@ -245,7 +245,7 @@ export async function handleDealRefresh() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   if (currentTab === "/deals" && dbWorker) {
     try {
@@ -257,13 +257,13 @@ export async function handleDealRefresh() {
       let filteredDeals = dealsData;
       if (role === "admin") {
         filteredDeals = dealsData.filter(
-          (deal) => String(deal.tenant_id) === String(tenant_id)
+          (deal) => String(deal.tenantId) === String(tenantId)
         );
       } else {
         filteredDeals = dealsData.filter(
           (deal) =>
-            String(deal.tenant_id) === String(tenant_id) &&
-            String(deal.user_id) === String(user_id)
+            String(deal.tenantId) === String(tenantId) &&
+            String(deal.userId) === String(userId)
         );
       }
 
@@ -287,7 +287,7 @@ export async function handleDealRefresh() {
       dbWorker.postMessage({
         action: "getData",
         storeName: "Deals",
-        filters: { user_id, tenant_id, role },
+        filters: { userId, tenantId, role },
       });
     }
   }

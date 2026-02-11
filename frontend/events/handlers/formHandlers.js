@@ -23,8 +23,8 @@ export function handleLeadFormSubmit(event) {
   }
 
   // Check if an admin has assigned this lead to a specific user
-  const assignedUserId = document.getElementById("assigned_user_id")?.value;
-  const finalUserId = assignedUserId || user.user_id;
+  const assignedUserId = document.getElementById("assigned_userId")?.value;
+  const finalUserId = assignedUserId || user.userId;
 
   const leadFormData = {
     lead_first_name: document.getElementById("first_name")?.value?.trim() || "",
@@ -42,8 +42,8 @@ export function handleLeadFormSubmit(event) {
       document.getElementById("organization_size")?.value?.trim() || "",
     organization_industry:
       document.getElementById("organization_industry")?.value?.trim() || "",
-    user_id: finalUserId,
-    tenant_id: user.tenant_id,
+    userId: finalUserId,
+    tenantId: user.tenantId,
   };
 
   const selectedOrgId = document.getElementById(
@@ -78,7 +78,7 @@ export function handleLeadFormSubmit(event) {
 
   if (selectedOrgId) {
     const leadData = {
-      lead_id: generateId("lead"),
+      leadId: generateId("lead"),
       lead_first_name: leadFormData.lead_first_name,
       lead_last_name: leadFormData.lead_last_name,
       lead_email: leadFormData.lead_email,
@@ -88,10 +88,10 @@ export function handleLeadFormSubmit(event) {
       lead_source: "Manual",
       lead_score: 0,
       created_on: new Date(),
-      modified_on: new Date(),
+      updatedAt: new Date(),
       lead_status: "New",
-      user_id: user.user_id,
-      tenant_id: user.tenant_id,
+      userId: user.userId,
+      tenantId: user.tenantId,
     };
 
     if (!offlineManager.isOnline()) {
@@ -107,7 +107,7 @@ export function handleLeadFormSubmit(event) {
       document.getElementById("form-modal")?.classList.add("hidden");
       event.target.reset();
       document.getElementById("selected_organization_id")?.remove();
-      document.getElementById("assigned_user_id")?.remove();
+      document.getElementById("assigned_userId")?.remove();
 
       const currentTab = window.location.pathname;
       if (currentTab === "/leads") {
@@ -121,7 +121,7 @@ export function handleLeadFormSubmit(event) {
     createOrganizationAndLead(leadFormData);
   } else {
     const leadData = {
-      lead_id: generateId("lead"),
+      leadId: generateId("lead"),
       lead_first_name: leadFormData.lead_first_name,
       lead_last_name: leadFormData.lead_last_name,
       lead_email: leadFormData.lead_email,
@@ -130,10 +130,10 @@ export function handleLeadFormSubmit(event) {
       lead_source: "Manual",
       lead_score: 0,
       created_on: new Date(),
-      modified_on: new Date(),
+      updatedAt: new Date(),
       lead_status: "New",
-      user_id: user.user_id,
-      tenant_id: user.tenant_id,
+      userId: user.userId,
+      tenantId: user.tenantId,
     };
 
     eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
@@ -142,7 +142,7 @@ export function handleLeadFormSubmit(event) {
   document.getElementById("form-modal")?.classList.add("hidden");
   event.target.reset();
   document.getElementById("selected_organization_id")?.remove();
-  document.getElementById("assigned_user_id")?.remove();
+  document.getElementById("assigned_userId")?.remove();
 }
 
 export function handleOrganizationFormSubmit(event) {
@@ -179,8 +179,8 @@ export function handleOrganizationFormSubmit(event) {
     contact_name: document.getElementById("contact_name")?.value?.trim() || "",
     contact_number:
       document.getElementById("contact_number")?.value?.trim() || "",
-    user_id: user.user_id,
-    tenant_id: user.tenant_id,
+    userId: user.userId,
+    tenantId: user.tenantId,
   };
 
   if (
@@ -205,7 +205,7 @@ export function handleOrganizationFormSubmit(event) {
     organizationData._offline = true;
     organizationData._timestamp = Date.now();
     organizationData.created_on = new Date();
-    organizationData.modified_on = new Date();
+    organizationData.updatedAt = new Date();
 
     offlineManager.saveOffline("organizations", organizationData);
     showMessage(
@@ -254,7 +254,7 @@ export function handleDealFormSubmit(event) {
 
   const dealName = document.getElementById("deal_name")?.value?.trim() || "";
   const dealValue = document.getElementById("deal_value")?.value?.trim() || "";
-  const leadId = document.getElementById("lead_id")?.value || "";
+  const leadId = document.getElementById("leadId")?.value || "";
   const organizationId =
     document.getElementById("organization_id")?.value || "";
   const dealStatus =
@@ -274,17 +274,17 @@ export function handleDealFormSubmit(event) {
     deal_id: isEdit ? dealId : Date.now(),
     deal_name: dealName,
     deal_value: Number(dealValue),
-    lead_id: leadId || null,
+    leadId: leadId || null,
     organization_id: organizationId || null,
     deal_status: dealStatus,
-    user_id: user.user_id,
-    tenant_id: user.tenant_id,
+    userId: user.userId,
+    tenantId: user.tenantId,
   };
 
   if (!isEdit) {
     dealData.created_on = new Date();
   }
-  dealData.modified_on = new Date();
+  dealData.updatedAt = new Date();
 
   if (!isEdit && !offlineManager.isOnline()) {
     dealData._offline = true;
@@ -343,9 +343,9 @@ function createOrganizationAndLead(formData) {
     organization_size: formData.organization_size || "",
     organization_industry: formData.organization_industry || "",
     created_on: new Date(),
-    modified_on: new Date(),
-    user_id: user.user_id,
-    tenant_id: user.tenant_id,
+    updatedAt: new Date(),
+    userId: user.userId,
+    tenantId: user.tenantId,
   };
 
   eventBus.emit(EVENTS.ORGANIZATION_CREATE, { organizationData });
@@ -357,7 +357,7 @@ function createOrganizationAndLead(formData) {
       dbWorker.removeEventListener("message", organizationHandler);
 
       const leadData = {
-        lead_id: generateId("lead"),
+        leadId: generateId("lead"),
         lead_first_name: formData.lead_first_name,
         lead_last_name: formData.lead_last_name,
         lead_email: formData.lead_email,
@@ -367,10 +367,10 @@ function createOrganizationAndLead(formData) {
         lead_source: "Manual",
         lead_score: 0,
         created_on: new Date(),
-        modified_on: new Date(),
+        updatedAt: new Date(),
         lead_status: "New",
-        user_id: user.user_id,
-        tenant_id: user.tenant_id,
+        userId: user.userId,
+        tenantId: user.tenantId,
       };
 
       eventBus.emit(EVENTS.LEAD_CREATE, { leadData });
@@ -404,7 +404,7 @@ export function handleUserFormSubmit(event) {
     document.getElementById("user_mobile")?.value?.trim() || "";
   const isSuperAdmin = currentUser && currentUser.role === "super_admin";
 
-  let tenantId = currentUser.tenant_id;
+  let tenantId = currentUser.tenantId;
   let userRole = "user";
 
   if (isSuperAdmin) {
@@ -438,23 +438,23 @@ export function handleUserFormSubmit(event) {
   }
 
   const userData = {
-    user_id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+    userId: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
     user_name: userName,
     user_email: userEmail,
     password: userPassword,
     mobile: userMobile || "",
     first_name: userName.split(" ")[0] || userName,
     last_name: userName.split(" ").slice(1).join(" ") || "",
-    tenant_id: tenantId,
+    tenantId: tenantId,
     role: userRole,
-    created_at: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
 
   console.log("Creating user with data:", {
     name: userData.user_name,
     email: userData.user_email,
-    tenantId: userData.tenant_id,
+    tenantId: userData.tenantId,
     role: userData.role,
   });
 

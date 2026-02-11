@@ -10,12 +10,12 @@ export async function syncAllDataOnLogin(user) {
     return false;
   }
 
-  if (!user || !user.user_id || !user.tenant_id) {
+  if (!user || !user.userId || !user.tenantId || !user.role) {
     console.error("Invalid user data for sync");
     return false;
   }
 
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   showNotification("Syncing data from server...", "info");
 
@@ -68,26 +68,26 @@ export async function syncAllDataOnLogin(user) {
 
     const filteredLeads = filterDataByUserAndTenant(
       transformedLeads,
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     );
     const filteredOrganizations = filterDataByUserAndTenant(
       transformedOrganizations,
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     );
     const filteredDeals = filterDataByUserAndTenant(
       transformedDeals,
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     );
     const filteredUsers = filterDataByUserAndTenant(
       transformedUsers,
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     );
 
@@ -123,7 +123,7 @@ export async function syncAllDataOnLogin(user) {
   }
 }
 
-function filterDataByUserAndTenant(data, user_id, tenant_id, role) {
+function filterDataByUserAndTenant(data, userId, tenantId, role) {
   if (!Array.isArray(data)) {
     return [];
   }
@@ -133,13 +133,13 @@ function filterDataByUserAndTenant(data, user_id, tenant_id, role) {
   }
 
   if (role === "admin") {
-    return data.filter((item) => String(item.tenant_id) === String(tenant_id));
+    return data.filter((item) => String(item.tenantId) === String(tenantId));
   }
 
   return data.filter(
     (item) =>
-      String(item.tenant_id) === String(tenant_id) &&
-      String(item.user_id) === String(user_id),
+      String(item.tenantId) === String(tenantId) &&
+      String(item.userId) === String(userId),
   );
 }
 
@@ -187,12 +187,12 @@ export async function syncSingleEntityToBackend(entityType, data, operation) {
           response = await apiClient.post(API_ENDPOINTS.LEADS.CREATE, data);
         } else if (operation === "update") {
           response = await apiClient.put(
-            API_ENDPOINTS.LEADS.UPDATE(data.lead_id),
+            API_ENDPOINTS.LEADS.UPDATE(data.leadId),
             data,
           );
         } else if (operation === "delete") {
           response = await apiClient.delete(
-            API_ENDPOINTS.LEADS.DELETE(data.lead_id),
+            API_ENDPOINTS.LEADS.DELETE(data.leadId),
           );
         }
         break;
@@ -224,12 +224,12 @@ export async function syncSingleEntityToBackend(entityType, data, operation) {
           response = await apiClient.post(API_ENDPOINTS.DEALS.CREATE, data);
         } else if (operation === "update") {
           response = await apiClient.put(
-            API_ENDPOINTS.DEALS.UPDATE(data.deal_id),
+            API_ENDPOINTS.DEALS.UPDATE(data._id),
             data,
           );
         } else if (operation === "delete") {
           response = await apiClient.delete(
-            API_ENDPOINTS.DEALS.DELETE(data.deal_id),
+            API_ENDPOINTS.DEALS.DELETE(data._id),
           );
         }
         break;
@@ -239,12 +239,12 @@ export async function syncSingleEntityToBackend(entityType, data, operation) {
           response = await apiClient.post(API_ENDPOINTS.USERS.CREATE, data);
         } else if (operation === "update") {
           response = await apiClient.put(
-            API_ENDPOINTS.USERS.UPDATE(data.user_id),
+            API_ENDPOINTS.USERS.UPDATE(data.userId),
             data,
           );
         } else if (operation === "delete") {
           response = await apiClient.delete(
-            API_ENDPOINTS.USERS.DELETE(data.user_id),
+            API_ENDPOINTS.USERS.DELETE(data.userId),
           );
         }
         break;
@@ -262,85 +262,81 @@ export async function syncSingleEntityToBackend(entityType, data, operation) {
 
 function transformOrganizationFromBackend(org) {
   return {
-    organization_id: org._id,
     _id: org._id,
-    organization_name: org.organizationName,
-    organization_website_name: org.organizationWebsite,
-    organization_size: org.organizationSize?.toString() || "",
-    organization_industry: org.organizationIndustry,
-    tenant_id: org.tenantId,
-    user_id: org.userId,
-    created_on: org.createdAt,
-    modified_on: org.updatedAt,
+    organizationName: org.organizationName,
+    organizationWebsite: org.organizationWebsite,
+    organizationSize: org.organizationSize?.toString() || "",
+    organizationIndustry: org.organizationIndustry,
+    tenantId: org.tenantId,
+    userId: org.userId,
+    createdAt: org.createdAt,
+    updatedAt: org.updatedAt,
   };
 }
 
 function transformLeadFromBackend(lead) {
   return {
-    lead_id: lead._id,
     _id: lead._id,
-    lead_name: `${lead.leadFirstName || ""} ${lead.leadLastName || ""}`.trim(),
-    lead_first_name: lead.leadFirstName,
-    lead_last_name: lead.leadLastName,
-    lead_email: lead.leadEmail,
-    lead_source: lead.leadSource,
-    lead_status: lead.leadStatus,
-    lead_score: lead.leadScore,
-    organization_id: lead.organizationId,
-    tenant_id: lead.tenantId,
-    user_id: lead.userId,
-    created_on: lead.createdAt,
-    modified_on: lead.updatedAt,
+    leadName: `${lead.leadFirstName || ""} ${lead.leadLastName || ""}`.trim(),
+    leadFirstName: lead.leadFirstName,
+    leadLastName: lead.leadLastName,
+    leadEmail: lead.leadEmail,
+    leadSource: lead.leadSource,
+    leadStatus: lead.leadStatus,
+    leadScore: lead.leadScore,
+    organizationId: lead.organizationId,
+    tenantId: lead.tenantId,
+    userId: lead.userId,
+    createdAt: lead.createdAt,
+    updatedAt: lead.updatedAt,
   };
 }
 
 function transformDealFromBackend(deal) {
   return {
-    deal_id: deal._id,
     _id: deal._id,
-    deal_name: deal.dealName,
-    deal_value: deal.dealValue,
-    deal_status: deal.dealStatus,
-    deal_stage: deal.dealStatus, // Using dealStatus as dealStage
-    lead_id: deal.leadId,
-    organization_id: deal.organizationId,
-    tenant_id: deal.tenantId,
-    user_id: deal.userId,
-    created_on: deal.createdAt,
-    modified_on: deal.updatedAt,
+    dealName: deal.dealName,
+    dealValue: deal.dealValue,
+    dealStatus: deal.dealStatus,
+    dealStage: deal.dealStatus, // Using dealStatus as dealStage
+    leadId: deal.leadId,
+    organizationId: deal.organizationId,
+    tenantId: deal.tenantId,
+    userId: deal.userId,
+    createdAt: deal.createdAt,
+    updatedAt: deal.updatedAt,
   };
 }
 
 function transformUserFromBackend(user) {
   return {
-    user_id: user._id,
     _id: user._id,
-    user_name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
-    first_name: user.firstName,
-    last_name: user.lastName,
-    user_email: user.userEmail,
+    userName: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
+    firstName: user.firstName,
+    lastName: user.lastName,
+    userEmail: user.userEmail,
     mobile: user.mobile,
     role: user.role,
-    tenant_id: user.tenantId,
-    created_on: user.createdAt,
-    modified_on: user.updatedAt,
+    tenantId: user.tenantId,
+    createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
   };
 }
 
 function transformToApiFormat(data, type) {
   if (type === "organization") {
     const apiData = {
-      organizationName: data.organization_name,
+      organizationName: data.organizationName,
     };
 
-    if (data.organization_website_name) {
-      apiData.organizationWebsite = data.organization_website_name;
+    if (data.organizationWebsite) {
+      apiData.organizationWebsite = data.organizationWebsite;
     }
-    if (data.organization_industry) {
-      apiData.organizationIndustry = data.organization_industry;
+    if (data.organizationIndustry) {
+      apiData.organizationIndustry = data.organizationIndustry;
     }
-    if (data.organization_size) {
-      apiData.organizationSize = parseInt(data.organization_size, 10);
+    if (data.organizationSize) {
+      apiData.organizationSize = parseInt(data.organizationSize, 10);
     }
 
     return apiData;

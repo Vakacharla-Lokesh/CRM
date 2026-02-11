@@ -25,8 +25,8 @@ export function populateUsersTable(users) {
 
   users.forEach((user, index) => {
     const row = document.createElement("tr");
-    row.setAttribute("data-user-id", user.user_id);
-    // console.log(`Inside mapping: ${user.user_id}`);
+    row.setAttribute("data-user-id", user.userId);
+    // console.log(`Inside mapping: ${user.userId}`);
     row.className =
       "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
@@ -37,14 +37,14 @@ export function populateUsersTable(users) {
     const mobile = user.mobile || "No mobile";
     const role = user.role || "Not defined";
 
-    const createdDate = user.created_at
-      ? new Date(user.created_at).toLocaleDateString()
+    const createdDate = user.createdAt
+      ? new Date(user.createdAt).toLocaleDateString()
       : "N/A";
 
     row.innerHTML = `
       <td class="w-4 p-4">
         <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" 
-        value="${user.user_id}"
+        value="${user.userId}"
       />
       </td>
       <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">

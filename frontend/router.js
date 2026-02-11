@@ -4,7 +4,9 @@ import userManager from "./events/handlers/userManager.js";
 
 class Router {
   constructor() {
-    this.dataFetcher = new DataFetcher();
+    if(!window.isSync){
+      this.dataFetcher = new DataFetcher();
+    }
     this.sidebarManager = new SidebarManager();
     this.dbWorker = null;
     this.isInitialized = false;
@@ -15,7 +17,9 @@ class Router {
     if (this.isInitialized) return;
 
     this.dbWorker = dbWorker;
-    this.dataFetcher.setDbWorker(dbWorker);
+    if(!window.isSync){
+      this.dataFetcher.setDbWorker(dbWorker);
+    }
     this.isInitialized = true;
 
     // DB worker
@@ -26,19 +30,9 @@ class Router {
       this.loadRoute(path);
     });
 
-    // initial route
+    // Just update UI for current page - backend handles auth redirects
     const currentPath = window.location.pathname;
-    const initialRoute = userManager.isAuthenticated()
-      ? currentPath === "/" || currentPath === "/login" || currentPath === "/signup"
-        ? "/home"
-        : currentPath
-      : "/login";
-    
-    if (currentPath !== initialRoute) {
-      this.navigate(initialRoute);
-    } else {
-      this.loadRoute(initialRoute);
-    }
+    this.loadRoute(currentPath);
   }
 
   setupDbWorkerListener() {
@@ -49,53 +43,34 @@ class Router {
 
     this.dbWorker.addEventListener("message", (e) => {
       const currentPath = window.location.pathname;
-      this.dataFetcher.handleDbWorkerMessage(e.data, currentPath);
+      if(!window.isSync){
+        this.dataFetcher.handleDbWorkerMessage(e.data, currentPath);
+      }
     });
   }
 
   // Navigate to a new route
   navigate(path) {
+    // Backend handles routing - use full page navigation
     if (window.location.pathname !== path) {
-      window.history.pushState({}, "", path);
+      window.location.href = path;
     }
-    this.loadRoute(path);
   }
 
   // loads routes and scripts
   async loadRoute(path) {
     try {
       const user = userManager.getUser();
-      const currentPath = window.location.pathname;
       
       // Clear stress test if leaving leads page
-      if (currentPath === "/leads" && path !== "/leads") {
+      if (window.location.pathname !== path && window.location.pathname === "/leads") {
         const navbar = document.querySelector("app-navbar");
         if (navbar && navbar.clearStressTest) {
           navbar.clearStressTest();
         }
       }
 
-      // Check authentication
-      const publicRoutes = ["/login", "/signup"];
-      if (!user && !publicRoutes.includes(path)) {
-        // Navigate to backend-served login page
-        window.location.href = "/login";
-        return;
-      }
-
-      // If user is logged in and trying to access public routes, redirect to home
-      if (user && publicRoutes.includes(path)) {
-        window.location.href = "/home";
-        return;
-      }
-
-      // Since backend serves pages, just navigate directly
-      if (currentPath !== path) {
-        window.location.href = path;
-        return;
-      }
-
-      // Only update UI elements for current page
+      // Backend handles authentication - just update UI for current page
       this.sidebarManager.updateActive(path);
 
       if (user) {
@@ -104,6 +79,12 @@ class Router {
         // Update user profile in sidebar
         const { updateUserDetails } = await import("./events/userProfile.js");
         updateUserDetails();
+        
+        // Sync data from backend on home page load
+        if (path === "/home") {
+          const { syncAllDataOnLogin } = await import("./services/data/initialDataSync.js");
+          syncAllDataOnLogin(user);
+        }
       }
 
       if (window.TableFeatures) {

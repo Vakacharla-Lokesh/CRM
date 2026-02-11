@@ -9,10 +9,10 @@ export function setupWebSocket(server) {
 
   wss.on("connection", (ws, req) => {
     const params = new URLSearchParams(req.url.replace("/?", ""));
-    const tenantId = params.get("tenant_id");
+    const tenantId = params.get("tenantId");
 
     if (!tenantId) {
-      ws.close(1008, "tenant_id required");
+      ws.close(1008, "tenantId required");
       return;
     }
 

@@ -49,7 +49,7 @@ class CallsContent extends HTMLElement {
         if (action === "getAllSuccess" && storeName === "Calls") {
           dbWorker.removeEventListener("message", messageHandler);
           const leadCalls = (rows || []).filter(
-            (call) => call.lead_id == leadId,
+            (call) => call.leadId == leadId,
           );
           resolve(leadCalls);
         } else if (action === "getAllError" && storeName === "Calls") {
@@ -441,7 +441,7 @@ class CallsContent extends HTMLElement {
 
     const callData = {
       call_id: callId ? callId : generateId("calls"),
-      lead_id: this.leadId,
+      leadId: this.leadId,
       call_type: type,
       call_status: status,
       duration: duration,
@@ -449,7 +449,7 @@ class CallsContent extends HTMLElement {
       created_on: callId
         ? this.calls.find((c) => c.call_id == callId)?.created_on
         : new Date(),
-      modified_on: new Date(),
+      updatedAt: new Date(),
     };
 
     try {

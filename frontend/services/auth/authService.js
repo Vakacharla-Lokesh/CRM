@@ -16,11 +16,11 @@ export async function checkUserLogin(email, password) {
     if (response.success || response.token) {
       // Store user data and token in localStorage
       const userData = {
-        user_id: response.user?.user_id || response.data?.user_id,
+        userId: response.user?.userId || response.data?.userId,
         user_email: response.user?.user_email || response.data?.user_email || email,
         user_name: response.user?.user_name || response.data?.user_name || response.user?.name || "User",
         role: response.user?.role || response.data?.role || "user",
-        tenant_id: response.user?.tenant_id || response.data?.tenant_id,
+        tenantId: response.user?.tenantId || response.data?.tenantId,
         token: response.token || response.data?.token,
       };
 
@@ -72,11 +72,11 @@ export async function getUserByEmail(email) {
     
     if (response.email?.toLowerCase() === email.toLowerCase()) {
       return {
-        user_id: response.user_id,
+        userId: response.userId,
         user_email: response.email || response.user_email,
         user_name: response.name || response.user_name,
         role: response.role,
-        tenant_id: response.tenant_id,
+        tenantId: response.tenantId,
       };
     }
     
@@ -98,11 +98,11 @@ export async function registerUser(userData) {
 
     if (response.success || response.token) {
       const user = {
-        user_id: response.user?.user_id || response.data?.user_id,
+        userId: response.user?.userId || response.data?.userId,
         user_email: response.user?.user_email || response.data?.user_email || userData.email,
         user_name: response.user?.user_name || response.data?.user_name || userData.name,
         role: response.user?.role || response.data?.role || "user",
-        tenant_id: response.user?.tenant_id || response.data?.tenant_id,
+        tenantId: response.user?.tenantId || response.data?.tenantId,
         token: response.token || response.data?.token,
       };
 

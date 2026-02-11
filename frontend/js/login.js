@@ -103,7 +103,7 @@ loginForm.addEventListener("submit", async (e) => {
       // Emit login success event
       eventBus.emit(EVENTS.LOGIN_SUCCESS, {
         email: result.user.user_email,
-        userId: result.user.user_id,
+        userId: result.user.userId,
         name: result.user.user_name,
       });
     } else {

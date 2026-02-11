@@ -15,7 +15,7 @@ export function updateData(storeName, data, dbReady, db) {
     console.log("update success", storeName);
     postMessage({
       action: "updateSuccess",
-      id: data.lead_id,
+      id: data.leadId,
       storeName: storeName,
     });
   };

@@ -16,7 +16,7 @@ draft save
 
 multiple pocs in Organizations
 
->>> calls object store should have user_id
+>>> calls object store should have userId
 
 multiple users in leads
 
@@ -28,7 +28,7 @@ lead activity in db
 
 >>> fix the ui of lead details
 
->>> calculate score also based on user_id and role and tenant_id
+>>> calculate score also based on userId and role and tenantId
 
 curl -X POST http://localhost:3000/update -H "Content-Type: application/json" -d '{"message":"Hello from curl!"}'
 

@@ -1,18 +1,18 @@
 export const tenantsStructure = {
   name: "Tenants",
-  keyPath: "tenant_id",
+  keyPath: "_id",
   default_obj: {
-    tenant_id: 1,
-    tenant_name: "Default Tenant",
+    _id: 1,
+    tenantName: "Default Tenant",
     email: "tenant@example.com",
     mobile: "9000000000",
-    created_at: new Date(),
-    updated_at: new Date(),
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   indexes: [
     {
-      name: "tenant_id",
-      keyPath: "tenant_id",
+      name: "tenantId",
+      keyPath: "_id",
       options: { unique: true },
     },
   ],

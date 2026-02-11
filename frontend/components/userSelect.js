@@ -37,8 +37,8 @@ export class UserSelect {
       this.dbWorker.postMessage({
         action: "getAllUsers",
         storeName: "Users",
-        user_id: user.user_id,
-        tenant_id: user.tenant_id || null,
+        userId: user.userId,
+        tenantId: user.tenantId || null,
         role: user.role,
       });
 
@@ -163,7 +163,7 @@ export class UserSelect {
       userList.innerHTML = filtered
         .map(
           (user) => `
-        <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0" data-user-id="${user.user_id}">
+        <div class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0" data-user-id="${user.userId}">
           <p class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(user.first_name + " " + user.last_name)}</p>
           <p class="text-xs text-gray-500 dark:text-gray-400">${this.escapeHtml(user.user_email || "")}</p>
         </div>
@@ -183,7 +183,7 @@ export class UserSelect {
   }
 
   selectUser(userId) {
-    const user = this.users.find((u) => u.user_id === userId);
+    const user = this.users.find((u) => u.userId === userId);
     if (!user) return;
 
     this.selectedUser = user;
@@ -196,15 +196,15 @@ export class UserSelect {
     const form = document.querySelector('form[data-form="createLead"]');
     if (!form) return;
 
-    let hiddenUserIdField = document.getElementById("assigned_user_id");
+    let hiddenUserIdField = document.getElementById("assigned_userId");
     if (!hiddenUserIdField) {
       hiddenUserIdField = document.createElement("input");
       hiddenUserIdField.type = "hidden";
-      hiddenUserIdField.id = "assigned_user_id";
-      hiddenUserIdField.name = "assigned_user_id";
+      hiddenUserIdField.id = "assigned_userId";
+      hiddenUserIdField.name = "assigned_userId";
       form.appendChild(hiddenUserIdField);
     }
-    hiddenUserIdField.value = user.user_id;
+    hiddenUserIdField.value = user.userId;
   }
 
   showSelectedDisplay(user) {
@@ -239,7 +239,7 @@ export class UserSelect {
     }
     this.hideSelectedDisplay();
 
-    const hiddenUserIdField = document.getElementById("assigned_user_id");
+    const hiddenUserIdField = document.getElementById("assigned_userId");
     if (hiddenUserIdField) {
       hiddenUserIdField.remove();
     }

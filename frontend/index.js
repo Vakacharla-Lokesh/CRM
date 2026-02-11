@@ -137,8 +137,8 @@ eventBus.on(EVENTS.USER_CREATED, (event) => {
 });
 
 // Polling disabled - causing repeated requests
-// longPolling();
-// checkHealth();
+longPolling();
+checkHealth();
 
 // Web sockets call
 export function connectWebSocketIfAuthenticated() {
@@ -156,7 +156,7 @@ export function connectWebSocketIfAuthenticated() {
   }
 
   window.wsClient = initWebSocket({
-    url: `ws://localhost:3000?tenant_id=${tenantId}`,
+    url: `ws://localhost:3000?tenantId=${tenantId}`,
   });
 }
 

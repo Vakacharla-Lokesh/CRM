@@ -120,7 +120,7 @@ export async function generateRandomLeads(count) {
     const industry = industries[Math.floor(Math.random() * industries.length)];
 
     const lead = {
-      lead_id: `stress_test_${i}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      leadId: `stress_test_${i}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       lead_first_name: firstName,
       lead_last_name: lastName,
       lead_email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@${domain}`,
@@ -138,9 +138,9 @@ export async function generateRandomLeads(count) {
       created_on: new Date(
         Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
       ),
-      modified_on: new Date(),
-      user_id: "stress_test_user",
-      tenant_id: "stress_test_tenant",
+      updatedAt: new Date(),
+      userId: "stress_test_user",
+      tenantId: "stress_test_tenant",
       comment_ids: [],
       call_ids: [],
     };

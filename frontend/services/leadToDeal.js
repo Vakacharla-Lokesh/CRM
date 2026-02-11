@@ -32,19 +32,19 @@ export function convertLeadToDeal(leadId, dbReady, db) {
       }
 
       const dealData = {
-        deal_id: generateId("deal"),
-        deal_name: `Deal - ${lead.lead_first_name} ${lead.lead_last_name}`,
-        deal_value: 0,
-        lead_id: lead.lead_id,
-        lead_first_name: lead.lead_first_name,
-        lead_last_name: lead.lead_last_name,
-        organization_id: lead.organization_id || null,
-        organization_name: lead.organization_name || "",
-        tenant_id: lead.tenant_id,
-        user_id: lead.user_id,
-        deal_status: "Prospecting",
-        created_on: new Date(),
-        modified_on: new Date(),
+        _id: generateId("deal"),
+        dealName: `Deal - ${lead.leadFirstName} ${lead.leadLastName}`,
+        dealValue: 0,
+        leadId: lead._id,
+        leadFirstName: lead.leadFirstName,
+        leadLastName: lead.leadLastName,
+        organizationId: lead.organizationId || null,
+        organizationName: lead.organizationName || "",
+        tenantId: lead.tenantId,
+        userId: lead.userId,
+        dealStatus: "Prospecting",
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
 
       console.log("Deal data to create:", dealData);
@@ -55,8 +55,8 @@ export function convertLeadToDeal(leadId, dbReady, db) {
         console.log("Deal created successfully");
         const updatedLead = {
           ...lead,
-          lead_status: "Converted",
-          modified_on: new Date(),
+          leadStatus: "Converted",
+          updatedAt: new Date(),
         };
 
         const updateRequest = leadsStore.put(updatedLead);

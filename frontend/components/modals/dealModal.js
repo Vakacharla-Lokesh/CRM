@@ -87,14 +87,14 @@ template.innerHTML = `<div
             </div>
             <div>
               <label
-                for="lead_id"
+                for="leadId"
                 class="block mb-1.5 text-sm font-medium text-gray-700 dark:text-gray-300"
               >
                 Associated Lead <span class="text-red-500">*</span>
               </label>
               <select
-                id="lead_id"
-                name="lead_id"
+                id="leadId"
+                name="leadId"
                 required
                 class="w-full px-3 py-2 text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
               >
@@ -204,8 +204,8 @@ class DealModal extends HTMLElement {
         this.leads = leadsData;
         this.populateLeadDropdown();
 
-        if (this.currentDealData && this.currentDealData.lead_id) {
-          this.selectLeadInDropdown(this.currentDealData.lead_id);
+        if (this.currentDealData && this.currentDealData.leadId) {
+          this.selectLeadInDropdown(this.currentDealData.leadId);
         }
       }
 
@@ -281,8 +281,8 @@ class DealModal extends HTMLElement {
       }
     });
 
-    if (data.lead_id) {
-      this.selectLeadInDropdown(data.lead_id);
+    if (data.leadId) {
+      this.selectLeadInDropdown(data.leadId);
     }
 
     if (data.organization_id) {
@@ -291,7 +291,7 @@ class DealModal extends HTMLElement {
   }
 
   selectLeadInDropdown(leadId) {
-    const leadSelect = this.querySelector("#lead_id");
+    const leadSelect = this.querySelector("#leadId");
     if (!leadSelect) {
       console.warn("Lead select element not found");
       return;
@@ -361,21 +361,21 @@ class DealModal extends HTMLElement {
     this.dbWorker.postMessage({
       action: "getAllLeads",
       storeName: "Leads",
-      user_id: user?.user_id,
-      tenant_id: user?.tenant_id,
+      userId: user?.userId,
+      tenantId: user?.tenantId,
       role: user?.role,
     });
     this.dbWorker.postMessage({
       action: "getAllOrganizations",
       storeName: "Organizations",
-      user_id: user?.user_id,
-      tenant_id: user?.tenant_id,
+      userId: user?.userId,
+      tenantId: user?.tenantId,
       role: user?.role,
     });
   }
 
   populateLeadDropdown() {
-    const leadSelect = this.querySelector("#lead_id");
+    const leadSelect = this.querySelector("#leadId");
     if (!leadSelect) return;
 
     const currentValue = leadSelect.value;
@@ -391,7 +391,7 @@ class DealModal extends HTMLElement {
       const leadName =
         `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim();
       const option = document.createElement("option");
-      option.value = lead.lead_id;
+      option.value = lead.leadId;
       option.textContent = leadName || lead.lead_email || "Unnamed Lead";
       leadSelect.appendChild(option);
     });
@@ -400,8 +400,8 @@ class DealModal extends HTMLElement {
     }
 
     console.log("Lead dropdown populated with", this.leads.length, "items");
-    if (this.currentDealData && this.currentDealData.lead_id) {
-      this.selectLeadInDropdown(this.currentDealData.lead_id);
+    if (this.currentDealData && this.currentDealData.leadId) {
+      this.selectLeadInDropdown(this.currentDealData.leadId);
     }
   }
 

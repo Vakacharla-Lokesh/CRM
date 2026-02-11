@@ -327,7 +327,7 @@ import userManager from "../events/handlers/userManager.js";
 
       dbWorker.postMessage({
         action: actionName,
-        tenant_id: user.tenant_id,
+        tenantId: user.tenantId,
         role: user.role,
       });
     }
