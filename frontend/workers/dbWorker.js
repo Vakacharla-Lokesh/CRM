@@ -54,11 +54,11 @@ self.onmessage = (e) => {
       break;
 
     case "getAllLeads":
-      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+      if (e.data.tenantId && e.data.userId && e.data.role) {
         getDataByTenantAndUser(
           "Leads",
-          e.data.user_id,
-          e.data.tenant_id,
+          e.data.userId,
+          e.data.tenantId,
           e.data.role,
           dbReady,
           db,
@@ -73,8 +73,8 @@ self.onmessage = (e) => {
       break;
 
     case "getAllLeadsByUserId":
-      console.log("Inside get data by user id: ", e.data.user_id);
-      getLeadById(e.data.storeName, e.data.user_id, dbReady, db);
+      console.log("Inside get data by user id: ", e.data.userId);
+      getLeadById(e.data.storeName, e.data.userId, dbReady, db);
       break;
 
     case "getLeadById":
@@ -98,11 +98,11 @@ self.onmessage = (e) => {
       break;
 
     case "getAllOrganizations":
-      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+      if (e.data.tenantId && e.data.userId && e.data.role) {
         getDataByTenantAndUser(
           "Organizations",
-          e.data.user_id,
-          e.data.tenant_id,
+          e.data.userId,
+          e.data.tenantId,
           e.data.role,
           dbReady,
           db,
@@ -132,11 +132,11 @@ self.onmessage = (e) => {
       break;
 
     case "getAllDeals":
-      if (e.data.tenant_id && e.data.user_id && e.data.role) {
+      if (e.data.tenantId && e.data.userId && e.data.role) {
         getDataByTenantAndUser(
           "Deals",
-          e.data.user_id,
-          e.data.tenant_id,
+          e.data.userId,
+          e.data.tenantId,
           e.data.role,
           dbReady,
           db,
@@ -210,7 +210,7 @@ self.onmessage = (e) => {
 
     // Lead to deal case:
     case "convertToDeal":
-      convertLeadToDeal(e.data.lead_id, dbReady, db);
+      convertLeadToDeal(e.data.leadId, dbReady, db);
       break;
 
     // Home data extraction case:
@@ -218,8 +218,8 @@ self.onmessage = (e) => {
       getCount(
         db,
         dbReady,
-        e.data.tenant_id,
-        e.data.user_id,
+        e.data.tenantId,
+        e.data.userId,
         e.data.role,
         e.data,
       );
@@ -233,11 +233,11 @@ self.onmessage = (e) => {
 
     // User cases:
     case "getAllUsers":
-      if (e.data.tenant_id && e.data.role) {
+      if (e.data.tenantId && e.data.role) {
         getDataByTenantAndUser(
           "Users",
           null,
-          e.data.tenant_id,
+          e.data.tenantId,
           e.data.role,
           dbReady,
           db,

@@ -222,7 +222,7 @@ class UserModal extends HTMLElement {
     tenantSelect.innerHTML = '<option value="">Select a Tenant</option>';
     this.tenants.forEach((tenant) => {
       const option = document.createElement("option");
-      option.value = tenant.tenant_id;
+      option.value = tenant.tenantId;
       option.textContent = tenant.tenant_name || "Unnamed Tenant";
       tenantSelect.appendChild(option);
     });

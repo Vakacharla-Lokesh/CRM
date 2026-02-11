@@ -10,7 +10,7 @@ class LeadPage extends HTMLElement {
 
   async loadLeadHeader() {
     try {
-      const leadId = sessionStorage.getItem("lead_id");
+      const leadId = sessionStorage.getItem("leadId");
       if (!leadId) {
         this.innerHTML = `
                 <div class="w-full mx-auto mt-6 bg-red-50 rounded-lg p-6 text-red-600">
@@ -107,7 +107,7 @@ class LeadPage extends HTMLElement {
       `${this.leadData.lead_first_name || ""} ${
         this.leadData.lead_last_name || ""
       }`.trim() || "Unknown Lead";
-    const leadId = this.leadData.lead_id;
+    const leadId = this.leadData.leadId;
     const status = this.leadData.lead_status;
 
     this.innerHTML = `
@@ -161,14 +161,14 @@ class LeadPage extends HTMLElement {
     }
 
     if (convertToDealBtn) {
-      const leadId = sessionStorage.getItem("lead_id");
+      const leadId = sessionStorage.getItem("leadId");
       convertToDealBtn.addEventListener("click", () => {
         if (
           confirm(
             "Convert this lead to a deal? The lead will be marked as 'Converted'.",
           )
         ) {
-          dbWorker.postMessage({ action: "convertToDeal", lead_id: leadId });
+          dbWorker.postMessage({ action: "convertToDeal", leadId: leadId });
         }
       });
     }

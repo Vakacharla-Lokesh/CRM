@@ -5,7 +5,7 @@ class LeadDetails extends HTMLElement {
 
   async loadLeadData() {
     try {
-      const leadId = sessionStorage.getItem("lead_id");
+      const leadId = sessionStorage.getItem("leadId");
       if (!leadId) {
         this.innerHTML = `
           <div class="bg-gray-50 dark:bg-gray-900 rounded-lg shadow p-6 max-w-xl">
@@ -32,7 +32,7 @@ class LeadDetails extends HTMLElement {
       } else {
         lead = JSON.parse(sessionStorage.getItem("leads")).filter(
           (leadData) => {
-            return leadData.lead_id == leadId;
+            return leadData.leadId == leadId;
           },
         )[0];
       }
@@ -108,7 +108,7 @@ class LeadDetails extends HTMLElement {
               </div>
 
               <div class="space-y-3 text-sm">
-                ${this.row("Lead ID", lead.lead_id)}
+                ${this.row("Lead ID", lead.leadId)}
                 ${this.row("First Name", firstName)}
                 ${this.row("Last Name", lastName)}
                 ${this.row("Email", email)}
@@ -297,19 +297,19 @@ class LeadDetails extends HTMLElement {
       lead_email: email,
       lead_mobile_number: mobile,
       lead_status: status,
-      modified_on: new Date(),
+      updatedAt: new Date(),
     };
 
     const messageHandler = (e) => {
       const { action, error, id } = e.data;
 
-      if (action === "updateSuccess" && id === updatedLeadData.lead_id) {
+      if (action === "updateSuccess" && id === updatedLeadData.leadId) {
         dbWorker.removeEventListener("message", messageHandler);
         // alert("Lead updated successfully!");
         this.leadData = updatedLeadData;
         document.getElementById("edit-lead-modal")?.classList.add("hidden");
         this.loadLeadData();
-      } else if (action === "updateError" && id === updatedLeadData.lead_id) {
+      } else if (action === "updateError" && id === updatedLeadData.leadId) {
         dbWorker.removeEventListener("message", messageHandler);
         alert("Error updating lead: " + error);
       }

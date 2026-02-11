@@ -48,7 +48,7 @@ class Filter extends HTMLElement {
       if (!this.statusLeadsMap.has(status)) {
         this.statusLeadsMap.set(status, new Set());
       }
-      const leadId = String(lead.lead_id);
+      const leadId = String(lead.leadId);
       this.statusLeadsMap.get(status).add(leadId);
     });
   }

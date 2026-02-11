@@ -224,7 +224,7 @@ function initializeClickHandlers() {
     if (e.target.closest("#close-modal-btn")) {
       console.log("Inside close modal btn: ");
       document.getElementById("form-modal")?.classList.add("hidden");
-      sessionStorage.removeItem("lead_id");
+      sessionStorage.removeItem("leadId");
       sessionStorage.removeItem("organization_id");
       sessionStorage.removeItem("deal_id");
       
@@ -403,24 +403,13 @@ function handleThemeToggle(event) {
 
 async function handleLoginSuccess(event) {
   const userManager = (await import("./handlers/userManager.js")).default;
-  const { syncAllDataOnLogin } = await import("../services/data/initialDataSync.js");
-  const { updateUserDetails } = await import("./userProfile.js");
   
-  setTimeout(async () => {
-    const user = userManager.getUser();
-    if (user) {
-      // Sync data from backend
-      await syncAllDataOnLogin(user);
-      // Update user profile in sidebar
-      updateUserDetails();
-    }
-    
-    connectWebSocketIfAuthenticated();
-    addNotification(`Welcome back.`, "success");
-    
-    // Navigate using browser navigation since backend serves pages
-    window.location.href = "/home";
-  }, 500);
+  // Quick redirect - data sync will happen on home page load
+  connectWebSocketIfAuthenticated();
+  addNotification(`Welcome back.`, "success");
+  
+  // Navigate immediately for fast login
+  window.location.href = "/home";
 }
 
 function handleLoginFailure(event) {

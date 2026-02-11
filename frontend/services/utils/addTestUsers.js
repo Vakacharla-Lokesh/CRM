@@ -4,14 +4,14 @@ export async function addTestUsers(db) {
   try {
     const testTenants = [
       {
-        tenant_id: "tenant_acme",
+        tenantId: "tenant_acme",
         tenant_name: "Acme Corporation",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
       },
       {
-        tenant_id: "tenant_techstart",
+        tenantId: "tenant_techstart",
         tenant_name: "TechStart Solutions",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
       },
     ];
 
@@ -45,68 +45,68 @@ export async function addTestUsers(db) {
     });
     const testUsers = [
       {
-        user_id: "user_admin_acme",
+        userId: "user_admin_acme",
         user_email: "admin@acme.com",
         password: "admin123",
         user_name: "Admin User",
         first_name: "Admin",
         last_name: "User",
         role: "admin",
-        tenant_id: "tenant_acme",
+        tenantId: "tenant_acme",
         mobile: "9876543210",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
       {
-        user_id: "user_john_acme",
+        userId: "user_john_acme",
         user_email: "john.doe@acme.com",
         password: "john123",
         user_name: "John Doe",
         first_name: "John",
         last_name: "Doe",
         role: "user",
-        tenant_id: "tenant_acme",
+        tenantId: "tenant_acme",
         mobile: "9876543211",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
       {
-        user_id: "user_jane_techstart",
+        userId: "user_jane_techstart",
         user_email: "jane.smith@techstart.com",
         password: "jane123",
         user_name: "Jane Smith",
         first_name: "Jane",
         last_name: "Smith",
         role: "admin",
-        tenant_id: "tenant_techstart",
+        tenantId: "tenant_techstart",
         mobile: "9876543212",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
       {
-        user_id: "user_test",
+        userId: "user_test",
         user_email: "test@example.com",
         password: "test123",
         user_name: "Test User",
         first_name: "Test",
         last_name: "User",
         role: "user",
-        tenant_id: "tenant_acme",
+        tenantId: "tenant_acme",
         mobile: "9876543213",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
       {
-        user_id: "user_super_admin",
+        userId: "user_super_admin",
         user_email: "superadmin@crm.com",
         password: "super123",
         user_name: "Super Admin",
         first_name: "Super",
         last_name: "Admin",
         role: "super_admin",
-        tenant_id: null,
+        tenantId: null,
         mobile: "9999999999",
-        created_at: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       },
     ];
@@ -119,7 +119,7 @@ export async function addTestUsers(db) {
 
       request.onsuccess = () => {
         console.log(
-          `✓ Added user: ${user.user_email} (${user.tenant_id || "super_admin"})`,
+          `✓ Added user: ${user.user_email} (${user.tenantId || "super_admin"})`,
         );
       };
 
@@ -170,7 +170,7 @@ export async function viewAllUsers() {
           email: u.user_email,
           name: u.user_name,
           role: u.role,
-          tenant: u.tenant_id || "N/A",
+          tenant: u.tenantId || "N/A",
         })),
       );
     };

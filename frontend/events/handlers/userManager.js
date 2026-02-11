@@ -41,7 +41,7 @@ class UserManager {
       this.initialize();
     }
     // console.log(this.user);
-    return this.user.tenant_id;
+    return this.user.tenantId;
   }
 
   isSuperAdmin() {

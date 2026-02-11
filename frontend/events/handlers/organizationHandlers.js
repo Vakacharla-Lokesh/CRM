@@ -24,7 +24,7 @@ export async function handleOrganizationCreate(event) {
     organization_id: rawData.organization_id || generateId("org"),
     ...rawData,
     created_on: new Date(),
-    modified_on: new Date(),
+    updatedAt: new Date(),
   };
   
   if (window.isSync) {
@@ -74,7 +74,7 @@ export async function handleOrganizationUpdate(event) {
 
   const organizationData = {
     ...rawData,
-    modified_on: new Date(),
+    updatedAt: new Date(),
   };
   
   if (window.isSync) {
@@ -191,7 +191,7 @@ export function handleOrganizationExport() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   progressBar.onComplete = () => {
     const { dbWorker } = dbState;
@@ -199,8 +199,8 @@ export function handleOrganizationExport() {
       dbWorker.postMessage({
         action: "exportData",
         storeName: "Organizations",
-        user_id,
-        tenant_id,
+        userId,
+        tenantId,
         role,
       });
     }
@@ -279,7 +279,7 @@ export async function handleOrganizationRefresh() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   if (currentTab === "/organizations" && dbWorker) {
     try {
@@ -288,13 +288,13 @@ export async function handleOrganizationRefresh() {
       let filteredOrgs = orgsData;
       if (role === "admin") {
         filteredOrgs = orgsData.filter(
-          (org) => String(org.tenant_id) === String(tenant_id),
+          (org) => String(org.tenantId) === String(tenantId),
         );
       } else {
         filteredOrgs = orgsData.filter(
           (org) =>
-            String(org.tenant_id) === String(tenant_id) &&
-            String(org.user_id) === String(user_id),
+            String(org.tenantId) === String(tenantId) &&
+            String(org.userId) === String(userId),
         );
       }
       dbWorker.postMessage({
@@ -317,7 +317,7 @@ export async function handleOrganizationRefresh() {
       dbWorker.postMessage({
         action: "getData",
         storeName: "Organizations",
-        filters: { user_id, tenant_id, role },
+        filters: { userId, tenantId, role },
       });
     }
   }

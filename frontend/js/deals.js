@@ -110,8 +110,8 @@ function loadLeadsForDropdown() {
   dbWorker.postMessage({
     action: "getAllLeads",
     storeName: "Leads",
-    user_id: user?.user_id,
-    tenant_id: user?.tenant_id,
+    userId: user?.userId,
+    tenantId: user?.tenantId,
     role: user?.role,
   });
 
@@ -139,8 +139,8 @@ function loadOrganizationsForDropdown() {
   dbWorker.postMessage({
     action: "getAllOrganizations",
     storeName: "Organizations",
-    user_id: user?.user_id,
-    tenant_id: user?.tenant_id,
+    userId: user?.userId,
+    tenantId: user?.tenantId,
     role: user?.role,
   });
 
@@ -150,7 +150,7 @@ function loadOrganizationsForDropdown() {
 }
 
 function populateLeadDropdown() {
-  const leadSelect = document.getElementById("lead_id");
+  const leadSelect = document.getElementById("leadId");
   if (!leadSelect) return;
 
   const currentValue = leadSelect.value;
@@ -159,7 +159,7 @@ function populateLeadDropdown() {
   allLeads.forEach((lead) => {
     const leadName = `${lead.lead_first_name} ${lead.lead_last_name}`;
     const option = document.createElement("option");
-    option.value = lead.lead_id;
+    option.value = lead.leadId;
     option.textContent = leadName;
     leadSelect.appendChild(option);
   });
@@ -198,7 +198,7 @@ function handleDealCreate(form) {
 
   const dealName = document.getElementById("deal_name")?.value?.trim() || "";
   const dealValue = document.getElementById("deal_value")?.value?.trim() || "";
-  const leadId = document.getElementById("lead_id")?.value || "";
+  const leadId = document.getElementById("leadId")?.value || "";
   const organizationId =
     document.getElementById("organization_id")?.value || "";
   const dealStatus =
@@ -218,15 +218,15 @@ function handleDealCreate(form) {
     deal_id: Date.now(),
     deal_name: dealName,
     deal_value: Number(dealValue),
-    lead_id: leadId ? leadId : null,
+    leadId: leadId ? leadId : null,
     organization_id: organizationId ? organizationId : null,
     deal_status: dealStatus,
     created_on: new Date(),
-    modified_on: new Date(),
+    updatedAt: new Date(),
   };
 
   if (leadId) {
-    const lead = allLeads.find((l) => l.lead_id === dealData.lead_id);
+    const lead = allLeads.find((l) => l.leadId === dealData.leadId);
     if (lead) {
       dealData.lead_first_name = lead.lead_first_name;
       dealData.lead_last_name = lead.lead_last_name;

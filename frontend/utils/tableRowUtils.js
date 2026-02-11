@@ -12,21 +12,21 @@ export function appendLeadRow(lead) {
   }
 
   const row = document.createElement("tr");
-  row.setAttribute("data-lead-id", lead.lead_id);
+  row.setAttribute("data-lead-id", lead._id);
   row.className =
     "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
   const fullName =
-    `${lead.lead_first_name || ""} ${lead.lead_last_name || ""}`.trim() ||
+    `${lead.leadFirstName || ""} ${lead.leadLastName || ""}`.trim() ||
     "Unknown";
-  const email = lead.lead_email || "No email";
-  const mobile = lead.lead_mobile_number || "No mobile";
-  const organization = lead.organization_name || "N/A";
-  const createdDate = lead.created_on
-    ? new Date(lead.created_on).toLocaleDateString()
+  const email = lead.leadEmail || "No email";
+  const mobile = lead.leadMobileNumber || "No mobile";
+  const organization = lead.organizationName || "N/A";
+  const createdDate = lead.createdAt
+    ? new Date(lead.createdAt).toLocaleDateString()
     : "N/A";
-  const score = lead.score || lead.lead_score || "0";
-  const status = lead.lead_status || "New";
+  const score = lead.score || lead.leadScore || "0";
+  const status = lead.leadStatus || "New";
 
   const statusColors = {
     New: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
@@ -56,7 +56,7 @@ export function appendLeadRow(lead) {
 
   row.innerHTML = `
     <td class="w-4 p-4">
-      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${lead.lead_id}" />
+      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${lead._id}" />
     </td>
     <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
       ${fullName}
@@ -121,22 +121,22 @@ export function appendOrganizationRow(organization) {
   }
 
   const row = document.createElement("tr");
-  row.setAttribute("data-organization-id", organization.organization_id);
+  row.setAttribute("data-organization-id", organization._id);
   row.className =
     "border-b border-gray-100 dark:border-gray-700 even:bg-gray-50 dark:even:bg-gray-700/40 hover:bg-blue-50 dark:hover:bg-blue-500/10 transition-colors";
 
   row.innerHTML = `
     <td class="w-4 p-4">
-      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${organization.organization_id}" />
+      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${organization._id}" />
     </td>
     <td scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
-      ${organization.organization_name}
+      ${organization.organizationName}
     </th>
-    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organization_size || "N/A"}</td>
-    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organization_website_name || ""}</td>
-    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organization_industry || ""}</td>
+    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organizationSize || "N/A"}</td>
+    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organizationWebsite || ""}</td>
+    <td class="px-6 py-4 text-gray-600 dark:text-gray-300">${organization.organizationIndustry || ""}</td>
     <td class="px-6 py-4 text-gray-600 dark:text-gray-300">
-      ${organization.created_on ? new Date(organization.created_on).toLocaleDateString() : "N/A"}
+      ${organization.createdAt ? new Date(organization.createdAt).toLocaleDateString() : "N/A"}
     </td>
     <td class="px-3 py-4">
       <div class="flex flex-row gap-1">
@@ -170,17 +170,17 @@ export function appendDealRow(deal) {
   }
 
   const row = document.createElement("tr");
-  row.setAttribute("data-deal-id", deal.deal_id);
+  row.setAttribute("data-deal-id", deal._id);
   row.className =
     "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
-  const dealName = deal.deal_name || `Deal #${deal.deal_id}`;
-  const dealValue = deal.deal_value
-    ? `$${Number(deal.deal_value).toLocaleString()}`
+  const dealName = deal.dealName || `Deal #${deal._id}`;
+  const dealValue = deal.dealValue
+    ? `$${Number(deal.dealValue).toLocaleString()}`
     : "$0";
-  const status = deal.deal_status || "Prospecting";
-  const modifiedDate = deal.modified_on
-    ? new Date(deal.modified_on).toLocaleDateString()
+  const status = deal.dealStatus || "Prospecting";
+  const modifiedDate = deal.updatedAt
+    ? new Date(deal.updatedAt).toLocaleDateString()
     : "N/A";
 
   const statusColors = {
@@ -202,7 +202,7 @@ export function appendDealRow(deal) {
 
   row.innerHTML = `
     <td class="w-4 p-4">
-      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${deal.deal_id}" />
+      <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${deal._id}" />
     </td>
     <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
       ${dealName}

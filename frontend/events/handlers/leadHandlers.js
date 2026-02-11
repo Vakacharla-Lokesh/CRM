@@ -15,7 +15,7 @@ export async function handleLeadCreate(event) {
 
   const leadData = {
     ...event.detail.leadData,
-    created_at: new Date(),
+    createdAt: new Date(),
     updated_at: new Date(),
   };
 
@@ -27,8 +27,8 @@ export async function handleLeadCreate(event) {
         leadData,
         "create",
       );
-      if (response && response.lead_id) {
-        leadData.lead_id = response.lead_id;
+      if (response && response.leadId) {
+        leadData.leadId = response.leadId;
       }
       showNotification("Lead created successfully!", "success");
       eventBus.emit(EVENTS.LEAD_CREATED, { leadData });
@@ -75,7 +75,7 @@ export async function handleLeadDelete(event) {
   if (window.isSync) {
     // Online - make API call directly
     try {
-      await syncSingleEntityToBackend("leads", { lead_id: id }, "delete");
+      await syncSingleEntityToBackend("leads", { leadId: id }, "delete");
       showNotification("Lead deleted successfully!", "success");
       eventBus.emit(EVENTS.LEAD_DELETED, { id });
     } catch (error) {
@@ -116,7 +116,7 @@ export function handleLeadExport() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   progressBar.onComplete = () => {
     const { dbWorker } = dbState;
@@ -124,8 +124,8 @@ export function handleLeadExport() {
       dbWorker.postMessage({
         action: "exportData",
         storeName: "Leads",
-        user_id,
-        tenant_id,
+        userId,
+        tenantId,
         role,
       });
     }
@@ -141,13 +141,13 @@ export function calculateLeadScore() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   if (dbWorker) {
     dbWorker.postMessage({
       action: "calculateScore",
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     });
   }
@@ -160,9 +160,9 @@ export function handleLeadClick(e) {
 
     const editBtn = e.target.closest("#editLead");
     const leadRow = editBtn.closest("tr");
-    const lead_id = leadRow?.getAttribute("data-lead-id");
+    const leadId = leadRow?.getAttribute("data-lead-id");
 
-    sessionStorage.setItem("lead_id", lead_id);
+    sessionStorage.setItem("leadId", leadId);
 
     const dropdown = editBtn.closest(".dropdown-menu");
     if (dropdown) {
@@ -179,12 +179,12 @@ export function handleLeadClick(e) {
 
     const deleteBtn = e.target.closest("#deleteLead");
     const leadRow = deleteBtn.closest("tr");
-    const lead_id = leadRow?.getAttribute("data-lead-id");
+    const leadId = leadRow?.getAttribute("data-lead-id");
 
-    if (lead_id) {
+    if (leadId) {
       if (confirm("Are you sure you want to delete this lead?")) {
         import("../eventBus.js").then(({ eventBus, EVENTS }) => {
-          eventBus.emit(EVENTS.LEAD_DELETE, { id: lead_id });
+          eventBus.emit(EVENTS.LEAD_DELETE, { id: leadId });
         });
       }
     }
@@ -206,13 +206,13 @@ export function handleLeadRefresh() {
 
   const user = userManager.getUser();
   if (!user) return;
-  const { user_id, tenant_id, role } = user;
+  const { userId, tenantId, role } = user;
 
   if (currentTab === "/leads" && dbWorker) {
     dbWorker.postMessage({
       action: "getAllLeads",
-      user_id,
-      tenant_id,
+      userId,
+      tenantId,
       role,
     });
   }

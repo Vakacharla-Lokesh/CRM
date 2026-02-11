@@ -49,7 +49,7 @@ class CommentsContent extends HTMLElement {
         if (action === "getAllSuccess" && storeName === "Comments") {
           dbWorker.removeEventListener("message", messageHandler);
           const leadComments = (rows || []).filter(
-            (comment) => comment.lead_id == leadId,
+            (comment) => comment.leadId == leadId,
           );
           resolve(leadComments);
         } else if (action === "getAllError" && storeName === "Comments") {
@@ -373,7 +373,7 @@ class CommentsContent extends HTMLElement {
       comment_id: generateId("comment"),
       comment_title: title,
       comment_desc: desc,
-      lead_id: this.leadId,
+      leadId: this.leadId,
       created_on: new Date(),
     };
 

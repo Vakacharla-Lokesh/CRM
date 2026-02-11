@@ -39,8 +39,8 @@ export function populateDealsTable(deals) {
       ? `$${Number(deal.deal_value).toLocaleString()}`
       : "$0";
     const status = deal.deal_status || "Prospecting";
-    const modifiedDate = deal.modified_on
-      ? new Date(deal.modified_on).toLocaleDateString()
+    const modifiedDate = deal.updatedAt
+      ? new Date(deal.updatedAt).toLocaleDateString()
       : "N/A";
 
     const statusColors = {

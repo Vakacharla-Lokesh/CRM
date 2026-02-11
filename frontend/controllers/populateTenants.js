@@ -25,21 +25,21 @@ export function populateTenantsTable(tenants, users = []) {
 
   tenants.forEach((tenant) => {
     const row = document.createElement("tr");
-    row.setAttribute("data-tenant-id", tenant.tenant_id);
+    row.setAttribute("data-tenant-id", tenant.tenantId);
     row.className =
       "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors";
 
     const tenantName = tenant.tenant_name || "Unknown";
-    const createdDate = tenant.created_at
-      ? new Date(tenant.created_at).toLocaleDateString()
+    const createdDate = tenant.createdAt
+      ? new Date(tenant.createdAt).toLocaleDateString()
       : "N/A";
     const adminCount = users.filter(
-      (user) => user.tenant_id === tenant.tenant_id && user.role === "admin",
+      (user) => user.tenantId === tenant.tenantId && user.role === "admin",
     ).length;
 
     row.innerHTML = `
       <td class="w-4 p-4">
-        <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${tenant.tenant_id}" />
+        <input type="checkbox" class="item-checkbox w-4 h-4 text-blue-600 bg-gray-100 dark:bg-gray-600 border-gray-300 dark:border-gray-500 rounded focus:ring-blue-500 dark:focus:ring-blue-600 focus:ring-2" value="${tenant.tenantId}" />
       </td>
       <th scope="row" class="px-6 py-4 font-medium text-gray-900 dark:text-white whitespace-nowrap">
         ${tenantName}

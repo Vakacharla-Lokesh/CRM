@@ -32,14 +32,14 @@ export function setupFilterEventListeners() {
   document.addEventListener("lead:created", (event) => {
     const newLead = event.detail.leadData;
     if (filterInstance && newLead) {
-      if (newLead.lead_id) {
-        newLead.lead_id = String(newLead.lead_id);
+      if (newLead.leadId) {
+        newLead.leadId = String(newLead.leadId);
       }
       filterInstance.allLeads.push(newLead);
       filterInstance.buildStatusStructures();
       filterInstance.render();
       filterInstance.attachEventListeners();
-      console.log("SmartFilter updated: Lead created", newLead.lead_id);
+      console.log("SmartFilter updated: Lead created", newLead.leadId);
     }
   });
 
@@ -48,7 +48,7 @@ export function setupFilterEventListeners() {
     if (filterInstance && deletedLeadId) {
       const idToDelete = String(deletedLeadId);
       filterInstance.allLeads = filterInstance.allLeads.filter(
-        (lead) => String(lead.lead_id) !== idToDelete
+        (lead) => String(lead.leadId) !== idToDelete
       );
       filterInstance.buildStatusStructures();
       filterInstance.render();
@@ -66,7 +66,7 @@ export function getFilteredLeadIds() {
   if (!filterInstance) return [];
 
   if (!filterInstance.selectedStatus) {
-    return filterInstance.allLeads.map((lead) => lead.lead_id);
+    return filterInstance.allLeads.map((lead) => lead.leadId);
   }
 
   return Array.from(

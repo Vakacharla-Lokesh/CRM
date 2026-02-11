@@ -1,18 +1,18 @@
 export const commentsStructure = {
   name: "Comments",
-  keyPath: "comment_id",
+  keyPath: "_id",
   default_obj: {
-    comment_id: 1,
-    comment_title: "Title",
-    comment_desc: "Testing comments",
-    lead_id: 1,
-    created_at: new Date(),
-    updated_at: new Date(),
+    _id: 1,
+    commentTitle: "Title",
+    commentDesc: "Testing comments",
+    leadId: 1,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   indexes: [
     {
-      name: "lead_id",
-      keyPath: "lead_id",
+      name: "leadId",
+      keyPath: "leadId",
       options: { unique: false },
     },
   ],

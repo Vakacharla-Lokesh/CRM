@@ -2,13 +2,13 @@ function scoreLead(lead) {
   let score = 0;
   score += (lead.comments || 0) * 4;
 
-  if (lead.organization_size >= 100) score += 10;
-  if (lead.organization_size >= 500) score += 10;
+  if (lead.organizationSize >= 100) score += 10;
+  if (lead.organizationSize >= 500) score += 10;
 
   if (
-    lead.lead_email &&
-    !lead.lead_email.includes("gmail.com") &&
-    !lead.lead_email.includes("hotmail.com")
+    lead.leadEmail &&
+    !lead.leadEmail.includes("gmail.com") &&
+    !lead.leadEmail.includes("hotmail.com")
   ) {
     score += 5;
   }
@@ -17,17 +17,17 @@ function scoreLead(lead) {
 
   score += (lead.attachments || 0) * 2;
 
-  if (lead.lead_status === "Converted") {
+  if (lead.leadStatus === "Converted") {
     score += 20;
-  } else if (lead.lead_status === "Follow-Up") {
+  } else if (lead.leadStatus === "Follow-Up") {
     score += 10;
-  } else if (lead.lead_status === "Dead") {
+  } else if (lead.leadStatus === "Dead") {
     score = Math.max(0, score - 15);
   }
 
-  if (lead.created_on) {
+  if (lead.createdAt) {
     const daysSinceCreation =
-      (Date.now() - new Date(lead.created_on).getTime()) /
+      (Date.now() - new Date(lead.createdAt).getTime()) /
       (1000 * 60 * 60 * 24);
     if (daysSinceCreation <= 30) {
       score += 5;
@@ -37,21 +37,21 @@ function scoreLead(lead) {
   return Math.max(0, score);
 }
 
-function canUpdateLead(lead, user_id, tenant_id, role) {
+function canUpdateLead(lead, userId, tenantId, role) {
   if (role === "super_admin") return true;
 
   if (role === "admin") {
-    return lead.tenant_id === tenant_id;
+    return lead.tenantId === tenantId;
   }
 
   if (role === "user") {
-    return lead.user_id === user_id;
+    return lead.userId === userId;
   }
 
   return false;
 }
 
-export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
+export function updateAllObjects(db, dbReady, userId, tenantId, role) {
   if (!dbReady || !db) {
     console.error("Database not ready");
     postMessage({
@@ -78,7 +78,7 @@ export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
     const allLeads = leadsRequest.result;
 
     const leads = allLeads.filter((lead) =>
-      canUpdateLead(lead, user_id, tenant_id, role),
+      canUpdateLead(lead, userId, tenantId, role),
     );
 
     const commentsRequest = commentsStore.getAll();
@@ -101,17 +101,17 @@ export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
       const attachmentCounts = {};
 
       allComments.forEach((comment) => {
-        commentCounts[comment.lead_id] =
-          (commentCounts[comment.lead_id] || 0) + 1;
+        commentCounts[comment.leadId] =
+          (commentCounts[comment.leadId] || 0) + 1;
       });
 
       allCalls.forEach((call) => {
-        callCounts[call.lead_id] = (callCounts[call.lead_id] || 0) + 1;
+        callCounts[call.leadId] = (callCounts[call.leadId] || 0) + 1;
       });
 
       allAttachments.forEach((attachment) => {
-        attachmentCounts[attachment.lead_id] =
-          (attachmentCounts[attachment.lead_id] || 0) + 1;
+        attachmentCounts[attachment.leadId] =
+          (attachmentCounts[attachment.leadId] || 0) + 1;
       });
 
       const updateTransaction = db.transaction("Leads", "readwrite");
@@ -123,16 +123,16 @@ export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
       leads.forEach((lead) => {
         const enrichedLead = {
           ...lead,
-          comments: commentCounts[lead.lead_id] || 0,
-          calls: callCounts[lead.lead_id] || 0,
-          attachments: attachmentCounts[lead.lead_id] || 0,
+          comments: commentCounts[lead.leadId] || 0,
+          calls: callCounts[lead.leadId] || 0,
+          attachments: attachmentCounts[lead.leadId] || 0,
         };
         const newScore = scoreLead(enrichedLead);
         if (lead.score !== newScore) {
           const updatedLead = {
             ...lead,
             score: newScore,
-            modified_on: new Date(),
+            updatedAt: new Date(),
           };
 
           const updateRequest = updateStore.put(updatedLead);
@@ -140,14 +140,14 @@ export function updateAllObjects(db, dbReady, user_id, tenant_id, role) {
           updateRequest.onsuccess = () => {
             updatedCount++;
             console.log(
-              `Updated lead ${lead.lead_id}: score ${lead.score || 0} to ${newScore}`,
+              `Updated lead ${lead.leadId}: score ${lead.score || 0} to ${newScore}`,
             );
           };
 
           updateRequest.onerror = (e) => {
             errorCount++;
             console.error(
-              `Error updating lead ${lead.lead_id}:`,
+              `Error updating lead ${lead.leadId}:`,
               e.target.error,
             );
           };

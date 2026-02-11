@@ -1,9 +1,9 @@
 export function downloadCsvFromData(storeName, data) {
   const objectKeys = {
-    Leads: ["lead_id", "organization_id", "tenant_id", "user_id"],
-    Organizations: ["organization_id", "tenant_id", "user_id"],
-    Deals: ["deal_id", "lead_id", "organization_id", "tenant_id", "user_id"],
-    Tenants: ["tenant_id"],
+    Leads: ["_id", "organizationId", "tenantId", "userId"],
+    Organizations: ["_id", "tenantId", "userId"],
+    Deals: ["_id", "leadId", "organizationId", "tenantId", "userId"],
+    Tenants: ["_id", "tenantId"],
   };
 
   if (!data || data.length === 0) {

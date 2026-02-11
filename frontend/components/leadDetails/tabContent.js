@@ -4,7 +4,7 @@ class TabContent extends HTMLElement {
   }
 
   async render(activeTab) {
-    const leadId = sessionStorage.getItem("lead_id");
+    const leadId = sessionStorage.getItem("leadId");
 
     let content = "";
 

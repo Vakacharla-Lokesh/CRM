@@ -37,8 +37,8 @@ export class OrganizationSelect {
       this.dbWorker.postMessage({
         action: "getAllOrganizations",
         storeName: "Organizations",
-        user_id: user.user_id,
-        tenant_id: user.tenant_id,
+        userId: user.userId,
+        tenantId: user.tenantId,
         role: user.role,
       });
 
