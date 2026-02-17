@@ -125,10 +125,7 @@ export const deleteLead = async (req, res, next) => {
 // Get leads by tenant
 export const getLeadsByTenant = async (req, res, next) => {
   try {
-    if (
-      req.user.role !== "super_admin" &&
-      req.params.tenantId.toString() !== req.user.tenantId.toString()
-    ) {
+    if (req.user.role !== "super_admin") {
       return res.status(403).json({
         message: "Forbidden: You cannot access leads from other tenants",
       });

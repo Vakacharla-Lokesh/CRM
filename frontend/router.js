@@ -52,9 +52,9 @@ class Router {
 
   // Navigate to a new route
   navigate(path) {
-    // Backend handles routing - use full page navigation
     if (window.location.pathname !== path) {
-      window.location.href = path;
+      window.history.pushState(null, "", path);
+      this.loadRoute(path);
     }
   }
 
@@ -62,6 +62,23 @@ class Router {
   async loadRoute(path) {
     try {
       const user = userManager.getUser();
+      
+      // Import RouteManager
+      const { RouteManager } = await import("./router/routeManager.js");
+      const routeManager = new RouteManager();
+
+      // Check if route requires authentication
+      if (routeManager.isAuthRequired(path) && !user) {
+        window.history.replaceState(null, "", "/login");
+        return this.loadRoute("/login");
+      }
+
+      // Redirect authenticated users away from public routes
+      if (user && routeManager.isPublicRoute(path)) {
+        window.history.replaceState(null, "", "/home");
+        return this.loadRoute("/home");
+      }
+
       if (
         window.location.pathname !== path &&
         window.location.pathname === "/leads"
@@ -72,7 +89,32 @@ class Router {
         }
       }
 
-      // Backend handles authentication - just update UI for current page
+      // Get the page HTML path
+      const pagePath = routeManager.getRoutePath(path);
+      
+      // Fetch and inject page content
+      const mainPage = document.getElementById("main-page");
+      if (mainPage) {
+        const response = await fetch(pagePath);
+        if (!response.ok) {
+          throw new Error(`Failed to load page: ${response.status}`);
+        }
+        const html = await response.text();
+        mainPage.innerHTML = html;
+      }
+
+      // Load route-specific script if exists
+      const scriptPath = routeManager.getRouteScript(path);
+      if (scriptPath) {
+        const existingScript = document.querySelector(`script[src="${scriptPath}"]`);
+        if (!existingScript) {
+          const script = document.createElement("script");
+          script.type = "module";
+          script.src = scriptPath;
+          document.body.appendChild(script);
+        }
+      }
+
       this.sidebarManager.updateActive(path);
 
       if (user) {
@@ -92,6 +134,9 @@ class Router {
       if (window.TableFeatures) {
         window.TableFeatures.initialize(path);
       }
+
+      // Schedule data fetch for the current route
+      this.scheduleDataFetch(path);
     } catch (error) {
       console.error("Error loading route:", error);
       this.handleRouteError(error);
@@ -99,9 +144,9 @@ class Router {
   }
 
   scheduleDataFetch(path) {
-    // Disabled: Backend now serves data with pages
-    // IndexedDB is only used for offline storage
-    console.log("Data fetching disabled - backend serves data");
+    if (!window.isSync) {
+      this.dataFetcher.scheduleDataFetch(path);
+    }
   }
 
   handleRouteError(error) {

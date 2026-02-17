@@ -63,27 +63,13 @@ app.use("/api/attachments", attachmentRoutes);
 const frontendPath = path.join(__dirname, "../../frontend");
 app.use(express.static(frontendPath));
 
-// FRONTEND ROUTES - Serve complete HTML pages from pages folder
-const pageRoutes = {
-  "/home": "home.html",
-  "/leads": "leads.html",
-  "/organizations": "organizations.html",
-  "/deals": "deals.html",
-  "/leadDetails": "leadDetailPage.html",
-  "/login": "login.html",
-  "/signup": "signup.html",
-  "/users": "users.html",
-  "/tenants": "tenants.html",
-};
-
-Object.entries(pageRoutes).forEach(([route, htmlFile]) => {
-  app.get(route, (req, res) => {
-    res.sendFile(path.join(frontendPath, "pages", htmlFile));
-  });
-});
-
-app.get("/", (req, res) => {
-  res.redirect("/login");
+// FRONTEND ROUTES - Serve index.html for all non-API routes (SPA routing)
+app.get("*", (req, res) => {
+  // Skip API routes
+  if (req.path.startsWith("/api/")) {
+    return res.status(404).json({ error: "API endpoint not found" });
+  }
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // ERROR HANDLING
