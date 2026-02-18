@@ -1,5 +1,20 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 
+interface FetchOptions<T> {
+  method?: string;
+  headers?: Record<string, string>;
+  body?: any;
+  cache?: boolean;
+  cacheTime?: number;
+  onSuccess?: ((data: T) => void) | null;
+  onError?: ((error: Error) => void) | null;
+}
+
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+}
+
 /**
  * API Data Fetching Hook
  * Handles data fetching with caching, abort support, and error handling
@@ -8,13 +23,13 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {Object} options - Fetch options
  * @returns {Object} Fetch state and utilities
  */
-export const useFetch = (url, options = {}) => {
-  const [data, setData] = useState(null);
+export const useFetch = <T = unknown>(url: string, options: FetchOptions<T> = {}) => {
+  const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
   
-  const abortControllerRef = useRef(null);
-  const cacheRef = useRef(new Map());
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const cacheRef = useRef<Map<string, CacheEntry<T>>>(new Map());
 
   const {
     method = 'GET',
@@ -29,7 +44,7 @@ export const useFetch = (url, options = {}) => {
   /**
    * Fetch data from API
    */
-  const fetchData = useCallback(async (fetchUrl = url, fetchOptions = {}) => {
+  const fetchData = useCallback(async (fetchUrl: string = url, fetchOptions: Partial<FetchOptions<T>> = {}): Promise<T | undefined> => {
     // Check cache first
     if (cache && method === 'GET') {
       const cached = cacheRef.current.get(fetchUrl);
@@ -87,19 +102,20 @@ export const useFetch = (url, options = {}) => {
 
       return result;
     } catch (err) {
-      if (err.name === 'AbortError') {
+      const error = err as Error;
+      if (error.name === 'AbortError') {
         console.log('Fetch aborted');
         return;
       }
 
-      setError(err);
+      setError(error);
       setLoading(false);
 
       if (onError) {
-        onError(err);
+        onError(error);
       }
 
-      throw err;
+      throw error;
     }
   }, [url, method, headers, body, cache, cacheTime, onSuccess, onError]);
 
@@ -113,7 +129,7 @@ export const useFetch = (url, options = {}) => {
   /**
    * Clear cache
    */
-  const clearCache = useCallback((cacheUrl = null) => {
+  const clearCache = useCallback((cacheUrl: string | null = null) => {
     if (cacheUrl) {
       cacheRef.current.delete(cacheUrl);
     } else {

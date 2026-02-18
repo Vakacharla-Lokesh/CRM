@@ -8,9 +8,9 @@ import { useState, useEffect, useCallback, useRef } from 'react';
  * @param {*} initialValue - Initial value if key doesn't exist
  * @returns {Array} [value, setValue, removeValue]
  */
-export const useLocalStorage = (key, initialValue = null) => {
+export const useLocalStorage = <T>(key: string, initialValue: T | null = null) => {
   // Get initial value from localStorage or use provided initial value
-  const readValue = useCallback(() => {
+  const readValue = useCallback((): T | null => {
     if (typeof window === 'undefined') {
       return initialValue;
     }
@@ -24,11 +24,11 @@ export const useLocalStorage = (key, initialValue = null) => {
     }
   }, [key, initialValue]);
 
-  const [storedValue, setStoredValue] = useState(readValue);
-  const setValueRef = useRef();
+  const [storedValue, setStoredValue] = useState<T | null>(readValue);
+  const setValueRef = useRef<((value: T | null | ((val: T | null) => T | null)) => void) | null>(null);
 
   // Save to localStorage
-  const setValue = useCallback((value) => {
+  const setValue = useCallback((value: T | null | ((val: T | null) => T | null)) => {
     try {
       const valueToStore = value instanceof Function ? value(storedValue) : value;
       setStoredValue(valueToStore);
@@ -64,7 +64,7 @@ export const useLocalStorage = (key, initialValue = null) => {
 
   // Listen for storage changes (cross-tab sync)
   useEffect(() => {
-    const handleStorageChange = (e) => {
+    const handleStorageChange = (e: StorageEvent) => {
       if (e.key === key && e.newValue !== null) {
         try {
           setStoredValue(JSON.parse(e.newValue));
@@ -74,9 +74,10 @@ export const useLocalStorage = (key, initialValue = null) => {
       }
     };
 
-    const handleCustomEvent = (e) => {
-      if (e.detail.key === key) {
-        setStoredValue(e.detail.value);
+    const handleCustomEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<{ key: string; value: T | null }>;
+      if (customEvent.detail.key === key) {
+        setStoredValue(customEvent.detail.value);
       }
     };
 

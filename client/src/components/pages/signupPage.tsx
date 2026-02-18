@@ -1,5 +1,30 @@
-import React, { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
+interface SignupFormData {
+  tenantName: string;
+  firstName: string;
+  userEmail: string;
+  userPassword: string;
+  confirmPassword: string;
+  agreeToTerms: boolean;
+}
+
+interface FormErrors {
+  tenantName?: string;
+  firstName?: string;
+  userEmail?: string;
+  userPassword?: string;
+  confirmPassword?: string;
+  agreeToTerms?: string;
+  submit?: string;
+}
+
+interface PasswordStrength {
+  level: number;
+  text: string;
+  color: string;
+}
 
 /**
  * SignupPage Component
@@ -17,20 +42,20 @@ import { useNavigate, Link } from "react-router-dom";
  */
 function SignupPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<SignupFormData>({
     tenantName: "",
-    userName: "",
-    email: "",
-    password: "",
+    firstName: "",
+    userEmail: "",
+    userPassword: "",
     confirmPassword: "",
     agreeToTerms: false,
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const getPasswordStrength = (password) => {
+  const getPasswordStrength = (password: string): PasswordStrength => {
     if (!password) return { level: 0, text: "", color: "bg-gray-300" };
 
     let strength = 0;
@@ -53,31 +78,31 @@ function SignupPage() {
   };
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: FormErrors = {};
 
     if (!formData.tenantName.trim()) {
       newErrors.tenantName = "Organization name is required";
     }
 
-    if (!formData.userName.trim()) {
-      newErrors.userName = "Your name is required";
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "Your name is required";
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!formData.userEmail) {
+      newErrors.userEmail = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
+      newErrors.userEmail = "Please enter a valid email";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
+    if (!formData.userPassword) {
+      newErrors.userPassword = "Password is required";
+    } else if (formData.userPassword.length < 8) {
+      newErrors.userPassword = "Password must be at least 8 characters";
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
+    } else if (formData.userPassword !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
@@ -89,13 +114,13 @@ function SignupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-    if (errors[name]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
@@ -103,7 +128,7 @@ function SignupPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -128,7 +153,7 @@ function SignupPage() {
     }
   };
 
-  const passwordStrength = getPasswordStrength(formData.password);
+  const passwordStrength = getPasswordStrength(formData.userPassword);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
@@ -195,27 +220,27 @@ function SignupPage() {
           {/* User Name Field */}
           <div>
             <label
-              htmlFor="userName"
+              htmlFor="firstName"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Your Full Name
             </label>
             <input
               type="text"
-              id="userName"
-              name="userName"
-              value={formData.userName}
+              id="firstName"
+              name="firstName"
+              value={formData.firstName}
               onChange={handleChange}
               placeholder="John Doe"
               className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.userName
+                errors.firstName
                   ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                   : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
               } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             />
-            {errors.userName && (
+            {errors.firstName && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.userName}
+                {errors.firstName}
               </p>
             )}
           </div>
@@ -223,27 +248,27 @@ function SignupPage() {
           {/* Email Field */}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="userEmail"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Email Address
             </label>
             <input
               type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              id="userEmail"
+              name="userEmail"
+              value={formData.userEmail}
               onChange={handleChange}
               placeholder="you@example.com"
               className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.email
+                errors.userEmail
                   ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                   : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
               } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             />
-            {errors.email && (
+            {errors.userEmail && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.email}
+                {errors.userEmail}
               </p>
             )}
           </div>
@@ -251,7 +276,7 @@ function SignupPage() {
           {/* Password Field */}
           <div>
             <label
-              htmlFor="password"
+              htmlFor="userPassword"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Password
@@ -259,13 +284,13 @@ function SignupPage() {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
+                id="userPassword"
+                name="userPassword"
+                value={formData.userPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.password
+                  errors.userPassword
                     ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                     : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
                 } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
@@ -306,7 +331,7 @@ function SignupPage() {
             </div>
 
             {/* Password Strength Indicator */}
-            {formData.password && (
+            {formData.userPassword && (
               <div className="mt-3 space-y-2">
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -334,9 +359,9 @@ function SignupPage() {
               </div>
             )}
 
-            {errors.password && (
+            {errors.userPassword && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.password}
+                {errors.userPassword}
               </p>
             )}
           </div>

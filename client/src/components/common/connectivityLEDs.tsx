@@ -1,7 +1,20 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+
+interface ConnectivityState {
+  ws: boolean;
+  sse: boolean;
+  longPoll: boolean;
+  shortPoll: boolean;
+}
+
+interface ProtocolProps {
+  name: string;
+  status: boolean;
+  tooltip: string;
+}
 
 function ConnectivityLED() {
-  const [connectivity, setConnectivity] = useState({
+  const [connectivity, setConnectivity] = useState<ConnectivityState>({
     ws: false,
     sse: false,
     longPoll: false,
@@ -26,7 +39,7 @@ function ConnectivityLED() {
     return () => clearInterval(interval);
   }, []);
 
-  const Protocol = ({ name, status, tooltip }) => (
+  const Protocol = ({ name, status, tooltip }: ProtocolProps) => (
     <div
       className="flex items-center gap-2 text-xs"
       title={tooltip}

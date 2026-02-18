@@ -1,6 +1,14 @@
-import React, { useState, useEffect } from "react";
-import LeadGrid from "../Common/LeadGrid";
-import StatCard from "../Common/StatCard";
+import { useState, useEffect } from "react";
+import LeadGrid from "../common/leadGrid";
+import StatCard from "../common/statCard";
+import type { Lead } from "../../types";
+
+interface DashboardStats {
+  totalLeads: number;
+  activeCampaigns: number;
+  conversionRate: number;
+  revenue: number;
+}
 
 /**
  * DashboardPage Component
@@ -14,29 +22,34 @@ import StatCard from "../Common/StatCard";
  * - Performance metrics
  */
 function DashboardPage() {
-  const [stats, setStats] = useState({
+  const [stats, _setStats] = useState<DashboardStats>({
     totalLeads: 12450,
     activeCampaigns: 8,
     conversionRate: 3.2,
     revenue: 125400,
   });
 
-  const [leads, setLeads] = useState([]);
+  const [leads, setLeads] = useState<Lead[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Simulate loading leads data
   useEffect(() => {
     const timer = setTimeout(() => {
-      const mockLeads = Array.from({ length: 25 }, (_, i) => ({
-        id: `lead-${i + 1}`,
-        name: `Lead ${i + 1}`,
-        email: `lead${i + 1}@example.com`,
-        company: `Company ${String.fromCharCode(65 + (i % 26))}`,
-        status: ["new", "contacted", "qualified", "negotiating"][i % 4],
-        score: Math.floor(Math.random() * 100),
+      const mockLeads: Lead[] = Array.from({ length: 25 }, (_, i) => ({
+        _id: `lead-${i + 1}`,
+        leadFirstName: `Lead`,
+        leadLastName: `${i + 1}`,
+        leadEmail: `lead${i + 1}@example.com`,
+        leadSource: i % 2 === 0 ? "API" : "Outsource",
+        leadStatus: ["New", "Converted", "Dead", "Follow-Up"][i % 4] as "New" | "Converted" | "Dead" | "Follow-Up",
+        leadScore: Math.floor(Math.random() * 100),
+        organizationId: `org-${i + 1}`,
+        userId: `user-${i + 1}`,
+        tenantId: `tenant-1`,
         createdAt: new Date(
           Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
         ),
+        updatedAt: new Date(),
       }));
       setLeads(mockLeads);
       setIsLoading(false);
@@ -121,27 +134,27 @@ function DashboardPage() {
           <div className="space-y-3">
             {leads.slice(0, 5).map((lead) => (
               <div
-                key={lead.id}
+                key={lead._id}
                 className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer"
               >
                 <p className="font-medium text-gray-900 dark:text-white text-sm">
-                  {lead.name}
+                  {lead.leadFirstName} {lead.leadLastName || ""}
                 </p>
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {lead.company}
+                  {lead.organizationId || "No organization"}
                 </p>
                 <div className="flex justify-between items-center mt-2">
                   <span
                     className={`text-xs font-semibold px-2 py-1 rounded ${
-                      lead.status === "qualified"
+                      lead.leadStatus === "Converted"
                         ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
                         : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                     }`}
                   >
-                    {lead.status}
+                    {lead.leadStatus}
                   </span>
                   <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {lead.score}%
+                    {lead.leadScore}%
                   </span>
                 </div>
               </div>

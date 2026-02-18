@@ -1,4 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
+import type { User, UserRole } from "../../types";
+
+interface UserFormData {
+  firstName: string;
+  lastName: string;
+  userEmail: string;
+  mobile: string;
+  role: UserRole;
+}
+
+interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  userEmail?: string;
+  mobile?: string;
+}
+
+interface UserModalProps {
+  isOpen: boolean;
+  user: User | null;
+  onClose: () => void;
+  onSave: (userData: UserFormData) => void;
+}
 
 /**
  * UserModal Component
@@ -10,45 +33,48 @@ import React, { useState, useEffect } from "react";
  * - onClose: callback when modal closes
  * - onSave: callback when form is submitted
  */
-function UserModal({ isOpen, user, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
+  const [formData, setFormData] = useState<UserFormData>({
+    firstName: "",
+    lastName: "",
+    userEmail: "",
     mobile: "",
-    role: "User",
+    role: "user",
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
 
   useEffect(() => {
     if (user) {
       setFormData({
-        name: user.name,
-        email: user.email,
-        mobile: user.mobile,
+        firstName: user.firstName,
+        lastName: user.lastName || "",
+        userEmail: user.userEmail,
+        mobile: user.mobile || "",
         role: user.role,
       });
     } else {
       setFormData({
-        name: "",
-        email: "",
+        firstName: "",
+        lastName: "",
+        userEmail: "",
         mobile: "",
-        role: "User",
+        role: "user",
       });
     }
     setErrors({});
   }, [user, isOpen]);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: FormErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required";
     }
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+    if (!formData.userEmail) {
+      newErrors.userEmail = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
+      newErrors.userEmail = "Invalid email format";
     }
 
     if (!formData.mobile.trim()) {
@@ -59,13 +85,13 @@ function UserModal({ isOpen, user, onClose, onSave }) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
-    if (errors[name]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
@@ -73,7 +99,7 @@ function UserModal({ isOpen, user, onClose, onSave }) {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -126,30 +152,58 @@ function UserModal({ isOpen, user, onClose, onSave }) {
             onSubmit={handleSubmit}
             className="p-6 space-y-4"
           >
-            {/* Name Field */}
+            {/* First Name Field */}
             <div>
               <label
-                htmlFor="name"
+                htmlFor="firstName"
                 className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
               >
-                Full Name
+                First Name
               </label>
               <input
                 type="text"
-                id="name"
-                name="name"
-                value={formData.name}
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
                 onChange={handleChange}
-                placeholder="John Doe"
+                placeholder="John"
                 className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.name
+                  errors.firstName
                     ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                     : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
                 } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
               />
-              {errors.name && (
+              {errors.firstName && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.name}
+                  {errors.firstName}
+                </p>
+              )}
+            </div>
+
+            {/* Last Name Field */}
+            <div>
+              <label
+                htmlFor="lastName"
+                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Last Name
+              </label>
+              <input
+                type="text"
+                id="lastName"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+                placeholder="Doe"
+                className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
+                  errors.lastName
+                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                    : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+              />
+              {errors.lastName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+                  {errors.lastName}
                 </p>
               )}
             </div>
@@ -157,27 +211,27 @@ function UserModal({ isOpen, user, onClose, onSave }) {
             {/* Email Field */}
             <div>
               <label
-                htmlFor="email"
+                htmlFor="userEmail"
                 className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
               >
                 Email
               </label>
               <input
                 type="email"
-                id="email"
-                name="email"
-                value={formData.email}
+                id="userEmail"
+                name="userEmail"
+                value={formData.userEmail}
                 onChange={handleChange}
                 placeholder="john@example.com"
                 className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.email
+                  errors.userEmail
                     ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                     : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
                 } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
               />
-              {errors.email && (
+              {errors.userEmail && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.email}
+                  {errors.userEmail}
                 </p>
               )}
             </div>
@@ -225,9 +279,9 @@ function UserModal({ isOpen, user, onClose, onSave }) {
                 onChange={handleChange}
                 className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition-all"
               >
-                <option value="User">User</option>
-                <option value="Manager">Manager</option>
-                <option value="Admin">Admin</option>
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="super_admin">Super Admin</option>
               </select>
             </div>
           </form>
@@ -242,11 +296,13 @@ function UserModal({ isOpen, user, onClose, onSave }) {
             </button>
             <button
               onClick={(e) => {
-                const form = e.target
+                const form = (e.target as HTMLElement)
                   .closest("div")
-                  .parentElement.querySelector("form");
-                const submitEvent = new Event("submit", { bubbles: true });
-                form.dispatchEvent(submitEvent);
+                  ?.parentElement?.querySelector("form");
+                if (form) {
+                  const submitEvent = new Event("submit", { bubbles: true });
+                  form.dispatchEvent(submitEvent);
+                }
               }}
               className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
             >

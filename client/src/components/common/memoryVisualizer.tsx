@@ -1,19 +1,31 @@
-import React, { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
+
+// Extend Performance interface to include memory
+interface PerformanceMemory {
+  usedJSHeapSize: number;
+  totalJSHeapSize: number;
+  jsHeapSizeLimit: number;
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory;
+}
 
 function MemoryVisualizer() {
-  const [memoryData, setMemoryData] = useState([]);
+  const [memoryData, setMemoryData] = useState<number[]>([]);
   const [currentMemory, setCurrentMemory] = useState(0);
   const [maxMemory, setMaxMemory] = useState(0);
-  const canvasRef = useRef(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
     const collectMemoryData = () => {
-      if (performance.memory) {
+      const perf = performance as PerformanceWithMemory;
+      if (perf.memory) {
         const usedMemory = Math.round(
-          performance.memory.usedJSHeapSize / 1048576,
+          perf.memory.usedJSHeapSize / 1048576,
         ); // Convert to MB
         const jsHeapLimit = Math.round(
-          performance.memory.jsHeapSizeLimit / 1048576,
+          perf.memory.jsHeapSizeLimit / 1048576,
         );
 
         setCurrentMemory(usedMemory);
@@ -39,6 +51,8 @@ function MemoryVisualizer() {
     if (!canvas || memoryData.length < 2) return;
 
     const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    
     const width = canvas.width;
     const height = canvas.height;
 

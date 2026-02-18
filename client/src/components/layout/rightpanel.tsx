@@ -1,13 +1,32 @@
 /* eslint-disable react-hooks/static-components */
-import React, { useState } from "react";
+import { useState, type ReactNode } from "react";
 import ConnectivityLEDs from "../common/connectivityLEDs";
 import SyncBadge from "../common/syncBadge";
 import MemoryVisualizer from "../common/memoryVisualizer";
 import WorkerStatus from "../common/workerStatus";
 import LiveFeed from "../common/liveFeed";
 
-function RightPanel({ isOpen }) {
-  const [expandedSections, setExpandedSections] = useState({
+interface RightPanelProps {
+  isOpen: boolean;
+}
+
+interface ExpandedSections {
+  connectivity: boolean;
+  sync: boolean;
+  memory: boolean;
+  worker: boolean;
+  liveFeed: boolean;
+}
+
+interface SectionProps {
+  id: keyof ExpandedSections;
+  title: string;
+  children: ReactNode;
+  icon: string;
+}
+
+function RightPanel({ isOpen }: RightPanelProps) {
+  const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     connectivity: true,
     sync: true,
     memory: true,
@@ -15,7 +34,7 @@ function RightPanel({ isOpen }) {
     liveFeed: true,
   });
 
-  const toggleSection = (section) => {
+  const toggleSection = (section: keyof ExpandedSections) => {
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -26,7 +45,7 @@ function RightPanel({ isOpen }) {
     return null;
   }
 
-  const Section = ({ id, title, children, icon }) => (
+  const Section = ({ id, title, children, icon }: SectionProps) => (
     <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
       <button
         onClick={() => toggleSection(id)}

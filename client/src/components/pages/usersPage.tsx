@@ -1,6 +1,15 @@
-import React, { useState } from "react";
-import UserTable from "../Common/UserTable";
-import UserModal from "../Modals/UserModal";
+import { useState } from "react";
+import UserTable from "../common/userTable";
+import UserModal from "../modals/userModal";
+import type { User } from "../../types";
+
+interface UserFormData {
+  firstName: string;
+  lastName: string;
+  userEmail: string;
+  mobile: string;
+  role: "user" | "admin" | "super_admin";
+}
 
 /**
  * UsersPage Component
@@ -15,53 +24,66 @@ import UserModal from "../Modals/UserModal";
  * - Responsive table layout
  */
 function UsersPage() {
-  const [users, setUsers] = useState([
+  const [users, setUsers] = useState<User[]>([
     {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
+      _id: "1",
+      firstName: "John",
+      lastName: "Doe",
+      userEmail: "john@example.com",
       mobile: "+1 234-567-8900",
-      role: "Admin",
+      role: "admin",
+      tenantId: "tenant-1",
       createdAt: new Date("2024-01-15"),
-      status: "active",
+      updatedAt: new Date("2024-01-15"),
+      isActive: true,
     },
     {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
+      _id: "2",
+      firstName: "Jane",
+      lastName: "Smith",
+      userEmail: "jane@example.com",
       mobile: "+1 234-567-8901",
-      role: "Manager",
+      role: "user",
+      tenantId: "tenant-1",
       createdAt: new Date("2024-01-20"),
-      status: "active",
+      updatedAt: new Date("2024-01-20"),
+      isActive: true,
     },
     {
-      id: 3,
-      name: "Mike Johnson",
-      email: "mike@example.com",
+      _id: "3",
+      firstName: "Mike",
+      lastName: "Johnson",
+      userEmail: "mike@example.com",
       mobile: "+1 234-567-8902",
-      role: "User",
+      role: "user",
+      tenantId: "tenant-1",
       createdAt: new Date("2024-02-01"),
-      status: "active",
+      updatedAt: new Date("2024-02-01"),
+      isActive: true,
     },
     {
-      id: 4,
-      name: "Sarah Connor",
-      email: "sarah@example.com",
+      _id: "4",
+      firstName: "Sarah",
+      lastName: "Connor",
+      userEmail: "sarah@example.com",
       mobile: "+1 234-567-8903",
-      role: "User",
+      role: "user",
+      tenantId: "tenant-1",
       createdAt: new Date("2024-02-05"),
-      status: "inactive",
+      updatedAt: new Date("2024-02-05"),
+      isActive: false,
     },
   ]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.userEmail.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleAddUser = () => {
@@ -69,32 +91,34 @@ function UsersPage() {
     setIsModalOpen(true);
   };
 
-  const handleEditUser = (user) => {
+  const handleEditUser = (user: User) => {
     setSelectedUser(user);
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = (user: User) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      setUsers(users.filter((user) => user.id !== id));
+      setUsers(users.filter((u) => u._id !== user._id));
     }
   };
 
-  const handleSaveUser = (userData) => {
+  const handleSaveUser = (userData: UserFormData) => {
     if (selectedUser) {
       // Update existing user
       setUsers(
         users.map((user) =>
-          user.id === selectedUser.id ? { ...user, ...userData } : user,
+          user._id === selectedUser._id ? { ...user, ...userData, updatedAt: new Date() } : user,
         ),
       );
     } else {
       // Add new user
-      const newUser = {
-        id: Math.max(...users.map((u) => u.id), 0) + 1,
+      const newUser: User = {
+        _id: String(Math.max(...users.map((u) => Number(u._id)), 0) + 1),
         ...userData,
+        tenantId: "tenant-1",
         createdAt: new Date(),
-        status: "active",
+        updatedAt: new Date(),
+        isActive: true,
       };
       setUsers([...users, newUser]);
     }

@@ -6,10 +6,10 @@ import { useState, useCallback } from 'react';
  * 
  * @returns {Object} Async execution utilities
  */
-export const useAsync = () => {
+export const useAsync = <T = unknown>() => {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [data, setData] = useState(null);
+  const [error, setError] = useState<Error | null>(null);
+  const [data, setData] = useState<T | null>(null);
 
   /**
    * Execute async function with error handling
@@ -17,7 +17,7 @@ export const useAsync = () => {
    * @param {number} retries - Number of retry attempts (default: 0)
    * @returns {Promise} Result of async function
    */
-  const execute = useCallback(async (asyncFunction, retries = 0) => {
+  const execute = useCallback(async (asyncFunction: () => Promise<T>, retries = 0): Promise<T> => {
     setLoading(true);
     setError(null);
 
@@ -31,7 +31,7 @@ export const useAsync = () => {
         setLoading(false);
         return result;
       } catch (err) {
-        lastError = err;
+        lastError = err as Error;
         attempts++;
         
         if (attempts <= retries) {
@@ -62,7 +62,7 @@ export const useAsync = () => {
    * Set error manually
    * @param {Error} err - Error object
    */
-  const setErrorManually = useCallback((err) => {
+  const setErrorManually = useCallback((err: Error) => {
     setError(err);
     setLoading(false);
   }, []);
@@ -71,9 +71,8 @@ export const useAsync = () => {
    * Execute with retry logic
    * @param {Function} asyncFunction - Async function to execute
    * @param {number} maxRetries - Maximum retry attempts (default: 3)
-   * @param {number} delay - Delay between retries in ms (default: 1000)
    */
-  const executeWithRetry = useCallback(async (asyncFunction, maxRetries = 3, delay = 1000) => {
+  const executeWithRetry = useCallback(async (asyncFunction: () => Promise<T>, maxRetries = 3): Promise<T> => {
     return execute(asyncFunction, maxRetries);
   }, [execute]);
 
