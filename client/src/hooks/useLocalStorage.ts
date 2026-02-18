@@ -1,150 +1,107 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback } from "react";
 
 /**
- * localStorage Wrapper Hook
- * Provides type-safe localStorage operations with cross-tab synchronization
- * 
- * @param {string} key - Storage key
- * @param {*} initialValue - Initial value if key doesn't exist
- * @returns {Array} [value, setValue, removeValue]
+ * Local Storage Hook
+ * Provides a simple interface for localStorage with type safety
+ *
+ * @param key - Storage key
+ * @param initialValue - Initial value
+ * @returns Current value, setter, and utilities
  */
-export const useLocalStorage = <T>(key: string, initialValue: T | null = null) => {
-  // Get initial value from localStorage or use provided initial value
-  const readValue = useCallback((): T | null => {
-    if (typeof window === 'undefined') {
-      return initialValue;
-    }
-
+export const useLocalStorage = <T>(key: string, initialValue: T) => {
+  const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
       return item ? JSON.parse(item) : initialValue;
     } catch (error) {
-      console.warn(`Error reading localStorage key "${key}":`, error);
+      console.error(`Error reading from localStorage:`, error);
       return initialValue;
     }
-  }, [key, initialValue]);
+  });
 
-  const [storedValue, setStoredValue] = useState<T | null>(readValue);
-  const setValueRef = useRef<((value: T | null | ((val: T | null) => T | null)) => void) | null>(null);
-
-  // Save to localStorage
-  const setValue = useCallback((value: T | null | ((val: T | null) => T | null)) => {
-    try {
-      const valueToStore = value instanceof Function ? value(storedValue) : value;
-      setStoredValue(valueToStore);
-      
-      if (typeof window !== 'undefined') {
+  /**
+   * Update value in localStorage
+   */
+  const setValue = useCallback(
+    (value: T | ((val: T) => T)) => {
+      try {
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
+        setStoredValue(valueToStore);
         window.localStorage.setItem(key, JSON.stringify(valueToStore));
-        // Dispatch custom event for cross-tab sync
-        window.dispatchEvent(new CustomEvent('local-storage', {
-          detail: { key, value: valueToStore }
-        }));
+      } catch (error) {
+        console.error(`Error writing to localStorage:`, error);
       }
-    } catch (error) {
-      console.warn(`Error setting localStorage key "${key}":`, error);
-    }
-  }, [key, storedValue]);
+    },
+    [key, storedValue],
+  );
 
-  // Remove from localStorage
+  /**
+   * Remove item from localStorage
+   */
   const removeValue = useCallback(() => {
     try {
+      window.localStorage.removeItem(key);
       setStoredValue(initialValue);
-      if (typeof window !== 'undefined') {
-        window.localStorage.removeItem(key);
-        window.dispatchEvent(new CustomEvent('local-storage', {
-          detail: { key, value: null }
-        }));
-      }
     } catch (error) {
-      console.warn(`Error removing localStorage key "${key}":`, error);
+      console.error(`Error removing from localStorage:`, error);
     }
   }, [key, initialValue]);
 
-  setValueRef.current = setValue;
-
-  // Listen for storage changes (cross-tab sync)
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === key && e.newValue !== null) {
-        try {
-          setStoredValue(JSON.parse(e.newValue));
-        } catch (error) {
-          console.warn(`Error parsing storage event for key "${key}":`, error);
-        }
-      }
-    };
-
-    const handleCustomEvent = (e: Event) => {
-      const customEvent = e as CustomEvent<{ key: string; value: T | null }>;
-      if (customEvent.detail.key === key) {
-        setStoredValue(customEvent.detail.value);
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    window.addEventListener('local-storage', handleCustomEvent);
-
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('local-storage', handleCustomEvent);
-    };
-  }, [key]);
-
-  return [storedValue, setValue, removeValue];
+  return [storedValue, setValue, removeValue] as const;
 };
 
 /**
- * Direct localStorage utilities (non-hook functions)
+ * Get value from local storage
  */
-
-/**
- * Get item from localStorage
- * @param {string} key - Storage key
- * @param {*} defaultValue - Default value if key doesn't exist
- * @returns {*} Parsed value or default
- */
-export const getFromLocalStorage = (key, defaultValue = null) => {
+export const getFromLocalStorage = <T = unknown>(
+  key: string,
+  defaultValue?: T,
+): T | null => {
   try {
     const item = window.localStorage.getItem(key);
-    return item ? JSON.parse(item) : defaultValue;
+    return item ? JSON.parse(item) : (defaultValue ?? null);
   } catch (error) {
-    console.warn(`Error reading localStorage key "${key}":`, error);
-    return defaultValue;
+    console.error(`Error reading from localStorage:`, error);
+    return defaultValue ?? null;
   }
 };
 
 /**
- * Save item to localStorage
- * @param {string} key - Storage key
- * @param {*} value - Value to store
+ * Save value to local storage
  */
-export const saveToLocalStorage = (key, value) => {
+export const saveToLocalStorage = <T>(key: string, value: T): boolean => {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch (error) {
-    console.warn(`Error setting localStorage key "${key}":`, error);
+    console.error(`Error writing to localStorage:`, error);
+    return false;
   }
 };
 
 /**
- * Remove item from localStorage
- * @param {string} key - Storage key
+ * Remove value from local storage
  */
-export const removeFromLocalStorage = (key) => {
+export const removeFromLocalStorage = (key: string): boolean => {
   try {
     window.localStorage.removeItem(key);
+    return true;
   } catch (error) {
-    console.warn(`Error removing localStorage key "${key}":`, error);
+    console.error(`Error removing from localStorage:`, error);
+    return false;
   }
 };
 
 /**
- * Clear all localStorage
+ * Clear all local storage
  */
-export const clearLocalStorage = () => {
+export const clearLocalStorage = (): boolean => {
   try {
     window.localStorage.clear();
+    return true;
   } catch (error) {
-    console.warn('Error clearing localStorage:', error);
+    console.error(`Error clearing localStorage:`, error);
+    return false;
   }
 };

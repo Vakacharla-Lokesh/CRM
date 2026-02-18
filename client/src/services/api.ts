@@ -27,7 +27,9 @@ import type {
   LoginRequest,
   LoginResponse,
   RegisterRequest,
-} from "./index";
+} from "../types";
+
+import type { PointOfContact } from "../types/organizations";
 
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:3000/api";
@@ -36,22 +38,24 @@ const API_BASE_URL =
  * Error handling utilities
  */
 export class APIError extends Error {
-  constructor(
-    public statusCode: number,
-    public data: any,
-    message: string,
-  ) {
+  statusCode: number;
+  data: unknown;
+
+  constructor(statusCode: number, data: unknown, message: string) {
     super(message);
     this.name = "APIError";
+    this.statusCode = statusCode;
+    this.data = data;
   }
 }
 
-function handleErrorResponse(error: any): never {
-  if (error.response) {
+function handleErrorResponse(error: unknown): never {
+  if (error && typeof error === 'object' && 'response' in error) {
+    const err = error as { response: { status: number; data: { message?: string } } };
     throw new APIError(
-      error.response.status,
-      error.response.data,
-      error.response.data?.message || "An error occurred",
+      err.response.status,
+      err.response.data,
+      err.response.data?.message || "An error occurred",
     );
   }
   throw error;
@@ -62,7 +66,7 @@ function handleErrorResponse(error: any): never {
  */
 async function get<T>(
   endpoint: string,
-  params?: Record<string, any>,
+  params?: Record<string, unknown>,
 ): Promise<T> {
   try {
     const url = new URL(`${API_BASE_URL}${endpoint}`);
@@ -96,7 +100,7 @@ async function get<T>(
   }
 }
 
-async function post<T>(endpoint: string, data: any): Promise<T> {
+async function post<T>(endpoint: string, data?: unknown): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
@@ -121,7 +125,7 @@ async function post<T>(endpoint: string, data: any): Promise<T> {
   }
 }
 
-async function put<T>(endpoint: string, data: any): Promise<T> {
+async function put<T>(endpoint: string, data?: unknown): Promise<T> {
   try {
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PUT",
@@ -260,10 +264,10 @@ export const API = {
     getLeads: (id: string, params?: { page?: number; limit?: number }) =>
       get<LeadListResponse>(`/organizations/${id}/leads`, params),
 
-    addPointOfContact: (id: string, contact: any) =>
+    addPointOfContact: (id: string, contact: PointOfContact) =>
       post(`/organizations/${id}/contacts`, contact),
 
-    updatePointOfContact: (id: string, contactId: string, contact: any) =>
+    updatePointOfContact: (id: string, contactId: string, contact: Partial<PointOfContact>) =>
       put(`/organizations/${id}/contacts/${contactId}`, contact),
 
     deletePointOfContact: (id: string, contactId: string) =>
@@ -344,7 +348,7 @@ export const API = {
     delete: (id: string) => delete_<void>(`/campaigns/${id}`),
 
     draft: {
-      save: (draft: any) => post("/campaigns/draft", draft),
+      save: (draft: Partial<Campaign>) => post("/campaigns/draft", draft),
 
       load: () => get("/campaigns/draft", {}),
 
@@ -391,10 +395,10 @@ export const API = {
     global: (query: string, limit?: number) =>
       get("/search", { q: query, limit }),
 
-    leads: (query: string, params?: any) =>
+    leads: (query: string, params?: Record<string, unknown>) =>
       get("/search/leads", { q: query, ...params }),
 
-    organizations: (query: string, params?: any) =>
+    organizations: (query: string, params?: Record<string, unknown>) =>
       get("/search/organizations", { q: query, ...params }),
   },
 
@@ -405,13 +409,79 @@ export const API = {
       endDate?: string;
     }) => get("/analytics/dashboard", params),
 
-    leadTrends: (params?: any) => get("/analytics/leads/trends", params),
+    leadTrends: (params?: Record<string, unknown>) => get("/analytics/leads/trends", params),
 
-    dealPipeline: (params?: any) => get("/analytics/deals/pipeline", params),
+    dealPipeline: (params?: Record<string, unknown>) => get("/analytics/deals/pipeline", params),
 
-    campaignPerformance: (params?: any) =>
+    campaignPerformance: (params?: Record<string, unknown>) =>
       get("/analytics/campaigns/performance", params),
   },
 };
 
+/**
+ * Simple API Client for services
+ * Provides direct HTTP methods
+ */
+async function patch<T>(endpoint: string, data?: unknown): Promise<T> {
+  try {
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+
+    if (!response.ok) {
+      throw new APIError(
+        response.status,
+        await response.json(),
+        "PATCH request failed",
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    handleErrorResponse(error);
+  }
+}
+
+async function upload<T>(endpoint: string, file: File | Blob): Promise<T> {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${getToken()}`,
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      throw new APIError(
+        response.status,
+        await response.json(),
+        "Upload request failed",
+      );
+    }
+
+    return response.json();
+  } catch (error) {
+    handleErrorResponse(error);
+  }
+}
+
+const apiClient = {
+  get,
+  post,
+  put,
+  patch,
+  delete: delete_,
+  upload,
+};
+
+export { apiClient };
 export default API;

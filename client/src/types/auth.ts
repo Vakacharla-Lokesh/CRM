@@ -2,7 +2,7 @@
  * Auth Types
  */
 
-import { User } from './user';
+import type { User } from './user';
 
 export interface AuthUser extends User {
   token: string;
@@ -13,6 +13,9 @@ export interface LoginRequest {
   userEmail: string;
   userPassword: string;
 }
+
+// Alias for backward compatibility
+export type LoginCredentials = LoginRequest;
 
 export interface LoginResponse {
   user: User;
@@ -45,4 +48,10 @@ export interface AuthError {
     | "UNAUTHORIZED"
     | "TOKEN_EXPIRED";
   message: string;
+}
+
+export interface PasswordResetData {
+  token: string;
+  newPassword: string;
+  confirmPassword?: string;
 }

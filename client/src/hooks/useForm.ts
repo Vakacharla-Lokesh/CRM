@@ -1,21 +1,44 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, type SyntheticEvent } from "react";
 
-type FormErrors<T> = Partial<Record<keyof T | 'submit', string>>;
+type FormErrors<T> = Partial<Record<keyof T | "submit", string>>;
 type FormTouched<T> = Partial<Record<keyof T, boolean>>;
+
+type FormChangeEvent<T extends Record<string, any>> =
+  | React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
+  | { name: keyof T; value: unknown; type?: string; checked?: boolean };
+
+interface FormFieldProps<T extends Record<string, any>> {
+  name: keyof T;
+  value: unknown;
+  onChange: (e: FormChangeEvent<T>) => void;
+  onBlur: (
+    e: React.FocusEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >,
+  ) => void;
+}
+
+interface FormFieldMeta {
+  error?: string;
+  touched?: boolean;
+  value: unknown;
+}
 
 /**
  * Form Management Hook
  * Handles form state, validation, and submission
- * 
- * @param {Object} initialValues - Initial form values
- * @param {Function} onSubmit - Submit handler function
- * @param {Function} validate - Validation function
- * @returns {Object} Form state and handlers
+ *
+ * @param initialValues - Initial form values
+ * @param onSubmit - Submit handler function
+ * @param validate - Validation function
+ * @returns Form state and handlers
  */
 export const useForm = <TValues extends Record<string, any>>(
   initialValues: TValues,
-  onSubmit: (values: TValues) => void | Promise<void> = () => {},
-  validate: ((values: TValues) => FormErrors<TValues>) | null = null
+  onSubmit: (values: TValues) => void | Promise<void> = async () => {},
+  validate: ((values: TValues) => FormErrors<TValues>) | null = null,
 ) => {
   const [values, setValues] = useState<TValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors<TValues>>({});
@@ -25,57 +48,65 @@ export const useForm = <TValues extends Record<string, any>>(
 
   /**
    * Handle input change
-   * @param {Event|Object} e - Event or object with name and value
    */
-  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { name: string; value: any; type?: string; checked?: boolean }) => {
-    const { name, value, type, checked } = 'target' in e ? e.target : e;
-    
-    setValues(prev => ({
-      ...prev,
-      [name]: type === 'checkbox' ? checked : value,
-    }));
+  const handleChange = useCallback(
+    (e: FormChangeEvent<TValues>) => {
+      const target = "target" in e ? e.target : e;
+      const { name, value, type } = target;
+      const checked = "checked" in target ? target.checked : undefined;
 
-    // Clear error for this field
-    if (errors[name]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[name];
-        return newErrors;
-      });
-    }
-  }, [errors]);
+      setValues((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+
+      // Clear error for this field
+      if (errors[name as keyof TValues]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[name as keyof TValues];
+          return newErrors;
+        });
+      }
+    },
+    [errors],
+  );
 
   /**
    * Handle input blur
-   * @param {Event} e - Blur event
    */
-  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name } = e.target;
-    
-    setTouched(prev => ({
-      ...prev,
-      [name]: true,
-    }));
+  const handleBlur = useCallback(
+    (
+      e: React.FocusEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >,
+    ) => {
+      const { name } = e.target;
 
-    // Validate this field if validator exists
-    if (validate) {
-      const fieldErrors = validate(values);
-      if (fieldErrors[name]) {
-        setErrors(prev => ({
-          ...prev,
-          [name]: fieldErrors[name],
-        }));
+      setTouched((prev) => ({
+        ...prev,
+        [name]: true,
+      }));
+
+      // Validate this field if validator exists
+      if (validate) {
+        const fieldErrors = validate(values);
+        if (fieldErrors[name as keyof TValues]) {
+          setErrors((prev) => ({
+            ...prev,
+            [name]: fieldErrors[name as keyof TValues],
+          }));
+        }
       }
-    }
-  }, [values, validate]);
+    },
+    [values, validate],
+  );
 
   /**
    * Set field value programmatically
-   * @param {string} name - Field name
-   * @param {*} value - Field value
    */
-  const setFieldValue = useCallback((name: keyof TValues, value: any) => {
-    setValues(prev => ({
+  const setFieldValue = useCallback((name: keyof TValues, value: unknown) => {
+    setValues((prev) => ({
       ...prev,
       [name]: value,
     }));
@@ -83,27 +114,29 @@ export const useForm = <TValues extends Record<string, any>>(
 
   /**
    * Set field error
-   * @param {string} name - Field name
-   * @param {string} error - Error message
    */
-  const setFieldError = useCallback((name: keyof TValues | 'submit', error: string) => {
-    setErrors(prev => ({
-      ...prev,
-      [name]: error,
-    }));
-  }, []);
+  const setFieldError = useCallback(
+    (name: keyof TValues | "submit", error: string) => {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: error,
+      }));
+    },
+    [],
+  );
 
   /**
    * Set field touched
-   * @param {string} name - Field name
-   * @param {boolean} isTouched - Touched state
    */
-  const setFieldTouched = useCallback((name: keyof TValues, isTouched: boolean = true) => {
-    setTouched(prev => ({
-      ...prev,
-      [name]: isTouched,
-    }));
-  }, []);
+  const setFieldTouched = useCallback(
+    (name: keyof TValues, isTouched = true) => {
+      setTouched((prev) => ({
+        ...prev,
+        [name]: isTouched,
+      }));
+    },
+    [],
+  );
 
   /**
    * Validate all fields
@@ -115,51 +148,53 @@ export const useForm = <TValues extends Record<string, any>>(
 
     const validationErrors = validate(values);
     setErrors(validationErrors);
-    
+
     const valid = Object.keys(validationErrors).length === 0;
     setIsValid(valid);
-    
+
     return valid;
   }, [values, validate]);
 
   /**
    * Handle form submit
-   * @param {Event} e - Submit event
    */
-  const handleSubmit = useCallback(async (e?: React.FormEvent<HTMLFormElement>) => {
-    if (e) {
-      e.preventDefault();
-    }
+  const handleSubmit = useCallback(
+    async (e?: SyntheticEvent<HTMLFormElement>) => {
+      if (e) {
+        e.preventDefault();
+      }
 
-    // Mark all fields as touched
-    const allTouched = Object.keys(values).reduce((acc, key) => {
-      acc[key as keyof TValues] = true;
-      return acc;
-    }, {} as FormTouched<TValues>);
-    setTouched(allTouched);
+      // Mark all fields as touched
+      const allTouched = Object.keys(values).reduce((acc, key) => {
+        acc[key as keyof TValues] = true;
+        return acc;
+      }, {} as FormTouched<TValues>);
+      setTouched(allTouched);
 
-    // Validate form
-    const valid = validateForm();
+      // Validate form
+      const valid = validateForm();
 
-    if (!valid) {
-      return;
-    }
+      if (!valid) {
+        return;
+      }
 
-    setIsSubmitting(true);
+      setIsSubmitting(true);
 
-    try {
-      await onSubmit(values);
-    } catch (error) {
-      const err = error as Error;
-      console.error('Form submission error:', err);
-      setErrors(prev => ({
-        ...prev,
-        submit: err.message || 'Submission failed',
-      }));
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [values, validateForm, onSubmit]);
+      try {
+        await onSubmit(values);
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        console.error("Form submission error:", err);
+        setErrors((prev) => ({
+          ...prev,
+          submit: err.message || "Submission failed",
+        }));
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [values, validateForm, onSubmit],
+  );
 
   /**
    * Reset form to initial values
@@ -174,48 +209,54 @@ export const useForm = <TValues extends Record<string, any>>(
 
   /**
    * Reset specific field
-   * @param {string} name - Field name
    */
-  const resetField = useCallback((name: keyof TValues) => {
-    setValues(prev => ({
-      ...prev,
-      [name]: initialValues[name],
-    }));
-    setErrors(prev => {
-      const newErrors = { ...prev };
-      delete newErrors[name];
-      return newErrors;
-    });
-    setTouched(prev => ({
-      ...prev,
-      [name]: false,
-    }));
-  }, [initialValues]);
+  const resetField = useCallback(
+    (name: keyof TValues) => {
+      setValues((prev) => ({
+        ...prev,
+        [name]: initialValues[name],
+      }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+      setTouched((prev) => ({
+        ...prev,
+        [name]: false,
+      }));
+    },
+    [initialValues],
+  );
 
   /**
    * Get field props for easy spreading
-   * @param {string} name - Field name
    */
-  const getFieldProps = useCallback((name: keyof TValues) => {
-    return {
-      name,
-      value: values[name] || '',
-      onChange: handleChange,
-      onBlur: handleBlur,
-    };
-  }, [values, handleChange, handleBlur]);
+  const getFieldProps = useCallback(
+    (name: keyof TValues): FormFieldProps<TValues> => {
+      return {
+        name,
+        value: values[name] ?? "",
+        onChange: handleChange,
+        onBlur: handleBlur,
+      };
+    },
+    [values, handleChange, handleBlur],
+  );
 
   /**
    * Get field meta information
-   * @param {string} name - Field name
    */
-  const getFieldMeta = useCallback((name: keyof TValues) => {
-    return {
-      error: errors[name],
-      touched: touched[name],
-      value: values[name],
-    };
-  }, [errors, touched, values]);
+  const getFieldMeta = useCallback(
+    (name: keyof TValues): FormFieldMeta<TValues> => {
+      return {
+        error: errors[name],
+        touched: touched[name],
+        value: values[name],
+      };
+    },
+    [errors, touched, values],
+  );
 
   return {
     // Values

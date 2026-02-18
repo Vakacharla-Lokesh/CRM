@@ -4,11 +4,11 @@
  */
 
 // Re-export domain types from their source files
-export * from './user';
-export * from './leads';
-export * from './auth';
-export * from './deals';
-export * from './organizations';
+export * from "./user";
+export * from "./leads";
+export * from "./auth";
+export * from "./deals";
+export * from "./organizations";
 
 // API Types
 export interface ApiRequestOptions {
@@ -27,8 +27,6 @@ export interface ApiError extends Error {
   status?: number;
   data?: unknown;
 }
-
-
 
 // Form Validation Types
 export interface ValidationRule {
