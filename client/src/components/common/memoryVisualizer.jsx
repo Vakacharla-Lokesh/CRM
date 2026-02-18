@@ -1,0 +1,143 @@
+import React, { useEffect, useState, useRef } from "react";
+
+function MemoryVisualizer() {
+  const [memoryData, setMemoryData] = useState([]);
+  const [currentMemory, setCurrentMemory] = useState(0);
+  const [maxMemory, setMaxMemory] = useState(0);
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const collectMemoryData = () => {
+      if (performance.memory) {
+        const usedMemory = Math.round(
+          performance.memory.usedJSHeapSize / 1048576,
+        ); // Convert to MB
+        const jsHeapLimit = Math.round(
+          performance.memory.jsHeapSizeLimit / 1048576,
+        );
+
+        setCurrentMemory(usedMemory);
+        setMaxMemory(jsHeapLimit);
+
+        setMemoryData((prev) => {
+          const newData = [...prev, usedMemory];
+          // Keep only last 60 data points
+          return newData.length > 60 ? newData.slice(-60) : newData;
+        });
+      }
+    };
+
+    // Collect data every 1 second
+    const interval = setInterval(collectMemoryData, 1000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Draw sparkline on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || memoryData.length < 2) return;
+
+    const ctx = canvas.getContext("2d");
+    const width = canvas.width;
+    const height = canvas.height;
+
+    // Clear canvas
+    ctx.fillStyle = "transparent";
+    ctx.fillRect(0, 0, width, height);
+
+    // Find min and max values for scaling
+    const min = Math.min(...memoryData);
+    const max = Math.max(...memoryData);
+    const range = max - min || 1;
+
+    // Draw background grid
+    ctx.strokeStyle = "#e5e7eb";
+    ctx.lineWidth = 0.5;
+    for (let i = 0; i < 4; i++) {
+      const y = (height / 4) * i;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+
+    // Draw line chart
+    ctx.strokeStyle = "#3b82f6";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+
+    memoryData.forEach((value, index) => {
+      const x = (index / (memoryData.length - 1)) * width;
+      const y = height - ((value - min) / range) * height;
+
+      if (index === 0) {
+        ctx.moveTo(x, y);
+      } else {
+        ctx.lineTo(x, y);
+      }
+    });
+
+    ctx.stroke();
+
+    // Draw filled area under line
+    ctx.lineTo(width, height);
+    ctx.lineTo(0, height);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
+    ctx.fill();
+  }, [memoryData]);
+
+  return (
+    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+          JS Heap Memory
+        </h3>
+        <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded font-mono">
+          {currentMemory}MB
+        </span>
+      </div>
+
+      {/* Sparkline */}
+      <canvas
+        ref={canvasRef}
+        width={250}
+        height={60}
+        className="w-full border border-gray-200 dark:border-gray-600 rounded mb-2"
+      />
+
+      {/* Stats */}
+      <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+        <div className="flex justify-between">
+          <span>Used:</span>
+          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+            {currentMemory} MB
+          </span>
+        </div>
+        <div className="flex justify-between">
+          <span>Limit:</span>
+          <span className="font-mono font-semibold">{maxMemory} MB</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Usage:</span>
+          <span className="font-mono font-semibold">
+            {maxMemory > 0 ? ((currentMemory / maxMemory) * 100).toFixed(1) : 0}
+            %
+          </span>
+        </div>
+      </div>
+
+      {/* Warning */}
+      {maxMemory > 0 && currentMemory / maxMemory > 0.85 && (
+        <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded">
+          <p className="text-xs text-red-700 dark:text-red-400 font-semibold">
+            ⚠️ Memory usage high
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default MemoryVisualizer;
