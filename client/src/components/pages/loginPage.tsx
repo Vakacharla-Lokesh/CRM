@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAppContext } from "../../context";
 
 interface LoginFormData {
   userEmail: string;
@@ -27,6 +28,7 @@ interface FormErrors {
  */
 function LoginPage() {
   const navigate = useNavigate();
+  const { login } = useAppContext();
   const [formData, setFormData] = useState<LoginFormData>({
     userEmail: "",
     userPassword: "",
@@ -78,9 +80,11 @@ function LoginPage() {
     }
 
     setIsLoading(true);
+    setErrors({});
+    
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // Call real login API
+      await login(formData.userEmail, formData.userPassword);
 
       // Store remember me preference
       if (formData.rememberMe) {
@@ -91,12 +95,17 @@ function LoginPage() {
             timestamp: Date.now(),
           }),
         );
+      } else {
+        localStorage.removeItem("rememberMe");
       }
 
-      // Navigate to dashboard
-      navigate("/");
-    } catch (error) {
-      setErrors({ submit: "Login failed. Please try again." });
+      // Navigate to home page
+      navigate("/home");
+    } catch (error: any) {
+      console.error("Login error:", error);
+      setErrors({ 
+        submit: error?.response?.data?.message || error?.message || "Login failed. Please check your credentials and try again." 
+      });
     } finally {
       setIsLoading(false);
     }

@@ -11,6 +11,7 @@ export const registerSchema = z
     role: z.enum(["user", "admin", "super_admin"]),
     password: z.string().min(8),
     tenantId: z.string().optional(),
+    tenantName: z.string().optional(),
   })
   .strict();
 

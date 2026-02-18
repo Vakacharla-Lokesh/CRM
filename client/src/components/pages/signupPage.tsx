@@ -1,5 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useAppContext } from "../../context";
 
 interface SignupFormData {
   tenantName: string;
@@ -42,6 +43,7 @@ interface PasswordStrength {
  */
 function SignupPage() {
   const navigate = useNavigate();
+  const { signup } = useAppContext();
   const [formData, setFormData] = useState<SignupFormData>({
     tenantName: "",
     firstName: "",
@@ -136,18 +138,24 @@ function SignupPage() {
     }
 
     setIsLoading(true);
+    setErrors({});
+    
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Success - redirect to login
-      navigate("/login", {
-        state: {
-          message: "Signup successful! Please login with your credentials.",
-        },
+      // Call real signup API
+      await signup({
+        firstName: formData.firstName,
+        userEmail: formData.userEmail,
+        userPassword: formData.userPassword,
+        tenantName: formData.tenantName,
       });
-    } catch (error) {
-      setErrors({ submit: "Signup failed. Please try again." });
+
+      // Navigate to home page after successful signup
+      navigate("/home");
+    } catch (error: any) {
+      console.error("Signup error:", error);
+      setErrors({ 
+        submit: error?.response?.data?.message || error?.message || "Signup failed. Please try again." 
+      });
     } finally {
       setIsLoading(false);
     }

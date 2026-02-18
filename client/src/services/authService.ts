@@ -11,14 +11,28 @@ const authService = {
    * Login user
    */
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    return apiClient.post<AuthResponse>('/auth/login', credentials);
+    // Map client field names to server field names
+    const payload = {
+      userEmail: credentials.userEmail,
+      password: credentials.userPassword, // Server expects 'password' not 'userPassword'
+    };
+    return apiClient.post<AuthResponse>('/auth/login', payload);
   },
 
   /**
    * Signup new user
    */
   signup: async (userData: SignupData): Promise<AuthResponse> => {
-    return apiClient.post<AuthResponse>('/auth/signup', userData);
+    // Map client field names to server field names
+    const payload = {
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      userEmail: userData.userEmail,
+      password: userData.userPassword, // Server expects 'password' not 'userPassword'
+      tenantName: userData.tenantName,
+      role: 'user', // Default role for new signups
+    };
+    return apiClient.post<AuthResponse>('/auth/register', payload);
   },
 
   /**

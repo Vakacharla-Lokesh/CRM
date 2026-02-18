@@ -32,7 +32,7 @@ import type {
 import type { PointOfContact } from "../types/organizations";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+  import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 /**
  * Error handling utilities
@@ -78,12 +78,18 @@ async function get<T>(
       });
     }
 
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(url.toString(), {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -102,12 +108,18 @@ async function get<T>(
 
 async function post<T>(endpoint: string, data?: unknown): Promise<T> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
       body: JSON.stringify(data),
     });
 
@@ -127,12 +139,18 @@ async function post<T>(endpoint: string, data?: unknown): Promise<T> {
 
 async function put<T>(endpoint: string, data?: unknown): Promise<T> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
       body: JSON.stringify(data),
     });
 
@@ -152,12 +170,18 @@ async function put<T>(endpoint: string, data?: unknown): Promise<T> {
 
 async function delete_<T>(endpoint: string): Promise<T> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -177,20 +201,17 @@ async function delete_<T>(endpoint: string): Promise<T> {
 /**
  * Token management
  */
-function getToken(): string {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("No authentication token found");
-  }
+function getToken(): string | null {
+  const token = localStorage.getItem("auth_token");
   return token;
 }
 
 export function setToken(token: string): void {
-  localStorage.setItem("token", token);
+  localStorage.setItem("auth_token", token);
 }
 
 export function clearToken(): void {
-  localStorage.removeItem("token");
+  localStorage.removeItem("auth_token");
 }
 
 /**
@@ -369,11 +390,16 @@ export const API = {
     import: (entityType: string, file: File) => {
       const formData = new FormData();
       formData.append("file", file);
+      
+      const headers: Record<string, string> = {};
+      const token = getToken();
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+      
       return fetch(`${API_BASE_URL}/bulk/import/${entityType}`, {
         method: "POST",
-        headers: {
-          Authorization: `Bearer ${getToken()}`,
-        },
+        headers,
         body: formData,
       }).then(async (response) => {
         if (!response.ok) {
@@ -424,12 +450,18 @@ export const API = {
  */
 async function patch<T>(endpoint: string, data?: unknown): Promise<T> {
   try {
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
       body: data ? JSON.stringify(data) : undefined,
     });
 
@@ -452,11 +484,16 @@ async function upload<T>(endpoint: string, file: File | Blob): Promise<T> {
     const formData = new FormData();
     formData.append("file", file);
 
+    const headers: Record<string, string> = {};
+    
+    const token = getToken();
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${getToken()}`,
-      },
+      headers,
       body: formData,
     });
 
