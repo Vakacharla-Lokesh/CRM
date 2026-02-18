@@ -72,8 +72,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
     const initAuth = async () => {
       try {
-        const storedToken = getFromLocalStorage("auth_token");
-        const storedUser = getFromLocalStorage("user_data");
+        const storedToken = getFromLocalStorage<string>("auth_token");
+        const storedUser = getFromLocalStorage<User>("user_data");
 
         if (storedToken && storedUser) {
           setToken(storedToken);
@@ -126,7 +126,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    */
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await authService.login({ email, password });
+      const response = await authService.login({ userEmail: email, userPassword: password });
       const { user: userData, token: authToken } = response;
 
       // Save to state

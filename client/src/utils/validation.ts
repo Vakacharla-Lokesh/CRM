@@ -196,7 +196,7 @@ export const validateForm = (data: Record<string, unknown>, rules: ValidationRul
       return;
     }
 
-    if (fieldRules.custom && !fieldRules.custom(value, data)) {
+    if (fieldRules.custom && !fieldRules.custom(value)) {
       errors[field] = fieldRules.message || 'Invalid value';
       return;
     }

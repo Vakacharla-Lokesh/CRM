@@ -1,5 +1,5 @@
-import apiClient from './api';
-import type { User, UserStatistics } from '../types';
+import { apiClient } from "./api";
+import type { User, UserStatistics } from "../types";
 
 /**
  * User Service
@@ -27,12 +27,12 @@ interface UserActivity {
   timestamp: string;
 }
 
-const userService = {
+export const userService = {
   /**
    * Get all users
    */
   getAllUsers: async (): Promise<User[]> => {
-    return apiClient.get<User[]>('/users');
+    return apiClient.get<User[]>("/users");
   },
 
   /**
@@ -46,14 +46,14 @@ const userService = {
    * Get current user
    */
   getCurrentUser: async (): Promise<User> => {
-    return apiClient.get<User>('/users/me');
+    return apiClient.get<User>("/users/me");
   },
 
   /**
    * Create new user
    */
   createUser: async (userData: Partial<User>): Promise<User> => {
-    return apiClient.post<User>('/users', userData);
+    return apiClient.post<User>("/users", userData);
   },
 
   /**
@@ -74,7 +74,9 @@ const userService = {
    * Search users
    */
   searchUsers: async (query: string): Promise<User[]> => {
-    return apiClient.get<User[]>(`/users/search?q=${encodeURIComponent(query)}`);
+    return apiClient.get<User[]>(
+      `/users/search?q=${encodeURIComponent(query)}`,
+    );
   },
 
   /**
@@ -88,14 +90,20 @@ const userService = {
    * Get user statistics
    */
   getUserStats: async (): Promise<UserStatistics> => {
-    return apiClient.get<UserStatistics>('/users/stats');
+    return apiClient.get<UserStatistics>("/users/stats");
   },
 
   /**
    * Update user password
    */
-  updatePassword: async (id: string, passwordData: PasswordData): Promise<{ message: string }> => {
-    return apiClient.put<{ message: string }>(`/users/${id}/password`, passwordData);
+  updatePassword: async (
+    id: string,
+    passwordData: PasswordData,
+  ): Promise<{ message: string }> => {
+    return apiClient.put<{ message: string }>(
+      `/users/${id}/password`,
+      passwordData,
+    );
   },
 
   /**
@@ -122,29 +130,46 @@ const userService = {
   /**
    * Bulk update users
    */
-  bulkUpdateUsers: async (userIds: string[], updates: Partial<User>): Promise<{ message: string; updated: number }> => {
-    return apiClient.post<{ message: string; updated: number }>('/users/bulk-update', { userIds, updates });
+  bulkUpdateUsers: async (
+    userIds: string[],
+    updates: Partial<User>,
+  ): Promise<{ message: string; updated: number }> => {
+    return apiClient.post<{ message: string; updated: number }>(
+      "/users/bulk-update",
+      { userIds, updates },
+    );
   },
 
   /**
    * Send password reset email
    */
   sendPasswordReset: async (email: string): Promise<{ message: string }> => {
-    return apiClient.post<{ message: string }>('/users/password-reset', { email });
+    return apiClient.post<{ message: string }>("/users/password-reset", {
+      email,
+    });
   },
 
   /**
    * Update user profile
    */
-  updateProfile: async (id: string, profileData: ProfileData): Promise<User> => {
+  updateProfile: async (
+    id: string,
+    profileData: ProfileData,
+  ): Promise<User> => {
     return apiClient.patch<User>(`/users/${id}/profile`, profileData);
   },
 
   /**
    * Upload user avatar
    */
-  uploadAvatar: async (id: string, file: File | Blob): Promise<{ message: string; avatarUrl: string }> => {
-    return apiClient.upload<{ message: string; avatarUrl: string }>(`/users/${id}/avatar`, file);
+  uploadAvatar: async (
+    id: string,
+    file: File | Blob,
+  ): Promise<{ message: string; avatarUrl: string }> => {
+    return apiClient.upload<{ message: string; avatarUrl: string }>(
+      `/users/${id}/avatar`,
+      file,
+    );
   },
 
   /**
@@ -164,8 +189,13 @@ const userService = {
   /**
    * Update user permissions
    */
-  updatePermissions: async (id: string, permissions: string[]): Promise<{ message: string }> => {
-    return apiClient.put<{ message: string }>(`/users/${id}/permissions`, { permissions });
+  updatePermissions: async (
+    id: string,
+    permissions: string[],
+  ): Promise<{ message: string }> => {
+    return apiClient.put<{ message: string }>(`/users/${id}/permissions`, {
+      permissions,
+    });
   },
 };
 
