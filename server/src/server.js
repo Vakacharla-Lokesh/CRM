@@ -59,19 +59,6 @@ app.use("/api/calls", callRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/attachments", attachmentRoutes);
 
-// STATIC FILES - Serve frontend static files
-const frontendPath = path.join(__dirname, "../../frontend");
-app.use(express.static(frontendPath));
-
-// FRONTEND ROUTES - Serve index.html for all non-API routes (SPA routing)
-app.get("*", (req, res) => {
-  // Skip API routes
-  if (req.path.startsWith("/api/")) {
-    return res.status(404).json({ error: "API endpoint not found" });
-  }
-  res.sendFile(path.join(frontendPath, "index.html"));
-});
-
 // ERROR HANDLING
 app.use(notFound);
 app.use(errorHandler);

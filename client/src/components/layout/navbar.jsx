@@ -103,7 +103,7 @@ function Navbar({
             className="flex items-center gap-2 hover:opacity-80 transition-opacity"
           >
             <img
-              src="/public/crm.png"
+              src="/crm.png"
               alt="Campaign Flux Logo"
               className="h-7"
             />

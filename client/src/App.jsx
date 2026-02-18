@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Layout from "./components/layout/layout.jsx";
+import { AppProvider } from "./context";
 
 // Page imports
 import LoginPage from "./components/pages/loginPage.jsx";
@@ -43,62 +44,64 @@ function App() {
   };
 
   return (
-    <Router>
-      <Routes>
-        {/* Auth Routes - without sidebar/navbar */}
-        <Route
-          path="/login"
-          element={<LoginPage />}
-        />
-        <Route
-          path="/signup"
-          element={<SignupPage />}
-        />
+    <AppProvider>
+      <Router>
+        <Routes>
+          {/* Auth Routes - without sidebar/navbar */}
+          <Route
+            path="/login"
+            element={<LoginPage />}
+          />
+          <Route
+            path="/signup"
+            element={<SignupPage />}
+          />
 
-        {/* Protected Routes - with Layout */}
-        {isAuthenticated ? (
-          <Route
-            path="/*"
-            element={
-              <Layout
-                isDarkMode={isDarkMode}
-                onToggleDarkMode={toggleDarkMode}
-              >
-                <Routes>
-                  <Route
-                    path="/"
-                    element={<DashboardPage />}
-                  />
-                  <Route
-                    path="/users"
-                    element={<UsersPage />}
-                  />
-                  <Route
-                    path="*"
-                    element={
-                      <Navigate
-                        to="/"
-                        replace
-                      />
-                    }
-                  />
-                </Routes>
-              </Layout>
-            }
-          />
-        ) : (
-          <Route
-            path="/"
-            element={
-              <Navigate
-                to="/login"
-                replace
-              />
-            }
-          />
-        )}
-      </Routes>
-    </Router>
+          {/* Protected Routes - with Layout */}
+          {isAuthenticated ? (
+            <Route
+              path="/*"
+              element={
+                <Layout
+                  isDarkMode={isDarkMode}
+                  onToggleDarkMode={toggleDarkMode}
+                >
+                  <Routes>
+                    <Route
+                      path="/"
+                      element={<DashboardPage />}
+                    />
+                    <Route
+                      path="/users"
+                      element={<UsersPage />}
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <Navigate
+                          to="/"
+                          replace
+                        />
+                      }
+                    />
+                  </Routes>
+                </Layout>
+              }
+            />
+          ) : (
+            <Route
+              path="/"
+              element={
+                <Navigate
+                  to="/login"
+                  replace
+                />
+              }
+            />
+          )}
+        </Routes>
+      </Router>
+    </AppProvider>
   );
 }
 
