@@ -3,12 +3,29 @@
  * Common validation functions for forms and data
  */
 
+import type { ValidationRules, ValidationErrors } from '../types';
+
+/**
+ * Password validation result
+ */
+interface PasswordValidationResult {
+  isValid: boolean;
+  strength: 'weak' | 'medium' | 'strong';
+  requirements: {
+    minLength: boolean;
+    hasUpperCase: boolean;
+    hasLowerCase: boolean;
+    hasNumber: boolean;
+    hasSpecialChar: boolean;
+  };
+}
+
 /**
  * Validate email address
  * @param {string} email - Email to validate
  * @returns {boolean} Is valid
  */
-export const isValidEmail = (email) => {
+export const isValidEmail = (email: string | null | undefined): boolean => {
   if (!email) return false;
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -19,8 +36,8 @@ export const isValidEmail = (email) => {
  * @param {string} password - Password to validate
  * @returns {Object} Validation result with strength and requirements
  */
-export const validatePassword = (password) => {
-  const result = {
+export const validatePassword = (password: string | null | undefined): PasswordValidationResult => {
+  const result: PasswordValidationResult = {
     isValid: false,
     strength: 'weak',
     requirements: {
@@ -61,7 +78,7 @@ export const validatePassword = (password) => {
  * @param {string} phone - Phone number to validate
  * @returns {boolean} Is valid
  */
-export const isValidPhone = (phone) => {
+export const isValidPhone = (phone: string | null | undefined): boolean => {
   if (!phone) return false;
   // Simple validation - accepts various formats
   const phoneRegex = /^[\d\s\-\+\(\)]+$/;
@@ -74,7 +91,7 @@ export const isValidPhone = (phone) => {
  * @param {string} url - URL to validate
  * @returns {boolean} Is valid
  */
-export const isValidURL = (url) => {
+export const isValidURL = (url: string | null | undefined): boolean => {
   if (!url) return false;
   try {
     new URL(url);
@@ -89,7 +106,7 @@ export const isValidURL = (url) => {
  * @param {*} value - Value to validate
  * @returns {boolean} Is valid
  */
-export const isRequired = (value) => {
+export const isRequired = (value: unknown): boolean => {
   if (value === null || value === undefined) return false;
   if (typeof value === 'string') return value.trim().length > 0;
   if (Array.isArray(value)) return value.length > 0;
@@ -102,9 +119,9 @@ export const isRequired = (value) => {
  * @param {number} minLength - Minimum length
  * @returns {boolean} Is valid
  */
-export const minLength = (value, minLength) => {
+export const minLength = (value: string | null | undefined, min: number): boolean => {
   if (!value) return false;
-  return value.length >= minLength;
+  return value.length >= min;
 };
 
 /**
@@ -113,9 +130,9 @@ export const minLength = (value, minLength) => {
  * @param {number} maxLength - Maximum length
  * @returns {boolean} Is valid
  */
-export const maxLength = (value, maxLength) => {
+export const maxLength = (value: string | null | undefined, max: number): boolean => {
   if (!value) return true;
-  return value.length <= maxLength;
+  return value.length <= max;
 };
 
 /**
@@ -125,7 +142,7 @@ export const maxLength = (value, maxLength) => {
  * @param {number} max - Maximum value
  * @returns {boolean} Is valid
  */
-export const inRange = (value, min, max) => {
+export const inRange = (value: number | string | null | undefined, min: number, max: number): boolean => {
   const num = Number(value);
   if (isNaN(num)) return false;
   return num >= min && num <= max;
@@ -137,8 +154,8 @@ export const inRange = (value, min, max) => {
  * @param {Object} rules - Validation rules
  * @returns {Object} Validation errors
  */
-export const validateForm = (data, rules) => {
-  const errors = {};
+export const validateForm = (data: Record<string, unknown>, rules: ValidationRules): ValidationErrors => {
+  const errors: ValidationErrors = {};
 
   Object.keys(rules).forEach(field => {
     const value = data[field];
@@ -149,32 +166,32 @@ export const validateForm = (data, rules) => {
       return;
     }
 
-    if (fieldRules.email && !isValidEmail(value)) {
+    if (fieldRules.email && !isValidEmail(value as string)) {
       errors[field] = fieldRules.message || 'Invalid email address';
       return;
     }
 
-    if (fieldRules.phone && !isValidPhone(value)) {
+    if (fieldRules.phone && !isValidPhone(value as string)) {
       errors[field] = fieldRules.message || 'Invalid phone number';
       return;
     }
 
-    if (fieldRules.url && !isValidURL(value)) {
+    if (fieldRules.url && !isValidURL(value as string)) {
       errors[field] = fieldRules.message || 'Invalid URL';
       return;
     }
 
-    if (fieldRules.minLength && !minLength(value, fieldRules.minLength)) {
+    if (fieldRules.minLength && !minLength(value as string, fieldRules.minLength)) {
       errors[field] = fieldRules.message || `Minimum length is ${fieldRules.minLength}`;
       return;
     }
 
-    if (fieldRules.maxLength && !maxLength(value, fieldRules.maxLength)) {
+    if (fieldRules.maxLength && !maxLength(value as string, fieldRules.maxLength)) {
       errors[field] = fieldRules.message || `Maximum length is ${fieldRules.maxLength}`;
       return;
     }
 
-    if (fieldRules.pattern && !fieldRules.pattern.test(value)) {
+    if (fieldRules.pattern && !fieldRules.pattern.test(value as string)) {
       errors[field] = fieldRules.message || 'Invalid format';
       return;
     }

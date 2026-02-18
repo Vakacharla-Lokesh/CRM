@@ -8,18 +8,18 @@
  * @param {*} obj - Object to clone
  * @returns {*} Cloned object
  */
-export const deepClone = (obj) => {
+export const deepClone = <T>(obj: T): T => {
   if (obj === null || typeof obj !== 'object') return obj;
-  if (obj instanceof Date) return new Date(obj);
-  if (obj instanceof Array) return obj.map(deepClone);
+  if (obj instanceof Date) return new Date(obj) as T;
+  if (obj instanceof Array) return obj.map(deepClone) as T;
   
-  const cloned = {};
+  const cloned: Record<string, unknown> = {};
   for (const key in obj) {
-    if (obj.hasOwnProperty(key)) {
-      cloned[key] = deepClone(obj[key]);
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
+      cloned[key] = deepClone((obj as Record<string, unknown>)[key]);
     }
   }
-  return cloned;
+  return cloned as T;
 };
 
 /**
@@ -28,15 +28,19 @@ export const deepClone = (obj) => {
  * @param {Object} source - Source object
  * @returns {Object} Merged object
  */
-export const deepMerge = (target, source) => {
+export const deepMerge = <T extends Record<string, unknown>>(target: T, source: Partial<T>): T => {
   const result = { ...target };
   
   for (const key in source) {
-    if (source.hasOwnProperty(key)) {
-      if (source[key] instanceof Object && !Array.isArray(source[key])) {
-        result[key] = deepMerge(result[key] || {}, source[key]);
+    if (Object.prototype.hasOwnProperty.call(source, key)) {
+      const sourceValue = source[key];
+      if (sourceValue instanceof Object && !Array.isArray(sourceValue)) {
+        result[key] = deepMerge(
+          (result[key] || {}) as Record<string, unknown>,
+          sourceValue as Record<string, unknown>
+        ) as T[Extract<keyof T, string>];
       } else {
-        result[key] = source[key];
+        result[key] = sourceValue as T[Extract<keyof T, string>];
       }
     }
   }
@@ -49,7 +53,7 @@ export const deepMerge = (target, source) => {
  * @param {Object} obj - Object to check
  * @returns {boolean} Is empty
  */
-export const isEmpty = (obj) => {
+export const isEmpty = (obj: unknown): boolean => {
   if (obj === null || obj === undefined) return true;
   if (typeof obj === 'string') return obj.trim().length === 0;
   if (Array.isArray(obj)) return obj.length === 0;
@@ -63,7 +67,7 @@ export const isEmpty = (obj) => {
  * @param {string} key - Key to check for uniqueness (for objects)
  * @returns {Array} Array without duplicates
  */
-export const removeDuplicates = (arr, key = null) => {
+export const removeDuplicates = <T>(arr: T[], key: keyof T | null = null): T[] => {
   if (!Array.isArray(arr)) return [];
   
   if (key) {
@@ -85,11 +89,11 @@ export const removeDuplicates = (arr, key = null) => {
  * @param {string} key - Key to group by
  * @returns {Object} Grouped object
  */
-export const groupBy = (arr, key) => {
+export const groupBy = <T extends Record<string, unknown>>(arr: T[], key: keyof T): Record<string, T[]> => {
   if (!Array.isArray(arr)) return {};
   
-  return arr.reduce((result, item) => {
-    const groupKey = item[key];
+  return arr.reduce((result: Record<string, T[]>, item: T) => {
+    const groupKey = String(item[key]);
     if (!result[groupKey]) {
       result[groupKey] = [];
     }
@@ -105,7 +109,7 @@ export const groupBy = (arr, key) => {
  * @param {string} order - Sort order (asc/desc)
  * @returns {Array} Sorted array
  */
-export const sortBy = (arr, key, order = 'asc') => {
+export const sortBy = <T extends Record<string, unknown>>(arr: T[], key: keyof T, order: 'asc' | 'desc' = 'asc'): T[] => {
   if (!Array.isArray(arr)) return [];
   
   return [...arr].sort((a, b) => {
@@ -122,7 +126,7 @@ export const sortBy = (arr, key, order = 'asc') => {
  * Generate unique ID
  * @returns {string} Unique ID
  */
-export const generateId = () => {
+export const generateId = (): string => {
   return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 };
 
@@ -130,7 +134,7 @@ export const generateId = () => {
  * Generate UUID v4
  * @returns {string} UUID
  */
-export const generateUUID = () => {
+export const generateUUID = (): string => {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0;
     const v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -143,7 +147,7 @@ export const generateUUID = () => {
  * @param {number} ms - Milliseconds to sleep
  * @returns {Promise} Promise that resolves after delay
  */
-export const sleep = (ms) => {
+export const sleep = (ms: number): Promise<void> => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
 
@@ -154,8 +158,8 @@ export const sleep = (ms) => {
  * @param {number} delay - Initial delay in ms
  * @returns {Promise} Result of function
  */
-export const retry = async (fn, maxRetries = 3, delay = 1000) => {
-  let lastError;
+export const retry = async <T>(fn: () => Promise<T>, maxRetries: number = 3, delay: number = 1000): Promise<T> => {
+  let lastError: unknown;
   
   for (let i = 0; i < maxRetries; i++) {
     try {
@@ -177,10 +181,10 @@ export const retry = async (fn, maxRetries = 3, delay = 1000) => {
  * @param {number} wait - Wait time in ms
  * @returns {Function} Debounced function
  */
-export const debounce = (func, wait = 300) => {
-  let timeout;
+export const debounce = <T extends (...args: unknown[]) => unknown>(func: T, wait: number = 300): ((...args: Parameters<T>) => void) => {
+  let timeout: ReturnType<typeof setTimeout> | undefined;
   
-  return function executedFunction(...args) {
+  return function executedFunction(...args: Parameters<T>) {
     const later = () => {
       clearTimeout(timeout);
       func(...args);
@@ -197,10 +201,10 @@ export const debounce = (func, wait = 300) => {
  * @param {number} limit - Limit in ms
  * @returns {Function} Throttled function
  */
-export const throttle = (func, limit = 300) => {
-  let inThrottle;
+export const throttle = <T extends (...args: unknown[]) => unknown>(func: T, limit: number = 300): ((...args: Parameters<T>) => void) => {
+  let inThrottle: boolean;
   
-  return function executedFunction(...args) {
+  return function executedFunction(...args: Parameters<T>) {
     if (!inThrottle) {
       func(...args);
       inThrottle = true;
@@ -214,8 +218,8 @@ export const throttle = (func, limit = 300) => {
  * @param {...Function} fns - Functions to compose
  * @returns {Function} Composed function
  */
-export const compose = (...fns) => {
-  return (x) => fns.reduceRight((acc, fn) => fn(acc), x);
+export const compose = <T>(...fns: ((x: T) => T)[]): ((x: T) => T) => {
+  return (x: T) => fns.reduceRight((acc, fn) => fn(acc), x);
 };
 
 /**
@@ -223,8 +227,8 @@ export const compose = (...fns) => {
  * @param {...Function} fns - Functions to pipe
  * @returns {Function} Piped function
  */
-export const pipe = (...fns) => {
-  return (x) => fns.reduce((acc, fn) => fn(acc), x);
+export const pipe = <T>(...fns: ((x: T) => T)[]): ((x: T) => T) => {
+  return (x: T) => fns.reduce((acc, fn) => fn(acc), x);
 };
 
 /**
@@ -233,13 +237,13 @@ export const pipe = (...fns) => {
  * @param {Array} keys - Keys to pick
  * @returns {Object} Object with picked keys
  */
-export const pick = (obj, keys) => {
+export const pick = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Pick<T, K> => {
   return keys.reduce((result, key) => {
-    if (obj.hasOwnProperty(key)) {
+    if (Object.prototype.hasOwnProperty.call(obj, key)) {
       result[key] = obj[key];
     }
     return result;
-  }, {});
+  }, {} as Pick<T, K>);
 };
 
 /**
@@ -248,10 +252,10 @@ export const pick = (obj, keys) => {
  * @param {Array} keys - Keys to omit
  * @returns {Object} Object without omitted keys
  */
-export const omit = (obj, keys) => {
+export const omit = <T extends Record<string, unknown>, K extends keyof T>(obj: T, keys: K[]): Omit<T, K> => {
   const result = { ...obj };
   keys.forEach(key => delete result[key]);
-  return result;
+  return result as Omit<T, K>;
 };
 
 /**
@@ -261,18 +265,18 @@ export const omit = (obj, keys) => {
  * @param {*} defaultValue - Default value if not found
  * @returns {*} Property value
  */
-export const get = (obj, path, defaultValue = undefined) => {
+export const get = <T>(obj: Record<string, unknown>, path: string, defaultValue: T | undefined = undefined): T | undefined => {
   const keys = path.split('.');
-  let result = obj;
+  let result: unknown = obj;
   
   for (const key of keys) {
     if (result === null || result === undefined) {
       return defaultValue;
     }
-    result = result[key];
+    result = (result as Record<string, unknown>)[key];
   }
   
-  return result !== undefined ? result : defaultValue;
+  return result !== undefined ? (result as T) : defaultValue;
 };
 
 /**
@@ -282,18 +286,20 @@ export const get = (obj, path, defaultValue = undefined) => {
  * @param {*} value - Value to set
  * @returns {Object} Modified object
  */
-export const set = (obj, path, value) => {
+export const set = <T extends Record<string, unknown>>(obj: T, path: string, value: unknown): T => {
   const keys = path.split('.');
   const lastKey = keys.pop();
-  let current = obj;
+  let current: Record<string, unknown> = obj;
   
   for (const key of keys) {
     if (!current[key] || typeof current[key] !== 'object') {
       current[key] = {};
     }
-    current = current[key];
+    current = current[key] as Record<string, unknown>;
   }
   
-  current[lastKey] = value;
+  if (lastKey) {
+    current[lastKey] = value;
+  }
   return obj;
 };

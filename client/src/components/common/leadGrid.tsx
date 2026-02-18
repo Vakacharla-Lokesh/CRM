@@ -175,7 +175,7 @@ function LeadGrid({ leads, isLoading }) {
                     <div className="flex items-center gap-2">
                       <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
-                          className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 transition-all"
+                          className="h-full bg-linear-to-r from-blue-500 to-indigo-500 transition-all"
                           style={{ width: `${lead.score}%` }}
                         />
                       </div>

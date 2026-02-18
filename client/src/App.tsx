@@ -1,23 +1,23 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
 } from "react-router-dom";
-import Layout from "./components/layout/layout.jsx";
+import Layout from "./components/layout/layout";
 import { AppProvider } from "./context";
 
 // Page imports
-import LoginPage from "./components/pages/loginPage.jsx";
-import SignupPage from "./components/pages/signupPage.jsx";
-import DashboardPage from "./components/pages/dashboardPage.jsx";
-import UsersPage from "./components/pages/usersPage.jsx";
+import LoginPage from "./components/pages/loginPage";
+import SignupPage from "./components/pages/signupPage";
+import DashboardPage from "./components/pages/dashboardPage";
+import UsersPage from "./components/pages/usersPage";
 
 import "./app.css";
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthenticated] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage for dark mode preference
     const saved = localStorage.getItem("darkMode");
