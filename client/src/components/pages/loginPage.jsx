@@ -97,7 +97,7 @@ function LoginPage() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-3 mb-4">
             <img
-              src="/public/crm.png"
+              src="/crm.png"
               alt="Campaign Flux Logo"
               className="h-12"
             />
