@@ -1,0 +1,473 @@
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+
+/**
+ * SignupPage Component
+ * Route: /signup
+ * Purpose: User registration and account creation
+ * Features:
+ * - Tenant/Organization name input
+ * - User name input
+ * - Email and password inputs
+ * - Password strength indicator
+ * - Password confirmation
+ * - Terms acceptance checkbox
+ * - Form validation
+ * - Loading state during submission
+ */
+function SignupPage() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    tenantName: "",
+    userName: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    agreeToTerms: false,
+  });
+  const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const getPasswordStrength = (password) => {
+    if (!password) return { level: 0, text: "", color: "bg-gray-300" };
+
+    let strength = 0;
+    if (password.length >= 8) strength++;
+    if (password.length >= 12) strength++;
+    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+    const levels = [
+      { level: 0, text: "", color: "bg-gray-300" },
+      { level: 1, text: "Weak", color: "bg-red-500" },
+      { level: 2, text: "Fair", color: "bg-orange-500" },
+      { level: 3, text: "Good", color: "bg-yellow-500" },
+      { level: 4, text: "Strong", color: "bg-blue-500" },
+      { level: 5, text: "Very Strong", color: "bg-green-500" },
+    ];
+
+    return levels[Math.min(strength, 5)];
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.tenantName.trim()) {
+      newErrors.tenantName = "Organization name is required";
+    }
+
+    if (!formData.userName.trim()) {
+      newErrors.userName = "Your name is required";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
+    }
+
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password";
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match";
+    }
+
+    if (!formData.agreeToTerms) {
+      newErrors.agreeToTerms = "You must agree to the terms and conditions";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
+      // Success - redirect to login
+      navigate("/login", {
+        state: {
+          message: "Signup successful! Please login with your credentials.",
+        },
+      });
+    } catch (error) {
+      setErrors({ submit: "Signup failed. Please try again." });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
+      <div className="w-full max-w-md">
+        {/* Header Section */}
+        <div className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-4">
+            <img
+              src="/public/crm.png"
+              alt="Campaign Flux Logo"
+              className="h-12"
+            />
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
+              Campaign Flux
+            </h1>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Create your organization account
+          </p>
+        </div>
+
+        {/* Form Card */}
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-5"
+        >
+          {/* Submit Error Alert */}
+          {errors.submit && (
+            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+              <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                {errors.submit}
+              </p>
+            </div>
+          )}
+
+          {/* Tenant Name Field */}
+          <div>
+            <label
+              htmlFor="tenantName"
+              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Organization Name
+            </label>
+            <input
+              type="text"
+              id="tenantName"
+              name="tenantName"
+              value={formData.tenantName}
+              onChange={handleChange}
+              placeholder="Your Company Inc."
+              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                errors.tenantName
+                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+            />
+            {errors.tenantName && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.tenantName}
+              </p>
+            )}
+          </div>
+
+          {/* User Name Field */}
+          <div>
+            <label
+              htmlFor="userName"
+              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Your Full Name
+            </label>
+            <input
+              type="text"
+              id="userName"
+              name="userName"
+              value={formData.userName}
+              onChange={handleChange}
+              placeholder="John Doe"
+              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                errors.userName
+                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+            />
+            {errors.userName && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.userName}
+              </p>
+            )}
+          </div>
+
+          {/* Email Field */}
+          <div>
+            <label
+              htmlFor="email"
+              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Email Address
+            </label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                errors.email
+                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+            />
+            {errors.email && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.email}
+              </p>
+            )}
+          </div>
+
+          {/* Password Field */}
+          <div>
+            <label
+              htmlFor="password"
+              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Password
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                id="password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                  errors.password
+                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                    : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                {showPassword ? (
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clipRule="evenodd"
+                    />
+                    <path d="M15.171 11.586a4 4 0 111.414-1.414l1.473 1.473a10.014 10.014 0 01-1.488 2.316l1.78 1.781a9.958 9.958 0 01-4.512 1.074c-4.478 0-8.268-2.943-9.542-7a9.968 9.968 0 011.441-2.261l1.473 1.473z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+
+            {/* Password Strength Indicator */}
+            {formData.password && (
+              <div className="mt-3 space-y-2">
+                <div className="flex gap-1">
+                  {[...Array(5)].map((_, i) => (
+                    <div
+                      key={i}
+                      className={`flex-1 h-1 rounded-full transition-colors ${
+                        i < passwordStrength.level
+                          ? passwordStrength.color
+                          : "bg-gray-200 dark:bg-gray-700"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <p
+                  className={`text-xs font-medium ${
+                    passwordStrength.level <= 2
+                      ? "text-red-600 dark:text-red-400"
+                      : passwordStrength.level === 3
+                        ? "text-yellow-600 dark:text-yellow-400"
+                        : "text-green-600 dark:text-green-400"
+                  }`}
+                >
+                  Password strength: {passwordStrength.text}
+                </p>
+              </div>
+            )}
+
+            {errors.password && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.password}
+              </p>
+            )}
+          </div>
+
+          {/* Confirm Password Field */}
+          <div>
+            <label
+              htmlFor="confirmPassword"
+              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                id="confirmPassword"
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="••••••••"
+                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
+                  errors.confirmPassword
+                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
+                    : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
+                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+              >
+                {showConfirmPassword ? (
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path
+                      fillRule="evenodd"
+                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                ) : (
+                  <svg
+                    className="w-5 h-5"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
+                      clipRule="evenodd"
+                    />
+                    <path d="M15.171 11.586a4 4 0 111.414-1.414l1.473 1.473a10.014 10.014 0 01-1.488 2.316l1.78 1.781a9.958 9.958 0 01-4.512 1.074c-4.478 0-8.268-2.943-9.542-7a9.968 9.968 0 011.441-2.261l1.473 1.473z" />
+                  </svg>
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.confirmPassword}
+              </p>
+            )}
+          </div>
+
+          {/* Terms Checkbox */}
+          <div>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="agreeToTerms"
+                checked={formData.agreeToTerms}
+                onChange={handleChange}
+                className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              />
+              <span className="text-sm text-gray-600 dark:text-gray-400">
+                I agree to the{" "}
+                <a
+                  href="#"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Terms and Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href="#"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Privacy Policy
+                </a>
+              </span>
+            </label>
+            {errors.agreeToTerms && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                {errors.agreeToTerms}
+              </p>
+            )}
+          </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                <span>Creating account...</span>
+              </>
+            ) : (
+              "Create account"
+            )}
+          </button>
+
+          {/* Login Link */}
+          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
+            Already have an account?{" "}
+            <Link
+              to="/login"
+              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors"
+            >
+              Sign in instead
+            </Link>
+          </p>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+export default SignupPage;
