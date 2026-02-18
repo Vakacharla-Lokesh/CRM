@@ -1,15 +1,29 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+
+interface ConnectivityStatus {
+  ws: boolean;
+  sse: boolean;
+  longPoll: boolean;
+  shortPoll: boolean;
+}
+
+interface NavbarProps {
+  onToggleSidebar: () => void;
+  isSidebarOpen: boolean;
+  onToggleRightPanel: () => void;
+  isRightPanelOpen: boolean;
+}
 
 function Navbar({
   onToggleSidebar,
-  isSidebarOpen,
+  isSidebarOpen: _isSidebarOpen,
   onToggleRightPanel,
   isRightPanelOpen,
-}) {
+}: NavbarProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueueCount, setOfflineQueueCount] = useState(0);
-  const [connectivityStatus, setConnectivityStatus] = useState({
+  const [offlineQueueCount, _setOfflineQueueCount] = useState(0);
+  const [_connectivityStatus, _setConnectivityStatus] = useState<ConnectivityStatus>({
     ws: false,
     sse: false,
     longPoll: false,

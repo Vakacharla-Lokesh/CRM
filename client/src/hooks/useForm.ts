@@ -1,5 +1,8 @@
 import { useState, useCallback } from 'react';
 
+type FormErrors<T> = Partial<Record<keyof T | 'submit', string>>;
+type FormTouched<T> = Partial<Record<keyof T, boolean>>;
+
 /**
  * Form Management Hook
  * Handles form state, validation, and submission
@@ -9,10 +12,14 @@ import { useState, useCallback } from 'react';
  * @param {Function} validate - Validation function
  * @returns {Object} Form state and handlers
  */
-export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null) => {
-  const [values, setValues] = useState(initialValues);
-  const [errors, setErrors] = useState({});
-  const [touched, setTouched] = useState({});
+export const useForm = <TValues extends Record<string, any>>(
+  initialValues: TValues,
+  onSubmit: (values: TValues) => void | Promise<void> = () => {},
+  validate: ((values: TValues) => FormErrors<TValues>) | null = null
+) => {
+  const [values, setValues] = useState<TValues>(initialValues);
+  const [errors, setErrors] = useState<FormErrors<TValues>>({});
+  const [touched, setTouched] = useState<FormTouched<TValues>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
@@ -20,8 +27,8 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Handle input change
    * @param {Event|Object} e - Event or object with name and value
    */
-  const handleChange = useCallback((e) => {
-    const { name, value, type, checked } = e.target || e;
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement> | { name: string; value: any; type?: string; checked?: boolean }) => {
+    const { name, value, type, checked } = 'target' in e ? e.target : e;
     
     setValues(prev => ({
       ...prev,
@@ -42,7 +49,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Handle input blur
    * @param {Event} e - Blur event
    */
-  const handleBlur = useCallback((e) => {
+  const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name } = e.target;
     
     setTouched(prev => ({
@@ -67,7 +74,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * @param {string} name - Field name
    * @param {*} value - Field value
    */
-  const setFieldValue = useCallback((name, value) => {
+  const setFieldValue = useCallback((name: keyof TValues, value: any) => {
     setValues(prev => ({
       ...prev,
       [name]: value,
@@ -79,7 +86,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * @param {string} name - Field name
    * @param {string} error - Error message
    */
-  const setFieldError = useCallback((name, error) => {
+  const setFieldError = useCallback((name: keyof TValues | 'submit', error: string) => {
     setErrors(prev => ({
       ...prev,
       [name]: error,
@@ -91,7 +98,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * @param {string} name - Field name
    * @param {boolean} isTouched - Touched state
    */
-  const setFieldTouched = useCallback((name, isTouched = true) => {
+  const setFieldTouched = useCallback((name: keyof TValues, isTouched: boolean = true) => {
     setTouched(prev => ({
       ...prev,
       [name]: isTouched,
@@ -119,16 +126,16 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Handle form submit
    * @param {Event} e - Submit event
    */
-  const handleSubmit = useCallback(async (e) => {
+  const handleSubmit = useCallback(async (e?: React.FormEvent<HTMLFormElement>) => {
     if (e) {
       e.preventDefault();
     }
 
     // Mark all fields as touched
     const allTouched = Object.keys(values).reduce((acc, key) => {
-      acc[key] = true;
+      acc[key as keyof TValues] = true;
       return acc;
-    }, {});
+    }, {} as FormTouched<TValues>);
     setTouched(allTouched);
 
     // Validate form
@@ -143,10 +150,11 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
     try {
       await onSubmit(values);
     } catch (error) {
-      console.error('Form submission error:', error);
+      const err = error as Error;
+      console.error('Form submission error:', err);
       setErrors(prev => ({
         ...prev,
-        submit: error.message || 'Submission failed',
+        submit: err.message || 'Submission failed',
       }));
     } finally {
       setIsSubmitting(false);
@@ -168,7 +176,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Reset specific field
    * @param {string} name - Field name
    */
-  const resetField = useCallback((name) => {
+  const resetField = useCallback((name: keyof TValues) => {
     setValues(prev => ({
       ...prev,
       [name]: initialValues[name],
@@ -188,7 +196,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Get field props for easy spreading
    * @param {string} name - Field name
    */
-  const getFieldProps = useCallback((name) => {
+  const getFieldProps = useCallback((name: keyof TValues) => {
     return {
       name,
       value: values[name] || '',
@@ -201,7 +209,7 @@ export const useForm = (initialValues = {}, onSubmit = () => {}, validate = null
    * Get field meta information
    * @param {string} name - Field name
    */
-  const getFieldMeta = useCallback((name) => {
+  const getFieldMeta = useCallback((name: keyof TValues) => {
     return {
       error: errors[name],
       touched: touched[name],

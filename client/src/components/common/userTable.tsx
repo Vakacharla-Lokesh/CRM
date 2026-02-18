@@ -1,4 +1,4 @@
-import React from "react";
+import type { User } from "../../types";
 
 /**
  * UserTable Component
@@ -9,19 +9,25 @@ import React from "react";
  * - onEdit: callback for edit button
  * - onDelete: callback for delete button
  */
-function UserTable({ users, onEdit, onDelete }) {
-  const getRoleColor = (role) => {
-    const colors = {
-      Admin: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
-      Manager:
-        "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-      User: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+
+interface UserTableProps {
+  users: User[];
+  onEdit: (user: User) => void;
+  onDelete: (user: User) => void;
+}
+
+function UserTable({ users, onEdit, onDelete }: UserTableProps) {
+  const getRoleColor = (role: string) => {
+    const colors: Record<string, string> = {
+      super_admin: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+      admin: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+      user: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
     };
-    return colors[role] || colors.User;
+    return colors[role] || colors.user;
   };
 
-  const getStatusColor = (status) => {
-    return status === "active"
+  const getStatusColor = (status: boolean) => {
+    return status
       ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
       : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-400";
   };
@@ -59,27 +65,25 @@ function UserTable({ users, onEdit, onDelete }) {
           <tbody>
             {users.map((user) => (
               <tr
-                key={user.id}
+                key={user._id}
                 className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-semibold text-sm">
-                      {user.name
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")}
+                      {(user.firstName || "")[0]?.toUpperCase() || ""}
+                      {(user.lastName || "")[0]?.toUpperCase() || ""}
                     </div>
                     <span className="font-medium text-gray-900 dark:text-white">
-                      {user.name}
+                      {user.firstName} {user.lastName || ""}
                     </span>
                   </div>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {user.email}
+                  {user.userEmail}
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {user.mobile}
+                  {user.mobile || "N/A"}
                 </td>
                 <td className="px-6 py-4">
                   <span
@@ -93,14 +97,14 @@ function UserTable({ users, onEdit, onDelete }) {
                 <td className="px-6 py-4">
                   <span
                     className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                      user.status,
+                      user.isActive ?? true,
                     )}`}
                   >
-                    {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    {user.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
                 <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                  {user.createdAt.toLocaleDateString()}
+                  {new Date(user.createdAt).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex items-center justify-center gap-2">
@@ -118,7 +122,7 @@ function UserTable({ users, onEdit, onDelete }) {
                       </svg>
                     </button>
                     <button
-                      onClick={() => onDelete(user.id)}
+                      onClick={() => onDelete(user)}
                       className="p-1.5 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400"
                       title="Delete user"
                     >

@@ -1,7 +1,16 @@
-import React, { useState } from "react";
+import { useState } from "react";
+
+interface WorkerState {
+  isRunning: boolean;
+  progress: number;
+  processedItems: number;
+  totalItems: number;
+  startTime: number | null;
+  estimatedTime: number | null;
+}
 
 function WorkerStatus() {
-  const [workerState, setWorkerState] = useState({
+  const [workerState, setWorkerState] = useState<WorkerState>({
     isRunning: false,
     progress: 0,
     processedItems: 0,
@@ -33,7 +42,7 @@ function WorkerStatus() {
           prev.totalItems,
         );
         const progress = (newProcessed / prev.totalItems) * 100;
-        const elapsed = Date.now() - prev.startTime;
+        const elapsed = prev.startTime ? Date.now() - prev.startTime : 0;
         const rate = elapsed > 0 ? newProcessed / (elapsed / 1000) : 0;
         const remaining = prev.totalItems - newProcessed;
         const estimatedTime = rate > 0 ? remaining / rate : 0;
@@ -57,7 +66,7 @@ function WorkerStatus() {
     return () => clearInterval(interval);
   };
 
-  const formatTime = (seconds) => {
+  const formatTime = (seconds: number | null) => {
     if (!seconds || seconds === 0) return "calculating...";
     if (seconds < 60) return `${Math.round(seconds)}s`;
     return `${Math.round(seconds / 60)}m`;

@@ -1,27 +1,54 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
-function Sidebar({ isOpen }) {
+interface SidebarProps {
+  isOpen: boolean;
+}
+
+interface ExpandedMenus {
+  leads: boolean;
+  campaigns: boolean;
+  analytics: boolean;
+  settings: boolean;
+}
+
+interface NavLinkProps {
+  to: string;
+  icon: string;
+  label: string;
+  badge?: number | string;
+  onClick?: () => void;
+}
+
+interface MenuButtonProps {
+  icon: string;
+  label: string;
+  isExpanded: boolean;
+  onClick: () => void;
+  badge?: number | string;
+}
+
+function Sidebar({ isOpen }: SidebarProps) {
   const location = useLocation();
-  const [expandedMenus, setExpandedMenus] = useState({
+  const [expandedMenus, setExpandedMenus] = useState<ExpandedMenus>({
     leads: true,
     campaigns: false,
     analytics: false,
     settings: false,
   });
 
-  const toggleMenu = (menu) => {
+  const toggleMenu = (menu: keyof ExpandedMenus) => {
     setExpandedMenus((prev) => ({
       ...prev,
       [menu]: !prev[menu],
     }));
   };
 
-  const isActive = (path) => {
+  const isActive = (path: string) => {
     return location.pathname === path;
   };
 
-  const NavLink = ({ to, icon, label, badge, onClick }) => (
+  const NavLink = ({ to, icon, label, badge, onClick }: NavLinkProps) => (
     <Link
       to={to}
       onClick={onClick}
@@ -45,7 +72,7 @@ function Sidebar({ isOpen }) {
     </Link>
   );
 
-  const MenuButton = ({ icon, label, isExpanded, onClick, badge }) => (
+  const MenuButton = ({ icon, label, isExpanded, onClick, badge }: MenuButtonProps) => (
     <button
       onClick={onClick}
       className={`w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
@@ -98,7 +125,6 @@ function Sidebar({ isOpen }) {
             label="Leads"
             isExpanded={expandedMenus.leads}
             onClick={() => toggleMenu("leads")}
-            badge={null}
           />
           {isOpen && expandedMenus.leads && (
             <div className="ml-4 space-y-1 border-l border-gray-200 dark:border-gray-700">

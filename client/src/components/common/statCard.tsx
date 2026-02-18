@@ -1,5 +1,3 @@
-import React from "react";
-
 /**
  * StatCard Component
  * Location: src/components/Common/StatCard.jsx
@@ -11,7 +9,16 @@ import React from "react";
  * - change: change amount/percentage
  * - trend: 'up' or 'down' for trend indicator
  */
-function StatCard({ icon, label, value, change, trend }) {
+
+interface StatCardProps {
+  icon: string;
+  label: string;
+  value: string | number;
+  change: string | number;
+  trend: "up" | "down";
+}
+
+function StatCard({ icon, label, value, change, trend }: StatCardProps) {
   const isPositive = trend === "up";
 
   return (

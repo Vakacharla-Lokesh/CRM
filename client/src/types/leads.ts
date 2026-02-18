@@ -5,55 +5,39 @@
 
 export interface Lead {
   _id: string;
+  leadId?: string; // Alias for _id
   leadFirstName: string;
-  leadLastName: string;
+  leadLastName?: string;
   leadEmail: string;
-  leadPhone?: string;
-  leadSource: string;
+  leadSource: LeadSource;
   leadStatus: LeadStatus;
   leadScore: number;
-  leadInterests: string[];
-  leadCompany?: string;
-  leadPosition?: string;
-  organizationId: string;
+  organizationId?: string;
   tenantId: string;
   userId: string; // Assigned user
-  lastActivity?: Date;
-  nextFollowUp?: Date;
-  notes?: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateLeadDTO {
   leadFirstName: string;
-  leadLastName: string;
+  leadLastName?: string;
   leadEmail: string;
-  leadPhone?: string;
-  leadSource: string;
+  leadSource?: LeadSource;
   leadStatus?: LeadStatus;
   leadScore?: number;
-  leadInterests?: string[];
-  leadCompany?: string;
-  leadPosition?: string;
-  organizationId: string;
-  notes?: string;
+  organizationId?: string;
+  tenantId: string;
 }
 
 export interface UpdateLeadDTO {
   leadFirstName?: string;
   leadLastName?: string;
   leadEmail?: string;
-  leadPhone?: string;
-  leadSource?: string;
+  leadSource?: LeadSource;
   leadStatus?: LeadStatus;
   leadScore?: number;
-  leadInterests?: string[];
-  leadCompany?: string;
-  leadPosition?: string;
   userId?: string;
-  notes?: string;
-  nextFollowUp?: Date;
 }
 
 export interface LeadListResponse {
@@ -70,18 +54,13 @@ export interface LeadSegment {
   leads: Lead[];
 }
 
-export type LeadStatus =
-  | "new"
-  | "contacted"
-  | "qualified"
-  | "negotiation"
-  | "won"
-  | "lost"
-  | "unsubscribed";
+export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
+
+export type LeadSource = "API" | "Outsource";
 
 export interface LeadFilter {
   status?: LeadStatus[];
-  source?: string[];
+  source?: LeadSource[];
   minScore?: number;
   maxScore?: number;
   userId?: string;

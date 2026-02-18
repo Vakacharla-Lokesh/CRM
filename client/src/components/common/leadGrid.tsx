@@ -1,4 +1,19 @@
-import React, { useState } from "react";
+import { useState } from "react";
+import type { Lead } from "../../types";
+
+interface LeadGridProps {
+  leads: Lead[];
+  isLoading: boolean;
+}
+
+interface SortConfig {
+  key: keyof Lead;
+  direction: "asc" | "desc";
+}
+
+interface SortIconProps {
+  column: keyof Lead;
+}
 
 /**
  * LeadGrid Component
@@ -12,8 +27,8 @@ import React, { useState } from "react";
  * - Loading state
  * - Responsive design
  */
-function LeadGrid({ leads, isLoading }) {
-  const [sortConfig, setSortConfig] = useState({
+function LeadGrid({ leads, isLoading }: LeadGridProps) {
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "createdAt",
     direction: "desc",
   });
@@ -27,11 +42,13 @@ function LeadGrid({ leads, isLoading }) {
 
     if (typeof aValue === "string") {
       return sortConfig.direction === "asc"
-        ? aValue.localeCompare(bValue)
-        : bValue.localeCompare(aValue);
+        ? aValue.localeCompare(bValue as string)
+        : (bValue as string).localeCompare(aValue);
     }
 
-    return sortConfig.direction === "asc" ? aValue - bValue : bValue - aValue;
+    return sortConfig.direction === "asc" 
+      ? (aValue as number) - (bValue as number) 
+      : (bValue as number) - (aValue as number);
   });
 
   // Paginate
@@ -39,7 +56,7 @@ function LeadGrid({ leads, isLoading }) {
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedLeads = sortedLeads.slice(startIdx, startIdx + itemsPerPage);
 
-  const handleSort = (key) => {
+  const handleSort = (key: keyof Lead) => {
     setSortConfig({
       key,
       direction:
@@ -49,7 +66,7 @@ function LeadGrid({ leads, isLoading }) {
     });
   };
 
-  const SortIcon = ({ column }) => {
+  const SortIcon = ({ column }: SortIconProps) => {
     if (sortConfig.key !== column) {
       return <span className="text-gray-400 dark:text-gray-600">⇅</span>;
     }
@@ -60,17 +77,14 @@ function LeadGrid({ leads, isLoading }) {
     );
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      new: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-      contacted:
-        "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
-      qualified:
-        "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-      negotiating:
-        "bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400",
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      "New": "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+      "Converted": "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+      "Follow-Up": "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+      "Dead": "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400",
     };
-    return colors[status] || colors.new;
+    return colors[status] || colors["New"];
   };
 
   if (isLoading) {
@@ -95,42 +109,42 @@ function LeadGrid({ leads, isLoading }) {
               <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600">
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("name")}
+                    onClick={() => handleSort("leadFirstName")}
                     className="flex items-center gap-2 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
                   >
-                    Name <SortIcon column="name" />
+                    Name <SortIcon column="leadFirstName" />
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("email")}
+                    onClick={() => handleSort("leadEmail")}
                     className="flex items-center gap-2 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
                   >
-                    Email <SortIcon column="email" />
+                    Email <SortIcon column="leadEmail" />
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("company")}
+                    onClick={() => handleSort("organizationId")}
                     className="flex items-center gap-2 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
                   >
-                    Company <SortIcon column="company" />
+                    Organization <SortIcon column="organizationId" />
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("status")}
+                    onClick={() => handleSort("leadStatus")}
                     className="flex items-center gap-2 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
                   >
-                    Status <SortIcon column="status" />
+                    Status <SortIcon column="leadStatus" />
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
                   <button
-                    onClick={() => handleSort("score")}
+                    onClick={() => handleSort("leadScore")}
                     className="flex items-center gap-2 font-semibold text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors text-sm"
                   >
-                    Score <SortIcon column="score" />
+                    Score <SortIcon column="leadScore" />
                   </button>
                 </th>
                 <th className="px-6 py-4 text-left">
@@ -149,26 +163,26 @@ function LeadGrid({ leads, isLoading }) {
             <tbody>
               {paginatedLeads.map((lead) => (
                 <tr
-                  key={lead.id}
+                  key={lead._id}
                   className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <td className="px-6 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                    {lead.name}
+                    {lead.leadFirstName} {lead.leadLastName || ""}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                    {lead.email}
+                    {lead.leadEmail}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                    {lead.company}
+                    {lead.organizationId || "-"}
                   </td>
                   <td className="px-6 py-4 text-sm">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        lead.status,
+                        lead.leadStatus,
                       )}`}
                     >
-                      {lead.status.charAt(0).toUpperCase() +
-                        lead.status.slice(1)}
+                      {lead.leadStatus.charAt(0).toUpperCase() +
+                        lead.leadStatus.slice(1)}
                     </span>
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900 dark:text-white font-semibold">
@@ -176,11 +190,11 @@ function LeadGrid({ leads, isLoading }) {
                       <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                           className="h-full bg-linear-to-r from-blue-500 to-indigo-500 transition-all"
-                          style={{ width: `${lead.score}%` }}
+                          style={{ width: `${lead.leadScore}%` }}
                         />
                       </div>
                       <span className="text-xs text-gray-600 dark:text-gray-400 w-8 text-right">
-                        {lead.score}%
+                        {lead.leadScore}%
                       </span>
                     </div>
                   </td>

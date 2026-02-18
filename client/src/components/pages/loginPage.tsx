@@ -1,5 +1,17 @@
-import React, { useState } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
+
+interface LoginFormData {
+  userEmail: string;
+  userPassword: string;
+  rememberMe: boolean;
+}
+
+interface FormErrors {
+  userEmail?: string;
+  userPassword?: string;
+  submit?: string;
+}
 
 /**
  * LoginPage Component
@@ -15,42 +27,42 @@ import { useNavigate, Link } from "react-router-dom";
  */
 function LoginPage() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+  const [formData, setFormData] = useState<LoginFormData>({
+    userEmail: "",
+    userPassword: "",
     rememberMe: false,
   });
-  const [errors, setErrors] = useState({});
+  const [errors, setErrors] = useState<FormErrors>({});
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: FormErrors = {};
 
-    if (!formData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email";
+    if (!formData.userEmail) {
+      newErrors.userEmail = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
+      newErrors.userEmail = "Please enter a valid email";
     }
 
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+    if (!formData.userPassword) {
+      newErrors.userPassword = "Password is required";
+    } else if (formData.userPassword.length < 6) {
+      newErrors.userPassword = "Password must be at least 6 characters";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
     // Clear error for this field when user starts typing
-    if (errors[name]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors((prev) => ({
         ...prev,
         [name]: "",
@@ -58,7 +70,7 @@ function LoginPage() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -75,7 +87,7 @@ function LoginPage() {
         localStorage.setItem(
           "rememberMe",
           JSON.stringify({
-            email: formData.email,
+            email: formData.userEmail,
             timestamp: Date.now(),
           }),
         );
@@ -127,27 +139,27 @@ function LoginPage() {
           {/* Email Field */}
           <div>
             <label
-              htmlFor="email"
+              htmlFor="userEmail"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Email Address
             </label>
             <input
               type="email"
-              id="email"
-              name="email"
-              value={formData.email}
+              id="userEmail"
+              name="userEmail"
+              value={formData.userEmail}
               onChange={handleChange}
               placeholder="you@example.com"
               className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.email
+                errors.userEmail
                   ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                   : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
               } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             />
-            {errors.email && (
+            {errors.userEmail && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.email}
+                {errors.userEmail}
               </p>
             )}
           </div>
@@ -155,7 +167,7 @@ function LoginPage() {
           {/* Password Field */}
           <div>
             <label
-              htmlFor="password"
+              htmlFor="userPassword"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Password
@@ -163,13 +175,13 @@ function LoginPage() {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
+                id="userPassword"
+                name="userPassword"
+                value={formData.userPassword}
                 onChange={handleChange}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.password
+                  errors.userPassword
                     ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
                     : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
                 } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
@@ -208,9 +220,9 @@ function LoginPage() {
                 )}
               </button>
             </div>
-            {errors.password && (
+            {errors.userPassword && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.password}
+                {errors.userPassword}
               </p>
             )}
           </div>

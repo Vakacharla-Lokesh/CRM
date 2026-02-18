@@ -1,7 +1,14 @@
 /**
  * Common Type Definitions
- * Centralized type definitions for the CRM application
+ * Generic API and utility types only - domain types are in their respective files
  */
+
+// Re-export domain types from their source files
+export * from './user';
+export * from './leads';
+export * from './auth';
+export * from './deals';
+export * from './organizations';
 
 // API Types
 export interface ApiRequestOptions {
@@ -21,76 +28,7 @@ export interface ApiError extends Error {
   data?: unknown;
 }
 
-// User Types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  username?: string;
-  role: 'admin' | 'manager' | 'user' | 'sales' | string;
-  isActive: boolean;
-  avatar?: string;
-  phone?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  [key: string]: unknown;
-}
 
-export interface UserFilters {
-  role?: string;
-  isActive?: boolean;
-  search?: string;
-}
-
-export interface UserStatistics {
-  total: number;
-  active: number;
-  inactive: number;
-  byRole: Record<string, number>;
-}
-
-// Lead Types
-export interface Lead {
-  id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  company?: string;
-  status: 'new' | 'contacted' | 'qualified' | 'lost' | string;
-  source?: string;
-  stage?: string;
-  score?: number;
-  assignedTo?: string;
-  createdAt: Date | string;
-  updatedAt: Date | string;
-  [key: string]: unknown;
-}
-
-// Auth Types
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface SignupData {
-  email: string;
-  password: string;
-  name: string;
-  username?: string;
-  organizationName?: string;
-  [key: string]: unknown;
-}
-
-export interface AuthResponse {
-  user: User;
-  token: string;
-  refreshToken?: string;
-}
-
-export interface PasswordResetData {
-  token: string;
-  newPassword: string;
-}
 
 // Form Validation Types
 export interface ValidationRule {

@@ -2,6 +2,8 @@
  * Auth Types
  */
 
+import { User } from './user';
+
 export interface AuthUser extends User {
   token: string;
   refreshToken?: string;
@@ -19,10 +21,21 @@ export interface LoginResponse {
 }
 
 export interface RegisterRequest {
-  userName: string;
+  firstName: string;
+  lastName?: string;
   userEmail: string;
   userPassword: string;
-  organizationName: string;
+  tenantName: string;
+}
+
+// Alias for RegisterRequest
+export type SignupData = RegisterRequest;
+
+// Generic auth response type
+export interface AuthResponse {
+  user: User;
+  token: string;
+  refreshToken?: string;
 }
 
 export interface AuthError {

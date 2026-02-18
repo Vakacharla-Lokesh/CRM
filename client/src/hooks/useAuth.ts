@@ -1,22 +1,24 @@
-import { useAppContext } from '../context';
+import { useAppContext } from "../context";
+import { type UserRole } from "../types";
 
 /**
  * Authentication Helper Hook
  * Provides authentication utilities and permission checking
- * 
+ *
  * @returns {Object} Auth utilities
  */
 export const useAuth = () => {
-  const { user, token, isAuthenticated, login, logout, signup } = useAppContext();
+  const { user, token, isAuthenticated, login, logout, signup } =
+    useAppContext();
 
   /**
    * Check if user has specific role
    * @param {string|Array} roles - Role or array of roles
    * @returns {boolean} Has role
    */
-  const hasRole = (roles) => {
+  const hasRole = (roles: UserRole | UserRole[]) => {
     if (!user) return false;
-    
+
     const roleArray = Array.isArray(roles) ? roles : [roles];
     return roleArray.includes(user.role);
   };
@@ -26,9 +28,10 @@ export const useAuth = () => {
    * @param {string} permission - Permission name
    * @returns {boolean} Has permission
    */
-  const hasPermission = (permission) => {
-    if (!user || !user.permissions) return false;
-    return user.permissions.includes(permission);
+  const hasPermission = (permission: string) => {
+    if (!user) return false;
+    const permissions = getUserPermissions(user.role);
+    return permissions[permission as keyof typeof permissions] === true;
   };
 
   /**
@@ -36,15 +39,7 @@ export const useAuth = () => {
    * @returns {boolean} Is admin
    */
   const isAdmin = () => {
-    return hasRole('admin');
-  };
-
-  /**
-   * Check if user is manager
-   * @returns {boolean} Is manager
-   */
-  const isManager = () => {
-    return hasRole(['admin', 'manager']);
+    return hasRole("admin");
   };
 
   /**
@@ -53,16 +48,14 @@ export const useAuth = () => {
    * @param {Object} resource - Resource object
    * @returns {boolean} Can perform action
    */
-  const can = (action, resource = null) => {
+  const can = (action: string, resource: { type?: string } | null = null) => {
     if (!user) return false;
 
     // Admins can do everything
     if (isAdmin()) return true;
 
     // Check specific permissions
-    const permissionKey = resource 
-      ? `${action}_${resource.type}` 
-      : action;
+    const permissionKey = resource ? `${action}_${resource.type}` : action;
 
     return hasPermission(permissionKey);
   };
@@ -72,9 +65,9 @@ export const useAuth = () => {
    * @param {Object} resource - Resource object
    * @returns {boolean} Owns resource
    */
-  const owns = (resource) => {
+  const owns = (resource: { userId?: string; ownerId?: string }) => {
     if (!user || !resource) return false;
-    return resource.userId === user.id || resource.ownerId === user.id;
+    return resource.userId === user._id || resource.ownerId === user._id;
   };
 
   return {
@@ -92,7 +85,6 @@ export const useAuth = () => {
     hasRole,
     hasPermission,
     isAdmin,
-    isManager,
     can,
     owns,
   };

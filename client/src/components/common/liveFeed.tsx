@@ -1,14 +1,31 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
+
+type ColorKey = "green" | "blue" | "purple" | "orange" | "teal" | "red";
+
+interface FeedEvent {
+  id: number;
+  type: string;
+  icon: string;
+  color: ColorKey;
+  message: string;
+  timestamp: Date;
+}
+
+interface EventType {
+  type: string;
+  icon: string;
+  color: ColorKey;
+}
 
 function LiveFeed() {
-  const [events, setEvents] = useState([]);
+  const [events, setEvents] = useState<FeedEvent[]>([]);
   const [isLiveMode, setIsLiveMode] = useState(true);
-  const feedRef = useRef(null);
+  const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Simulate real-time events
-    const generateEvent = () => {
-      const eventTypes = [
+    const generateEvent = (): FeedEvent => {
+      const eventTypes: EventType[] = [
         { type: "lead_created", icon: "➕", color: "green" },
         { type: "lead_opened", icon: "👁️", color: "blue" },
         { type: "email_sent", icon: "📧", color: "purple" },
@@ -59,7 +76,7 @@ function LiveFeed() {
     }
   }, [events, isLiveMode]);
 
-  const colorClasses = {
+  const colorClasses: Record<ColorKey, string> = {
     green:
       "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700",
     blue: "bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-700",
@@ -71,7 +88,7 @@ function LiveFeed() {
     red: "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-700",
   };
 
-  const textColorClasses = {
+  const textColorClasses: Record<ColorKey, string> = {
     green: "text-green-700 dark:text-green-400",
     blue: "text-blue-700 dark:text-blue-400",
     purple: "text-purple-700 dark:text-purple-400",

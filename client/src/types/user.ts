@@ -1,36 +1,34 @@
-/**
- * User Model Types
- */
-
 export interface User {
   _id: string;
-  userId: string; // custom ID for backward compatibility
-  userName: string;
+  userId?: string; // Alias for _id
+  firstName: string;
+  lastName?: string;
   userEmail: string;
-  userPhone?: string;
-  userRole: UserRole;
+  mobile?: string;
+  role: UserRole;
   tenantId: string;
-  organizationId: string;
-  isActive: boolean;
+  isActive?: boolean;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateUserDTO {
-  userName: string;
+  firstName: string;
+  lastName?: string;
   userEmail: string;
   userPassword: string;
-  userPhone?: string;
-  userRole?: UserRole;
-  organizationId: string;
+  mobile?: string;
+  role?: UserRole;
+  tenantId: string;
 }
 
 export interface UpdateUserDTO {
-  userName?: string;
+  firstName?: string;
+  lastName?: string;
   userEmail?: string;
-  userPhone?: string;
-  userRole?: UserRole;
+  mobile?: string;
+  role?: UserRole;
   isActive?: boolean;
 }
 
@@ -41,7 +39,20 @@ export interface UserListResponse {
   limit: number;
 }
 
-export type UserRole = "admin" | "user" | "viewer" | "manager";
+export interface UserFilters {
+  role?: string;
+  isActive?: boolean;
+  search?: string;
+}
+
+export interface UserStatistics {
+  total: number;
+  active: number;
+  inactive: number;
+  byRole: Record<string, number>;
+}
+
+export type UserRole = "user" | "admin" | "super_admin";
 
 export interface UserPermissions {
   canCreateLead: boolean;
@@ -56,7 +67,7 @@ export interface UserPermissions {
 
 export function getRolePermissions(role: UserRole): UserPermissions {
   const permissions: Record<UserRole, UserPermissions> = {
-    admin: {
+    super_admin: {
       canCreateLead: true,
       canEditLead: true,
       canDeleteLead: true,
@@ -66,12 +77,12 @@ export function getRolePermissions(role: UserRole): UserPermissions {
       canExportData: true,
       canAccessAnalytics: true,
     },
-    manager: {
+    admin: {
       canCreateLead: true,
       canEditLead: true,
-      canDeleteLead: false,
+      canDeleteLead: true,
       canViewAllLeads: true,
-      canManageUsers: false,
+      canManageUsers: true,
       canManageOrganization: false,
       canExportData: true,
       canAccessAnalytics: true,
@@ -81,16 +92,6 @@ export function getRolePermissions(role: UserRole): UserPermissions {
       canEditLead: true,
       canDeleteLead: false,
       canViewAllLeads: false,
-      canManageUsers: false,
-      canManageOrganization: false,
-      canExportData: false,
-      canAccessAnalytics: true,
-    },
-    viewer: {
-      canCreateLead: false,
-      canEditLead: false,
-      canDeleteLead: false,
-      canViewAllLeads: true,
       canManageUsers: false,
       canManageOrganization: false,
       canExportData: false,

@@ -1,4 +1,4 @@
-import React, { useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
 import RightPanel from "./rightpanel";
