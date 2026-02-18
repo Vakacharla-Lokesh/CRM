@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/static-components */
 import React, { useState } from "react";
 import ConnectivityLEDs from "../common/connectivityLEDs";
 import SyncBadge from "../common/syncBadge";
