@@ -10,7 +10,7 @@
  * @param {string} locale - Locale (default: en-US)
  * @returns {string} Formatted currency
  */
-export const formatCurrency = (amount, currency = 'USD', locale = 'en-US') => {
+export const formatCurrency = (amount: number | null | undefined, currency: string = 'USD', locale: string = 'en-US'): string => {
   if (amount === null || amount === undefined) return '-';
   
   try {
@@ -29,7 +29,7 @@ export const formatCurrency = (amount, currency = 'USD', locale = 'en-US') => {
  * @param {string} format - Format type (short, long, relative)
  * @returns {string} Formatted date
  */
-export const formatDate = (date, format = 'short') => {
+export const formatDate = (date: string | Date | null | undefined, format: 'short' | 'long' | 'relative' = 'short'): string => {
   if (!date) return '-';
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -40,7 +40,7 @@ export const formatDate = (date, format = 'short') => {
     return formatRelativeDate(dateObj);
   }
 
-  const options = format === 'long'
+  const options: Intl.DateTimeFormatOptions = format === 'long'
     ? { year: 'numeric', month: 'long', day: 'numeric' }
     : { year: 'numeric', month: 'short', day: 'numeric' };
 
@@ -52,7 +52,7 @@ export const formatDate = (date, format = 'short') => {
  * @param {string|Date} date - Date to format
  * @returns {string} Formatted date and time
  */
-export const formatDateTime = (date) => {
+export const formatDateTime = (date: string | Date | null | undefined): string => {
   if (!date) return '-';
   
   const dateObj = typeof date === 'string' ? new Date(date) : date;
@@ -73,9 +73,9 @@ export const formatDateTime = (date) => {
  * @param {Date} date - Date to format
  * @returns {string} Relative date
  */
-export const formatRelativeDate = (date) => {
+export const formatRelativeDate = (date: Date): string => {
   const now = new Date();
-  const diff = now - date;
+  const diff = now.getTime() - date.getTime();
   const seconds = Math.floor(diff / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);
@@ -96,7 +96,7 @@ export const formatRelativeDate = (date) => {
  * @param {string} phone - Phone number to format
  * @returns {string} Formatted phone number
  */
-export const formatPhone = (phone) => {
+export const formatPhone = (phone: string | null | undefined): string => {
   if (!phone) return '-';
   
   const digits = phone.replace(/\D/g, '');
@@ -118,7 +118,7 @@ export const formatPhone = (phone) => {
  * @param {number} decimals - Decimal places (default: 2)
  * @returns {string} Formatted file size
  */
-export const formatFileSize = (bytes, decimals = 2) => {
+export const formatFileSize = (bytes: number | null | undefined, decimals: number = 2): string => {
   if (bytes === 0) return '0 Bytes';
   if (!bytes) return '-';
 
@@ -135,7 +135,7 @@ export const formatFileSize = (bytes, decimals = 2) => {
  * @param {number} decimals - Decimal places (default: 2)
  * @returns {string} Formatted percentage
  */
-export const formatPercentage = (value, decimals = 2) => {
+export const formatPercentage = (value: number | null | undefined, decimals: number = 2): string => {
   if (value === null || value === undefined) return '-';
   return `${value.toFixed(decimals)}%`;
 };
@@ -145,7 +145,7 @@ export const formatPercentage = (value, decimals = 2) => {
  * @param {number} num - Number to format
  * @returns {string} Formatted number
  */
-export const formatNumber = (num) => {
+export const formatNumber = (num: number | null | undefined): string => {
   if (num === null || num === undefined) return '-';
   return num.toLocaleString('en-US');
 };
@@ -157,7 +157,7 @@ export const formatNumber = (num) => {
  * @param {string} suffix - Suffix to add (default: ...)
  * @returns {string} Truncated text
  */
-export const truncateText = (text, maxLength, suffix = '...') => {
+export const truncateText = (text: string | null | undefined, maxLength: number, suffix: string = '...'): string => {
   if (!text) return '';
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength - suffix.length) + suffix;
@@ -168,7 +168,7 @@ export const truncateText = (text, maxLength, suffix = '...') => {
  * @param {string} text - Text to capitalize
  * @returns {string} Capitalized text
  */
-export const capitalize = (text) => {
+export const capitalize = (text: string | null | undefined): string => {
   if (!text) return '';
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
 };
@@ -178,7 +178,7 @@ export const capitalize = (text) => {
  * @param {string} text - Text to convert
  * @returns {string} Title case text
  */
-export const titleCase = (text) => {
+export const titleCase = (text: string | null | undefined): string => {
   if (!text) return '';
   return text
     .toLowerCase()
@@ -192,7 +192,7 @@ export const titleCase = (text) => {
  * @param {string} name - Full name
  * @returns {string} Initials
  */
-export const formatInitials = (name) => {
+export const formatInitials = (name: string | null | undefined): string => {
   if (!name) return '';
   
   const parts = name.trim().split(' ');
@@ -206,14 +206,14 @@ export const formatInitials = (name) => {
  * @param {number} seconds - Duration in seconds
  * @returns {string} Formatted duration
  */
-export const formatDuration = (seconds) => {
+export const formatDuration = (seconds: number | null | undefined): string => {
   if (!seconds) return '0s';
   
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const secs = seconds % 60;
   
-  const parts = [];
+  const parts: string[] = [];
   if (hours > 0) parts.push(`${hours}h`);
   if (minutes > 0) parts.push(`${minutes}m`);
   if (secs > 0 || parts.length === 0) parts.push(`${secs}s`);

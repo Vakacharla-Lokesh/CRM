@@ -1,20 +1,47 @@
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { authService } from '../services';
-import { getFromLocalStorage, saveToLocalStorage, removeFromLocalStorage } from '../hooks/useLocalStorage';
+/* eslint-disable react-refresh/only-export-components */
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  type ReactNode,
+} from "react";
+import { authService } from "../services";
+import {
+  getFromLocalStorage,
+  saveToLocalStorage,
+  removeFromLocalStorage,
+} from "../hooks/useLocalStorage";
+import type { User, SignupData, AuthResponse } from "../types";
 
 /**
  * Application Context
  * Manages global state including authentication, user data, and online/offline status
  */
-const AppContext = createContext(null);
+
+interface AppContextType {
+  user: User | null;
+  token: string | null;
+  isAuthenticated: boolean;
+  isOnline: boolean;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<AuthResponse>;
+  signup: (userData: SignupData) => Promise<AuthResponse>;
+  logout: () => Promise<void>;
+  updateUser: (updatedUser: User) => void;
+  refreshToken: () => Promise<string>;
+}
+
+const AppContext = createContext<AppContextType | null>(null);
 
 /**
  * AppProvider Component
  * Wraps the application to provide global state management
  */
-export const AppProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+export const AppProvider = ({ children }: { children: ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(true);
@@ -23,10 +50,30 @@ export const AppProvider = ({ children }) => {
    * Initialize auth state from localStorage on mount
    */
   useEffect(() => {
+    const logout = async () => {
+      try {
+        // Call logout API if authenticated
+        if (isAuthenticated) {
+          await authService.logout();
+        }
+      } catch (error) {
+        console.error("Logout API call failed:", error);
+      } finally {
+        // Clear state
+        setUser(null);
+        setToken(null);
+        setIsAuthenticated(false);
+
+        // Clear localStorage
+        removeFromLocalStorage("auth_token");
+        removeFromLocalStorage("user_data");
+      }
+    };
+
     const initAuth = async () => {
       try {
-        const storedToken = getFromLocalStorage('auth_token');
-        const storedUser = getFromLocalStorage('user_data');
+        const storedToken = getFromLocalStorage("auth_token");
+        const storedUser = getFromLocalStorage("user_data");
 
         if (storedToken && storedUser) {
           setToken(storedToken);
@@ -41,19 +88,19 @@ export const AppProvider = ({ children }) => {
               await logout();
             }
           } catch (error) {
-            console.error('Token verification failed:', error);
+            console.error("Token verification failed:", error);
             await logout();
           }
         }
       } catch (error) {
-        console.error('Auth initialization failed:', error);
+        console.error("Auth initialization failed:", error);
       } finally {
         setLoading(false);
       }
     };
 
     initAuth();
-  }, []);
+  }, [isAuthenticated]);
 
   /**
    * Listen for online/offline events
@@ -62,12 +109,12 @@ export const AppProvider = ({ children }) => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
 
     return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
     };
   }, []);
 
@@ -77,7 +124,7 @@ export const AppProvider = ({ children }) => {
    * @param {string} password - User password
    * @returns {Promise<Object>} User data and token
    */
-  const login = useCallback(async (email, password) => {
+  const login = useCallback(async (email: string, password: string) => {
     try {
       const response = await authService.login({ email, password });
       const { user: userData, token: authToken } = response;
@@ -88,12 +135,12 @@ export const AppProvider = ({ children }) => {
       setIsAuthenticated(true);
 
       // Persist to localStorage
-      saveToLocalStorage('auth_token', authToken);
-      saveToLocalStorage('user_data', userData);
+      saveToLocalStorage("auth_token", authToken);
+      saveToLocalStorage("user_data", userData);
 
       return response;
     } catch (error) {
-      console.error('Login failed:', error);
+      console.error("Login failed:", error);
       throw error;
     }
   }, []);
@@ -103,7 +150,7 @@ export const AppProvider = ({ children }) => {
    * @param {Object} userData - User registration data
    * @returns {Promise<Object>} User data and token
    */
-  const signup = useCallback(async (userData) => {
+  const signup = useCallback(async (userData: SignupData) => {
     try {
       const response = await authService.signup(userData);
       const { user: newUser, token: authToken } = response;
@@ -114,12 +161,12 @@ export const AppProvider = ({ children }) => {
       setIsAuthenticated(true);
 
       // Persist to localStorage
-      saveToLocalStorage('auth_token', authToken);
-      saveToLocalStorage('user_data', newUser);
+      saveToLocalStorage("auth_token", authToken);
+      saveToLocalStorage("user_data", newUser);
 
       return response;
     } catch (error) {
-      console.error('Signup failed:', error);
+      console.error("Signup failed:", error);
       throw error;
     }
   }, []);
@@ -134,7 +181,7 @@ export const AppProvider = ({ children }) => {
         await authService.logout();
       }
     } catch (error) {
-      console.error('Logout API call failed:', error);
+      console.error("Logout API call failed:", error);
     } finally {
       // Clear state
       setUser(null);
@@ -142,8 +189,8 @@ export const AppProvider = ({ children }) => {
       setIsAuthenticated(false);
 
       // Clear localStorage
-      removeFromLocalStorage('auth_token');
-      removeFromLocalStorage('user_data');
+      removeFromLocalStorage("auth_token");
+      removeFromLocalStorage("user_data");
     }
   }, [isAuthenticated]);
 
@@ -151,9 +198,9 @@ export const AppProvider = ({ children }) => {
    * Update user data
    * @param {Object} updatedUser - Updated user data
    */
-  const updateUser = useCallback((updatedUser) => {
+  const updateUser = useCallback((updatedUser: User) => {
     setUser(updatedUser);
-    saveToLocalStorage('user_data', updatedUser);
+    saveToLocalStorage("user_data", updatedUser);
   }, []);
 
   /**
@@ -165,11 +212,11 @@ export const AppProvider = ({ children }) => {
       const { token: newToken } = response;
 
       setToken(newToken);
-      saveToLocalStorage('auth_token', newToken);
+      saveToLocalStorage("auth_token", newToken);
 
       return newToken;
     } catch (error) {
-      console.error('Token refresh failed:', error);
+      console.error("Token refresh failed:", error);
       await logout();
       throw error;
     }
@@ -202,7 +249,7 @@ export const AppProvider = ({ children }) => {
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within AppProvider');
+    throw new Error("useAppContext must be used within AppProvider");
   }
   return context;
 };

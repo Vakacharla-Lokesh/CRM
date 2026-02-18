@@ -101,7 +101,7 @@ function DashboardPage() {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Campaign Performance
           </h2>
-          <div className="h-64 flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
+          <div className="h-64 flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
             <div className="text-center">
               <p className="text-gray-600 dark:text-gray-400 mb-2">
                 Chart Component

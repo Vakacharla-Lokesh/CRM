@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { userService } from '../services';
 import { useAsync } from './useAsync';
 import { useIndexedDB } from './useIndexedDB';
+import type { User, UserStatistics, UserFilters } from '../types';
 
 /**
  * User Data Management Hook
@@ -10,15 +11,15 @@ import { useIndexedDB } from './useIndexedDB';
  * @returns {Object} User data and operations
  */
 export const useUserData = () => {
-  const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
-  const [statistics, setStatistics] = useState({
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [statistics, setStatistics] = useState<UserStatistics>({
     total: 0,
     byRole: {},
     active: 0,
     inactive: 0,
   });
-  const [filters, setFilters] = useState({
+  const [filters, setFilters] = useState<UserFilters>({
     role: '',
     status: '',
     search: '',
@@ -50,7 +51,7 @@ export const useUserData = () => {
    * Fetch single user by ID
    * @param {string} id - User ID
    */
-  const fetchUserById = useCallback(async (id) => {
+  const fetchUserById = useCallback(async (id: string) => {
     return executeAsync(async () => {
       const user = await userService.getUserById(id);
       return user;
@@ -71,7 +72,7 @@ export const useUserData = () => {
    * Create new user
    * @param {Object} userData - User data
    */
-  const createUser = useCallback(async (userData) => {
+  const createUser = useCallback(async (userData: Partial<User>) => {
     return executeAsync(async () => {
       const newUser = await userService.createUser(userData);
       setUsers(prev => [...prev, newUser]);
@@ -86,7 +87,7 @@ export const useUserData = () => {
    * @param {string} id - User ID
    * @param {Object} updates - Updated data
    */
-  const updateUser = useCallback(async (id, updates) => {
+  const updateUser = useCallback(async (id: string, updates: Partial<User>) => {
     return executeAsync(async () => {
       const updated = await userService.updateUser(id, updates);
       setUsers(prev => prev.map(user => user.id === id ? updated : user));
@@ -100,7 +101,7 @@ export const useUserData = () => {
    * Delete user
    * @param {string} id - User ID
    */
-  const deleteUser = useCallback(async (id) => {
+  const deleteUser = useCallback(async (id: string) => {
     return executeAsync(async () => {
       await userService.deleteUser(id);
       setUsers(prev => prev.filter(user => user.id !== id));
@@ -113,7 +114,7 @@ export const useUserData = () => {
    * Search users
    * @param {string} query - Search query
    */
-  const searchUsers = useCallback(async (query) => {
+  const searchUsers = useCallback(async (query: string) => {
     return executeAsync(async () => {
       const results = await userService.searchUsers(query);
       setFilteredUsers(results);
@@ -125,7 +126,7 @@ export const useUserData = () => {
    * Get users by role
    * @param {string} role - User role
    */
-  const getUsersByRole = useCallback(async (role) => {
+  const getUsersByRole = useCallback(async (role: string) => {
     return executeAsync(async () => {
       const results = await userService.getUsersByRole(role);
       return results;
@@ -138,7 +139,7 @@ export const useUserData = () => {
    * @param {string} oldPassword - Old password
    * @param {string} newPassword - New password
    */
-  const updatePassword = useCallback(async (id, oldPassword, newPassword) => {
+  const updatePassword = useCallback(async (id: string, oldPassword: string, newPassword: string) => {
     return executeAsync(async () => {
       await userService.updatePassword(id, { oldPassword, newPassword });
     });
@@ -149,7 +150,7 @@ export const useUserData = () => {
    * @param {string} id - User ID
    * @param {string} role - New role
    */
-  const updateUserRole = useCallback(async (id, role) => {
+  const updateUserRole = useCallback(async (id: string, role: string) => {
     return executeAsync(async () => {
       const updated = await userService.updateRole(id, role);
       setUsers(prev => prev.map(user => user.id === id ? updated : user));
@@ -163,7 +164,7 @@ export const useUserData = () => {
    * Activate user
    * @param {string} id - User ID
    */
-  const activateUser = useCallback(async (id) => {
+  const activateUser = useCallback(async (id: string) => {
     return executeAsync(async () => {
       const updated = await userService.activateUser(id);
       setUsers(prev => prev.map(user => user.id === id ? updated : user));
@@ -177,7 +178,7 @@ export const useUserData = () => {
    * Deactivate user
    * @param {string} id - User ID
    */
-  const deactivateUser = useCallback(async (id) => {
+  const deactivateUser = useCallback(async (id: string) => {
     return executeAsync(async () => {
       const updated = await userService.deactivateUser(id);
       setUsers(prev => prev.map(user => user.id === id ? updated : user));
@@ -219,8 +220,8 @@ export const useUserData = () => {
    * Calculate statistics from users
    * @param {Array} usersData - Array of users
    */
-  const calculateStatistics = (usersData) => {
-    const stats = {
+  const calculateStatistics = (usersData: User[]) => {
+    const stats: UserStatistics = {
       total: usersData.length,
       byRole: {},
       active: 0,
@@ -246,7 +247,7 @@ export const useUserData = () => {
    * Update filters
    * @param {Object} newFilters - Filter updates
    */
-  const updateFilters = useCallback((newFilters) => {
+  const updateFilters = useCallback((newFilters: Partial<UserFilters>) => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   }, []);
 
@@ -273,9 +274,9 @@ export const useUserData = () => {
     const loadFromCache = async () => {
       const cached = await getAll();
       if (cached && cached.length > 0) {
-        setUsers(cached);
-        setFilteredUsers(cached);
-        calculateStatistics(cached);
+        setUsers(cached as User[]);
+        setFilteredUsers(cached as User[]);
+        calculateStatistics(cached as User[]);
       }
     };
     loadFromCache();

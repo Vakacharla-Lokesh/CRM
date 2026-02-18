@@ -1,9 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, type ReactNode } from "react";
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
 import RightPanel from "./rightpanel";
 
-function Layout({ children }) {
+interface LayoutProps {
+  children: ReactNode;
+  isDarkMode?: boolean;
+  onToggleDarkMode?: () => void;
+}
+
+function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(true);
 
