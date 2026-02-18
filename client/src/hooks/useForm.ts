@@ -248,7 +248,7 @@ export const useForm = <TValues extends Record<string, any>>(
    * Get field meta information
    */
   const getFieldMeta = useCallback(
-    (name: keyof TValues): FormFieldMeta<TValues> => {
+    (name: keyof TValues): FormFieldMeta => {
       return {
         error: errors[name],
         touched: touched[name],

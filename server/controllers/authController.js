@@ -1,10 +1,11 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import userModel from "../models/userModel.js";
+import tenantModel from "../models/tenantModel.js";
 
 export const register = async (req, res, next) => {
   try {
-    const { password, ...userData } = req.body;
+    const { password, tenantName, ...userData } = req.body;
 
     // Build the query to check for existing user
     const existingUserQuery = { $or: [{ userEmail: userData.userEmail }] };
@@ -20,10 +21,29 @@ export const register = async (req, res, next) => {
       });
     }
 
+    // Create tenant if tenantName is provided and no tenantId exists
+    let tenantId = userData.tenantId;
+    if (tenantName && !tenantId) {
+      const tenant = await tenantModel.create({
+        tenantName,
+        email: userData.userEmail,
+        mobile: userData.mobile || "0000000000", // Provide default if not present
+      });
+      tenantId = tenant._id;
+    }
+
+    // Ensure tenantId exists
+    if (!tenantId) {
+      return res.status(400).json({
+        message: "Tenant information is required for registration",
+      });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await userModel.create({
       ...userData,
+      tenantId,
       password: hashedPassword,
     });
 

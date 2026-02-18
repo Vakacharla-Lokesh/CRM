@@ -50,26 +50,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    * Initialize auth state from localStorage on mount
    */
   useEffect(() => {
-    const logout = async () => {
-      try {
-        // Call logout API if authenticated
-        if (isAuthenticated) {
-          await authService.logout();
-        }
-      } catch (error) {
-        console.error("Logout API call failed:", error);
-      } finally {
-        // Clear state
-        setUser(null);
-        setToken(null);
-        setIsAuthenticated(false);
-
-        // Clear localStorage
-        removeFromLocalStorage("auth_token");
-        removeFromLocalStorage("user_data");
-      }
-    };
-
     const initAuth = async () => {
       try {
         const storedToken = getFromLocalStorage<string>("auth_token");
@@ -80,17 +60,25 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setUser(storedUser);
           setIsAuthenticated(true);
 
-          // Verify token is still valid
+          // Optional: Verify token is still valid
+          // Uncomment this when you have a working /auth/status endpoint
+          /*
           try {
             const status = await authService.getStatus();
             if (!status.valid) {
               // Token expired, clear auth
-              await logout();
+              setUser(null);
+              setToken(null);
+              setIsAuthenticated(false);
+              removeFromLocalStorage("auth_token");
+              removeFromLocalStorage("user_data");
             }
           } catch (error) {
             console.error("Token verification failed:", error);
-            await logout();
+            // Don't logout on verification failure - let the user stay logged in
+            // The API calls will fail with 401 if token is invalid
           }
+          */
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
@@ -100,7 +88,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initAuth();
-  }, [isAuthenticated]);
+  }, []); // Empty dependency array - only run once on mount
 
   /**
    * Listen for online/offline events
@@ -176,10 +164,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
    */
   const logout = useCallback(async () => {
     try {
-      // Call logout API if authenticated
-      if (isAuthenticated) {
-        await authService.logout();
-      }
+      // Call logout API to invalidate token on server
+      await authService.logout();
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
@@ -192,7 +178,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       removeFromLocalStorage("auth_token");
       removeFromLocalStorage("user_data");
     }
-  }, [isAuthenticated]);
+  }, []); // No dependencies needed
 
   /**
    * Update user data

@@ -6,7 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import Layout from "./components/layout/layout";
-import { AppProvider } from "./context";
+import { AppProvider, useAppContext } from "./context";
 
 // Page imports
 import LoginPage from "./components/pages/loginPage";
@@ -16,8 +16,8 @@ import UsersPage from "./components/pages/usersPage";
 
 import "./app.css";
 
-function App() {
-  const [isAuthenticated] = useState(false);
+function AppRoutes() {
+  const { isAuthenticated, loading } = useAppContext();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     // Check localStorage for dark mode preference
     const saved = localStorage.getItem("darkMode");
@@ -43,64 +43,86 @@ function App() {
     setIsDarkMode(!isDarkMode);
   };
 
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <Router>
+      <Routes>
+        {/* Auth Routes - without sidebar/navbar */}
+        <Route
+          path="/login"
+          element={!isAuthenticated ? <LoginPage /> : <Navigate to="/home" replace />}
+        />
+        <Route
+          path="/signup"
+          element={!isAuthenticated ? <SignupPage /> : <Navigate to="/home" replace />}
+        />
+
+        {/* Protected Routes - with Layout */}
+        {isAuthenticated ? (
+          <Route
+            path="/*"
+            element={
+              <Layout
+                isDarkMode={isDarkMode}
+                onToggleDarkMode={toggleDarkMode}
+              >
+                <Routes>
+                  <Route
+                    path="/home"
+                    element={<DashboardPage />}
+                  />
+                  <Route
+                    path="/"
+                    element={<Navigate to="/home" replace />}
+                  />
+                  <Route
+                    path="/users"
+                    element={<UsersPage />}
+                  />
+                  <Route
+                    path="*"
+                    element={
+                      <Navigate
+                        to="/home"
+                        replace
+                      />
+                    }
+                  />
+                </Routes>
+              </Layout>
+            }
+          />
+        ) : (
+          <Route
+            path="*"
+            element={
+              <Navigate
+                to="/login"
+                replace
+              />
+            }
+          />
+        )}
+      </Routes>
+    </Router>
+  );
+}
+
+function App() {
   return (
     <AppProvider>
-      <Router>
-        <Routes>
-          {/* Auth Routes - without sidebar/navbar */}
-          <Route
-            path="/login"
-            element={<LoginPage />}
-          />
-          <Route
-            path="/signup"
-            element={<SignupPage />}
-          />
-
-          {/* Protected Routes - with Layout */}
-          {isAuthenticated ? (
-            <Route
-              path="/*"
-              element={
-                <Layout
-                  isDarkMode={isDarkMode}
-                  onToggleDarkMode={toggleDarkMode}
-                >
-                  <Routes>
-                    <Route
-                      path="/"
-                      element={<DashboardPage />}
-                    />
-                    <Route
-                      path="/users"
-                      element={<UsersPage />}
-                    />
-                    <Route
-                      path="*"
-                      element={
-                        <Navigate
-                          to="/"
-                          replace
-                        />
-                      }
-                    />
-                  </Routes>
-                </Layout>
-              }
-            />
-          ) : (
-            <Route
-              path="/"
-              element={
-                <Navigate
-                  to="/login"
-                  replace
-                />
-              }
-            />
-          )}
-        </Routes>
-      </Router>
+      <AppRoutes />
     </AppProvider>
   );
 }
