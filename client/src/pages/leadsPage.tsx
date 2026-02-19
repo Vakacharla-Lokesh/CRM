@@ -1,35 +1,40 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/leads/lead-columns";
-import type { Lead, CreateLeadDTO } from "@/types";
+import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
+import { Input } from "../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { LeadModal } from "@/components/modals";
-import { leadService } from "@/services";
+import { useLeadData } from "@/hooks";
 
 const LeadsPage = () => {
-  const [leads, setLeads] = useState<Lead[]>([]);
+  const {
+    filteredLeads,
+    statistics,
+    loading,
+    error,
+    filters,
+    fetchLeads,
+    createLead,
+    updateFilter,
+    resetFilters,
+  } = useLeadData();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // Fetch leads on mount
   useEffect(() => {
-    async function fetchLeads() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const res = await leadService.getAllLeads();
-        setLeads(res);
-      } catch (err) {
-        console.error("Error fetching leads:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch leads");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddLead = () => {
@@ -39,8 +44,7 @@ const LeadsPage = () => {
 
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
     try {
-      const newLead = await leadService.createLead(leadData);
-      setLeads((prev) => [newLead, ...prev]);
+      await createLead(leadData);
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error creating lead:", error);
@@ -79,7 +83,119 @@ const LeadsPage = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Leads
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {statistics.total}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">New</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+            {statistics.byStatus["New"] || 0}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Follow-Up</p>
+          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">
+            {statistics.byStatus["Follow-Up"] || 0}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Conversion Rate
+          </p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+            {statistics.conversionRate}%
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search leads..."
+                value={filters.search}
+                onChange={(e) => updateFilter("search", e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Status
+            </label>
+            <Select
+              value={filters.status || "all"}
+              onValueChange={(value) =>
+                updateFilter("status", value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All statuses" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                <SelectItem value="New">New</SelectItem>
+                <SelectItem value="Follow-Up">Follow-Up</SelectItem>
+                <SelectItem value="Converted">Converted</SelectItem>
+                <SelectItem value="Dead">Dead</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Source
+            </label>
+            <Select
+              value={filters.source || "all"}
+              onValueChange={(value) =>
+                updateFilter("source", value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All sources" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sources</SelectItem>
+                <SelectItem value="API">API</SelectItem>
+                <SelectItem value="Website">Website</SelectItem>
+                <SelectItem value="Phone">Phone</SelectItem>
+                <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
+                <SelectItem value="Google Ads">Google Ads</SelectItem>
+                <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                <SelectItem value="Referral">Referral</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2 flex items-end">
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="w-full"
+            >
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -94,10 +210,10 @@ const LeadsPage = () => {
               Failed to load leads
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {error}
+              {error?.message || "An error occurred"}
             </p>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={fetchLeads}
               variant="outline"
             >
               Retry
@@ -107,7 +223,7 @@ const LeadsPage = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={leads}
+          data={filteredLeads}
           name="Leads"
         />
       )}

@@ -51,7 +51,7 @@ export const useLeadData = () => {
     loading,
     error,
   } = useAsync<Lead | Lead[] | void>();
-  const { addItem, updateItem, deleteItem } = useIndexedDB("leads");
+  const { updateItem, deleteItem } = useIndexedDB("leads");
 
   /**
    * Calculate statistics from leads
@@ -145,14 +145,19 @@ export const useLeadData = () => {
       setFilteredLeads(data);
       calculateStatistics(data);
 
-      // Persist to IndexedDB
+      // Persist to IndexedDB (use updateItem to upsert)
       for (const lead of data) {
-        await addItem({ ...lead, id: lead._id });
+        try {
+          await updateItem(lead._id, { ...lead, id: lead._id });
+        } catch (error) {
+          // Ignore errors for IndexedDB persistence
+          console.warn('Failed to persist lead to IndexedDB:', error);
+        }
       }
 
       return data;
     });
-  }, [executeAsync, addItem, calculateStatistics]);
+  }, [executeAsync, updateItem, calculateStatistics]);
 
   /**
    * Fetch single lead by ID
@@ -175,12 +180,16 @@ export const useLeadData = () => {
       return executeAsync(async () => {
         const newLead = await leadService.createLead(leadData);
         setLeads((prev) => [...prev, newLead]);
-        await addItem({ ...newLead, id: newLead._id });
+        try {
+          await updateItem(newLead._id, { ...newLead, id: newLead._id });
+        } catch (error) {
+          console.warn('Failed to persist lead to IndexedDB:', error);
+        }
         await fetchLeads(); // Refresh to recalculate stats
         return newLead;
       });
     },
-    [executeAsync, addItem, fetchLeads],
+    [executeAsync, updateItem, fetchLeads],
   );
 
   /**
@@ -299,6 +308,7 @@ export const useLeadData = () => {
 
   // Apply filters when leads or filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 
