@@ -295,7 +295,9 @@ export const useOrganizationData = () => {
     async (ids: string[]) => {
       return executeAsync(async () => {
         await organizationService.bulkDeleteOrganizations(ids);
-        setOrganizations((prev) => prev.filter((org) => !ids.includes(org._id)));
+        setOrganizations((prev) =>
+          prev.filter((org) => !ids.includes(org._id)),
+        );
         for (const id of ids) {
           await deleteItem(id);
         }

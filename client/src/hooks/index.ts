@@ -9,3 +9,5 @@ export { useLocalStorage, getFromLocalStorage, saveToLocalStorage, removeFromLoc
 export { useOfflineManager } from './useOfflineManager.ts';
 export { useOrganizationData } from './useOrganizationData.ts';
 export { useUserData } from './useUserData.ts';
+export { default as useDealData } from './useDealData.ts';
+export { default as useTenantData } from './useTenantData.ts';
