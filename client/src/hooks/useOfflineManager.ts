@@ -18,19 +18,10 @@ interface QueueStats {
   failed: number;
 }
 
-/**
- * Generate idempotency key for request
- */
 const generateIdempotencyKey = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 };
 
-/**
- * Offline Manager Hook
- * Manages offline requests queue and syncing
- *
- * @returns Offline manager utilities
- */
 export const useOfflineManager = () => {
   const [queue, setQueue] = useState<OfflineRequest[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -39,9 +30,6 @@ export const useOfflineManager = () => {
   );
   const queueRef = useRef<Map<string, OfflineRequest>>(new Map());
 
-  /**
-   * Add request to offline queue
-   */
   const addToQueue = useCallback(
     (
       url: string,
@@ -71,17 +59,11 @@ export const useOfflineManager = () => {
     [],
   );
 
-  /**
-   * Remove request from queue
-   */
   const removeFromQueue = useCallback((requestId: string) => {
     queueRef.current.delete(requestId);
     setQueue(Array.from(queueRef.current.values()));
   }, []);
 
-  /**
-   * Retry failed request
-   */
   const retryRequest = useCallback((requestId: string) => {
     const request = queueRef.current.get(requestId);
     if (request) {
@@ -91,17 +73,11 @@ export const useOfflineManager = () => {
     }
   }, []);
 
-  /**
-   * Clear entire queue
-   */
   const clearQueue = useCallback(() => {
     queueRef.current.clear();
     setQueue([]);
   }, []);
 
-  /**
-   * Sync offline requests
-   */
   const syncQueue = useCallback(async (): Promise<void> => {
     if (!isOnline || isSyncing || queue.length === 0) {
       return;
@@ -130,16 +106,13 @@ export const useOfflineManager = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Request succeeded, remove from queue
         removeFromQueue(request.id);
       } catch (error) {
         console.error(`Failed to sync request ${request.id}:`, error);
 
-        // Check if we should retry
         if (request.retries < request.maxRetries) {
           retryRequest(request.id);
         } else {
-          // Max retries exceeded, add to failed list
           failedRequests.push(request);
         }
       }
@@ -147,7 +120,6 @@ export const useOfflineManager = () => {
 
     setIsSyncing(false);
 
-    // Dispatch event for failed requests
     if (failedRequests.length > 0) {
       const event = new CustomEvent("offlineSync", {
         detail: {
@@ -159,9 +131,6 @@ export const useOfflineManager = () => {
     }
   }, [queue, isOnline, isSyncing, removeFromQueue, retryRequest]);
 
-  /**
-   * Get queue statistics
-   */
   const getStats = useCallback((): QueueStats => {
     const failed = queue.filter((r) => r.retries >= r.maxRetries).length;
     return {
@@ -171,13 +140,9 @@ export const useOfflineManager = () => {
     };
   }, [queue]);
 
-  /**
-   * Monitor online/offline status
-   */
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Auto-sync when coming back online
       syncQueue().catch((err) => {
         console.error("Error syncing queue:", err);
       });
@@ -196,9 +161,6 @@ export const useOfflineManager = () => {
     };
   }, [syncQueue]);
 
-  /**
-   * Periodically sync queue if online
-   */
   useEffect(() => {
     if (!isOnline || queue.length === 0) return;
 
@@ -206,7 +168,7 @@ export const useOfflineManager = () => {
       syncQueue().catch((err) => {
         console.error("Error syncing queue:", err);
       });
-    }, 30000); // Sync every 30 seconds
+    }, 30000);
 
     return () => clearInterval(interval);
   }, [isOnline, queue.length, syncQueue]);

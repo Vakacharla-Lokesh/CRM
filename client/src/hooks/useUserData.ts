@@ -17,12 +17,6 @@ interface UserFilters {
   search: string;
 }
 
-/**
- * User Data Management Hook
- * Handles all user-related operations including CRUD, filtering, and statistics
- *
- * @returns User data and operations
- */
 export const useUserData = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
@@ -45,9 +39,6 @@ export const useUserData = () => {
   } = useAsync<User | User[] | void>();
   const { addItem, updateItem, deleteItem } = useIndexedDB("users");
 
-  /**
-   * Calculate statistics from users
-   */
   const calculateStatistics = useCallback((usersData: User[]) => {
     const stats: UserStatistics = {
       total: usersData.length,
@@ -57,10 +48,8 @@ export const useUserData = () => {
     };
 
     usersData.forEach((user) => {
-      // Count by role
       stats.byRole[user.role] = (stats.byRole[user.role] ?? 0) + 1;
 
-      // Count active/inactive
       if (user.isActive !== false) {
         stats.active += 1;
       } else {
@@ -71,18 +60,13 @@ export const useUserData = () => {
     setStatistics(stats);
   }, []);
 
-  /**
-   * Apply filters to users
-   */
   const applyFilters = useCallback(() => {
     let filtered = [...users];
 
-    // Filter by role
     if (filters.role) {
       filtered = filtered.filter((user) => user.role === filters.role);
     }
 
-    // Filter by status
     if (filters.status) {
       if (filters.status === "active") {
         filtered = filtered.filter((user) => user.isActive !== false);
@@ -91,7 +75,6 @@ export const useUserData = () => {
       }
     }
 
-    // Filter by search
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(
@@ -105,9 +88,6 @@ export const useUserData = () => {
     setFilteredUsers(filtered);
   }, [users, filters]);
 
-  /**
-   * Fetch all users from API
-   */
   const fetchUsers = useCallback(async () => {
     return executeAsync(async () => {
       const data = await userService.getAllUsers();
@@ -115,7 +95,6 @@ export const useUserData = () => {
       setFilteredUsers(data);
       calculateStatistics(data);
 
-      // Persist to IndexedDB
       for (const user of data) {
         await addItem({ ...user, id: user._id });
       }
@@ -124,9 +103,6 @@ export const useUserData = () => {
     });
   }, [executeAsync, addItem, calculateStatistics]);
 
-  /**
-   * Fetch single user by ID
-   */
   const fetchUserById = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
@@ -137,9 +113,6 @@ export const useUserData = () => {
     [executeAsync],
   );
 
-  /**
-   * Fetch current user
-   */
   const fetchCurrentUser = useCallback(async () => {
     return executeAsync(async () => {
       const user = await userService.getCurrentUser();
@@ -147,25 +120,19 @@ export const useUserData = () => {
     });
   }, [executeAsync]);
 
-  /**
-   * Create new user
-   */
   const createUser = useCallback(
     async (userData: Partial<User>) => {
       return executeAsync(async () => {
         const newUser = await userService.createUser(userData);
         setUsers((prev) => [...prev, newUser]);
         await addItem({ ...newUser, id: newUser._id });
-        await fetchUsers(); // Refresh to recalculate stats
+        await fetchUsers();
         return newUser;
       });
     },
     [executeAsync, addItem, fetchUsers],
   );
 
-  /**
-   * Update existing user
-   */
   const updateUser = useCallback(
     async (id: string, updates: Partial<User>) => {
       return executeAsync(async () => {
@@ -174,31 +141,25 @@ export const useUserData = () => {
           prev.map((user) => (user._id === id ? updated : user)),
         );
         await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers(); // Refresh to recalculate stats
+        await fetchUsers();
         return updated;
       });
     },
     [executeAsync, updateItem, fetchUsers],
   );
 
-  /**
-   * Delete user
-   */
   const deleteUser = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
         await userService.deleteUser(id);
         setUsers((prev) => prev.filter((user) => user._id !== id));
         await deleteItem(id);
-        await fetchUsers(); // Refresh to recalculate stats
+        await fetchUsers();
       });
     },
     [executeAsync, deleteItem, fetchUsers],
   );
 
-  /**
-   * Search users
-   */
   const searchUsers = useCallback(
     async (query: string) => {
       return executeAsync(async () => {
@@ -209,9 +170,6 @@ export const useUserData = () => {
     [executeAsync],
   );
 
-  /**
-   * Get users by role
-   */
   const getUsersByRole = useCallback(
     async (role: UserRole) => {
       return executeAsync(async () => {
@@ -222,9 +180,6 @@ export const useUserData = () => {
     [executeAsync],
   );
 
-  /**
-   * Update user password
-   */
   const updatePassword = useCallback(
     async (id: string, oldPassword: string, newPassword: string) => {
       return executeAsync(async () => {
@@ -234,9 +189,6 @@ export const useUserData = () => {
     [executeAsync],
   );
 
-  /**
-   * Update user role
-   */
   const updateUserRole = useCallback(
     async (id: string, role: UserRole) => {
       return executeAsync(async () => {
@@ -245,16 +197,13 @@ export const useUserData = () => {
           prev.map((user) => (user._id === id ? updated : user)),
         );
         await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers(); // Refresh to recalculate stats
+        await fetchUsers();
         return updated;
       });
     },
     [executeAsync, updateItem, fetchUsers],
   );
 
-  /**
-   * Update filter
-   */
   const updateFilter = useCallback((key: keyof UserFilters, value: unknown) => {
     setFilters((prev) => ({
       ...prev,
@@ -262,9 +211,6 @@ export const useUserData = () => {
     }));
   }, []);
 
-  /**
-   * Reset filters
-   */
   const resetFilters = useCallback(() => {
     setFilters({
       role: "",
@@ -274,7 +220,6 @@ export const useUserData = () => {
     setFilteredUsers(users);
   }, [users]);
 
-  // Apply filters when users or filters change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();

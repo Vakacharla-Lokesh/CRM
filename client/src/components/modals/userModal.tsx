@@ -23,16 +23,6 @@ interface UserModalProps {
   onSave: (userData: UserFormData) => void;
 }
 
-/**
- * UserModal Component
- * Location: src/components/Modals/UserModal.jsx
- * Purpose: Modal form for adding and editing users
- * Props:
- * - isOpen: boolean to control modal visibility
- * - user: user object to edit (null for new user)
- * - onClose: callback when modal closes
- * - onSave: callback when form is submitted
- */
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const [formData, setFormData] = useState<UserFormData>({
     firstName: "",
