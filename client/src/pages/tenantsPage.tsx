@@ -1,56 +1,35 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/tenants/tenant-columns";
 import type { Tenant, CreateTenantDto } from "@/types/tenant";
-import tenantService from "@/services/tenantService";
 import { Button } from "@/components/ui/button";
 import { TenantModal } from "@/components/modals";
-import { Plus } from "lucide-react";
+import { Plus, Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useTenantData } from "@/hooks";
 
 const TenantsPage = () => {
-  const [tenants, setTenants] = useState<Tenant[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    filteredTenants,
+    statistics,
+    loading,
+    error,
+    filters,
+    updateFilter,
+    clearFilters,
+    createTenant,
+    updateTenant,
+  } = useTenantData();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
 
-  useEffect(() => {
-    async function fetchTenants() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const res = await tenantService.getAllTenants();
-        setTenants(res);
-      } catch (err) {
-        console.error("Error fetching tenants:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch tenants",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchTenants();
-  }, []);
-
-  const handleCreateTenant = async (tenantData: CreateTenantDto) => {
+  const handleSaveTenant = async (tenantData: CreateTenantDto) => {
     try {
       if (selectedTenant) {
-        // Update existing tenant
-        const updated = await tenantService.updateTenant(
-          selectedTenant._id,
-          tenantData,
-        );
-        setTenants((prev) =>
-          prev.map((tenant) =>
-            tenant._id === selectedTenant._id ? updated : tenant,
-          ),
-        );
+        await updateTenant(selectedTenant._id, tenantData);
       } else {
-        // Create new tenant
-        const newTenant = await tenantService.createTenant(tenantData);
-        setTenants((prev) => [...prev, newTenant]);
+        await createTenant(tenantData);
       }
       setIsModalOpen(false);
       setSelectedTenant(null);
@@ -82,7 +61,43 @@ const TenantsPage = () => {
         </Button>
       </div>
 
-      {isLoading ? (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Tenants
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {statistics.total}
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search tenants by name, email, or mobile..."
+                value={filters.search}
+                onChange={(e) => updateFilter("search", e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            onClick={clearFilters}
+            disabled={!filters.search && !filters.dateFrom && !filters.dateTo}
+          >
+            Clear Filters
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -99,7 +114,7 @@ const TenantsPage = () => {
               Failed to load tenants
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {error}
+              {error.message}
             </p>
             <Button
               onClick={() => window.location.reload()}
@@ -112,7 +127,7 @@ const TenantsPage = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={tenants}
+          data={filteredTenants}
           name="Tenants"
         ></DataTable>
       )}
@@ -124,7 +139,7 @@ const TenantsPage = () => {
           setIsModalOpen(false);
           setSelectedTenant(null);
         }}
-        onSave={handleCreateTenant}
+        onSave={handleSaveTenant}
       />
     </div>
   );

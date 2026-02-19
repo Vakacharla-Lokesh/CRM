@@ -1,5 +1,6 @@
 export { default as apiClient } from "./api";
 export { default as authService } from "./authService";
+export { default as dealService } from "./dealService";
 export { default as leadService } from "./leadService";
 export { default as organizationService } from "./organizationService";
 export { default as userService } from "./userService";
