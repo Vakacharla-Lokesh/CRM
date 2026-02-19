@@ -105,6 +105,7 @@ const OrganizationsPage = () => {
       <DataTable
         columns={columns}
         data={organizations}
+        name="Organizations"
       ></DataTable>
 
       <OrganizationModal

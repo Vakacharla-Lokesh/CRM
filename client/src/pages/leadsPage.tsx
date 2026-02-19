@@ -38,30 +38,15 @@ const LeadsPage = () => {
   };
 
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
-    // TODO: Replace with actual API call
-    // console.log("Saving lead:", leadData);
-
-    // // Mock creating a new lead
-    // const newLead: Lead = {
-    //   _id: `lead-${leads.length + 1}`,
-    //   leadId: `LEAD-${leads.length + 1}`,
-    //   leadFirstName: leadData.leadFirstName,
-    //   leadLastName: leadData.leadLastName,
-    //   leadEmail: leadData.leadEmail,
-    //   leadSource: leadData.leadSource || "API",
-    //   leadStatus: leadData.leadStatus || "New",
-    //   leadScore: leadData.leadScore || 0,
-    //   organizationId: leadData.organizationId,
-    //   tenantId: leadData.tenantId,
-    //   userId: "current-user-id",
-    //   createdAt: new Date(),
-    //   updatedAt: new Date(),
-    // };
-
-    leadService.createLead(leadData).then((newLead) => {
+    try {
+      const newLead = await leadService.createLead(leadData);
       setLeads((prev) => [newLead, ...prev]);
-    });
-    setIsModalOpen(false);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error creating lead:", error);
+      // Re-throw to let the modal handle the error display
+      throw error;
+    }
   };
 
   const handleCloseModal = () => {
@@ -123,6 +108,7 @@ const LeadsPage = () => {
         <DataTable
           columns={columns}
           data={leads}
+          name="Leads"
         />
       )}
 

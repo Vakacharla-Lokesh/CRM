@@ -1,7 +1,7 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/context";
+import { ModeToggle } from "../common/themeToggle";
 
 function Navbar({
   // Sidebar toggle props
@@ -15,22 +15,6 @@ function Navbar({
 }: NavbarProps) {
   const navigate = useNavigate();
   const { user, logout } = useAppContext();
-  
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return JSON.parse(localStorage.getItem("darkMode") || "false");
-  });
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !isDarkMode;
-    setIsDarkMode(newDarkMode);
-    const htmlElement = document.documentElement;
-    if (newDarkMode) {
-      htmlElement.classList.add("dark");
-    } else {
-      htmlElement.classList.remove("dark");
-    }
-    localStorage.setItem("darkMode", JSON.stringify(newDarkMode));
-  };
 
   const handleLogout = async () => {
     try {
@@ -38,7 +22,6 @@ function Navbar({
       navigate("/login");
     } catch (error) {
       console.error("Logout failed:", error);
-      // Force logout even if API call fails
       navigate("/login");
     }
   };
@@ -83,35 +66,7 @@ function Navbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <button
-            onClick={toggleDarkMode}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-            aria-label="Toggle dark mode"
-          >
-            {isDarkMode ? (
-              <svg
-                className="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" />
-              </svg>
-            ) : (
-              <svg
-                className="w-5 h-5"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M12 5V3m0 18v-2M7.05 7.05 5.636 5.636m12.728 12.728L16.95 16.95M5 12H3m18 0h-2M7.05 16.95l-1.414 1.414M18.364 5.636 16.95 7.05M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
-                />
-              </svg>
-            )}
-          </button>
+          <ModeToggle />
 
           <button
             onClick={() => onToggleRightPanel && onToggleRightPanel()}
