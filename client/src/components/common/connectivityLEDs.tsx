@@ -29,7 +29,7 @@ function ConnectivityLED() {
   // Simulate checking connection status
   useEffect(() => {
     const checkConnectivity = () => {
-      // This will be connected to real WebSocket/SSE checks in Phase 4
+      // This will be connected to real WebSocket/SSE
       setConnectivity({
         ws: Math.random() > 0.5,
         sse: Math.random() > 0.3,

@@ -1,8 +1,3 @@
-/**
- * Utilities Barrel Export
- * Central export point for all utility functions
- */
-
 // Validation utilities
 export {
   isValidEmail,

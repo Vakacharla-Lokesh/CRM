@@ -1,16 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
-import {
-  LayoutDashboard,
-  Users,
-  Building2,
-  DollarSign,
-  Building,
-} from "lucide-react";
+
 import { useAppContext } from "@/context";
 
-import type {
-  SidebarProps,
-  NavLinkProps,
+import {
+  type SidebarProps,
+  type NavLinkProps,
+  navItems,
 } from "@/types/interfaces/layout/sidebar.interfaces";
 
 const NavLink = ({
@@ -43,8 +38,9 @@ function Sidebar({ isOpen }: SidebarProps) {
     return location.pathname === path;
   };
 
-  const isAdmin = user?.role === "admin" || user?.role === "super_admin";
-  const isSuperAdmin = user?.role === "super_admin";
+  const filteredNavItems = navItems.filter(
+    (item) => user?.role && item.roles.includes(user.role),
+  );
 
   return (
     <aside
@@ -58,63 +54,16 @@ function Sidebar({ isOpen }: SidebarProps) {
       }}
     >
       <nav className="p-4 space-y-2 shrink-0">
-        {/* Dashboard */}
-        <NavLink
-          to="/dashboard"
-          icon={<LayoutDashboard size={20} />}
-          label="Dashboard"
-          isOpen={isOpen}
-          isActive={isActive("/dashboard")}
-        />
-
-        {/* Leads */}
-        <NavLink
-          to="/leads"
-          icon={<Users size={20} />}
-            label="Leads"
-          isOpen={isOpen}
-          isActive={isActive("/leads")}
-        />
-
-        {/* Organizations */}
-        <NavLink
-          to="/organizations"
-          icon={<Building2 size={20} />}
-          label="Organizations"
-          isOpen={isOpen}
-          isActive={isActive("/organizations")}
-        />
-
-        {/* Deals */}
-        <NavLink
-          to="/deals"
-          icon={<DollarSign size={20} />}
-          label="Deals"
-          isOpen={isOpen}
-          isActive={isActive("/deals")}
-        />
-
-        {/* Users - Only for admin and super_admin */}
-        {isAdmin && (
+        {filteredNavItems.map(({ to, label, icon: Icon }) => (
           <NavLink
-            to="/users"
-            icon={<Users size={20} />}
-            label="Users"
+            key={to}
+            to={to}
+            icon={<Icon size={20} />}
+            label={label}
             isOpen={isOpen}
-            isActive={isActive("/users")}
+            isActive={isActive(to)}
           />
-        )}
-
-        {/* Tenants - Only for super_admin */}
-        {isSuperAdmin && (
-          <NavLink
-            to="/tenants"
-            icon={<Building size={20} />}
-            label="Tenants"
-            isOpen={isOpen}
-            isActive={isActive("/tenants")}
-          />
-        )}
+        ))}
       </nav>
 
       {/* Quick Stats Section */}
