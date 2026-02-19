@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { type Lead } from "@/types";
+import { type Deal } from "@/types";
 
-export const columns: ColumnDef<Lead>[] = [
+export const columns: ColumnDef<Deal>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -40,63 +40,43 @@ export const columns: ColumnDef<Lead>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "leadFirstName",
+    accessorKey: "dealName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          First Name
+          Deal Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "leadLastName",
+    accessorKey: "dealValue",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Last Name
+          Value
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
-  },
-  {
-    accessorKey: "leadEmail",
-    header: ({ column }) => {
+    cell: ({ row }) => {
+      const value = row.getValue("dealValue") as number;
       return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Email
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+        <span className="font-medium">
+          ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}
+        </span>
       );
     },
   },
   {
-    accessorKey: "leadScore",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Score
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "leadStatus",
+    accessorKey: "dealStage",
     header: ({ column }) => {
       return (
         <Button
@@ -108,12 +88,72 @@ export const columns: ColumnDef<Lead>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const status = row.getValue("dealStage") as string;
+      const statusColors: Record<string, string> = {
+        Prospecting:
+          "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+        Qualification:
+          "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+        Negotiation:
+          "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+        "Ready to close":
+          "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+        "Closed Won":
+          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+        "Closed Lost":
+          "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+      };
+      const colorClass =
+        statusColors[status] ||
+        "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+
+      return (
+        <span
+          className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+        >
+          {status}
+        </span>
+      );
+    },
+  },
+  {
+    accessorKey: "organizationId",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Organization
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Created At
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as Date;
+      return new Date(date).toLocaleDateString();
+    },
   },
   {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const lead = row.original;
+      const deal = row.original;
 
       return (
         <DropdownMenu>
@@ -130,9 +170,9 @@ export const columns: ColumnDef<Lead>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(lead._id)}
+              onClick={() => navigator.clipboard.writeText(deal._id)}
             >
-              Copy lead ID
+              Copy deal ID
             </DropdownMenuItem>
             <DropdownMenuItem className="flex items-center gap-2">
               <Pencil className="w-4 h-4" />

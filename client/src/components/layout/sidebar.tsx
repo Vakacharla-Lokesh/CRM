@@ -24,10 +24,10 @@ const NavLink = ({
   <Link
     to={to}
     onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors border-l-2 ${
+    className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
       isActive
-        ? "bg-accent text-primary border-primary"
-        : "text-muted-foreground hover:bg-muted border-transparent"
+        ? "bg-accent text-primary border-primary rounded-lg"
+        : "text-muted-foreground hover:bg-muted border-transparent rounded-lg"
     }`}
   >
     <span className="w-5 h-5 shrink-0">{icon}</span>

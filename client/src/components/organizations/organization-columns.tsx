@@ -13,9 +13,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { type Lead } from "@/types";
+import { type Organization } from "@/types";
 
-export const columns: ColumnDef<Lead>[] = [
+export const columns: ColumnDef<Organization>[] = [
   {
     id: "select",
     header: ({ table }) => (
@@ -40,80 +40,99 @@ export const columns: ColumnDef<Lead>[] = [
     enableHiding: false,
   },
   {
-    accessorKey: "leadFirstName",
+    accessorKey: "organizationName",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          First Name
+          Organization Name
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "leadLastName",
+    accessorKey: "organizationIndustry",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Last Name
+          Industry
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "leadEmail",
+    accessorKey: "organizationSize",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Email
+          Size
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
   },
   {
-    accessorKey: "leadScore",
+    accessorKey: "organizationWebsite",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Score
+          Website
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const website = row.getValue("organizationWebsite") as string | undefined;
+      return website ? (
+        <a
+          href={website}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {website}
+        </a>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
+    },
   },
   {
-    accessorKey: "leadStatus",
+    accessorKey: "createdAt",
     header: ({ column }) => {
       return (
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          Status
+          Created At
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
       );
+    },
+    cell: ({ row }) => {
+      const date = row.getValue("createdAt") as Date;
+      return new Date(date).toLocaleDateString();
     },
   },
   {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
-      const lead = row.original;
+      const organization = row.original;
 
       return (
         <DropdownMenu>
@@ -130,9 +149,9 @@ export const columns: ColumnDef<Lead>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(lead._id)}
+              onClick={() => navigator.clipboard.writeText(organization._id)}
             >
-              Copy lead ID
+              Copy organization ID
             </DropdownMenuItem>
             <DropdownMenuItem className="flex items-center gap-2">
               <Pencil className="w-4 h-4" />
