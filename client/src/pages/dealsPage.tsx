@@ -2,38 +2,30 @@ import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/deals/deal-columns";
 import type { Deal } from "@/types";
+import dealService from "@/services/dealService";
+import { Button } from "@/components/ui/button";
 
 const DealsPage = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const mockDeals: Deal[] = Array.from({ length: 25 }, (_, i) => ({
-        _id: `deal-${i + 1}`,
-        dealName: `Deal ${i + 1}`,
-        dealValue: Math.floor(Math.random() * 100000) + 5000,
-        dealStage: [
-          "Prospecting",
-          "Qualification",
-          "Negotiation",
-          "Ready to close",
-          "Closed Won",
-          "Closed Lost",
-        ][i % 6] as Deal["dealStage"],
-        dealProbability: Math.floor(Math.random() * 100),
-        organizationId: `org-${Math.floor(i / 3) + 1}`,
-        leadIds: [`lead-${i + 1}`],
-        ownerId: `user-${(i % 5) + 1}`,
-        tenantId: `tenant-1`,
-        createdAt: new Date(
-          Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-        ),
-        updatedAt: new Date(),
-      }));
-      setDeals(mockDeals);
-    }, 500);
+    async function fetchDeals() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await dealService.getAllDeals();
+        setDeals(res);
+      } catch (err) {
+        console.error("Error fetching deals:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch deals");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
+    fetchDeals();
   }, []);
 
   return (
@@ -49,11 +41,38 @@ const DealsPage = () => {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={deals}
-        name="Deals"
-      ></DataTable>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading deals...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">
+              Failed to load deals
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {error}
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={deals}
+          name="Deals"
+        ></DataTable>
+      )}
     </div>
   );
 };

@@ -2,6 +2,7 @@ export { default as apiClient } from "./api";
 export { default as authService } from "./authService";
 export { default as leadService } from "./leadService";
 export { default as userService } from "./userService";
+export { default as tenantService } from "./tenantService";
 
 export {
   API,

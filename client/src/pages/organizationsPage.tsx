@@ -5,44 +5,34 @@ import type { CreateOrganizationDTO, Organization } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
 import { OrganizationModal } from "@/components/modals";
+import organizationService from "@/services/organizationService";
 
 const OrganizationsPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const mockOrganizations: Organization[] = Array.from(
-        { length: 25 },
-        (_, i) => ({
-          _id: `org-${i + 1}`,
-          organizationName: `Company ${i + 1}`,
-          organizationWebsite: `https://company${i + 1}.com`,
-          organizationSize: [
-            "1-10",
-            "11-50",
-            "51-200",
-            "201-500",
-            "501-1000",
-            "1000+",
-          ][i % 6] as Organization["organizationSize"],
-          organizationIndustry: ["Software", "Textile", "Foods", "Others"][
-            i % 4
-          ] as string,
-          tenantId: `tenant-1`,
-          userId: `user-${i + 1}`,
-          createdAt: new Date(
-            Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-          ),
-          updatedAt: new Date(),
-        }),
-      );
-      setOrganizations(mockOrganizations);
-    }, 500);
+    async function fetchOrganizations() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await organizationService.getAllOrganizations();
+        setOrganizations(res);
+      } catch (err) {
+        console.error("Error fetching organizations:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch organizations",
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
+    fetchOrganizations();
   }, []);
 
   const handleAddOrganization = () => {
@@ -57,21 +47,8 @@ const OrganizationsPage = () => {
   const handleSaveOrganization = async (
     organizationData: CreateOrganizationDTO,
   ) => {
-    // TODO: Replace with actual API call
-    console.log("Saving organization:", organizationData);
-
-    // Mock creating a new organization
-    const newOrganization: Organization = {
-      _id: `org-${organizations.length + 1}`,
-      organizationName: organizationData.organizationName,
-      organizationWebsite: organizationData.organizationWebsite,
-      organizationSize: organizationData.organizationSize,
-      organizationIndustry: organizationData.organizationIndustry,
-      tenantId: organizationData.tenantId,
-      userId: "current-user-id",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const newOrganization =
+      await organizationService.createOrganization(organizationData);
 
     setOrganizations((prev) => [newOrganization, ...prev]);
     setIsModalOpen(false);
@@ -102,11 +79,40 @@ const OrganizationsPage = () => {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={organizations}
-        name="Organizations"
-      ></DataTable>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">
+              Loading organizations...
+            </p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">
+              Failed to load organizations
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {error}
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={organizations}
+          name="Organizations"
+        ></DataTable>
+      )}
 
       <OrganizationModal
         isOpen={isModalOpen}
