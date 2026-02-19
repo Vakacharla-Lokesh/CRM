@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, Trash2, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -126,13 +126,21 @@ export const columns: ColumnDef<Lead>[] = [
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(lead._id)}
             >
               Copy lead ID
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>View lead details</DropdownMenuItem>
+            <DropdownMenuItem className="flex items-center gap-2">
+              <Pencil className="w-4 h-4" />
+              Edit
+            </DropdownMenuItem>
+
+            <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive">
+              <Trash2 className="w-4 h-4" />
+              Delete
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       );

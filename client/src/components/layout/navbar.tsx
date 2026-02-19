@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type {
-  NavbarProps,
-} from "@/types/interfaces/layout/navbar.interfaces";
+import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 
 function Navbar({
   onToggleSidebar,
@@ -87,7 +85,7 @@ function Navbar({
               <svg
                 className="w-5 h-5"
                 fill="currentColor"
-                viewBox="0 0 20 20"
+                viewBox="0 0 24 24"
               >
                 <path
                   stroke="currentColor"
