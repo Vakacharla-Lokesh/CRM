@@ -8,14 +8,30 @@ import type {
 } from "../../types";
 
 export const usersAPI = {
-  list: (params?: { page?: number; limit?: number; role?: string }) =>
-    get<UserListResponse>("/users", params),
+  list: async (params?: { page?: number; limit?: number; role?: string }) => {
+    const response = await get<{ count: number; users: User[] }>("/users", params);
+    return {
+      users: response.users,
+      total: response.count,
+      page: params?.page || 1,
+      limit: params?.limit || response.count,
+    } as UserListResponse;
+  },
 
-  get: (id: string) => get<User>(`/users/${id}`),
+  get: async (id: string) => {
+    const response = await get<{ user: User }>(`/users/${id}`);
+    return response.user;
+  },
 
-  create: (data: CreateUserDTO) => post<User>("/users", data),
+  create: async (data: CreateUserDTO) => {
+    const response = await post<{ message: string; user: User }>("/users", data);
+    return response.user;
+  },
 
-  update: (id: string, data: UpdateUserDTO) => put<User>(`/users/${id}`, data),
+  update: async (id: string, data: UpdateUserDTO) => {
+    const response = await put<{ message: string; user: User }>(`/users/${id}`, data);
+    return response.user;
+  },
 
   delete: (id: string) => delete_<void>(`/users/${id}`),
 

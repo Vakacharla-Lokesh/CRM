@@ -9,16 +9,30 @@ import type {
 } from "../../types";
 
 export const organizationsAPI = {
-  list: (params?: { page?: number; limit?: number; search?: string }) =>
-    get<OrganizationListResponse>("/organizations", params),
+  list: async (params?: { page?: number; limit?: number; search?: string }) => {
+    const response = await get<{ count: number; organizations: Organization[] }>("/organizations", params);
+    return {
+      organizations: response.organizations,
+      total: response.count,
+      page: params?.page || 1,
+      limit: params?.limit || response.count,
+    } as OrganizationListResponse;
+  },
 
-  get: (id: string) => get<Organization>(`/organizations/${id}`),
+  get: async (id: string) => {
+    const response = await get<{ organization: Organization }>(`/organizations/${id}`);
+    return response.organization;
+  },
 
-  create: (data: CreateOrganizationDTO) =>
-    post<Organization>("/organizations", data),
+  create: async (data: CreateOrganizationDTO) => {
+    const response = await post<{ message: string; organization: Organization }>("/organizations", data);
+    return response.organization;
+  },
 
-  update: (id: string, data: UpdateOrganizationDTO) =>
-    put<Organization>(`/organizations/${id}`, data),
+  update: async (id: string, data: UpdateOrganizationDTO) => {
+    const response = await put<{ message: string; organization: Organization }>(`/organizations/${id}`, data);
+    return response.organization;
+  },
 
   delete: (id: string) => delete_<void>(`/organizations/${id}`),
 

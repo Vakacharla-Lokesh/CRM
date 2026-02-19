@@ -40,7 +40,16 @@ function handleErrorResponse(error: unknown): never {
 }
 
 export function getToken(): string | null {
-  const token = localStorage.getItem("auth_token");
+  let token = localStorage.getItem("auth_token");
+  // Remove surrounding quotes if they exist
+  if (!token) {
+    return null;
+  }
+  token = token.trim();
+  if (token.startsWith('"') && token.endsWith('"')) {
+    token = token.slice(1, -1);
+  }
+
   return token;
 }
 
@@ -91,7 +100,7 @@ export async function get<T>(
       );
     }
 
-    return response.json() as Promise<T>;
+    return await response.json();
   } catch (error) {
     return handleErrorResponse(error);
   }
