@@ -6,6 +6,7 @@ function MemoryVisualizer() {
   const [currentMemory, setCurrentMemory] = useState(0);
   const [maxMemory, setMaxMemory] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const lastClearTime = useRef<number>(Date.now());
 
   useEffect(() => {
     const collectMemoryData = () => {
@@ -17,10 +18,16 @@ function MemoryVisualizer() {
         setCurrentMemory(usedMemory);
         setMaxMemory(jsHeapLimit);
 
+        const now = Date.now();
+        const timeSinceLastClear = now - lastClearTime.current;
+
         setMemoryData((prev) => {
-          const newData = [...prev, usedMemory];
-          // Keep only last 60 data points
-          return newData.length > 60 ? newData.slice(-60) : newData;
+          // Clear graph every 5 seconds
+          if (timeSinceLastClear >= 5000) {
+            lastClearTime.current = now;
+            return [usedMemory];
+          }
+          return [...prev, usedMemory];
         });
       }
     };
