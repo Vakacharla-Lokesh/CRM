@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { BarChart2, Search } from "lucide-react";
 import type {
-  ConnectivityStatus,
   NavbarProps,
 } from "@/types/interfaces/layout/navbar.interfaces";
 
@@ -12,38 +10,9 @@ function Navbar({
   onToggleRightPanel,
   isRightPanelOpen,
 }: NavbarProps) {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueueCount, _setOfflineQueueCount] = useState(0);
-  const [_connectivityStatus, _setConnectivityStatus] =
-    useState<ConnectivityStatus>({
-      ws: false,
-      sse: false,
-      longPoll: false,
-      shortPoll: false,
-    });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return JSON.parse(localStorage.getItem("darkMode") || "false");
   });
-
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      console.log("App is back online");
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      console.log("App is offline");
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
 
   const toggleDarkMode = () => {
     const newDarkMode = !isDarkMode;
@@ -55,18 +24,6 @@ function Navbar({
       htmlElement.classList.remove("dark");
     }
     localStorage.setItem("darkMode", JSON.stringify(newDarkMode));
-  };
-
-  const handleSync = async () => {
-    console.log("Sync triggered");
-  };
-
-  const handleStressTest = () => {
-    console.log("Stress test triggered");
-  };
-
-  const handleDiagnostics = () => {
-    console.log("Diagnostics triggered");
   };
 
   const handleLogout = () => {
@@ -113,61 +70,6 @@ function Navbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="hidden md:flex md:items-center gap-1 px-3 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-lg">
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isOnline ? "bg-green-500" : "bg-red-500"
-              }`}
-            />
-            <span>{isOnline ? "Online" : "Offline"}</span>
-          </div>
-
-          <button
-            onClick={handleSync}
-            className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg shadow transition-colors ${
-              isOnline
-                ? "text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                : "text-white bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-600"
-            }`}
-            title={
-              isOnline
-                ? "All synced"
-                : `${offlineQueueCount} items pending sync`
-            }
-          >
-            <span
-              className={`w-2.5 h-2.5 rounded-full ${
-                isOnline ? "bg-green-300" : "bg-yellow-300"
-              } animate-pulse`}
-            />
-            <span className="hidden sm:inline">
-              {isOnline ? "Synced" : "Syncing"}
-            </span>
-            {offlineQueueCount > 0 && (
-              <span className="ml-2 px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-full font-bold">
-                {offlineQueueCount}
-              </span>
-            )}
-          </button>
-
-          <button
-            onClick={handleStressTest}
-            className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
-            title="Run stress test (1000 leads)"
-          >
-            <BarChart2 size={16} />
-            <span className="hidden xl:inline">Stress Test</span>
-          </button>
-
-          <button
-            onClick={handleDiagnostics}
-            className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 rounded-lg shadow transition-colors"
-            title="View event loop diagnostics"
-          >
-            <Search size={16} />
-            <span className="hidden xl:inline">Diagnostics</span>
-          </button>
-
           <button
             onClick={toggleDarkMode}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"

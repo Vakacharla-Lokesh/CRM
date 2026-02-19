@@ -1,10 +1,3 @@
-export interface ConnectivityStatus {
-  ws: boolean;
-  sse: boolean;
-  longPoll: boolean;
-  shortPoll: boolean;
-}
-
 export interface NavbarProps {
   onToggleSidebar: () => void;
   isSidebarOpen: boolean;

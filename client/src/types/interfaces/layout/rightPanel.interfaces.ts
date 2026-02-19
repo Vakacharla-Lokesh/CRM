@@ -5,6 +5,7 @@ export interface RightPanelProps {
 }
 
 export interface ExpandedSections {
+  quickActions: boolean;
   connectivity: boolean;
   sync: boolean;
   memory: boolean;
