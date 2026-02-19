@@ -12,9 +12,12 @@ import LoginPage from "./components/pages/loginPage";
 import SignupPage from "./components/pages/signupPage";
 import DashboardPage from "./components/pages/dashboardPage";
 import UsersPage from "./components/pages/usersPage";
+import LeadsPage from "./components/pages/leadsPage";
+import OrganizationsPage from "./components/pages/organizationsPage";
+import DealsPage from "./components/pages/dealsPage";
+import TenantsPage from "./components/pages/tenantsPage";
 
 import "./app.css";
-import LeadsPage from "./components/pages/leadsPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -108,8 +111,20 @@ function AppRoutes() {
                     element={<LeadsPage />}
                   />
                   <Route
+                    path="/organizations"
+                    element={<OrganizationsPage />}
+                  />
+                  <Route
+                    path="/deals"
+                    element={<DealsPage />}
+                  />
+                  <Route
                     path="/users"
                     element={<UsersPage />}
+                  />
+                  <Route
+                    path="/tenants"
+                    element={<TenantsPage />}
                   />
                   <Route
                     path="*"

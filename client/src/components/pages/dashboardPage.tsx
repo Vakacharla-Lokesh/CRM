@@ -64,9 +64,6 @@ function DashboardPage() {
             Welcome back! Here's your marketing overview.
           </p>
         </div>
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors">
-          + New Campaign
-        </button>
       </div>
 
       {/* Stats Grid */}

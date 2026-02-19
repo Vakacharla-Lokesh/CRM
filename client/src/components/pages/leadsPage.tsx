@@ -3,6 +3,8 @@ import { DataTable } from "../common/data-table";
 import { columns } from "../leads/lead-columns";
 import LeadModal from "../modals/leadModal";
 import type { Lead, CreateLeadDTO } from "@/types";
+import { Button } from "../ui/button";
+import { Download } from "lucide-react";
 
 const LeadsPage = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -45,7 +47,7 @@ const LeadsPage = () => {
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
     // TODO: Replace with actual API call
     console.log("Saving lead:", leadData);
-    
+
     // Mock creating a new lead
     const newLead: Lead = {
       _id: `lead-${leads.length + 1}`,
@@ -83,11 +85,18 @@ const LeadsPage = () => {
             Manage leads and their status
           </p>
         </div>
-        <button 
-          onClick={handleAddLead}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap">
-          <span>+</span> Add Lead
-        </button>
+        <div className="flex flex-row gap-4">
+          <Button className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground disabled:text-muted-foreground">
+            <Download className="w-4 h-4" />
+            Export
+          </Button>
+          <Button
+            onClick={handleAddLead}
+            className="px-4 py-2font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            <span>+</span> Add Lead
+          </Button>
+        </div>
       </div>
 
       <DataTable
