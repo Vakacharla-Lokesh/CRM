@@ -15,11 +15,6 @@ import {
 } from "../hooks/useLocalStorage";
 import type { User, SignupData, AuthResponse } from "../types";
 
-/**
- * Application Context
- * Manages global state including authentication, user data, and online/offline status
- */
-
 interface AppContextType {
   user: User | null;
   token: string | null;
@@ -35,10 +30,6 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | null>(null);
 
-/**
- * AppProvider Component
- * Wraps the application to provide global state management
- */
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -46,9 +37,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(true);
 
-  /**
-   * Initialize auth state from localStorage on mount
-   */
   useEffect(() => {
     const initAuth = async () => {
       try {
@@ -88,11 +76,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
 
     initAuth();
-  }, []); // Empty dependency array - only run once on mount
+  }, []);
 
-  /**
-   * Listen for online/offline events
-   */
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
@@ -106,23 +91,18 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
-  /**
-   * Login handler
-   * @param {string} email - User email
-   * @param {string} password - User password
-   * @returns {Promise<Object>} User data and token
-   */
   const login = useCallback(async (email: string, password: string) => {
     try {
-      const response = await authService.login({ userEmail: email, userPassword: password });
+      const response = await authService.login({
+        userEmail: email,
+        userPassword: password,
+      });
       const { user: userData, token: authToken } = response;
 
-      // Save to state
       setUser(userData);
       setToken(authToken);
       setIsAuthenticated(true);
 
-      // Persist to localStorage
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", userData);
 
@@ -133,22 +113,15 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  /**
-   * Signup handler
-   * @param {Object} userData - User registration data
-   * @returns {Promise<Object>} User data and token
-   */
   const signup = useCallback(async (userData: SignupData) => {
     try {
       const response = await authService.signup(userData);
       const { user: newUser, token: authToken } = response;
 
-      // Save to state
       setUser(newUser);
       setToken(authToken);
       setIsAuthenticated(true);
 
-      // Persist to localStorage
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", newUser);
 
@@ -159,39 +132,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     }
   }, []);
 
-  /**
-   * Logout handler
-   */
   const logout = useCallback(async () => {
     try {
-      // Call logout API to invalidate token on server
       await authService.logout();
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear state
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
 
-      // Clear localStorage
       removeFromLocalStorage("auth_token");
       removeFromLocalStorage("user_data");
     }
-  }, []); // No dependencies needed
+  }, []);
 
-  /**
-   * Update user data
-   * @param {Object} updatedUser - Updated user data
-   */
   const updateUser = useCallback((updatedUser: User) => {
     setUser(updatedUser);
     saveToLocalStorage("user_data", updatedUser);
   }, []);
 
-  /**
-   * Refresh auth token
-   */
   const refreshToken = useCallback(async () => {
     try {
       const response = await authService.refreshToken();
@@ -209,14 +169,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   }, [logout]);
 
   const value = {
-    // State
     user,
     token,
     isAuthenticated,
     isOnline,
     loading,
 
-    // Methods
     login,
     signup,
     logout,
@@ -227,11 +185,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
-/**
- * useAppContext Hook
- * Access global application context
- * @returns {Object} App context value
- */
 export const useAppContext = () => {
   const context = useContext(AppContext);
   if (!context) {

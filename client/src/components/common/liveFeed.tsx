@@ -1,21 +1,19 @@
 import { useState, useEffect, useRef } from "react";
-
-type ColorKey = "green" | "blue" | "purple" | "orange" | "teal" | "red";
-
-interface FeedEvent {
-  id: number;
-  type: string;
-  icon: string;
-  color: ColorKey;
-  message: string;
-  timestamp: Date;
-}
-
-interface EventType {
-  type: string;
-  icon: string;
-  color: ColorKey;
-}
+import {
+  Plus,
+  Eye,
+  Mail,
+  Link2,
+  Check,
+  Ban,
+  Circle,
+  Pause,
+} from "lucide-react";
+import type {
+  ColorKey,
+  EventType,
+  FeedEvent,
+} from "@/types/interfaces/common/liveFeed.interfaces";
 
 function LiveFeed() {
   const [events, setEvents] = useState<FeedEvent[]>([]);
@@ -26,12 +24,12 @@ function LiveFeed() {
     // Simulate real-time events
     const generateEvent = (): FeedEvent => {
       const eventTypes: EventType[] = [
-        { type: "lead_created", icon: "➕", color: "green" },
-        { type: "lead_opened", icon: "👁️", color: "blue" },
-        { type: "email_sent", icon: "📧", color: "purple" },
-        { type: "link_clicked", icon: "🔗", color: "orange" },
-        { type: "form_submitted", icon: "✅", color: "teal" },
-        { type: "unsubscribed", icon: "🚫", color: "red" },
+        { type: "lead_created", icon: <Plus size={16} />, color: "green" },
+        { type: "lead_opened", icon: <Eye size={16} />, color: "blue" },
+        { type: "email_sent", icon: <Mail size={16} />, color: "purple" },
+        { type: "link_clicked", icon: <Link2 size={16} />, color: "orange" },
+        { type: "form_submitted", icon: <Check size={16} />, color: "teal" },
+        { type: "unsubscribed", icon: <Ban size={16} />, color: "red" },
       ];
 
       const leads = [
@@ -106,13 +104,21 @@ function LiveFeed() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setIsLiveMode(!isLiveMode)}
-            className={`text-xs px-2 py-1 rounded font-semibold transition-colors ${
+            className={`flex items-center gap-1 text-xs px-2 py-1 rounded font-semibold transition-colors ${
               isLiveMode
                 ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
                 : "bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300"
             }`}
           >
-            {isLiveMode ? "🔴 Live" : "⏸️ Paused"}
+            {isLiveMode ? (
+              <Circle
+                size={12}
+                className="fill-red-500 text-red-500"
+              />
+            ) : (
+              <Pause size={12} />
+            )}
+            {isLiveMode ? " Live" : " Paused"}
           </button>
           <button
             onClick={() => setEvents([])}
@@ -145,7 +151,9 @@ function LiveFeed() {
               }`}
             >
               <div className="flex items-start gap-2">
-                <span className="text-lg shrink-0">{event.icon}</span>
+                <span className="text-gray-700 dark:text-gray-300 shrink-0">
+                  {event.icon}
+                </span>
                 <div className="flex-1 min-w-0">
                   <p
                     className={`font-semibold ${textColorClasses[event.color]} truncate`}

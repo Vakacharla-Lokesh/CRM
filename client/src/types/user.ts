@@ -1,6 +1,6 @@
 export interface User {
   _id: string;
-  userId?: string; // Alias for _id
+  userId?: string;
   firstName: string;
   lastName?: string;
   userEmail: string;

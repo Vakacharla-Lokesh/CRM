@@ -1,29 +1,55 @@
 /* eslint-disable react-hooks/static-components */
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
+import {
+  Radio,
+  RefreshCw,
+  HardDrive,
+  Settings,
+  Circle,
+  ChevronDown,
+} from "lucide-react";
 import ConnectivityLEDs from "../common/connectivityLEDs";
 import SyncBadge from "../common/syncBadge";
 import MemoryVisualizer from "../common/memoryVisualizer";
 import WorkerStatus from "../common/workerStatus";
 import LiveFeed from "../common/liveFeed";
+import type {
+  ExpandedSections,
+  RightPanelProps,
+  SectionProps,
+} from "@/types/interfaces/layout/rightPanel.interfaces";
 
-interface RightPanelProps {
-  isOpen: boolean;
-}
-
-interface ExpandedSections {
-  connectivity: boolean;
-  sync: boolean;
-  memory: boolean;
-  worker: boolean;
-  liveFeed: boolean;
-}
-
-interface SectionProps {
-  id: keyof ExpandedSections;
-  title: string;
-  children: ReactNode;
-  icon: string;
-}
+const Section = ({
+  id,
+  title,
+  children,
+  icon,
+  isExpanded,
+  onToggle,
+}: SectionProps) => (
+  <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-gray-700 dark:text-gray-300">{icon}</span>
+        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+          {title}
+        </span>
+      </div>
+      <span
+        className={`transition-transform ${isExpanded ? "rotate-180" : ""}`}
+      >
+        <ChevronDown
+          size={16}
+          className="text-gray-500 dark:text-gray-400"
+        />
+      </span>
+    </button>
+    {isExpanded && <div className="px-4 pb-4">{children}</div>}
+  </div>
+);
 
 function RightPanel({ isOpen }: RightPanelProps) {
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
@@ -45,28 +71,6 @@ function RightPanel({ isOpen }: RightPanelProps) {
     return null;
   }
 
-  const Section = ({ id, title, children, icon }: SectionProps) => (
-    <div className="border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-      <button
-        onClick={() => toggleSection(id)}
-        className="w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-lg">{icon}</span>
-          <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-            {title}
-          </span>
-        </div>
-        <span
-          className={`transition-transform ${expandedSections[id] ? "rotate-180" : ""}`}
-        >
-          ▼
-        </span>
-      </button>
-      {expandedSections[id] && <div className="px-4 pb-4">{children}</div>}
-    </div>
-  );
-
   return (
     <aside
       className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 overflow-y-auto flex flex-col"
@@ -86,7 +90,9 @@ function RightPanel({ isOpen }: RightPanelProps) {
         <Section
           id="connectivity"
           title="Connection Status"
-          icon="📡"
+          icon={<Radio size={18} />}
+          isExpanded={expandedSections.connectivity}
+          onToggle={() => toggleSection("connectivity")}
         >
           <ConnectivityLEDs />
         </Section>
@@ -94,7 +100,9 @@ function RightPanel({ isOpen }: RightPanelProps) {
         <Section
           id="sync"
           title="Sync Status"
-          icon="🔄"
+          icon={<RefreshCw size={18} />}
+          isExpanded={expandedSections.sync}
+          onToggle={() => toggleSection("sync")}
         >
           <SyncBadge />
         </Section>
@@ -102,7 +110,9 @@ function RightPanel({ isOpen }: RightPanelProps) {
         <Section
           id="memory"
           title="Memory Usage"
-          icon="💾"
+          icon={<HardDrive size={18} />}
+          isExpanded={expandedSections.memory}
+          onToggle={() => toggleSection("memory")}
         >
           <MemoryVisualizer />
         </Section>
@@ -110,7 +120,9 @@ function RightPanel({ isOpen }: RightPanelProps) {
         <Section
           id="worker"
           title="Web Worker"
-          icon="⚙️"
+          icon={<Settings size={18} />}
+          isExpanded={expandedSections.worker}
+          onToggle={() => toggleSection("worker")}
         >
           <WorkerStatus />
         </Section>
@@ -118,7 +130,14 @@ function RightPanel({ isOpen }: RightPanelProps) {
         <Section
           id="liveFeed"
           title="Live Events"
-          icon="🔴"
+          icon={
+            <Circle
+              size={18}
+              className="fill-red-500 text-red-500"
+            />
+          }
+          isExpanded={expandedSections.liveFeed}
+          onToggle={() => toggleSection("liveFeed")}
         >
           <div className="max-h-96">
             <LiveFeed />

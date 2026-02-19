@@ -1,32 +1,11 @@
 import { useState } from "react";
 import type { Lead } from "../../types";
+import type {
+  LeadGridProps,
+  SortConfig,
+  SortIconProps,
+} from "@/types/interfaces/leads/leadGrid.interfaces";
 
-interface LeadGridProps {
-  leads: Lead[];
-  isLoading: boolean;
-}
-
-interface SortConfig {
-  key: keyof Lead;
-  direction: "asc" | "desc";
-}
-
-interface SortIconProps {
-  column: keyof Lead;
-}
-
-/**
- * LeadGrid Component
- * Location: src/components/Common/LeadGrid.jsx
- * Purpose: Display leads in a responsive table with sorting and pagination
- * Features:
- * - Table view of leads
- * - Sorting by columns
- * - Pagination
- * - Event delegation for actions
- * - Loading state
- * - Responsive design
- */
 function LeadGrid({ leads, isLoading }: LeadGridProps) {
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     key: "createdAt",
@@ -46,8 +25,8 @@ function LeadGrid({ leads, isLoading }: LeadGridProps) {
         : (bValue as string).localeCompare(aValue);
     }
 
-    return sortConfig.direction === "asc" 
-      ? (aValue as number) - (bValue as number) 
+    return sortConfig.direction === "asc"
+      ? (aValue as number) - (bValue as number)
       : (bValue as number) - (aValue as number);
   });
 
@@ -79,10 +58,12 @@ function LeadGrid({ leads, isLoading }: LeadGridProps) {
 
   const getStatusColor = (status: string) => {
     const colors: Record<string, string> = {
-      "New": "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
-      "Converted": "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
-      "Follow-Up": "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
-      "Dead": "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400",
+      New: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
+      Converted:
+        "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
+      "Follow-Up":
+        "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400",
+      Dead: "bg-gray-100 dark:bg-gray-900/30 text-gray-700 dark:text-gray-400",
     };
     return colors[status] || colors["New"];
   };

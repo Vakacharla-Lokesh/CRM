@@ -1,15 +1,5 @@
 import type { User } from "../../types";
 
-/**
- * UserTable Component
- * Location: src/components/Common/UserTable.jsx
- * Purpose: Display users in a table with edit and delete actions
- * Props:
- * - users: array of user objects
- * - onEdit: callback for edit button
- * - onDelete: callback for delete button
- */
-
 interface UserTableProps {
   users: User[];
   onEdit: (user: User) => void;
@@ -19,7 +9,8 @@ interface UserTableProps {
 function UserTable({ users, onEdit, onDelete }: UserTableProps) {
   const getRoleColor = (role: string) => {
     const colors: Record<string, string> = {
-      super_admin: "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
+      super_admin:
+        "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400",
       admin: "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400",
       user: "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400",
     };

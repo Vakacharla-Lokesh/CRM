@@ -1,15 +1,5 @@
+import type { PerformanceWithMemory } from "@/types/interfaces/common/memoryVisualizer.interfaces";
 import { useEffect, useState, useRef } from "react";
-
-// Extend Performance interface to include memory
-interface PerformanceMemory {
-  usedJSHeapSize: number;
-  totalJSHeapSize: number;
-  jsHeapSizeLimit: number;
-}
-
-interface PerformanceWithMemory extends Performance {
-  memory?: PerformanceMemory;
-}
 
 function MemoryVisualizer() {
   const [memoryData, setMemoryData] = useState<number[]>([]);
@@ -21,12 +11,8 @@ function MemoryVisualizer() {
     const collectMemoryData = () => {
       const perf = performance as PerformanceWithMemory;
       if (perf.memory) {
-        const usedMemory = Math.round(
-          perf.memory.usedJSHeapSize / 1048576,
-        ); // Convert to MB
-        const jsHeapLimit = Math.round(
-          perf.memory.jsHeapSizeLimit / 1048576,
-        );
+        const usedMemory = Math.round(perf.memory.usedJSHeapSize / 1048576);
+        const jsHeapLimit = Math.round(perf.memory.jsHeapSizeLimit / 1048576);
 
         setCurrentMemory(usedMemory);
         setMaxMemory(jsHeapLimit);
@@ -39,33 +25,28 @@ function MemoryVisualizer() {
       }
     };
 
-    // Collect data every 1 second
     const interval = setInterval(collectMemoryData, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  // Draw sparkline on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || memoryData.length < 2) return;
 
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
-    
+
     const width = canvas.width;
     const height = canvas.height;
 
-    // Clear canvas
     ctx.fillStyle = "transparent";
     ctx.fillRect(0, 0, width, height);
 
-    // Find min and max values for scaling
     const min = Math.min(...memoryData);
     const max = Math.max(...memoryData);
     const range = max - min || 1;
 
-    // Draw background grid
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 0.5;
     for (let i = 0; i < 4; i++) {
@@ -76,7 +57,6 @@ function MemoryVisualizer() {
       ctx.stroke();
     }
 
-    // Draw line chart
     ctx.strokeStyle = "#3b82f6";
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -94,7 +74,6 @@ function MemoryVisualizer() {
 
     ctx.stroke();
 
-    // Draw filled area under line
     ctx.lineTo(width, height);
     ctx.lineTo(0, height);
     ctx.closePath();
@@ -113,7 +92,6 @@ function MemoryVisualizer() {
         </span>
       </div>
 
-      {/* Sparkline */}
       <canvas
         ref={canvasRef}
         width={250}
@@ -121,7 +99,6 @@ function MemoryVisualizer() {
         className="w-full border border-gray-200 dark:border-gray-600 rounded mb-2"
       />
 
-      {/* Stats */}
       <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
         <div className="flex justify-between">
           <span>Used:</span>
@@ -142,7 +119,6 @@ function MemoryVisualizer() {
         </div>
       </div>
 
-      {/* Warning */}
       {maxMemory > 0 && currentMemory / maxMemory > 0.85 && (
         <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded">
           <p className="text-xs text-red-700 dark:text-red-400 font-semibold">

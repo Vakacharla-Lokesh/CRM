@@ -1,17 +1,22 @@
+import type {
+  ConnectivityState,
+  ProtocolProps,
+} from "@/types/interfaces/common/connectivityLEDs.interfaces";
 import { useEffect, useState } from "react";
 
-interface ConnectivityState {
-  ws: boolean;
-  sse: boolean;
-  longPoll: boolean;
-  shortPoll: boolean;
-}
-
-interface ProtocolProps {
-  name: string;
-  status: boolean;
-  tooltip: string;
-}
+const Protocol = ({ name, status, tooltip }: ProtocolProps) => (
+  <div
+    className="flex items-center gap-2 text-xs"
+    title={tooltip}
+  >
+    <span
+      className={`w-2 h-2 rounded-full animate-pulse ${
+        status ? "bg-green-500" : "bg-gray-400"
+      }`}
+    />
+    <span className="text-gray-600 dark:text-gray-400">{name}</span>
+  </div>
+);
 
 function ConnectivityLED() {
   const [connectivity, setConnectivity] = useState<ConnectivityState>({
@@ -38,20 +43,6 @@ function ConnectivityLED() {
 
     return () => clearInterval(interval);
   }, []);
-
-  const Protocol = ({ name, status, tooltip }: ProtocolProps) => (
-    <div
-      className="flex items-center gap-2 text-xs"
-      title={tooltip}
-    >
-      <span
-        className={`w-2 h-2 rounded-full animate-pulse ${
-          status ? "bg-green-500" : "bg-gray-400"
-        }`}
-      />
-      <span className="text-gray-600 dark:text-gray-400">{name}</span>
-    </div>
-  );
 
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">

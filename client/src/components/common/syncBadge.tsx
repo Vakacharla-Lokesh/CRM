@@ -6,10 +6,7 @@ function SyncBadge() {
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
 
   useEffect(() => {
-    // Listen for offline queue changes
-    // This will be connected to IndexedDB in Phase 4
     const updateQueueCount = () => {
-      // Placeholder: in real app, this comes from offlineManager
       setQueueCount(
         Math.max(0, Math.random() > 0.8 ? Math.floor(Math.random() * 10) : 0),
       );
@@ -26,7 +23,6 @@ function SyncBadge() {
 
     setIsSyncing(true);
     try {
-      // Simulate sync operation
       await new Promise((resolve) => setTimeout(resolve, 2000));
       setQueueCount(0);
       setLastSyncTime(new Date());

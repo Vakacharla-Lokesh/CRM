@@ -1,13 +1,8 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
 import RightPanel from "./rightpanel";
-
-interface LayoutProps {
-  children: ReactNode;
-  isDarkMode?: boolean;
-  onToggleDarkMode?: () => void;
-}
+import type { LayoutProps } from "@/types/interfaces/layout/layout.interfaces";
 
 function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
