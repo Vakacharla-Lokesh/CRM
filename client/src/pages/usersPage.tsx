@@ -5,37 +5,31 @@ import type { CreateUserDTO, User } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
 import { UserModal } from "@/components/modals";
+import { userService } from "@/services/userService";
 
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const mockUsers: User[] = Array.from({ length: 25 }, (_, i) => ({
-        _id: `user-${i + 1}`,
-        firstName: ["John", "Jane", "Mike", "Sarah", "David", "Emma"][i % 6],
-        lastName: ["Doe", "Smith", "Johnson", "Connor", "Brown", "Wilson"][
-          i % 6
-        ],
-        userEmail: `user${i + 1}@example.com`,
-        mobile:
-          i % 3 === 0
-            ? `+1${Math.floor(2000000000 + Math.random() * 1000000000)}`
-            : undefined,
-        role: ["user", "admin", "super_admin"][i % 3] as User["role"],
-        tenantId: `tenant-1`,
-        isActive: i % 5 !== 0,
-        createdAt: new Date(
-          Date.now() - Math.random() * 90 * 24 * 60 * 60 * 1000,
-        ),
-        updatedAt: new Date(),
-      }));
-      setUsers(mockUsers);
-    }, 500);
+    async function fetchUsers() {
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await userService.getAllUsers();
+        setUsers(res);
+      } catch (err) {
+        console.error("Error fetching users:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch users");
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-    return () => clearTimeout(timer);
+    fetchUsers();
   }, []);
 
   const handleAddUser = () => {
@@ -48,22 +42,7 @@ const UsersPage = () => {
   };
 
   const handleSaveUser = async (userData: CreateUserDTO) => {
-    // TODO: Replace with actual API call
-    console.log("Saving user:", userData);
-
-    // Mock creating a new user
-    const newUser: User = {
-      _id: `user-${users.length + 1}`,
-      firstName: userData.firstName,
-      lastName: userData.lastName,
-      userEmail: userData.userEmail,
-      mobile: userData.mobile,
-      role: userData.role || "user",
-      tenantId: userData.tenantId,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    const newUser = await userService.createUser(userData);
 
     setUsers((prev) => [newUser, ...prev]);
     setIsModalOpen(false);
@@ -94,11 +73,38 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={users}
-        name="Users"
-      ></DataTable>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading users...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">
+              Failed to load users
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {error}
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={users}
+          name="Users"
+        ></DataTable>
+      )}
 
       <UserModal
         isOpen={isModalOpen}

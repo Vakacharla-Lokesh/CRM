@@ -3,6 +3,7 @@ export * from "./leads";
 export * from "./auth";
 export * from "./deals";
 export * from "./organizations";
+export * from "./tenant";
 
 // API Types
 export interface ApiRequestOptions {

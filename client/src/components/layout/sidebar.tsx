@@ -71,7 +71,7 @@ function Sidebar({ isOpen }: SidebarProps) {
         <NavLink
           to="/leads"
           icon={<Users size={20} />}
-          label="Leads"
+            label="Leads"
           isOpen={isOpen}
           isActive={isActive("/leads")}
         />
