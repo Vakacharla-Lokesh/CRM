@@ -20,7 +20,6 @@ import type {
 } from "@/types/interfaces/layout/rightPanel.interfaces";
 
 const Section = ({
-  id,
   title,
   children,
   icon,

@@ -8,13 +8,13 @@ import {
 import Layout from "./components/layout/layout";
 import { AppProvider, useAppContext } from "./context";
 
-// Page imports
 import LoginPage from "./components/pages/loginPage";
 import SignupPage from "./components/pages/signupPage";
 import DashboardPage from "./components/pages/dashboardPage";
 import UsersPage from "./components/pages/usersPage";
 
 import "./app.css";
+import LeadsPage from "./components/pages/leadsPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -56,11 +56,29 @@ function AppRoutes() {
       <Routes>
         <Route
           path="/login"
-          element={!isAuthenticated ? <LoginPage /> : <Navigate to="/home" replace />}
+          element={
+            !isAuthenticated ? (
+              <LoginPage />
+            ) : (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            )
+          }
         />
         <Route
           path="/signup"
-          element={!isAuthenticated ? <SignupPage /> : <Navigate to="/home" replace />}
+          element={
+            !isAuthenticated ? (
+              <SignupPage />
+            ) : (
+              <Navigate
+                to="/dashboard"
+                replace
+              />
+            )
+          }
         />
 
         {isAuthenticated ? (
@@ -73,12 +91,21 @@ function AppRoutes() {
               >
                 <Routes>
                   <Route
-                    path="/home"
+                    path="/dashboard"
                     element={<DashboardPage />}
                   />
                   <Route
                     path="/"
-                    element={<Navigate to="/home" replace />}
+                    element={
+                      <Navigate
+                        to="/dashboard"
+                        replace
+                      />
+                    }
+                  />
+                  <Route
+                    path="/leads"
+                    element={<LeadsPage />}
                   />
                   <Route
                     path="/users"
@@ -88,7 +115,7 @@ function AppRoutes() {
                     path="*"
                     element={
                       <Navigate
-                        to="/home"
+                        to="/dashboard"
                         replace
                       />
                     }

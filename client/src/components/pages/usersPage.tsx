@@ -11,18 +11,6 @@ interface UserFormData {
   role: "user" | "admin" | "super_admin";
 }
 
-/**
- * UsersPage Component
- * Route: /users
- * Purpose: User management interface with table view and CRUD operations
- * Features:
- * - User data table with sorting and filtering
- * - Add new user button
- * - Edit user functionality
- * - Delete user with confirmation
- * - Search and filter users
- * - Responsive table layout
- */
 function UsersPage() {
   const [users, setUsers] = useState<User[]>([
     {

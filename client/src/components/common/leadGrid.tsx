@@ -14,7 +14,6 @@ function LeadGrid({ leads, isLoading }: LeadGridProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  // Sort leads
   const sortedLeads = [...leads].sort((a, b) => {
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
@@ -30,7 +29,6 @@ function LeadGrid({ leads, isLoading }: LeadGridProps) {
       : (bValue as number) - (aValue as number);
   });
 
-  // Paginate
   const totalPages = Math.ceil(sortedLeads.length / itemsPerPage);
   const startIdx = (currentPage - 1) * itemsPerPage;
   const paginatedLeads = sortedLeads.slice(startIdx, startIdx + itemsPerPage);
@@ -81,9 +79,7 @@ function LeadGrid({ leads, isLoading }: LeadGridProps) {
 
   return (
     <div className="space-y-4">
-      {/* Table Container */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden">
-        {/* Responsive Table */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>

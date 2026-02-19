@@ -139,7 +139,7 @@ function SignupPage() {
 
     setIsLoading(true);
     setErrors({});
-    
+
     try {
       // Call real signup API
       await signup({
@@ -149,12 +149,15 @@ function SignupPage() {
         tenantName: formData.tenantName,
       });
 
-      // Navigate to home page after successful signup
-      navigate("/home");
+      // Navigate to dashboard page after successful signup
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Signup error:", error);
-      setErrors({ 
-        submit: error?.response?.data?.message || error?.message || "Signup failed. Please try again." 
+      setErrors({
+        submit:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Signup failed. Please try again.",
       });
     } finally {
       setIsLoading(false);

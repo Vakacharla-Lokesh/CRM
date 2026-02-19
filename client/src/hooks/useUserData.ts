@@ -253,42 +253,6 @@ export const useUserData = () => {
   );
 
   /**
-   * Activate user
-   */
-  const activateUser = useCallback(
-    async (id: string) => {
-      return executeAsync(async () => {
-        const updated = await userService.activateUser(id);
-        setUsers((prev) =>
-          prev.map((user) => (user._id === id ? updated : user)),
-        );
-        await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers(); // Refresh to recalculate stats
-        return updated;
-      });
-    },
-    [executeAsync, updateItem, fetchUsers],
-  );
-
-  /**
-   * Deactivate user
-   */
-  const deactivateUser = useCallback(
-    async (id: string) => {
-      return executeAsync(async () => {
-        const updated = await userService.deactivateUser(id);
-        setUsers((prev) =>
-          prev.map((user) => (user._id === id ? updated : user)),
-        );
-        await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers(); // Refresh to recalculate stats
-        return updated;
-      });
-    },
-    [executeAsync, updateItem, fetchUsers],
-  );
-
-  /**
    * Update filter
    */
   const updateFilter = useCallback((key: keyof UserFilters, value: unknown) => {
@@ -310,34 +274,9 @@ export const useUserData = () => {
     setFilteredUsers(users);
   }, [users]);
 
-  /**
-   * Bulk update users
-   */
-  const bulkUpdateUsers = useCallback(
-    async (ids: string[], updates: Partial<User>) => {
-      return executeAsync(async () => {
-        await userService.bulkUpdateUsers(ids, updates);
-        const updatedUsers = ids.map(id => {
-          const user = users.find(u => u._id === id);
-          return user ? { ...user, ...updates } : null;
-        }).filter(Boolean) as User[];
-        
-        setUsers((prev) =>
-          prev.map((user) =>
-            ids.includes(user._id) ? { ...user, ...updates } : user,
-          ),
-        );
-        for (const user of updatedUsers) {
-          await updateItem(user._id, { ...user, id: user._id });
-        }
-        await fetchUsers();
-      });
-    },
-    [executeAsync, updateItem, fetchUsers, users],
-  );
-
   // Apply filters when users or filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 
@@ -361,10 +300,6 @@ export const useUserData = () => {
     getUsersByRole,
     updatePassword,
     updateUserRole,
-    activateUser,
-    deactivateUser,
-    bulkUpdateUsers,
-
     // Filter methods
     updateFilter,
     resetFilters,

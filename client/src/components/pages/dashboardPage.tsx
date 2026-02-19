@@ -1,6 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
-import LeadGrid from "../common/leadGrid";
 import StatCard from "../common/statCard";
 import type { Lead } from "../../types";
 
@@ -11,17 +11,6 @@ interface DashboardStats {
   revenue: number;
 }
 
-/**
- * DashboardPage Component
- * Route: /
- * Purpose: Main dashboard displaying overview statistics and lead grid
- * Features:
- * - Quick stats cards (Leads, Campaigns, Conversion Rate, Revenue)
- * - Lead grid with search and filtering
- * - Real-time data updates
- * - Responsive layout
- * - Performance metrics
- */
 function DashboardPage() {
   const [stats, _setStats] = useState<DashboardStats>({
     totalLeads: 12450,
@@ -42,7 +31,11 @@ function DashboardPage() {
         leadLastName: `${i + 1}`,
         leadEmail: `lead${i + 1}@example.com`,
         leadSource: i % 2 === 0 ? "API" : "Outsource",
-        leadStatus: ["New", "Converted", "Dead", "Follow-Up"][i % 4] as "New" | "Converted" | "Dead" | "Follow-Up",
+        leadStatus: ["New", "Converted", "Dead", "Follow-Up"][i % 4] as
+          | "New"
+          | "Converted"
+          | "Dead"
+          | "Follow-Up",
         leadScore: Math.floor(Math.random() * 100),
         organizationId: `org-${i + 1}`,
         userId: `user-${i + 1}`,
@@ -163,12 +156,6 @@ function DashboardPage() {
           </div>
         </div>
       </div>
-
-      {/* Lead Grid */}
-      <LeadGrid
-        leads={leads}
-        isLoading={isLoading}
-      />
     </div>
   );
 }
