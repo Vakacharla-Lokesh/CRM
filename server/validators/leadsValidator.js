@@ -2,8 +2,7 @@ import { z } from "zod";
 
 export const createLeadSchema = z.object({
   organizationId: z.string().min(1).optional(),
-  userId: z.string().min(1),
-  tenantId: z.string().optional(),
+  userId: z.string().min(1).optional(),
   leadFirstName: z.string().min(1),
   leadLastName: z.string().nullable().optional(),
   leadEmail: z.email("Invalid email format").optional(),

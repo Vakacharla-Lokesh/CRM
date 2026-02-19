@@ -97,6 +97,7 @@ const UsersPage = () => {
       <DataTable
         columns={columns}
         data={users}
+        name="Users"
       ></DataTable>
 
       <UserModal

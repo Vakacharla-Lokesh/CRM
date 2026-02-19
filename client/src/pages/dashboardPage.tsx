@@ -99,11 +99,11 @@ function DashboardPage() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Campaign Performance Chart */}
-        <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Campaign Performance
+            Lead Graphs
           </h2>
           <div className="h-64 flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
             <div className="text-center">
@@ -111,7 +111,7 @@ function DashboardPage() {
                 Chart Component
               </p>
               <p className="text-sm text-gray-500 dark:text-gray-500">
-                (Will be integrated in Phase 4 with Chart.js or Recharts)
+                (Will be integrated later with Chart.js or Recharts)
               </p>
             </div>
           </div>

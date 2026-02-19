@@ -37,6 +37,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (lead) {
@@ -63,6 +64,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       });
     }
     setErrors({});
+    setSubmitError(null);
   }, [lead, isOpen]);
 
   const validateForm = (): boolean => {
@@ -94,6 +96,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     }
 
     setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
       const leadData: CreateLeadDTO = {
@@ -104,13 +107,15 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         leadStatus: formData.leadStatus,
         leadScore: formData.leadScore,
         organizationId: formData.organizationId || undefined,
-        tenantId: "tenant-1", //must use actual tenant ID in real implementation
+        tenantId: "tenant-1",
       };
 
       await onSave(leadData);
       onClose();
     } catch (error) {
       console.error("Error saving lead:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to save lead. Please try again.";
+      setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -402,6 +407,12 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               />
             </div>
           </div>
+
+          {submitError && (
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
+              <p className="text-sm text-red-600 dark:text-red-400">{submitError}</p>
+            </div>
+          )}
 
           <DialogFooter className="gap-4">
             <Button

@@ -52,6 +52,7 @@ const DealsPage = () => {
       <DataTable
         columns={columns}
         data={deals}
+        name="Deals"
       ></DataTable>
     </div>
   );

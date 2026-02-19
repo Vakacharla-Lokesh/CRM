@@ -18,6 +18,7 @@ import DealsPage from "./pages/dealsPage";
 import TenantsPage from "./pages/tenantsPage";
 
 import "./app.css";
+import { ThemeProvider } from "./components/common/theme-provider";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -158,7 +159,12 @@ function AppRoutes() {
 function App() {
   return (
     <AppProvider>
-      <AppRoutes />
+      <ThemeProvider
+        defaultTheme="dark"
+        storageKey="vite-ui-theme"
+      >
+        <AppRoutes />
+      </ThemeProvider>
     </AppProvider>
   );
 }
