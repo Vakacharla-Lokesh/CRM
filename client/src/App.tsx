@@ -19,16 +19,13 @@ import "./app.css";
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
   const [isDarkMode, setIsDarkMode] = useState(() => {
-    // Check localStorage for dark mode preference
     const saved = localStorage.getItem("darkMode");
     if (saved !== null) {
       return JSON.parse(saved);
     }
-    // Check system preference
     return window.matchMedia("(prefers-color-scheme: dark)").matches;
   });
 
-  // Update document class and localStorage when dark mode changes
   useEffect(() => {
     const htmlElement = document.documentElement;
     if (isDarkMode) {
@@ -43,7 +40,6 @@ function AppRoutes() {
     setIsDarkMode(!isDarkMode);
   };
 
-  // Show loading spinner while checking authentication
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
@@ -58,7 +54,6 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
-        {/* Auth Routes - without sidebar/navbar */}
         <Route
           path="/login"
           element={!isAuthenticated ? <LoginPage /> : <Navigate to="/home" replace />}
@@ -68,7 +63,6 @@ function AppRoutes() {
           element={!isAuthenticated ? <SignupPage /> : <Navigate to="/home" replace />}
         />
 
-        {/* Protected Routes - with Layout */}
         {isAuthenticated ? (
           <Route
             path="/*"

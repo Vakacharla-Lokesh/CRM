@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
 import LeadGrid from "../common/leadGrid";
 import StatCard from "../common/statCard";
 import type { Lead } from "../../types";
@@ -78,28 +79,28 @@ function DashboardPage() {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
-          icon="👥"
+          icon={<Users size={32} />}
           label="Total Leads"
           value={stats.totalLeads.toLocaleString()}
           change="+12%"
           trend="up"
         />
         <StatCard
-          icon="📢"
+          icon={<Megaphone size={32} />}
           label="Active Campaigns"
           value={stats.activeCampaigns}
           change="+2"
           trend="up"
         />
         <StatCard
-          icon="📈"
+          icon={<TrendingUp size={32} />}
           label="Conversion Rate"
           value={`${stats.conversionRate}%`}
           change="+0.8%"
           trend="up"
         />
         <StatCard
-          icon="💰"
+          icon={<DollarSign size={32} />}
           label="Revenue"
           value={`$${(stats.revenue / 1000).toFixed(1)}K`}
           change="+25%"

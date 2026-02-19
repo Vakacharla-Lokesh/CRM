@@ -1,19 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-interface ConnectivityStatus {
-  ws: boolean;
-  sse: boolean;
-  longPoll: boolean;
-  shortPoll: boolean;
-}
-
-interface NavbarProps {
-  onToggleSidebar: () => void;
-  isSidebarOpen: boolean;
-  onToggleRightPanel: () => void;
-  isRightPanelOpen: boolean;
-}
+import { BarChart2, Search } from "lucide-react";
+import type {
+  ConnectivityStatus,
+  NavbarProps,
+} from "@/types/interfaces/layout/navbar.interfaces";
 
 function Navbar({
   onToggleSidebar,
@@ -23,21 +14,20 @@ function Navbar({
 }: NavbarProps) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [offlineQueueCount, _setOfflineQueueCount] = useState(0);
-  const [_connectivityStatus, _setConnectivityStatus] = useState<ConnectivityStatus>({
-    ws: false,
-    sse: false,
-    longPoll: false,
-    shortPoll: false,
-  });
+  const [_connectivityStatus, _setConnectivityStatus] =
+    useState<ConnectivityStatus>({
+      ws: false,
+      sse: false,
+      longPoll: false,
+      shortPoll: false,
+    });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return JSON.parse(localStorage.getItem("darkMode") || "false");
   });
 
-  // Listen for online/offline events
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      // Trigger sync when coming back online
       console.log("App is back online");
     };
 
@@ -69,28 +59,23 @@ function Navbar({
 
   const handleSync = async () => {
     console.log("Sync triggered");
-    // Sync logic will be implemented in Phase 4 with custom hooks
   };
 
   const handleStressTest = () => {
     console.log("Stress test triggered");
-    // Stress test logic will be implemented in Phase 4
   };
 
   const handleDiagnostics = () => {
     console.log("Diagnostics triggered");
-    // Show event loop diagnostics
   };
 
   const handleLogout = () => {
     console.log("Logout triggered");
-    // Logout logic will be implemented later
   };
 
   return (
     <nav className="fixed top-0 left-0 z-50 h-16 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
       <div className="mx-auto max-w-full flex items-center justify-between px-4 h-full">
-        {/* Left Section - Logo & Menu Toggle */}
         <div className="flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
@@ -127,9 +112,7 @@ function Navbar({
           </Link>
         </div>
 
-        {/* Right Section - Status & Actions */}
         <div className="flex items-center gap-2 sm:gap-3">
-          {/* Connectivity Status */}
           <div className="hidden md:flex md:items-center gap-1 px-3 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-lg">
             <span
               className={`w-2 h-2 rounded-full ${
@@ -139,7 +122,6 @@ function Navbar({
             <span>{isOnline ? "Online" : "Offline"}</span>
           </div>
 
-          {/* Sync Button with Offline Count */}
           <button
             onClick={handleSync}
             className={`flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg shadow transition-colors ${
@@ -168,27 +150,24 @@ function Navbar({
             )}
           </button>
 
-          {/* Stress Test Button */}
           <button
             onClick={handleStressTest}
             className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded-lg shadow transition-colors"
             title="Run stress test (1000 leads)"
           >
-            <span>📊</span>
+            <BarChart2 size={16} />
             <span className="hidden xl:inline">Stress Test</span>
           </button>
 
-          {/* Diagnostics Button */}
           <button
             onClick={handleDiagnostics}
             className="hidden lg:inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600 rounded-lg shadow transition-colors"
             title="View event loop diagnostics"
           >
-            <span>🔍</span>
+            <Search size={16} />
             <span className="hidden xl:inline">Diagnostics</span>
           </button>
 
-          {/* Dark Mode Toggle */}
           <button
             onClick={toggleDarkMode}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -209,15 +188,16 @@ function Navbar({
                 viewBox="0 0 20 20"
               >
                 <path
-                  fillRule="evenodd"
-                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.536l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.828-2.828a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm.464-4.536a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414l.707.707zm-2.828-2.828a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414l.707.707zM13 11a1 1 0 110-2h1a1 1 0 110 2h-1zm4 0a1 1 0 110-2h1a1 1 0 110 2h-1zM9 18a1 1 0 011-1h1a1 1 0 110 2H9a1 1 0 01-1-1zm4 0a1 1 0 011-1h1a1 1 0 110 2h-1a1 1 0 01-1-1z"
-                  clipRule="evenodd"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 5V3m0 18v-2M7.05 7.05 5.636 5.636m12.728 12.728L16.95 16.95M5 12H3m18 0h-2M7.05 16.95l-1.414 1.414M18.364 5.636 16.95 7.05M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"
                 />
               </svg>
             )}
           </button>
 
-          {/* Right Panel Toggle */}
           <button
             onClick={() => onToggleRightPanel && onToggleRightPanel()}
             className={`p-2 rounded-lg transition-colors ${
@@ -237,7 +217,6 @@ function Navbar({
             </svg>
           </button>
 
-          {/* User Menu Dropdown */}
           <div className="relative group">
             <button
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
@@ -256,7 +235,6 @@ function Navbar({
               </svg>
             </button>
 
-            {/* Dropdown Menu */}
             <div className="absolute right-0 w-48 mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
               <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">

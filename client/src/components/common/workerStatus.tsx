@@ -1,13 +1,5 @@
+import type { WorkerState } from "@/types/interfaces/common/worker.interfaces";
 import { useState } from "react";
-
-interface WorkerState {
-  isRunning: boolean;
-  progress: number;
-  processedItems: number;
-  totalItems: number;
-  startTime: number | null;
-  estimatedTime: number | null;
-}
 
 function WorkerStatus() {
   const [workerState, setWorkerState] = useState<WorkerState>({
@@ -29,7 +21,6 @@ function WorkerStatus() {
       estimatedTime: null,
     });
 
-    // Simulate worker progress
     const interval = setInterval(() => {
       setWorkerState((prev) => {
         if (!prev.isRunning) {
@@ -87,7 +78,6 @@ function WorkerStatus() {
 
       {workerState.isRunning ? (
         <div className="space-y-3">
-          {/* Progress Bar */}
           <div>
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs text-gray-600 dark:text-gray-400">
@@ -105,7 +95,6 @@ function WorkerStatus() {
             </div>
           </div>
 
-          {/* Stats */}
           <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex justify-between">
               <span>Processed:</span>
