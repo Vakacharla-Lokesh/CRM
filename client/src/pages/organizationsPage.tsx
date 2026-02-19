@@ -3,36 +3,39 @@ import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/organizations/organization-columns";
 import type { CreateOrganizationDTO, Organization } from "@/types";
 import { Button } from "../components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
+import { Input } from "../components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { OrganizationModal } from "@/components/modals";
-import organizationService from "@/services/organizationService";
+import { useOrganizationData } from "@/hooks";
 
 const OrganizationsPage = () => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const {
+    filteredOrganizations,
+    statistics,
+    loading,
+    error,
+    filters,
+    fetchOrganizations,
+    createOrganization,
+    updateFilter,
+    resetFilters,
+  } = useOrganizationData();
+
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // Fetch organizations on mount
   useEffect(() => {
-    async function fetchOrganizations() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const res = await organizationService.getAllOrganizations();
-        setOrganizations(res);
-      } catch (err) {
-        console.error("Error fetching organizations:", err);
-        setError(
-          err instanceof Error ? err.message : "Failed to fetch organizations",
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchOrganizations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddOrganization = () => {
@@ -47,11 +50,13 @@ const OrganizationsPage = () => {
   const handleSaveOrganization = async (
     organizationData: CreateOrganizationDTO,
   ) => {
-    const newOrganization =
-      await organizationService.createOrganization(organizationData);
-
-    setOrganizations((prev) => [newOrganization, ...prev]);
-    setIsModalOpen(false);
+    try {
+      await createOrganization(organizationData);
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      throw error;
+    }
   };
 
   return (
@@ -79,7 +84,103 @@ const OrganizationsPage = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Organizations
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {statistics.total}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Small (1-50)</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+            {(statistics.bySize["1-10"] || 0) + (statistics.bySize["11-50"] || 0)}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Medium (51-500)</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+            {(statistics.bySize["51-200"] || 0) + (statistics.bySize["201-500"] || 0)}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Large (500+)</p>
+          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
+            {(statistics.bySize["501-1000"] || 0) + (statistics.bySize["1000+"] || 0)}
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Search
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="Search organizations..."
+                value={filters.search}
+                onChange={(e) => updateFilter("search", e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Size
+            </label>
+            <Select
+              value={filters.size || "all"}
+              onValueChange={(value) =>
+                updateFilter("size", value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="All sizes" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All sizes</SelectItem>
+                <SelectItem value="1-10">1-10 employees</SelectItem>
+                <SelectItem value="11-50">11-50 employees</SelectItem>
+                <SelectItem value="51-200">51-200 employees</SelectItem>
+                <SelectItem value="201-500">201-500 employees</SelectItem>
+                <SelectItem value="501-1000">501-1000 employees</SelectItem>
+                <SelectItem value="1000+">1000+ employees</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Industry
+            </label>
+            <Input
+              placeholder="Filter by industry..."
+              value={filters.industry}
+              onChange={(e) => updateFilter("industry", e.target.value)}
+            />
+          </div>
+
+          <div className="space-y-2 flex items-end">
+            <Button
+              variant="outline"
+              onClick={resetFilters}
+              className="w-full"
+            >
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -96,12 +197,9 @@ const OrganizationsPage = () => {
               Failed to load organizations
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {error}
+              {error?.message || "An error occurred"}
             </p>
-            <Button
-              onClick={() => window.location.reload()}
-              variant="outline"
-            >
+            <Button onClick={fetchOrganizations} variant="outline">
               Retry
             </Button>
           </div>
@@ -109,7 +207,7 @@ const OrganizationsPage = () => {
       ) : (
         <DataTable
           columns={columns}
-          data={organizations}
+          data={filteredOrganizations}
           name="Organizations"
         ></DataTable>
       )}

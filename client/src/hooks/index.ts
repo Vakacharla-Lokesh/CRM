@@ -7,4 +7,5 @@ export { useIndexedDB } from './useIndexedDB.ts';
 export { useLeadData } from './useLeadData.ts';
 export { useLocalStorage, getFromLocalStorage, saveToLocalStorage, removeFromLocalStorage, clearLocalStorage } from './useLocalStorage.ts';
 export { useOfflineManager } from './useOfflineManager.ts';
+export { useOrganizationData } from './useOrganizationData.ts';
 export { useUserData } from './useUserData.ts';
