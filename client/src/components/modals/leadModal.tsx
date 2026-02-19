@@ -138,7 +138,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {lead ? "Edit Lead" : "Add New Lead"}
@@ -242,6 +242,72 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                       <span>Outsource</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Phone">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                      <span>Phone</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Website">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
+                      <span>Website</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Facebook Ads">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-700"></div>
+                      <span>Facebook Ads</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Google Ads">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
+                      <span>Google Ads</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Instagram">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-pink-500"></div>
+                      <span>Instagram</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="LinkedIn">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-800"></div>
+                      <span>LinkedIn</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Email Marketing">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
+                      <span>Email Marketing</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Referral">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-teal-500"></div>
+                      <span>Referral</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Cold Call">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
+                      <span>Cold Call</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="WhatsApp">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-green-700"></div>
+                      <span>WhatsApp</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="Other">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      <span>Other</span>
                     </div>
                   </SelectItem>
                 </SelectContent>

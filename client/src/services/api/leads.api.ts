@@ -7,20 +7,37 @@ import type {
 } from "../../types";
 
 export const leadsAPI = {
-  list: (params?: {
+  list: async (params?: {
     page?: number;
     limit?: number;
     status?: string;
     organizationId?: string;
     userId?: string;
     search?: string;
-  }) => get<LeadListResponse>("/leads", params),
+  }) => {
+    const response = await get<{ count: number; leads: Lead[] }>("/leads", params);
+    return {
+      leads: response.leads,
+      total: response.count,
+      page: params?.page || 1,
+      limit: params?.limit || response.count,
+    } as LeadListResponse;
+  },
 
-  get: (id: string) => get<Lead>(`/leads/${id}`),
+  get: async (id: string) => {
+    const response = await get<{ lead: Lead }>(`/leads/${id}`);
+    return response.lead;
+  },
 
-  create: (data: CreateLeadDTO) => post<Lead>("/leads", data),
+  create: async (data: CreateLeadDTO) => {
+    const response = await post<{ message: string; lead: Lead }>("/leads", data);
+    return response.lead;
+  },
 
-  update: (id: string, data: UpdateLeadDTO) => put<Lead>(`/leads/${id}`, data),
+  update: async (id: string, data: UpdateLeadDTO) => {
+    const response = await put<{ message: string; lead: Lead }>(`/leads/${id}`, data);
+    return response.lead;
+  },
 
   delete: (id: string) => delete_<void>(`/leads/${id}`),
 

@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
+import { useAppContext } from "@/context";
 
 function Navbar({
   // Sidebar toggle props
-  isSidebarOpen: _isSidebarOpen,
   onToggleSidebar,
   // Right panel toggle props
   isRightPanelOpen,
@@ -13,6 +13,9 @@ function Navbar({
   isUserMenuOpen,
   setIsUserMenuOpen,
 }: NavbarProps) {
+  const navigate = useNavigate();
+  const { user, logout } = useAppContext();
+  
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return JSON.parse(localStorage.getItem("darkMode") || "false");
   });
@@ -29,8 +32,15 @@ function Navbar({
     localStorage.setItem("darkMode", JSON.stringify(newDarkMode));
   };
 
-  const handleLogout = () => {
-    console.log("Logout triggered");
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Force logout even if API call fails
+      navigate("/login");
+    }
   };
 
   return (
@@ -145,8 +155,8 @@ function Navbar({
               className={`absolute right-5 w-48 mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
             >
               <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  user@example.com
+                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                  {user?.userEmail || "guest@example.com"}
                 </p>
               </div>
               <a

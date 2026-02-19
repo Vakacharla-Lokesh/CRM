@@ -24,23 +24,28 @@ interface UserActivity {
 
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
-    return apiClient.get<User[]>("/users");
+    const response = await apiClient.get<{ count: number; users: User[] }>("/users");
+    return response.users;
   },
 
   getUserById: async (id: string): Promise<User> => {
-    return apiClient.get<User>(`/users/${id}`);
+    const response = await apiClient.get<{ user: User }>(`/users/${id}`);
+    return response.user;
   },
 
   getCurrentUser: async (): Promise<User> => {
-    return apiClient.get<User>("/users/me");
+    const response = await apiClient.get<{ user: User }>("/users/me");
+    return response.user;
   },
 
   createUser: async (userData: Partial<User>): Promise<User> => {
-    return apiClient.post<User>("/users", userData);
+    const response = await apiClient.post<{ message: string; user: User }>("/users", userData);
+    return response.user;
   },
 
   updateUser: async (id: string, updates: Partial<User>): Promise<User> => {
-    return apiClient.put<User>(`/users/${id}`, updates);
+    const response = await apiClient.put<{ message: string; user: User }>(`/users/${id}`, updates);
+    return response.user;
   },
 
   deleteUser: async (id: string): Promise<{ message: string }> => {

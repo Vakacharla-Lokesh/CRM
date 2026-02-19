@@ -5,48 +5,28 @@ import type { Lead, CreateLeadDTO } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
 import { LeadModal } from "@/components/modals";
-import { apiClient } from "@/services";
+import { leadService } from "@/services";
 
 const LeadsPage = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // const timer = setTimeout(() => {
-    //   const mockLeads: Lead[] = Array.from({ length: 25 }, (_, i) => ({
-    //     _id: `lead-${i + 1}`,
-    //     leadFirstName: `Lead`,
-    //     leadLastName: `${i + 1}`,
-    //     leadEmail: `lead${i + 1}@example.com`,
-    //     leadSource: i % 2 === 0 ? "API" : "Outsource",
-    //     leadStatus: ["New", "Converted", "Dead", "Follow-Up"][i % 4] as
-    //       | "New"
-    //       | "Converted"
-    //       | "Dead"
-    //       | "Follow-Up",
-    //     leadScore: Math.floor(Math.random() * 100),
-    //     organizationId: `org-${i + 1}`,
-    //     userId: `user-${i + 1}`,
-    //     tenantId: `tenant-1`,
-    //     createdAt: new Date(
-    //       Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-    //     ),
-    //     updatedAt: new Date(),
-    //   }));
-    //   setLeads(mockLeads);
-    // }, 500);
-
-    // return () => clearTimeout(timer);
     async function fetchLeads() {
-      await apiClient.leads
-        .list()
-        .then((res) => {
-          setLeads(res.leads);
-        })
-        .catch((err) => {
-          console.error("Error fetching leads:", err);
-        });
+      try {
+        setIsLoading(true);
+        setError(null);
+        const res = await leadService.getAllLeads();
+        setLeads(res);
+      } catch (err) {
+        console.error("Error fetching leads:", err);
+        setError(err instanceof Error ? err.message : "Failed to fetch leads");
+      } finally {
+        setIsLoading(false);
+      }
     }
 
     fetchLeads();
@@ -59,26 +39,28 @@ const LeadsPage = () => {
 
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
     // TODO: Replace with actual API call
-    console.log("Saving lead:", leadData);
+    // console.log("Saving lead:", leadData);
 
-    // Mock creating a new lead
-    const newLead: Lead = {
-      _id: `lead-${leads.length + 1}`,
-      leadId: `LEAD-${leads.length + 1}`,
-      leadFirstName: leadData.leadFirstName,
-      leadLastName: leadData.leadLastName,
-      leadEmail: leadData.leadEmail,
-      leadSource: leadData.leadSource || "API",
-      leadStatus: leadData.leadStatus || "New",
-      leadScore: leadData.leadScore || 0,
-      organizationId: leadData.organizationId,
-      tenantId: leadData.tenantId,
-      userId: "current-user-id",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    // // Mock creating a new lead
+    // const newLead: Lead = {
+    //   _id: `lead-${leads.length + 1}`,
+    //   leadId: `LEAD-${leads.length + 1}`,
+    //   leadFirstName: leadData.leadFirstName,
+    //   leadLastName: leadData.leadLastName,
+    //   leadEmail: leadData.leadEmail,
+    //   leadSource: leadData.leadSource || "API",
+    //   leadStatus: leadData.leadStatus || "New",
+    //   leadScore: leadData.leadScore || 0,
+    //   organizationId: leadData.organizationId,
+    //   tenantId: leadData.tenantId,
+    //   userId: "current-user-id",
+    //   createdAt: new Date(),
+    //   updatedAt: new Date(),
+    // };
 
-    setLeads((prev) => [newLead, ...prev]);
+    leadService.createLead(leadData).then((newLead) => {
+      setLeads((prev) => [newLead, ...prev]);
+    });
     setIsModalOpen(false);
   };
 
@@ -112,10 +94,37 @@ const LeadsPage = () => {
         </div>
       </div>
 
-      <DataTable
-        columns={columns}
-        data={leads}
-      ></DataTable>
+      {isLoading ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-gray-600 dark:text-gray-400">Loading leads...</p>
+          </div>
+        </div>
+      ) : error ? (
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <div className="text-red-500 text-5xl mb-4">⚠️</div>
+            <p className="text-red-600 dark:text-red-400 font-semibold mb-2">
+              Failed to load leads
+            </p>
+            <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
+              {error}
+            </p>
+            <Button
+              onClick={() => window.location.reload()}
+              variant="outline"
+            >
+              Retry
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={leads}
+        />
+      )}
 
       <LeadModal
         isOpen={isModalOpen}

@@ -82,8 +82,16 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const handleOnline = () => setIsOnline(true);
     const handleOffline = () => setIsOnline(false);
 
+    const handleAuthLogout = () => {
+      console.log('Auth logout event received');
+      setUser(null);
+      setToken(null);
+      setIsAuthenticated(false);
+    };
+
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
+    window.addEventListener("auth:logout", handleAuthLogout);
 
     return () => {
       window.removeEventListener("online", handleOnline);

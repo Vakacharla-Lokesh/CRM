@@ -19,19 +19,31 @@ interface LeadActivity {
 
 const leadService = {
   getAllLeads: async (): Promise<Lead[]> => {
-    return apiClient.get<Lead[]>("/leads");
+    const response = await apiClient.get<{ count: number; leads: Lead[] }>(
+      "/leads",
+    );
+    return response.leads;
   },
 
   getLeadById: async (id: string): Promise<Lead> => {
-    return apiClient.get<Lead>(`/leads/${id}`);
+    const response = await apiClient.get<{ lead: Lead }>(`/leads/${id}`);
+    return response.lead;
   },
 
   createLead: async (leadData: Partial<Lead>): Promise<Lead> => {
-    return apiClient.post<Lead>("/leads", leadData);
+    const response = await apiClient.post<{ message: string; lead: Lead }>(
+      "/leads",
+      leadData,
+    );
+    return response.lead;
   },
 
   updateLead: async (id: string, updates: Partial<Lead>): Promise<Lead> => {
-    return apiClient.put<Lead>(`/leads/${id}`, updates);
+    const response = await apiClient.put<{ message: string; lead: Lead }>(
+      `/leads/${id}`,
+      updates,
+    );
+    return response.lead;
   },
 
   deleteLead: async (id: string): Promise<{ message: string }> => {

@@ -6,6 +6,7 @@ function MemoryVisualizer() {
   const [currentMemory, setCurrentMemory] = useState(0);
   const [maxMemory, setMaxMemory] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  // eslint-disable-next-line react-hooks/purity
   const lastClearTime = useRef<number>(Date.now());
 
   useEffect(() => {
@@ -22,8 +23,8 @@ function MemoryVisualizer() {
         const timeSinceLastClear = now - lastClearTime.current;
 
         setMemoryData((prev) => {
-          // Clear graph every 5 seconds
           if (timeSinceLastClear >= 5000) {
+            // Clear graph every 5 seconds
             lastClearTime.current = now;
             return [usedMemory];
           }
@@ -33,7 +34,6 @@ function MemoryVisualizer() {
     };
 
     const interval = setInterval(collectMemoryData, 1000);
-
     return () => clearInterval(interval);
   }, []);
 
@@ -47,14 +47,19 @@ function MemoryVisualizer() {
     const width = canvas.width;
     const height = canvas.height;
 
-    ctx.fillStyle = "transparent";
-    ctx.fillRect(0, 0, width, height);
+    // Clear canvas
+    ctx.clearRect(0, 0, width, height);
 
     const min = Math.min(...memoryData);
     const max = Math.max(...memoryData);
     const range = max - min || 1;
 
-    ctx.strokeStyle = "#e5e7eb";
+    // Grid lines (using theme border color)
+    const gridColor =
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "--color-border",
+      ) || "#d6d3d1";
+    ctx.strokeStyle = gridColor.trim();
     ctx.lineWidth = 0.5;
     for (let i = 0; i < 4; i++) {
       const y = (height / 4) * i;
@@ -64,37 +69,41 @@ function MemoryVisualizer() {
       ctx.stroke();
     }
 
-    ctx.strokeStyle = "#3b82f6";
+    // Memory line color from theme
+    const lineColor =
+      getComputedStyle(document.documentElement).getPropertyValue(
+        "--color-chart-1",
+      ) || "#6366f1";
+    const fillColor = lineColor.trim() + "1A"; // 10% opacity
+
+    ctx.strokeStyle = lineColor.trim();
     ctx.lineWidth = 2;
     ctx.beginPath();
 
     memoryData.forEach((value, index) => {
       const x = (index / (memoryData.length - 1)) * width;
       const y = height - ((value - min) / range) * height;
-
-      if (index === 0) {
-        ctx.moveTo(x, y);
-      } else {
-        ctx.lineTo(x, y);
-      }
+      if (index === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
     });
 
     ctx.stroke();
 
+    // Fill under the line
     ctx.lineTo(width, height);
     ctx.lineTo(0, height);
     ctx.closePath();
-    ctx.fillStyle = "rgba(59, 130, 246, 0.1)";
+    ctx.fillStyle = fillColor;
     ctx.fill();
   }, [memoryData]);
 
   return (
-    <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+    <div className="p-3 bg-card dark:bg-card rounded-lg border border-border dark:border-border">
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase">
+        <h3 className="text-xs font-semibold text-foreground dark:text-foreground uppercase">
           JS Heap Memory
         </h3>
-        <span className="text-xs px-2 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded font-mono">
+        <span className="text-xs px-2 py-1 bg-accent dark:bg-accent-foreground/30 text-accent-foreground dark:text-accent rounded font-mono">
           {currentMemory}MB
         </span>
       </div>
@@ -103,13 +112,13 @@ function MemoryVisualizer() {
         ref={canvasRef}
         width={250}
         height={60}
-        className="w-full border border-gray-200 dark:border-gray-600 rounded mb-2"
+        className="w-full border border-border dark:border-border rounded mb-2"
       />
 
-      <div className="space-y-1 text-xs text-gray-600 dark:text-gray-400">
+      <div className="space-y-1 text-xs text-muted-foreground dark:text-muted-foreground">
         <div className="flex justify-between">
           <span>Used:</span>
-          <span className="font-mono font-semibold text-blue-600 dark:text-blue-400">
+          <span className="font-mono font-semibold text-primary dark:text-primary-foreground">
             {currentMemory} MB
           </span>
         </div>
@@ -127,8 +136,8 @@ function MemoryVisualizer() {
       </div>
 
       {maxMemory > 0 && currentMemory / maxMemory > 0.85 && (
-        <div className="mt-3 p-2 bg-red-50 dark:bg-red-900/20 rounded">
-          <p className="text-xs text-red-700 dark:text-red-400 font-semibold">
+        <div className="mt-3 p-2 bg-destructive/10 dark:bg-destructive-foreground/20 rounded">
+          <p className="text-xs text-destructive dark:text-destructive-foreground font-semibold">
             ⚠️ Memory usage high
           </p>
         </div>

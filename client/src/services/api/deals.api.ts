@@ -7,19 +7,36 @@ import type {
 } from "../../types";
 
 export const dealsAPI = {
-  list: (params?: {
+  list: async (params?: {
     page?: number;
     limit?: number;
     stage?: string;
     organizationId?: string;
     ownerId?: string;
-  }) => get<DealListResponse>("/deals", params),
+  }) => {
+    const response = await get<{ count: number; deals: Deal[] }>("/deals", params);
+    return {
+      deals: response.deals,
+      total: response.count,
+      page: params?.page || 1,
+      limit: params?.limit || response.count,
+    } as DealListResponse;
+  },
 
-  get: (id: string) => get<Deal>(`/deals/${id}`),
+  get: async (id: string) => {
+    const response = await get<{ deal: Deal }>(`/deals/${id}`);
+    return response.deal;
+  },
 
-  create: (data: CreateDealDTO) => post<Deal>("/deals", data),
+  create: async (data: CreateDealDTO) => {
+    const response = await post<{ message: string; deal: Deal }>("/deals", data);
+    return response.deal;
+  },
 
-  update: (id: string, data: UpdateDealDTO) => put<Deal>(`/deals/${id}`, data),
+  update: async (id: string, data: UpdateDealDTO) => {
+    const response = await put<{ message: string; deal: Deal }>(`/deals/${id}`, data);
+    return response.deal;
+  },
 
   delete: (id: string) => delete_<void>(`/deals/${id}`),
 

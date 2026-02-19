@@ -9,8 +9,10 @@ export const authenticate = async (req, res, next) => {
       return res.status(401).json({ message: "Authentication required" });
     }
 
+    console.log("Decoded token: ", token);
+    console.log(process.env.JWT_SECRET)
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("Decoded token: ", decoded);
+    console.log(decoded)
     const user = await userModel.findById(decoded.userId);
 
     if (!user) {
@@ -25,6 +27,6 @@ export const authenticate = async (req, res, next) => {
 
     next();
   } catch (err) {
-    return res.status(401).json({ message: "Invalid or expired token" });
+    return res.status(401).json({ message: "Invalid or expired token", error:err.message });
   }
 };
