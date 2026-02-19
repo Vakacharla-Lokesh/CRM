@@ -1,38 +1,44 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/users/user-columns";
 import type { CreateUserDTO, User } from "@/types";
 import { Button } from "../components/ui/button";
-import { Download } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import { UserModal } from "@/components/modals";
-import { userService } from "@/services/userService";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useUserData } from "@/hooks";
 
 const UsersPage = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const {
+    filteredUsers,
+    statistics,
+    loading,
+    error,
+    filters,
+    updateFilter,
+    resetFilters,
+    createUser,
+    updateUser,
+    deleteUser,
+    fetchUsers,
+  } = useUserData();
+
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchUsers() {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const res = await userService.getAllUsers();
-        setUsers(res);
-      } catch (err) {
-        console.error("Error fetching users:", err);
-        setError(err instanceof Error ? err.message : "Failed to fetch users");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
     fetchUsers();
-  }, []);
+  }, [fetchUsers]);
 
   const handleAddUser = () => {
+    setSelectedUser(null);
     setIsModalOpen(true);
   };
 
@@ -42,10 +48,33 @@ const UsersPage = () => {
   };
 
   const handleSaveUser = async (userData: CreateUserDTO) => {
-    const newUser = await userService.createUser(userData);
-
-    setUsers((prev) => [newUser, ...prev]);
+    if (selectedUser) {
+      await updateUser(selectedUser._id, userData);
+    } else {
+      await createUser(userData);
+    }
     setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleEditUser = (id: string) => {
+    const user = filteredUsers.find((u) => u._id === id);
+    if (user) {
+      setSelectedUser(user);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDeleteUser = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await deleteUser(id);
+        await fetchUsers();
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        alert("Failed to delete user. Please try again.");
+      }
+    }
   };
 
   return (
@@ -73,7 +102,94 @@ const UsersPage = () => {
         </div>
       </div>
 
-      {isLoading ? (
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Users
+          </p>
+          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+            {statistics.total}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
+          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
+            {statistics.active}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
+            {statistics.inactive}
+          </p>
+        </div>
+        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+            {(statistics.byRole.admin || 0) +
+              (statistics.byRole.super_admin || 0)}
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search users by name or email..."
+                value={filters.search}
+                onChange={(e) => updateFilter("search", e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          <Select
+            value={filters.role || "all"}
+            onValueChange={(value) =>
+              updateFilter("role", value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-full sm:w-45">
+              <SelectValue placeholder="Filter by role" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Roles</SelectItem>
+              <SelectItem value="user">User</SelectItem>
+              <SelectItem value="admin">Admin</SelectItem>
+              <SelectItem value="super_admin">Super Admin</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select
+            value={filters.status || "all"}
+            onValueChange={(value) =>
+              updateFilter("status", value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-full sm:w-45">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            onClick={resetFilters}
+            disabled={!filters.search && !filters.role && !filters.status}
+            className="whitespace-nowrap"
+          >
+            Clear Filters
+          </Button>
+        </div>
+      </div>
+
+      {loading ? (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
@@ -88,10 +204,10 @@ const UsersPage = () => {
               Failed to load users
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {error}
+              {error.message}
             </p>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={() => fetchUsers()}
               variant="outline"
             >
               Retry
@@ -100,10 +216,13 @@ const UsersPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={columns}
-          data={users}
+          columns={columns({
+            onEdit: handleEditUser,
+            onDelete: handleDeleteUser,
+          })}
+          data={filteredUsers}
           name="Users"
-        ></DataTable>
+        />
       )}
 
       <UserModal

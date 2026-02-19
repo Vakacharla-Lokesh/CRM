@@ -1,21 +1,22 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown, Trash2, Pencil } from "lucide-react";
+import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { type User } from "@/types";
+import ActionDropdown from "../common/actionDropDown";
 
-export const columns: ColumnDef<User>[] = [
+interface ColumnsProps {
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export const columns = ({
+  onEdit,
+  onDelete,
+}: ColumnsProps = {}): ColumnDef<User>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -192,40 +193,13 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
-      const user = row.original;
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(user._id)}
-            >
-              Copy user ID
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2">
-              <Pencil className="w-4 h-4" />
-              Edit
-            </DropdownMenuItem>
-
-            <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive hover:bg-red-400">
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      );
-    },
+    cell: ({ row }) => (
+      <ActionDropdown
+        id={row.original._id}
+        type="User"
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    ),
   },
 ];

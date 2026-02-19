@@ -2,6 +2,7 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { MoreHorizontal, ArrowUpDown, Trash2, Pencil } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -94,6 +95,18 @@ export const columns: ColumnDef<Lead>[] = [
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const score = row.getValue("leadScore") as number;
+      const getScoreColor = (score: number) => {
+        if (score >= 80) return "text-green-600 dark:text-green-400";
+        if (score >= 60) return "text-blue-600 dark:text-blue-400";
+        if (score >= 40) return "text-yellow-600 dark:text-yellow-400";
+        return "text-red-600 dark:text-red-400";
+      };
+      return (
+        <span className={`font-semibold ${getScoreColor(score)}`}>{score}</span>
+      );
+    },
   },
   {
     accessorKey: "leadStatus",
@@ -110,27 +123,37 @@ export const columns: ColumnDef<Lead>[] = [
     },
     cell: ({ row }) => {
       const status = row.getValue("leadStatus") as string;
-
-      // Define Tailwind classes for each status
-      const statusColors: Record<string, string> = {
-        New: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200",
-        Converted:
-          "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-        Dead: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-        "Follow-Up":
-          "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+      const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+          New: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+          Converted:
+            "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+          Dead: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+          "Follow-Up":
+            "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+        };
+        return colors[status] || colors.New;
       };
-
-      const colorClass =
-        statusColors[status] ||
-        "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
-
       return (
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}
+          className={`text-xs font-semibold px-3 py-1 rounded-full ${getStatusColor(status)}`}
         >
           {status}
         </span>
+      );
+    },
+  },
+  {
+    accessorKey: "leadSource",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Source
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
       );
     },
   },
@@ -139,6 +162,17 @@ export const columns: ColumnDef<Lead>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const lead = row.original;
+      // eslint-disable-next-line react-hooks/rules-of-hooks
+      const navigate = useNavigate();
+
+      const handleEdit = () => {
+        navigate(`/leads/${lead._id}`);
+      };
+
+      const handleDelete = () => {
+        // TODO: Implement delete functionality
+        console.log("Delete:", lead._id);
+      };
 
       return (
         <DropdownMenu>
@@ -155,17 +189,17 @@ export const columns: ColumnDef<Lead>[] = [
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(lead._id)}
+              onClick={handleEdit}
+              className="cursor-pointer gap-2"
             >
-              Copy lead ID
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2">
-              <Pencil className="w-4 h-4" />
+              <Pencil className="h-4 w-4" />
               Edit
             </DropdownMenuItem>
-
-            <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive">
-              <Trash2 className="w-4 h-4" />
+            <DropdownMenuItem
+              onClick={handleDelete}
+              className="cursor-pointer gap-2 text-red-600 dark:text-red-400"
+            >
+              <Trash2 className="h-4 w-4" />
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

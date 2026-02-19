@@ -1,6 +1,5 @@
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/deals/deal-columns";
-import type { Deal } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -56,7 +55,9 @@ const DealsPage = () => {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Total Value</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Total Value
+          </p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
             {formatCurrency(statistics.totalValue)}
           </p>
@@ -98,7 +99,7 @@ const DealsPage = () => {
           <Select
             value={filters.stage || "all"}
             onValueChange={(value) =>
-              updateFilter("stage", value === "all" ? "" : value)
+              updateFilter("stage", value === "all" ? "" : (value as any))
             }
           >
             <SelectTrigger className="w-full sm:w-45">
