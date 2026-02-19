@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
-import StatCard from "../common/statCard";
-import type { Lead } from "../../types";
+import StatCard from "../components/common/statCard";
+import type { Lead } from "../types";
 
 interface DashboardStats {
   totalLeads: number;
@@ -20,7 +20,7 @@ function DashboardPage() {
   });
 
   const [leads, setLeads] = useState<Lead[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [, setIsLoading] = useState(true);
 
   // Simulate loading leads data
   useEffect(() => {

@@ -1,6 +1,8 @@
 export interface NavbarProps {
-  onToggleSidebar: () => void;
   isSidebarOpen: boolean;
-  onToggleRightPanel: () => void;
+  onToggleSidebar: () => void;
   isRightPanelOpen: boolean;
+  onToggleRightPanel: () => void;
+  isUserMenuOpen: boolean;
+  setIsUserMenuOpen: (isOpen: boolean) => void;
 }

@@ -1,9 +1,3 @@
-/**
- * Common Type Definitions
- * Generic API and utility types only - domain types are in their respective files
- */
-
-// Re-export domain types from their source files
 export * from "./user";
 export * from "./leads";
 export * from "./auth";

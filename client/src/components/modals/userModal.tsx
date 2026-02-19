@@ -1,5 +1,23 @@
-import { useState, useEffect, type FormEvent, type ChangeEvent } from "react";
-import type { User, UserRole } from "../../types";
+import { useState, useEffect, type FormEvent } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import type { User, UserRole, CreateUserDTO } from "@/types";
 
 interface UserFormData {
   firstName: string;
@@ -7,6 +25,7 @@ interface UserFormData {
   userEmail: string;
   mobile: string;
   role: UserRole;
+  userPassword: string;
 }
 
 interface FormErrors {
@@ -14,13 +33,14 @@ interface FormErrors {
   lastName?: string;
   userEmail?: string;
   mobile?: string;
+  userPassword?: string;
 }
 
 interface UserModalProps {
   isOpen: boolean;
   user: User | null;
   onClose: () => void;
-  onSave: (userData: UserFormData) => void;
+  onSave: (userData: CreateUserDTO) => Promise<void>;
 }
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
@@ -30,8 +50,10 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
     userEmail: "",
     mobile: "",
     role: "user",
+    userPassword: "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -41,6 +63,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userEmail: user.userEmail,
         mobile: user.mobile || "",
         role: user.role,
+        userPassword: "", // Don't show password for existing users
       });
     } else {
       setFormData({
@@ -49,266 +72,267 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userEmail: "",
         mobile: "",
         role: "user",
+        userPassword: "",
       });
     }
     setErrors({});
   }, [user, isOpen]);
 
-  const validateForm = () => {
+  const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
 
     if (!formData.firstName.trim()) {
       newErrors.firstName = "First name is required";
     }
 
-    if (!formData.userEmail) {
+    if (!formData.userEmail.trim()) {
       newErrors.userEmail = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
       newErrors.userEmail = "Invalid email format";
     }
 
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
+    // Password is only required for new users
+    if (!user && !formData.userPassword.trim()) {
+      newErrors.userPassword = "Password is required for new users";
+    } else if (formData.userPassword && formData.userPassword.length < 6) {
+      newErrors.userPassword = "Password must be at least 6 characters";
+    }
+
+    // Mobile validation - backend expects 10 digits starting with non-zero
+    if (
+      formData.mobile &&
+      !/^[1-9]\d{9}$/.test(formData.mobile.replace(/[^0-9]/g, ""))
+    ) {
+      newErrors.mobile = "Invalid mobile number format";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    onSave(formData);
+    setIsSubmitting(true);
+
+    try {
+      const userData: CreateUserDTO = {
+        firstName: formData.firstName,
+        lastName: formData.lastName || undefined,
+        userEmail: formData.userEmail,
+        userPassword: formData.userPassword,
+        mobile: formData.mobile || undefined,
+        role: formData.role,
+        tenantId: "tenant-1", // Must use actual tenant ID in real implementation
+      };
+
+      await onSave(userData);
+      onClose();
+    } catch (error) {
+      console.error("Error saving user:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  if (!isOpen) {
-    return null;
-  }
+  const handleInputChange = (field: keyof UserFormData, value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
 
   return (
-    <>
-      {/* Backdrop */}
-      <div
-        className="fixed inset-0 bg-black/50 dark:bg-black/70 z-40 transition-opacity"
-        onClick={onClose}
-      />
+    <Dialog
+      open={isOpen}
+      onOpenChange={onClose}
+    >
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold">
+            {user ? "Edit User" : "Add New User"}
+          </DialogTitle>
+          <DialogDescription>
+            {user
+              ? "Update the user information below."
+              : "Fill in the details to create a new user."}
+          </DialogDescription>
+        </DialogHeader>
 
-      {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center px-4 py-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto border border-gray-200 dark:border-gray-700">
-          {/* Header */}
-          <div className="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-              {user ? "Edit User" : "Add New User"}
-            </h2>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors text-gray-600 dark:text-gray-400"
-            >
-              <svg
-                className="w-6 h-6"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-
-          {/* Content */}
-          <form
-            onSubmit={handleSubmit}
-            className="p-6 space-y-4"
-          >
-            {/* First Name Field */}
-            <div>
-              <label
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label
                 htmlFor="firstName"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                className="text-sm font-semibold"
               >
-                First Name
-              </label>
-              <input
-                type="text"
+                First Name <span className="text-red-500">*</span>
+              </Label>
+              <Input
                 id="firstName"
-                name="firstName"
                 value={formData.firstName}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange("firstName", e.target.value)}
                 placeholder="John"
-                className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.firstName
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+                className={errors.firstName ? "border-red-500" : ""}
               />
               {errors.firstName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.firstName}
-                </p>
+                <p className="text-sm text-red-500">{errors.firstName}</p>
               )}
             </div>
 
-            {/* Last Name Field */}
-            <div>
-              <label
+            <div className="space-y-2">
+              <Label
                 htmlFor="lastName"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                className="text-sm font-semibold"
               >
                 Last Name
-              </label>
-              <input
-                type="text"
+              </Label>
+              <Input
                 id="lastName"
-                name="lastName"
                 value={formData.lastName}
-                onChange={handleChange}
+                onChange={(e) => handleInputChange("lastName", e.target.value)}
                 placeholder="Doe"
-                className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.lastName
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
               />
-              {errors.lastName && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.lastName}
-                </p>
-              )}
             </div>
+          </div>
 
-            {/* Email Field */}
-            <div>
-              <label
-                htmlFor="userEmail"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Email
-              </label>
-              <input
-                type="email"
-                id="userEmail"
-                name="userEmail"
-                value={formData.userEmail}
-                onChange={handleChange}
-                placeholder="john@example.com"
-                className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.userEmail
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
-              />
-              {errors.userEmail && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.userEmail}
-                </p>
-              )}
-            </div>
+          <div className="space-y-2">
+            <Label
+              htmlFor="userEmail"
+              className="text-sm font-semibold"
+            >
+              Email <span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="userEmail"
+              type="email"
+              value={formData.userEmail}
+              onChange={(e) => handleInputChange("userEmail", e.target.value)}
+              placeholder="john.doe@example.com"
+              className={errors.userEmail ? "border-red-500" : ""}
+            />
+            {errors.userEmail && (
+              <p className="text-sm text-red-500">{errors.userEmail}</p>
+            )}
+          </div>
 
-            {/* Mobile Field */}
-            <div>
-              <label
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label
                 htmlFor="mobile"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                className="text-sm font-semibold"
               >
                 Mobile Number
-              </label>
-              <input
-                type="tel"
+              </Label>
+              <Input
                 id="mobile"
-                name="mobile"
+                type="tel"
                 value={formData.mobile}
-                onChange={handleChange}
-                placeholder="+1 234-567-8900"
-                className={`w-full px-4 py-2 rounded-lg border-2 transition-all ${
-                  errors.mobile
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-300 dark:border-gray-600 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+                onChange={(e) => handleInputChange("mobile", e.target.value)}
+                placeholder="9876543210"
+                className={errors.mobile ? "border-red-500" : ""}
               />
               {errors.mobile && (
-                <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                  {errors.mobile}
-                </p>
+                <p className="text-sm text-red-500">{errors.mobile}</p>
               )}
             </div>
 
-            {/* Role Field */}
-            <div>
-              <label
+            <div className="space-y-2">
+              <Label
                 htmlFor="role"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
+                className="text-sm font-semibold"
               >
-                Role
-              </label>
-              <select
-                id="role"
-                name="role"
+                Role <span className="text-red-500">*</span>
+              </Label>
+              <Select
                 value={formData.role}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border-2 border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 transition-all"
+                onValueChange={(value) => handleInputChange("role", value)}
               >
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-                <option value="super_admin">Super Admin</option>
-              </select>
+                <SelectTrigger id="role">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                      <span>User</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="admin">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                      <span>Admin</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </form>
+          </div>
 
-          {/* Footer */}
-          <div className="sticky bottom-0 bg-gray-50 dark:bg-gray-700 border-t border-gray-200 dark:border-gray-600 px-6 py-4 flex gap-3">
-            <button
+          {!user && (
+            <div className="space-y-2">
+              <Label
+                htmlFor="userPassword"
+                className="text-sm font-semibold"
+              >
+                Password <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="userPassword"
+                type="password"
+                value={formData.userPassword}
+                onChange={(e) =>
+                  handleInputChange("userPassword", e.target.value)
+                }
+                placeholder="Enter password (min. 6 characters)"
+                className={errors.userPassword ? "border-red-500" : ""}
+              />
+              {errors.userPassword && (
+                <p className="text-sm text-red-500">{errors.userPassword}</p>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="gap-4">
+            <Button
+              type="button"
+              variant="outline"
               onClick={onClose}
-              className="flex-1 px-4 py-2 border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              disabled={isSubmitting}
             >
               Cancel
-            </button>
-            <button
-              onClick={(e) => {
-                const form = (e.target as HTMLElement)
-                  .closest("div")
-                  ?.parentElement?.querySelector("form");
-                if (form) {
-                  const submitEvent = new Event("submit", { bubbles: true });
-                  form.dispatchEvent(submitEvent);
-                }
-              }}
-              className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
             >
-              {user ? "Update" : "Create"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Better Footer Button Implementation */}
-      <style>{`
-        .modal-form-submit {
-          cursor: pointer;
-        }
-      `}</style>
-    </>
+              {isSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                <span>{user ? "Update User" : "Create User"}</span>
+              )}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 

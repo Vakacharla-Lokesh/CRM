@@ -5,17 +5,17 @@ import {
   Route,
   Navigate,
 } from "react-router-dom";
-import Layout from "./components/layout/layout";
+import { Layout } from "./components/layout";
 import { AppProvider, useAppContext } from "./context";
 
-import LoginPage from "./components/pages/loginPage";
-import SignupPage from "./components/pages/signupPage";
-import DashboardPage from "./components/pages/dashboardPage";
-import UsersPage from "./components/pages/usersPage";
-import LeadsPage from "./components/pages/leadsPage";
-import OrganizationsPage from "./components/pages/organizationsPage";
-import DealsPage from "./components/pages/dealsPage";
-import TenantsPage from "./components/pages/tenantsPage";
+import LoginPage from "./pages/loginPage";
+import SignupPage from "./pages/signupPage";
+import DashboardPage from "./pages/dashboardPage";
+import UsersPage from "./pages/usersPage";
+import LeadsPage from "./pages/leadsPage";
+import OrganizationsPage from "./pages/organizationsPage";
+import DealsPage from "./pages/dealsPage";
+import TenantsPage from "./pages/tenantsPage";
 
 import "./app.css";
 

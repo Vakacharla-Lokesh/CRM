@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { DataTable } from "../common/data-table";
-import { columns } from "../deals/deal-columns";
+import { DataTable } from "../components/common/data-table";
+import { columns } from "../components/deals/deal-columns";
 import type { Deal } from "@/types";
 
 const DealsPage = () => {
