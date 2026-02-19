@@ -1,12 +1,16 @@
 import { useEffect, useState } from "react";
-import { DataTable } from "../common/data-table";
-import { columns } from "../organizations/organization-columns";
-import type { Organization } from "@/types";
-import { Button } from "../ui/button";
+import { DataTable } from "../components/common/data-table";
+import { columns } from "../components/organizations/organization-columns";
+import type { CreateOrganizationDTO, Organization } from "@/types";
+import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
+import { OrganizationModal } from "@/components/modals";
 
 const OrganizationsPage = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [selectedOrganization, setSelectedOrganization] =
+    useState<Organization | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -42,8 +46,35 @@ const OrganizationsPage = () => {
   }, []);
 
   const handleAddOrganization = () => {
-    // TODO: Implement add organization modal
-    console.log("Add organization clicked");
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedOrganization(null);
+  };
+
+  const handleSaveOrganization = async (
+    organizationData: CreateOrganizationDTO,
+  ) => {
+    // TODO: Replace with actual API call
+    console.log("Saving organization:", organizationData);
+
+    // Mock creating a new organization
+    const newOrganization: Organization = {
+      _id: `org-${organizations.length + 1}`,
+      organizationName: organizationData.organizationName,
+      organizationWebsite: organizationData.organizationWebsite,
+      organizationSize: organizationData.organizationSize,
+      organizationIndustry: organizationData.organizationIndustry,
+      tenantId: organizationData.tenantId,
+      userId: "current-user-id",
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setOrganizations((prev) => [newOrganization, ...prev]);
+    setIsModalOpen(false);
   };
 
   return (
@@ -71,7 +102,17 @@ const OrganizationsPage = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={organizations}></DataTable>
+      <DataTable
+        columns={columns}
+        data={organizations}
+      ></DataTable>
+
+      <OrganizationModal
+        isOpen={isModalOpen}
+        organization={selectedOrganization}
+        onClose={handleCloseModal}
+        onSave={handleSaveOrganization}
+      />
     </div>
   );
 };

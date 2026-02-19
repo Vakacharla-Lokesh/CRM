@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
-import { DataTable } from "../common/data-table";
-import { columns } from "../users/user-columns";
-import type { User } from "@/types";
-import { Button } from "../ui/button";
+import { DataTable } from "../components/common/data-table";
+import { columns } from "../components/users/user-columns";
+import type { CreateUserDTO, User } from "@/types";
+import { Button } from "../components/ui/button";
 import { Download } from "lucide-react";
+import { UserModal } from "@/components/modals";
 
 const UsersPage = () => {
   const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -17,7 +20,10 @@ const UsersPage = () => {
           i % 6
         ],
         userEmail: `user${i + 1}@example.com`,
-        mobile: i % 3 === 0 ? `+1${Math.floor(2000000000 + Math.random() * 1000000000)}` : undefined,
+        mobile:
+          i % 3 === 0
+            ? `+1${Math.floor(2000000000 + Math.random() * 1000000000)}`
+            : undefined,
         role: ["user", "admin", "super_admin"][i % 3] as User["role"],
         tenantId: `tenant-1`,
         isActive: i % 5 !== 0,
@@ -33,8 +39,34 @@ const UsersPage = () => {
   }, []);
 
   const handleAddUser = () => {
-    // TODO: Implement add user modal
-    console.log("Add user clicked");
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedUser(null);
+  };
+
+  const handleSaveUser = async (userData: CreateUserDTO) => {
+    // TODO: Replace with actual API call
+    console.log("Saving user:", userData);
+
+    // Mock creating a new user
+    const newUser: User = {
+      _id: `user-${users.length + 1}`,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      userEmail: userData.userEmail,
+      mobile: userData.mobile,
+      role: userData.role || "user",
+      tenantId: userData.tenantId,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    setUsers((prev) => [newUser, ...prev]);
+    setIsModalOpen(false);
   };
 
   return (
@@ -62,7 +94,17 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <DataTable columns={columns} data={users}></DataTable>
+      <DataTable
+        columns={columns}
+        data={users}
+      ></DataTable>
+
+      <UserModal
+        isOpen={isModalOpen}
+        user={selectedUser}
+        onClose={handleCloseModal}
+        onSave={handleSaveUser}
+      />
     </div>
   );
 };

@@ -16,6 +16,7 @@ export interface Organization {
 }
 
 export interface CreateOrganizationDTO {
+  tenantId: string;
   organizationName: string;
   organizationWebsite?: string;
   organizationSize: OrganizationSize;

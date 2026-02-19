@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 
 function Navbar({
-  onToggleSidebar,
+  // Sidebar toggle props
   isSidebarOpen: _isSidebarOpen,
-  onToggleRightPanel,
+  onToggleSidebar,
+  // Right panel toggle props
   isRightPanelOpen,
+  onToggleRightPanel,
+  // User menu props
+  isUserMenuOpen,
+  setIsUserMenuOpen,
 }: NavbarProps) {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     return JSON.parse(localStorage.getItem("darkMode") || "false");
@@ -117,8 +122,9 @@ function Navbar({
             </svg>
           </button>
 
-          <div className="relative group">
+          <div>
             <button
+              onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               aria-label="User menu"
             >
@@ -135,7 +141,9 @@ function Navbar({
               </svg>
             </button>
 
-            <div className="absolute right-0 w-48 mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+            <div
+              className={`absolute right-5 w-48 mt-2 bg-white dark:bg-gray-700 rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
+            >
               <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                 <p className="text-sm font-medium text-gray-900 dark:text-white">
                   user@example.com

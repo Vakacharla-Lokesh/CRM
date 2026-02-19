@@ -7,6 +7,7 @@ import type { LayoutProps } from "@/types/interfaces/layout/layout.interfaces";
 function Layout({ children }: LayoutProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isRightPanelOpen, setIsRightPanelOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -24,6 +25,8 @@ function Layout({ children }: LayoutProps) {
         isSidebarOpen={isSidebarOpen}
         onToggleRightPanel={toggleRightPanel}
         isRightPanelOpen={isRightPanelOpen}
+        isUserMenuOpen={isUserMenuOpen}
+        setIsUserMenuOpen={setIsUserMenuOpen}
       />
 
       {/* Main Content Area */}

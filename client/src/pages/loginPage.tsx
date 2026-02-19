@@ -1,6 +1,6 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { useAppContext } from "../../context";
+import { useAppContext } from "../context";
 
 interface LoginFormData {
   userEmail: string;
