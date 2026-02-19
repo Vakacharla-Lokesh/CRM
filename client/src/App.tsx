@@ -8,17 +8,21 @@ import {
 import { Layout } from "./components/layout";
 import { AppProvider, useAppContext } from "./context";
 
-import LoginPage from "./pages/loginPage";
-import SignupPage from "./pages/signupPage";
-import DashboardPage from "./pages/dashboardPage";
-import UsersPage from "./pages/usersPage";
-import LeadsPage from "./pages/leadsPage";
-import OrganizationsPage from "./pages/organizationsPage";
-import DealsPage from "./pages/dealsPage";
-import TenantsPage from "./pages/tenantsPage";
+import { lazy, Suspense } from "react";
+import { PageLoadingFallback } from "./components/common/suspenseFallback";
+
+const LoginPage = lazy(() => import("./pages/loginPage"));
+const SignupPage = lazy(() => import("./pages/signupPage"));
+const DashboardPage = lazy(() => import("./pages/dashboardPage"));
+const UsersPage = lazy(() => import("./pages/usersPage"));
+const LeadsPage = lazy(() => import("./pages/leadsPage"));
+const OrganizationsPage = lazy(() => import("./pages/organizationsPage"));
+const DealsPage = lazy(() => import("./pages/dealsPage"));
+const TenantsPage = lazy(() => import("./pages/tenantsPage"));
 
 import "./app.css";
 import { ThemeProvider } from "./components/common/theme-provider";
+import LeadDetailsPage from "./pages/leadDetailsPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -62,7 +66,9 @@ function AppRoutes() {
           path="/login"
           element={
             !isAuthenticated ? (
-              <LoginPage />
+              <Suspense fallback={<PageLoadingFallback />}>
+                <LoginPage />
+              </Suspense>
             ) : (
               <Navigate
                 to="/dashboard"
@@ -75,7 +81,9 @@ function AppRoutes() {
           path="/signup"
           element={
             !isAuthenticated ? (
-              <SignupPage />
+              <Suspense fallback={<PageLoadingFallback />}>
+                <SignupPage />
+              </Suspense>
             ) : (
               <Navigate
                 to="/dashboard"
@@ -93,50 +101,56 @@ function AppRoutes() {
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={toggleDarkMode}
               >
-                <Routes>
-                  <Route
-                    path="/dashboard"
-                    element={<DashboardPage />}
-                  />
-                  <Route
-                    path="/"
-                    element={
-                      <Navigate
-                        to="/dashboard"
-                        replace
-                      />
-                    }
-                  />
-                  <Route
-                    path="/leads"
-                    element={<LeadsPage />}
-                  />
-                  <Route
-                    path="/organizations"
-                    element={<OrganizationsPage />}
-                  />
-                  <Route
-                    path="/deals"
-                    element={<DealsPage />}
-                  />
-                  <Route
-                    path="/users"
-                    element={<UsersPage />}
-                  />
-                  <Route
-                    path="/tenants"
-                    element={<TenantsPage />}
-                  />
-                  <Route
-                    path="*"
-                    element={
-                      <Navigate
-                        to="/dashboard"
-                        replace
-                      />
-                    }
-                  />
-                </Routes>
+                <Suspense fallback={<PageLoadingFallback />}>
+                  <Routes>
+                    <Route
+                      path="/dashboard"
+                      element={<DashboardPage />}
+                    />
+                    <Route
+                      path="/"
+                      element={
+                        <Navigate
+                          to="/dashboard"
+                          replace
+                        />
+                      }
+                    />
+                    <Route
+                      path="/leads"
+                      element={<LeadsPage />}
+                    />
+                    <Route
+                      path="/leads/:id"
+                      element={<LeadDetailsPage />}
+                    />
+                    <Route
+                      path="/organizations"
+                      element={<OrganizationsPage />}
+                    />
+                    <Route
+                      path="/deals"
+                      element={<DealsPage />}
+                    />
+                    <Route
+                      path="/users"
+                      element={<UsersPage />}
+                    />
+                    <Route
+                      path="/tenants"
+                      element={<TenantsPage />}
+                    />
+                    <Route
+                      path="*"
+                      element={
+                        <Navigate
+                          to="/dashboard"
+                          replace
+                        />
+                      }
+                    />
+                  </Routes>
+                </Suspense>
               </Layout>
             }
           />

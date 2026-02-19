@@ -24,7 +24,9 @@ const OrganizationsPage = () => {
     filters,
     fetchOrganizations,
     createOrganization,
+    updateOrganization,
     updateFilter,
+    deleteOrganization,
     resetFilters,
   } = useOrganizationData();
 
@@ -51,11 +53,38 @@ const OrganizationsPage = () => {
     organizationData: CreateOrganizationDTO,
   ) => {
     try {
-      await createOrganization(organizationData);
-      setIsModalOpen(false);
+      if (selectedOrganization) {
+        // EDIT mode - needs updateOrganization from hook
+        await updateOrganization(selectedOrganization._id, organizationData);
+      } else {
+        // CREATE mode
+        await createOrganization(organizationData);
+      }
+      await fetchOrganizations();
+      handleCloseModal();
     } catch (error) {
-      console.error("Error creating organization:", error);
+      console.error("Error saving organization:", error);
       throw error;
+    }
+  };
+
+  const handleEditOrganization = (id: string) => {
+    const org = filteredOrganizations.find((o) => o._id === id);
+    if (org) {
+      setSelectedOrganization(org);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDeleteOrganization = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this organization?")) {
+      try {
+        await deleteOrganization(id);
+        await fetchOrganizations();
+      } catch (error) {
+        console.error("Error deleting organization:", error);
+        alert("Failed to delete organization. Please try again.");
+      }
     }
   };
 
@@ -95,21 +124,30 @@ const OrganizationsPage = () => {
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Small (1-50)</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Small (1-50)
+          </p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {(statistics.bySize["1-10"] || 0) + (statistics.bySize["11-50"] || 0)}
+            {(statistics.bySize["1-10"] || 0) +
+              (statistics.bySize["11-50"] || 0)}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Medium (51-500)</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Medium (51-500)
+          </p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {(statistics.bySize["51-200"] || 0) + (statistics.bySize["201-500"] || 0)}
+            {(statistics.bySize["51-200"] || 0) +
+              (statistics.bySize["201-500"] || 0)}
           </p>
         </div>
         <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Large (500+)</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Large (500+)
+          </p>
           <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-            {(statistics.bySize["501-1000"] || 0) + (statistics.bySize["1000+"] || 0)}
+            {(statistics.bySize["501-1000"] || 0) +
+              (statistics.bySize["1000+"] || 0)}
           </p>
         </div>
       </div>
@@ -199,14 +237,20 @@ const OrganizationsPage = () => {
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
               {error?.message || "An error occurred"}
             </p>
-            <Button onClick={fetchOrganizations} variant="outline">
+            <Button
+              onClick={fetchOrganizations}
+              variant="outline"
+            >
               Retry
             </Button>
           </div>
         </div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={columns({
+            onEdit: handleEditOrganization,
+            onDelete: handleDeleteOrganization,
+          })}
           data={filteredOrganizations}
           name="Organizations"
         ></DataTable>
