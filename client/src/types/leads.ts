@@ -1,11 +1,6 @@
-/**
- * Lead Model Types
- * These types must match the backend MongoDB schema and API responses
- */
-
 export interface Lead {
   _id: string;
-  leadId?: string; // Alias for _id
+  leadId?: string;
   leadFirstName: string;
   leadLastName?: string;
   leadEmail: string;
@@ -14,7 +9,7 @@ export interface Lead {
   leadScore: number;
   organizationId?: string;
   tenantId: string;
-  userId: string; // Assigned user
+  userId: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -65,7 +60,7 @@ export interface LeadFilter {
   maxScore?: number;
   userId?: string;
   organizationId?: string;
-  search?: string; // For email/name search
+  search?: string;
 }
 
 export interface LeadActivityLog {
@@ -77,9 +72,6 @@ export interface LeadActivityLog {
   timestamp: Date;
 }
 
-/**
- * Type guards
- */
 export function isLead(obj: any): obj is Lead {
   return (
     obj &&
@@ -93,9 +85,6 @@ export function isLeadArray(obj: any): obj is Lead[] {
   return Array.isArray(obj) && obj.every(isLead);
 }
 
-/**
- * Computed Lead properties
- */
 export interface LeadWithComputed extends Lead {
   fullName: string;
   statusColor: string;
@@ -107,7 +96,6 @@ export function enrichLead(lead: Lead): LeadWithComputed {
   const fullName = `${lead.leadFirstName} ${lead.leadLastName}`.trim();
   const statusColor = getStatusColor(lead.leadStatus);
   const scoreColor = getScoreColor(lead.leadScore);
-  // lastActivity property doesn't exist in current Lead schema
   const daysSinceActivity = 0;
 
   return {

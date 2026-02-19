@@ -14,18 +14,6 @@ interface FormErrors {
   submit?: string;
 }
 
-/**
- * LoginPage Component
- * Route: /login
- * Purpose: User authentication login form
- * Features:
- * - Email and password input fields
- * - Form validation
- * - Remember me option
- * - Link to signup page
- * - Password visibility toggle
- * - Loading state during submission
- */
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAppContext();
@@ -81,7 +69,7 @@ function LoginPage() {
 
     setIsLoading(true);
     setErrors({});
-    
+
     try {
       // Call real login API
       await login(formData.userEmail, formData.userPassword);
@@ -99,12 +87,15 @@ function LoginPage() {
         localStorage.removeItem("rememberMe");
       }
 
-      // Navigate to home page
-      navigate("/home");
+      // Navigate to dashboard page
+      navigate("/dashboard");
     } catch (error: any) {
       console.error("Login error:", error);
-      setErrors({ 
-        submit: error?.response?.data?.message || error?.message || "Login failed. Please check your credentials and try again." 
+      setErrors({
+        submit:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Login failed. Please check your credentials and try again.",
       });
     } finally {
       setIsLoading(false);
