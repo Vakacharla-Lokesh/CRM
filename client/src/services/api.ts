@@ -16,5 +16,8 @@ export { campaignsAPI } from "./api/campaigns.api";
 export { bulkAPI } from "./api/bulk.api";
 export { searchAPI } from "./api/search.api";
 export { analyticsAPI } from "./api/analytics.api";
+export { callsAPI } from "./api/calls.api";
+export { commentsAPI } from "./api/comments.api";
+export { attachmentsAPI } from "./api/attachments.api";
 
 export { API, API as default } from "./api/index";

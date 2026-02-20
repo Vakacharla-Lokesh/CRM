@@ -1,18 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
-
-interface Comment {
-  _id: string;
-  leadId: string;
-  commentTitle: string;
-  commentDesc?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { useCommentData } from "@/hooks";
 
 interface CommentsTabProps {
   leadId: string;
@@ -28,69 +20,28 @@ interface CommentsTabProps {
  * - Shows creation timestamp
  */
 function CommentsTab({ leadId }: CommentsTabProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { comments, loading, error, createComment, deleteComment } = useCommentData(leadId);
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({ title: "", description: "" });
-
-  useEffect(() => {
-    fetchComments();
-  }, [leadId]);
-
-  const fetchComments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // TODO: Replace with actual API call
-      // const response = await commentService.getCommentsByLead(leadId);
-      // setComments(response);
-      setComments([]);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load comments";
-      setError(message);
-      console.error("Error fetching comments:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      setError("Comment title is required");
       return;
     }
 
     try {
       setIsAdding(true);
-      setError(null);
 
-      // TODO: Replace with actual API call
-      // const newComment = await commentService.createComment({
-      //   leadId,
-      //   commentTitle: formData.title,
-      //   commentDesc: formData.description,
-      // });
-      // setComments([newComment, ...comments]);
-
-      // Mock implementation
-      const mockComment: Comment = {
-        _id: Date.now().toString(),
-        leadId,
+      await createComment({
         commentTitle: formData.title,
         commentDesc: formData.description,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setComments([mockComment, ...comments]);
+      });
+
+      // Reset form
       setFormData({ title: "", description: "" });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to add comment";
-      setError(message);
       console.error("Error adding comment:", err);
     } finally {
       setIsAdding(false);
@@ -98,15 +49,13 @@ function CommentsTab({ leadId }: CommentsTabProps) {
   };
 
   const handleDeleteComment = async (commentId: string) => {
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
     try {
-      setError(null);
-      // TODO: Replace with actual API call
-      // await commentService.deleteComment(commentId);
-      setComments(comments.filter((c) => c._id !== commentId));
+      await deleteComment(commentId);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete comment";
-      setError(message);
       console.error("Error deleting comment:", err);
     }
   };

@@ -17,14 +17,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { CreateLeadDTO } from "@/types";
+import type { CreateLeadDTO, CreateOrganizationDTO, OrganizationSize } from "@/types";
 import type {
   FormErrors,
   LeadFormData,
   LeadModalProps,
 } from "@/types/form-interfaces/leadForm.interfaces";
+import { useOrganizationData } from "@/hooks";
+import { organizationService } from "@/services";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
+  const { organizations, fetchOrganizations } = useOrganizationData();
+  
   const [formData, setFormData] = useState<LeadFormData>({
     leadFirstName: "",
     leadLastName: "",
@@ -35,9 +39,22 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     organizationId: "",
     notes: "",
   });
+  const [organizationMode, setOrganizationMode] = useState<"select" | "create">("select");
+  const [newOrgData, setNewOrgData] = useState({
+    organizationName: "",
+    organizationWebsite: "",
+    organizationSize: 10,
+    organizationIndustry: "Software",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      fetchOrganizations();
+    }
+  }, [isOpen, fetchOrganizations]);
 
   useEffect(() => {
     if (lead) {
@@ -51,6 +68,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         organizationId: lead.organizationId || "",
         notes: "",
       });
+      if (lead.organizationId) {
+        setOrganizationMode("select");
+      }
     } else {
       setFormData({
         leadFirstName: "",
@@ -61,6 +81,13 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         leadScore: 0,
         organizationId: "",
         notes: "",
+      });
+      setOrganizationMode("select");
+      setNewOrgData({
+        organizationName: "",
+        organizationWebsite: "",
+        organizationSize: 10,
+        organizationIndustry: "Software",
       });
     }
     setErrors({});
@@ -80,6 +107,31 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       newErrors.leadEmail = "Invalid email format";
     }
 
+    // Validate organization fields if creating new organization
+    if (organizationMode === "create") {
+      if (!newOrgData.organizationName.trim()) {
+        newErrors.organizationName = "Organization name is required";
+      }
+
+      if (!newOrgData.organizationWebsite.trim()) {
+        newErrors.organizationWebsite = "Website is required";
+      } else if (
+        !/^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!/-]))?$/.test(
+          newOrgData.organizationWebsite,
+        )
+      ) {
+        newErrors.organizationWebsite = "Please provide a valid website URL";
+      }
+
+      if (newOrgData.organizationSize < 1 || newOrgData.organizationSize > 10000000) {
+        newErrors.organizationSize = "Organization size must be between 1 and 10,000,000";
+      }
+
+      if (!newOrgData.organizationIndustry) {
+        newErrors.organizationIndustry = "Industry is required";
+      }
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -95,13 +147,38 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     setSubmitError(null);
 
     try {
+      let organizationId = formData.organizationId;
+
+      // Create new organization if in create mode
+      if (organizationMode === "create") {
+        const getOrganizationSizeCategory = (size: number): OrganizationSize => {
+          if (size <= 10) return "1-10";
+          if (size <= 50) return "11-50";
+          if (size <= 200) return "51-200";
+          if (size <= 500) return "201-500";
+          if (size <= 1000) return "501-1000";
+          return "1000+";
+        };
+
+        const organizationData: CreateOrganizationDTO = {
+          organizationName: newOrgData.organizationName,
+          organizationWebsite: newOrgData.organizationWebsite,
+          organizationSize: getOrganizationSizeCategory(newOrgData.organizationSize),
+          organizationIndustry: newOrgData.organizationIndustry,
+          tenantId: "tenant-1",
+        };
+
+        const newOrg = await organizationService.createOrganization(organizationData);
+        organizationId = newOrg._id;
+      }
+
       const leadData: CreateLeadDTO = {
         leadFirstName: formData.leadFirstName,
         leadLastName: formData.leadLastName || undefined,
         leadEmail: formData.leadEmail,
         leadSource: formData.leadSource,
         leadStatus: formData.leadStatus,
-        organizationId: formData.organizationId || undefined,
+        organizationId: organizationId || undefined,
         tenantId: "tenant-1",
       };
 
@@ -121,6 +198,23 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     value: string | number,
   ) => {
     setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    if (errors[field as keyof FormErrors]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: undefined,
+      }));
+    }
+  };
+
+  const handleOrgInputChange = (
+    field: keyof typeof newOrgData,
+    value: string | number,
+  ) => {
+    setNewOrgData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -384,21 +478,215 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="organizationId"
-              className="text-sm font-semibold"
-            >
-              Organization ID
-            </Label>
-            <Input
-              id="organizationId"
-              value={formData.organizationId}
-              onChange={(e) =>
-                handleInputChange("organizationId", e.target.value)
-              }
-              placeholder="org-123"
-            />
+          <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-800/50">
+            <div className="space-y-2">
+              <Label
+                htmlFor="organization"
+                className="text-sm font-semibold"
+              >
+                Organization
+              </Label>
+              <Select
+                value={organizationMode === "create" ? "create-new" : formData.organizationId}
+                onValueChange={(value) => {
+                  if (value === "create-new") {
+                    setOrganizationMode("create");
+                    setFormData((prev) => ({ ...prev, organizationId: "" }));
+                  } else {
+                    setOrganizationMode("select");
+                    handleInputChange("organizationId", value);
+                  }
+                }}
+              >
+                <SelectTrigger id="organization">
+                  <SelectValue placeholder="Select or create organization" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="create-new">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                      <span className="font-semibold">+ Create New Organization</span>
+                    </div>
+                  </SelectItem>
+                  {organizations.map((org) => (
+                    <SelectItem key={org._id} value={org._id}>
+                      <div className="flex flex-col">
+                        <span>{org.organizationName}</span>
+                        <span className="text-xs text-gray-500">
+                          {org.organizationIndustry} • {org.organizationSize}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
+              organizationMode === "create" 
+                ? "max-h-[800px] opacity-100" 
+                : "max-h-0 opacity-0"
+            }`}>
+              <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-500">
+                <div className="flex items-center justify-between gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p className="text-sm text-blue-700 dark:text-blue-300">
+                      Create a new organization to associate with this lead
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setOrganizationMode("select");
+                      setNewOrgData({
+                        organizationName: "",
+                        organizationWebsite: "",
+                        organizationSize: 10,
+                        organizationIndustry: "Software",
+                      });
+                    }}
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="organizationName"
+                    className="text-sm font-semibold"
+                  >
+                    Organization Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="organizationName"
+                    value={newOrgData.organizationName}
+                    onChange={(e) =>
+                      handleOrgInputChange("organizationName", e.target.value)
+                    }
+                    placeholder="Acme Corporation"
+                    className={`transition-all duration-200 ${errors.organizationName ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+                    autoFocus
+                  />
+                  {errors.organizationName && (
+                    <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">{errors.organizationName}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="organizationWebsite"
+                    className="text-sm font-semibold"
+                  >
+                    Website <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="organizationWebsite"
+                    type="url"
+                    value={newOrgData.organizationWebsite}
+                    onChange={(e) =>
+                      handleOrgInputChange("organizationWebsite", e.target.value)
+                    }
+                    placeholder="https://www.acme.com"
+                    className={`transition-all duration-200 ${errors.organizationWebsite ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+                  />
+                  {errors.organizationWebsite && (
+                    <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {errors.organizationWebsite}
+                    </p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="organizationSize"
+                      className="text-sm font-semibold"
+                    >
+                      Organization Size <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="organizationSize"
+                      type="number"
+                      min="1"
+                      max="10000000"
+                      value={newOrgData.organizationSize}
+                      onChange={(e) =>
+                        handleOrgInputChange(
+                          "organizationSize",
+                          parseInt(e.target.value) || 1,
+                        )
+                      }
+                      placeholder="50"
+                      className={`transition-all duration-200 ${errors.organizationSize ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+                    />
+                    {errors.organizationSize && (
+                      <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {errors.organizationSize}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="organizationIndustry"
+                      className="text-sm font-semibold"
+                    >
+                      Industry <span className="text-red-500">*</span>
+                    </Label>
+                    <Select
+                      value={newOrgData.organizationIndustry}
+                      onValueChange={(value) =>
+                        handleOrgInputChange("organizationIndustry", value)
+                      }
+                    >
+                      <SelectTrigger
+                        id="organizationIndustry"
+                        className={`transition-all duration-200 ${
+                          errors.organizationIndustry ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"
+                        }`}
+                      >
+                        <SelectValue placeholder="Select industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Software">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span>Software</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Textile">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-purple-500"></div>
+                            <span>Textile</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Foods">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                            <span>Foods</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="Others">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                            <span>Others</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {errors.organizationIndustry && (
+                      <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                        {errors.organizationIndustry}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
           {submitError && (
@@ -423,7 +711,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
+                  <span>{organizationMode === "create" ? "Creating..." : "Saving..."}</span>
                 </div>
               ) : (
                 <span>{lead ? "Update Lead" : "Create Lead"}</span>

@@ -16,6 +16,10 @@ export interface FormErrors {
   leadLastName?: string;
   leadEmail?: string;
   leadScore?: string;
+  organizationName?: string;
+  organizationWebsite?: string;
+  organizationSize?: string;
+  organizationIndustry?: string;
 }
 
 export interface LeadModalProps {

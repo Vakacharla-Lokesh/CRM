@@ -1,16 +1,7 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Upload, File } from "lucide-react";
-
-interface Attachment {
-  _id: string;
-  leadId: string;
-  fileName: string;
-  fileSize: number;
-  fileType: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { useAttachmentData } from "@/hooks";
 
 interface AttachmentsTabProps {
   leadId: string;
@@ -27,33 +18,16 @@ interface AttachmentsTabProps {
  * - Display file size in human-readable format
  */
 function AttachmentsTab({ leadId }: AttachmentsTabProps) {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    attachments,
+    loading,
+    uploading,
+    error,
+    uploadAttachment,
+    downloadAttachment,
+    deleteAttachment,
+  } = useAttachmentData(leadId);
   const fileInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    fetchAttachments();
-  }, [leadId]);
-
-  const fetchAttachments = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // TODO: Replace with actual API call
-      // const response = await attachmentService.getAttachmentsByLead(leadId);
-      // setAttachments(response);
-      setAttachments([]);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load attachments";
-      setError(message);
-      console.error("Error fetching attachments:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -83,70 +57,21 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     const file = files[0];
 
     try {
-      setIsUploading(true);
-      setError(null);
-
-      // Validate file size (max 10MB)
-      const maxSize = 10 * 1024 * 1024;
-      if (file.size > maxSize) {
-        setError("File size must be less than 10MB");
-        return;
-      }
-
-      // TODO: Replace with actual API call
-      // const formData = new FormData();
-      // formData.append("file", file);
-      // const newAttachment = await attachmentService.uploadAttachment(
-      //   leadId,
-      //   formData
-      // );
-      // setAttachments([newAttachment, ...attachments]);
-
-      // Mock implementation
-      const mockAttachment: Attachment = {
-        _id: Date.now().toString(),
-        leadId,
-        fileName: file.name,
-        fileSize: file.size,
-        fileType: file.type,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setAttachments([mockAttachment, ...attachments]);
+      await uploadAttachment(file);
 
       // Reset file input
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to upload file";
-      setError(message);
       console.error("Error uploading file:", err);
-    } finally {
-      setIsUploading(false);
     }
   };
 
-  const handleDownload = async (attachment: Attachment) => {
+  const handleDownload = async (attachment: { _id: string; fileName: string; fileSize: number; fileType: string; leadId: string; createdAt: string; updatedAt: string }) => {
     try {
-      // TODO: Replace with actual API call
-      // const blob = await attachmentService.downloadAttachment(attachment._id);
-      // const url = window.URL.createObjectURL(blob);
-      // const link = document.createElement("a");
-      // link.href = url;
-      // link.download = attachment.fileName;
-      // document.body.appendChild(link);
-      // link.click();
-      // document.body.removeChild(link);
-      // window.URL.revokeObjectURL(url);
-
-      // Mock download (just alert for now)
-      alert(`Download would start for: ${attachment.fileName}`);
+      await downloadAttachment(attachment);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to download file";
-      setError(message);
       console.error("Error downloading file:", err);
     }
   };
@@ -157,14 +82,8 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     }
 
     try {
-      setError(null);
-      // TODO: Replace with actual API call
-      // await attachmentService.deleteAttachment(attachmentId);
-      setAttachments(attachments.filter((a) => a._id !== attachmentId));
+      await deleteAttachment(attachmentId);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete attachment";
-      setError(message);
       console.error("Error deleting attachment:", err);
     }
   };
@@ -201,7 +120,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
           ref={fileInputRef}
           type="file"
           onChange={handleFileSelect}
-          disabled={isUploading}
+          disabled={uploading}
           className="hidden"
           accept="*/*"
         />
@@ -215,7 +134,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
         <p className="text-xs text-gray-500 dark:text-gray-500">
           Maximum file size: 10MB
         </p>
-        {isUploading && (
+        {uploading && (
           <div className="mt-3">
             <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
           </div>

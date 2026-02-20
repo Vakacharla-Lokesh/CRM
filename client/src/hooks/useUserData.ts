@@ -37,7 +37,7 @@ export const useUserData = () => {
     loading,
     error,
   } = useAsync<User | User[] | void>();
-  const { addItem, updateItem, deleteItem } = useIndexedDB("users");
+  const { updateItem, deleteItem } = useIndexedDB("users");
 
   const calculateStatistics = useCallback((usersData: User[]) => {
     const stats: UserStatistics = {
