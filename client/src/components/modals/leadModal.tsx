@@ -80,10 +80,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       newErrors.leadEmail = "Invalid email format";
     }
 
-    if (formData.leadScore < 0 || formData.leadScore > 100) {
-      newErrors.leadScore = "Score must be between 0 and 100";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -105,7 +101,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         leadEmail: formData.leadEmail,
         leadSource: formData.leadSource,
         leadStatus: formData.leadStatus,
-        leadScore: formData.leadScore,
         organizationId: formData.organizationId || undefined,
         tenantId: "tenant-1",
       };
@@ -365,47 +360,45 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {lead && (
             <div className="space-y-2">
-              <Label
-                htmlFor="leadScore"
-                className="text-sm font-semibold"
-              >
-                Lead Score (0-100)
+              <Label className="text-sm font-semibold">
+                Lead Score (Managed by System)
               </Label>
-              <Input
-                id="leadScore"
-                type="number"
-                min="0"
-                max="100"
-                value={formData.leadScore}
-                onChange={(e) =>
-                  handleInputChange("leadScore", parseInt(e.target.value) || 0)
-                }
-                placeholder="50"
-                className={errors.leadScore ? "border-red-500" : ""}
-              />
-              {errors.leadScore && (
-                <p className="text-sm text-red-500">{errors.leadScore}</p>
-              )}
+              <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                <div className="flex-1">
+                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+                      style={{ width: `${formData.leadScore}%` }}
+                    />
+                  </div>
+                </div>
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-[3rem] text-right">
+                  {formData.leadScore}
+                </span>
+              </div>
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                Lead score is automatically calculated based on engagement and other factors.
+              </p>
             </div>
+          )}
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="organizationId"
-                className="text-sm font-semibold"
-              >
-                Organization ID
-              </Label>
-              <Input
-                id="organizationId"
-                value={formData.organizationId}
-                onChange={(e) =>
-                  handleInputChange("organizationId", e.target.value)
-                }
-                placeholder="org-123"
-              />
-            </div>
+          <div className="space-y-2">
+            <Label
+              htmlFor="organizationId"
+              className="text-sm font-semibold"
+            >
+              Organization ID
+            </Label>
+            <Input
+              id="organizationId"
+              value={formData.organizationId}
+              onChange={(e) =>
+                handleInputChange("organizationId", e.target.value)
+              }
+              placeholder="org-123"
+            />
           </div>
 
           {submitError && (

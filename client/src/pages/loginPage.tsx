@@ -1,6 +1,11 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context";
+import { useForm } from "../hooks";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Button } from "../components/ui/button";
+import { Checkbox } from "../components/ui/checkbox";
 
 interface LoginFormData {
   userEmail: string;
@@ -17,93 +22,78 @@ interface FormErrors {
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAppContext();
-  const [formData, setFormData] = useState<LoginFormData>({
-    userEmail: "",
-    userPassword: "",
-    rememberMe: false,
-  });
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateForm = () => {
-    const newErrors: FormErrors = {};
+  const validateForm = (values: LoginFormData): FormErrors => {
+    const errors: FormErrors = {};
 
-    if (!formData.userEmail) {
-      newErrors.userEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
-      newErrors.userEmail = "Please enter a valid email";
+    if (!values.userEmail) {
+      errors.userEmail = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.userEmail)) {
+      errors.userEmail = "Please enter a valid email";
     }
 
-    if (!formData.userPassword) {
-      newErrors.userPassword = "Password is required";
-    } else if (formData.userPassword.length < 6) {
-      newErrors.userPassword = "Password must be at least 6 characters";
+    if (!values.userPassword) {
+      errors.userPassword = "Password is required";
+    } else if (values.userPassword.length < 6) {
+      errors.userPassword = "Password must be at least 6 characters";
     }
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+    return errors;
   };
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-    // Clear error for this field when user starts typing
-    if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
-    }
-  };
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleBlur,
+    handleSubmit: onSubmit,
+    setFieldValue,
+  } = useForm<LoginFormData>(
+    {
+      userEmail: "",
+      userPassword: "",
+      rememberMe: false,
+    },
+    async (values: LoginFormData) => {
+      try {
+        // Call real login API
+        await login(values.userEmail, values.userPassword);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+        // Store remember me preference
+        if (values.rememberMe) {
+          localStorage.setItem(
+            "rememberMe",
+            JSON.stringify({
+              email: values.userEmail,
+              timestamp: Date.now(),
+            }),
+          );
+        } else {
+          localStorage.removeItem("rememberMe");
+        }
 
-    if (!validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-    setErrors({});
-
-    try {
-      // Call real login API
-      await login(formData.userEmail, formData.userPassword);
-
-      // Store remember me preference
-      if (formData.rememberMe) {
-        localStorage.setItem(
-          "rememberMe",
-          JSON.stringify({
-            email: formData.userEmail,
-            timestamp: Date.now(),
-          }),
+        // Navigate to dashboard page
+        navigate("/dashboard");
+      } catch (error: unknown) {
+        console.error("Login error:", error);
+        const err = error as {
+          response?: { data?: { message?: string } };
+          message?: string;
+        };
+        throw new Error(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Login failed. Please check your credentials and try again.",
         );
-      } else {
-        localStorage.removeItem("rememberMe");
       }
-
-      // Navigate to dashboard page
-      navigate("/dashboard");
-    } catch (error: any) {
-      console.error("Login error:", error);
-      setErrors({
-        submit:
-          error?.response?.data?.message ||
-          error?.message ||
-          "Login failed. Please check your credentials and try again.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    },
+    validateForm,
+  );
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4">
+    <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md">
         {/* Header Section */}
         <div className="text-center mb-8">
@@ -124,12 +114,12 @@ function LoginPage() {
 
         {/* Form Card */}
         <form
-          onSubmit={handleSubmit}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-6"
+          onSubmit={onSubmit}
+          className="rounded-2xl shadow-xl p-8 space-y-6"
         >
           {/* Submit Error Alert */}
           {errors.submit && (
-            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+            <div className="p-4 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-sm font-medium text-red-600 dark:text-red-400">
                 {errors.submit}
               </p>
@@ -137,54 +127,40 @@ function LoginPage() {
           )}
 
           {/* Email Field */}
-          <div>
-            <label
-              htmlFor="userEmail"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Email Address
-            </label>
-            <input
+          <div className="space-y-2">
+            <Label htmlFor="userEmail">Email Address</Label>
+            <Input
               type="email"
               id="userEmail"
               name="userEmail"
-              value={formData.userEmail}
+              value={values.userEmail}
               onChange={handleChange}
+              onBlur={handleBlur}
               placeholder="you@example.com"
-              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.userEmail
-                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
-                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
-              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
+              aria-invalid={!!errors.userEmail}
+              className="h-10"
             />
             {errors.userEmail && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                 {errors.userEmail}
               </p>
             )}
           </div>
 
           {/* Password Field */}
-          <div>
-            <label
-              htmlFor="userPassword"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Password
-            </label>
+          <div className="space-y-2">
+            <Label htmlFor="userPassword">Password</Label>
             <div className="relative">
-              <input
+              <Input
                 type={showPassword ? "text" : "password"}
                 id="userPassword"
                 name="userPassword"
-                value={formData.userPassword}
+                value={values.userPassword}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.userPassword
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500 dark:focus:ring-red-400"
-                    : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-400/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
+                aria-invalid={!!errors.userPassword}
+                className="h-10 pr-10"
               />
               <button
                 type="button"
@@ -221,7 +197,7 @@ function LoginPage() {
               </button>
             </div>
             {errors.userPassword && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+              <p className="text-sm text-red-600 dark:text-red-400 font-medium">
                 {errors.userPassword}
               </p>
             )}
@@ -230,32 +206,26 @@ function LoginPage() {
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                name="rememberMe"
-                checked={formData.rememberMe}
-                onChange={handleChange}
-                className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+              <Checkbox
+                checked={values.rememberMe}
+                onCheckedChange={(checked) =>
+                  setFieldValue("rememberMe", checked)
+                }
               />
               <span className="text-sm text-gray-600 dark:text-gray-400 font-medium">
                 Remember me
               </span>
             </label>
-            <a
-              href="#"
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium transition-colors"
-            >
-              Forgot password?
-            </a>
           </div>
 
           {/* Submit Button */}
-          <button
+          <Button
             type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full h-10"
+            size="lg"
           >
-            {isLoading ? (
+            {isSubmitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 <span>Signing in...</span>
@@ -263,24 +233,8 @@ function LoginPage() {
             ) : (
               "Sign in"
             )}
-          </button>
-
-          {/* Signup Link */}
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{" "}
-            <Link
-              to="/signup"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors"
-            >
-              Create one now
-            </Link>
-          </p>
+          </Button>
         </form>
-
-        {/* Footer Info */}
-        <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-8">
-          Protected by enterprise-grade security
-        </p>
       </div>
     </div>
   );

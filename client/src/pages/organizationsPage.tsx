@@ -253,6 +253,7 @@ const OrganizationsPage = () => {
           })}
           data={filteredOrganizations}
           name="Organizations"
+          searchColumn="organizationName"
         ></DataTable>
       )}
 

@@ -242,3 +242,66 @@ export const updateLeadScore = async (req, res, next) => {
     next(err);
   }
 };
+
+// Convert lead to deal
+export const convertLeadToDeal = async (req, res, next) => {
+  try {
+    const lead = await leadModel.findById(req.params.id);
+
+    if (!lead) {
+      return res.status(404).json({ message: "Lead not found" });
+    }
+
+    // Check tenant access for non-super_admin
+    if (
+      req.user.role !== "super_admin" &&
+      lead.tenantId?.toString() !== req.user.tenantId?.toString()
+    ) {
+      return res.status(403).json({
+        message: "Forbidden: You cannot convert this lead",
+      });
+    }
+
+    // Check if lead is already converted
+    if (lead.leadStatus === "Converted") {
+      return res.status(400).json({
+        message: "Lead has already been converted to a deal",
+      });
+    }
+
+    // Check if organizationId exists
+    if (!lead.organizationId) {
+      return res.status(400).json({
+        message: "Lead must have an organization to convert to deal",
+      });
+    }
+
+    // Import dealModel dynamically to avoid circular dependencies
+    const dealModel = (await import("../models/dealModel.js")).default;
+
+    // Create deal from lead
+    const dealData = {
+      leadId: lead._id,
+      organizationId: lead.organizationId,
+      tenantId: lead.tenantId,
+      userId: lead.userId,
+      dealName: `${lead.leadFirstName} ${lead.leadLastName || ""}`.trim(),
+      dealValue: req.body.dealValue || 0,
+      dealStatus: req.body.dealStatus || "Prospecting",
+    };
+
+    const deal = await dealModel.create(dealData);
+
+    // Update lead status to Converted
+    lead.leadStatus = "Converted";
+    await lead.save();
+
+    res.status(201).json({
+      message: "Lead converted to deal successfully",
+      deal,
+      lead,
+    });
+  } catch (err) {
+    next(err);
+  }
+};

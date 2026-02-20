@@ -129,6 +129,7 @@ const TenantsPage = () => {
           columns={columns}
           data={filteredTenants}
           name="Tenants"
+          searchColumn="tenantName"
         ></DataTable>
       )}
 

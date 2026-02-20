@@ -9,7 +9,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import type { Lead, LeadStatus, LeadSource } from "@/types";
 import { leadService } from "@/services";
 
@@ -66,7 +65,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         leadEmail: formData.leadEmail,
         leadSource: formData.leadSource as LeadSource,
         leadStatus: formData.leadStatus as LeadStatus,
-        leadScore: formData.leadScore,
       });
 
       onUpdate(updatedLead);
@@ -183,23 +181,25 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       </div>
 
-      {/* Lead Score */}
-      <div className="space-y-4">
+      {/* Lead Score - Read Only */}
+      <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
-          <Label htmlFor="score">Lead Score</Label>
-          <span className="text-lg font-semibold text-blue-600 dark:text-blue-400">
+          <div>
+            <Label className="text-sm font-semibold">Lead Score</Label>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Automatically calculated by the system
+            </p>
+          </div>
+          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             {formData.leadScore}
           </span>
         </div>
-        <Slider
-          id="score"
-          min={0}
-          max={100}
-          step={5}
-          value={[formData.leadScore]}
-          onValueChange={(value) => handleInputChange("leadScore", value[0])}
-          className="w-full"
-        />
+        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+            style={{ width: `${formData.leadScore}%` }}
+          />
+        </div>
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
           <span>0</span>
           <span>50</span>

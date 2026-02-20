@@ -10,6 +10,7 @@ import {
   getLeadsByOrganization,
   updateLeadStatus,
   updateLeadScore,
+  convertLeadToDeal,
 } from "../controllers/leadController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -97,6 +98,13 @@ router.patch(
   authorize("user", "admin", "super_admin"),
   validate(updateLeadScoreSchema),
   updateLeadScore,
+);
+
+router.post(
+  "/:id/convert",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  convertLeadToDeal,
 );
 
 export default router;
