@@ -9,17 +9,8 @@ import EditLeadTab from "@/components/leads/tabs/editLeadTab";
 import CommentsTab from "@/components/leads/tabs/commentsTab";
 import CallsTab from "@/components/leads/tabs/callsTab";
 import AttachmentsTab from "@/components/leads/tabs/attachmentsTab";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
-/**
- * LeadDetailsPage Component
- * Route: /leads/:id
- * Purpose: Display detailed information about a lead with tabbed interface
- * Features:
- * - Edit lead information
- * - Add and manage comments
- * - Log and view calls
- * - Upload and manage attachments
- */
 function LeadDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -28,6 +19,7 @@ function LeadDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("edit");
   const [isConverting, setIsConverting] = useState(false);
+  const [convertDialogOpen, setConvertDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchLead = async () => {
@@ -61,24 +53,23 @@ function LeadDetailsPage() {
     setLead(updatedLead);
   };
 
-  const handleConvertToDeal = async () => {
+  const handleConvertToDeal = () => {
     if (!lead) return;
+    setConvertDialogOpen(true);
+  };
 
-    const confirmed = window.confirm(
-      `Are you sure you want to convert "${lead.leadFirstName} ${lead.leadLastName || ""}" to a deal?`,
-    );
-
-    if (!confirmed) return;
+  const confirmConvert = async () => {
+    if (!lead) return;
 
     try {
       setIsConverting(true);
-      
+
       const response = await leadService.convertLead(lead._id);
-      
+
       setLead(response.lead);
-      
+
       alert("Lead successfully converted to deal!");
-      
+
       navigate("/deals");
     } catch (err) {
       const message =
@@ -148,7 +139,7 @@ function LeadDetailsPage() {
             </p>
           </div>
         </div>
-        
+
         {/* Convert to Deal Button */}
         {lead.leadStatus !== "Converted" && (
           <Button
@@ -179,28 +170,55 @@ function LeadDetailsPage() {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="w-full justify-start border-b border-gray-200 dark:border-gray-700 rounded-none p-0 h-12">
+          <TabsList className="w-full justify-start border-b border-border rounded-lg p-0 h-12">
             <TabsTrigger
               value="edit"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
+              className="rounded-lg border-b-2 border-transparent 
+               text-muted-foreground
+               hover:text-primary
+               hover:border-primary/40
+               data-[state=active]:border-primary 
+               data-[state=active]:text-primary
+               px-6 h-full transition-colors"
             >
               Edit Lead
             </TabsTrigger>
+
             <TabsTrigger
               value="comments"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
+              className="rounded-lg border-b-2 border-transparent 
+               text-muted-foreground
+               hover:text-primary
+               hover:border-primary/40
+               data-[state=active]:border-primary 
+               data-[state=active]:text-primary
+               px-6 h-full transition-colors"
             >
               Comments
             </TabsTrigger>
+
             <TabsTrigger
               value="calls"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
+              className="rounded-lg border-b-2 border-transparent 
+               text-muted-foreground
+               hover:text-primary
+               hover:border-primary/40
+               data-[state=active]:border-primary 
+               data-[state=active]:text-primary
+               px-6 h-full transition-colors"
             >
               Calls
             </TabsTrigger>
+
             <TabsTrigger
               value="attachments"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
+              className="rounded-lg border-b-2 border-transparent 
+               text-muted-foreground
+               hover:text-primary
+               hover:border-primary/40
+               data-[state=active]:border-primary 
+               data-[state=active]:text-primary
+               px-6 h-full transition-colors"
             >
               Attachments
             </TabsTrigger>
@@ -239,6 +257,15 @@ function LeadDetailsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <ConfirmDialog
+        open={convertDialogOpen}
+        onOpenChange={setConvertDialogOpen}
+        onConfirm={confirmConvert}
+        title="Convert to Deal"
+        description={`Are you sure you want to convert "${lead.leadFirstName} ${lead.leadLastName || ""}" to a deal?`}
+        confirmText="Convert"
+      />
     </div>
   );
 }

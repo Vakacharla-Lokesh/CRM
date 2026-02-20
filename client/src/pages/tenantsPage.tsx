@@ -7,6 +7,7 @@ import { TenantModal } from "@/components/modals";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTenantData } from "@/hooks";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 const TenantsPage = () => {
   const {
@@ -25,6 +26,8 @@ const TenantsPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
 
   const handleSaveTenant = async (tenantData: CreateTenantDto) => {
     try {
@@ -56,15 +59,22 @@ const TenantsPage = () => {
     }
   };
 
-  const handleDeleteTenant = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this tenant?")) {
-      try {
-        await deleteTenant(id);
-        refresh(); // Refresh the tenant data after deletion
-      } catch (error) {
-        console.error("Error deleting tenant:", error);
-        alert("Failed to delete tenant. Please try again.");
-      }
+  const handleDeleteTenant = (id: string) => {
+    setTenantToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!tenantToDelete) return;
+
+    try {
+      await deleteTenant(tenantToDelete);
+      refresh(); // Refresh the tenant data after deletion
+    } catch (error) {
+      console.error("Error deleting tenant:", error);
+      alert("Failed to delete tenant. Please try again.");
+    } finally {
+      setTenantToDelete(null);
     }
   };
 
@@ -171,6 +181,16 @@ const TenantsPage = () => {
           setSelectedTenant(null);
         }}
         onSave={handleSaveTenant}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Tenant"
+        description="Are you sure you want to delete this tenant? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

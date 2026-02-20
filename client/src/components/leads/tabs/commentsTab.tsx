@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import { useCommentData } from "@/hooks";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 interface CommentsTabProps {
   leadId: string;
@@ -23,6 +24,8 @@ function CommentsTab({ leadId }: CommentsTabProps) {
   const { comments, loading, error, createComment, deleteComment } = useCommentData(leadId);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ title: "", description: "" });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
   const handleAddComment = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,15 +51,20 @@ function CommentsTab({ leadId }: CommentsTabProps) {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
-    if (!window.confirm("Are you sure you want to delete this comment?")) {
-      return;
-    }
+  const handleDeleteComment = (commentId: string) => {
+    setCommentToDelete(commentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!commentToDelete) return;
 
     try {
-      await deleteComment(commentId);
+      await deleteComment(commentToDelete);
     } catch (err) {
       console.error("Error deleting comment:", err);
+    } finally {
+      setCommentToDelete(null);
     }
   };
 
@@ -173,6 +181,16 @@ function CommentsTab({ leadId }: CommentsTabProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Comment"
+        description="Are you sure you want to delete this comment? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }

@@ -13,6 +13,7 @@ import {
 import { Trash2, Phone } from "lucide-react";
 import { useCallData } from "@/hooks";
 import type { CallType, CallStatus } from "@/types";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 interface CallsTabProps {
   leadId: string;
@@ -37,6 +38,8 @@ function CallsTab({ leadId }: CallsTabProps) {
     duration: "",
     notes: "",
   });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [callToDelete, setCallToDelete] = useState<string | null>(null);
 
   const handleAddCall = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,15 +73,20 @@ function CallsTab({ leadId }: CallsTabProps) {
     }
   };
 
-  const handleDeleteCall = async (callId: string) => {
-    if (!window.confirm("Are you sure you want to delete this call?")) {
-      return;
-    }
+  const handleDeleteCall = (callId: string) => {
+    setCallToDelete(callId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!callToDelete) return;
 
     try {
-      await deleteCall(callId);
+      await deleteCall(callToDelete);
     } catch (err) {
       console.error("Error deleting call:", err);
+    } finally {
+      setCallToDelete(null);
     }
   };
 
@@ -300,6 +308,16 @@ function CallsTab({ leadId }: CallsTabProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Call"
+        description="Are you sure you want to delete this call log? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }
