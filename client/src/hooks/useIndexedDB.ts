@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useCallback } from "react";
 import { initializeDatabase, DB_NAME, DB_VERSION } from "../utils/indexedDB";
 

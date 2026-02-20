@@ -48,8 +48,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setUser(storedUser);
           setIsAuthenticated(true);
 
-          // Optional: Verify token is still valid
-          // Uncomment this when you have a working /auth/status endpoint
+          // Verify token is still valid
           try {
             const status = await authService.getStatus();
             if (!status.valid) {
@@ -62,8 +61,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             }
           } catch (error) {
             console.error("Token verification failed:", error);
-            // Don't logout on verification failure - let the user stay logged in
-            // The API calls will fail with 401 if token is invalid
           }
         }
       } catch (error) {

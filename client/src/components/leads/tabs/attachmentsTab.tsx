@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Upload, File } from "lucide-react";
 import { useAttachmentData } from "@/hooks";
@@ -7,16 +7,6 @@ interface AttachmentsTabProps {
   leadId: string;
 }
 
-/**
- * AttachmentsTab Component
- * Manage file attachments for a lead
- * Features:
- * - Upload new files
- * - View attachment list with file details
- * - Download attachments
- * - Delete attachments
- * - Display file size in human-readable format
- */
 function AttachmentsTab({ leadId }: AttachmentsTabProps) {
   const {
     attachments,
@@ -68,7 +58,15 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     }
   };
 
-  const handleDownload = async (attachment: { _id: string; fileName: string; fileSize: number; fileType: string; leadId: string; createdAt: string; updatedAt: string }) => {
+  const handleDownload = async (attachment: {
+    _id: string;
+    fileName: string;
+    fileSize: number;
+    fileType: string;
+    leadId: string;
+    createdAt: string;
+    updatedAt: string;
+  }) => {
     try {
       await downloadAttachment(attachment);
     } catch (err) {
@@ -99,7 +97,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
       {/* Upload Area */}
       <div
-        className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
+        className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
