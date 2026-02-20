@@ -11,7 +11,7 @@ export interface AuthUser extends User {
 
 export interface LoginRequest {
   userEmail: string;
-  userPassword: string;
+  password: string;
 }
 
 // Alias for backward compatibility
@@ -27,7 +27,7 @@ export interface RegisterRequest {
   firstName: string;
   lastName?: string;
   userEmail: string;
-  userPassword: string;
+  password: string;
   tenantName: string;
 }
 

@@ -9,11 +9,10 @@ export const register = async (req, res, next) => {
 
     // Build the query to check for existing user
     const existingUserQuery = { $or: [{ userEmail: userData.userEmail }] };
-    if (userData.mobile) {
-      existingUserQuery.$or.push({ mobile: userData.mobile });
-    }
 
     const existingUser = await userModel.findOne(existingUserQuery);
+
+    console.log("existing user data: ", existingUser);
 
     if (existingUser) {
       return res.status(409).json({
@@ -27,7 +26,7 @@ export const register = async (req, res, next) => {
       const tenant = await tenantModel.create({
         tenantName,
         email: userData.userEmail,
-        mobile: userData.mobile || "0000000000", // Provide default if not present
+        mobile: userData.mobile || "0000000000",
       });
       tenantId = tenant._id;
     }

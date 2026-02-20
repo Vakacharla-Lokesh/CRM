@@ -6,7 +6,7 @@ interface SignupFormData {
   tenantName: string;
   firstName: string;
   userEmail: string;
-  userPassword: string;
+  password: string;
   confirmPassword: string;
   agreeToTerms: boolean;
 }
@@ -15,7 +15,7 @@ interface FormErrors {
   tenantName?: string;
   firstName?: string;
   userEmail?: string;
-  userPassword?: string;
+  password?: string;
   confirmPassword?: string;
   agreeToTerms?: string;
   submit?: string;
@@ -48,7 +48,7 @@ function SignupPage() {
     tenantName: "",
     firstName: "",
     userEmail: "",
-    userPassword: "",
+    password: "",
     confirmPassword: "",
     agreeToTerms: false,
   });
@@ -96,15 +96,15 @@ function SignupPage() {
       newErrors.userEmail = "Please enter a valid email";
     }
 
-    if (!formData.userPassword) {
-      newErrors.userPassword = "Password is required";
-    } else if (formData.userPassword.length < 8) {
-      newErrors.userPassword = "Password must be at least 8 characters";
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters";
     }
 
     if (!formData.confirmPassword) {
       newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.userPassword !== formData.confirmPassword) {
+    } else if (formData.password !== formData.confirmPassword) {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
@@ -145,7 +145,7 @@ function SignupPage() {
       await signup({
         firstName: formData.firstName,
         userEmail: formData.userEmail,
-        userPassword: formData.userPassword,
+        password: formData.password,
         tenantName: formData.tenantName,
       });
 
@@ -164,7 +164,7 @@ function SignupPage() {
     }
   };
 
-  const passwordStrength = getPasswordStrength(formData.userPassword);
+  const passwordStrength = getPasswordStrength(formData.password);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
@@ -287,7 +287,7 @@ function SignupPage() {
           {/* Password Field */}
           <div>
             <label
-              htmlFor="userPassword"
+              htmlFor="password"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Password
@@ -295,13 +295,13 @@ function SignupPage() {
             <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
-                id="userPassword"
-                name="userPassword"
-                value={formData.userPassword}
+                id="password"
+                name="password"
+                value={formData.password}
                 onChange={handleChange}
                 placeholder="••••••••"
                 className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.userPassword
+                  errors.password
                     ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                     : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
                 } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
@@ -342,7 +342,7 @@ function SignupPage() {
             </div>
 
             {/* Password Strength Indicator */}
-            {formData.userPassword && (
+            {formData.password && (
               <div className="mt-3 space-y-2">
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -370,9 +370,9 @@ function SignupPage() {
               </div>
             )}
 
-            {errors.userPassword && (
+            {errors.password && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.userPassword}
+                {errors.password}
               </p>
             )}
           </div>
