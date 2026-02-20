@@ -1,23 +1,11 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useEffect } from "react";
 import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
 import StatCard from "../components/common/statCard";
+import { useDashboardStats } from "../hooks";
 import type { Lead } from "../types";
 
-interface DashboardStats {
-  totalLeads: number;
-  activeCampaigns: number;
-  conversionRate: number;
-  revenue: number;
-}
-
 function DashboardPage() {
-  const [stats, _setStats] = useState<DashboardStats>({
-    totalLeads: 12450,
-    activeCampaigns: 8,
-    conversionRate: 3.2,
-    revenue: 125400,
-  });
+  const { stats, changes, loading, error } = useDashboardStats();
 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [, setIsLoading] = useState(true);
@@ -66,35 +54,43 @@ function DashboardPage() {
         </div>
       </div>
 
+      {/* Error Message */}
+      {error && (
+        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+          <p className="font-medium">Error loading dashboard stats</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Users size={32} />}
           label="Total Leads"
-          value={stats.totalLeads.toLocaleString()}
-          change="+12%"
-          trend="up"
+          value={loading ? "..." : stats.totalLeads.toLocaleString()}
+          change={`${changes.leadsChange >= 0 ? "+" : ""}${changes.leadsChange.toFixed(1)}%`}
+          trend={changes.leadsChange >= 0 ? "up" : "down"}
         />
         <StatCard
           icon={<Megaphone size={32} />}
           label="Active Campaigns"
-          value={stats.activeCampaigns}
-          change="+2"
-          trend="up"
+          value={loading ? "..." : stats.activeCampaigns}
+          change={`${changes.campaignsChange >= 0 ? "+" : ""}${changes.campaignsChange.toFixed(1)}%`}
+          trend={changes.campaignsChange >= 0 ? "up" : "down"}
         />
         <StatCard
           icon={<TrendingUp size={32} />}
           label="Conversion Rate"
-          value={`${stats.conversionRate}%`}
-          change="+0.8%"
-          trend="up"
+          value={loading ? "..." : `${stats.conversionRate}%`}
+          change={`${changes.conversionRateChange >= 0 ? "+" : ""}${changes.conversionRateChange.toFixed(1)}%`}
+          trend={changes.conversionRateChange >= 0 ? "up" : "down"}
         />
         <StatCard
           icon={<DollarSign size={32} />}
           label="Revenue"
-          value={`$${(stats.revenue / 1000).toFixed(1)}K`}
-          change="+25%"
-          trend="up"
+          value={loading ? "..." : `$${(stats.revenue / 1000).toFixed(1)}K`}
+          change={`${changes.revenueChange >= 0 ? "+" : ""}${changes.revenueChange.toFixed(1)}%`}
+          trend={changes.revenueChange >= 0 ? "up" : "down"}
         />
       </div>
 
