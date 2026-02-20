@@ -11,6 +11,7 @@ import { Download, Search } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { OrganizationModal } from "@/components/modals";
 import { useOrganizationData } from "@/hooks";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 const OrganizationsPage = () => {
   const {
@@ -30,6 +31,8 @@ const OrganizationsPage = () => {
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [organizationToDelete, setOrganizationToDelete] = useState<string | null>(null);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -81,15 +84,22 @@ const OrganizationsPage = () => {
     }
   };
 
-  const handleDeleteOrganization = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this organization?")) {
-      try {
-        await deleteOrganization(id);
-        await fetchOrganizations();
-      } catch (error) {
-        console.error("Error deleting organization:", error);
-        alert("Failed to delete organization. Please try again.");
-      }
+  const handleDeleteOrganization = (id: string) => {
+    setOrganizationToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!organizationToDelete) return;
+
+    try {
+      await deleteOrganization(organizationToDelete);
+      await fetchOrganizations();
+    } catch (error) {
+      console.error("Error deleting organization:", error);
+      alert("Failed to delete organization. Please try again.");
+    } finally {
+      setOrganizationToDelete(null);
     }
   };
 
@@ -212,6 +222,16 @@ const OrganizationsPage = () => {
         onClose={handleCloseModal}
         onSave={handleSaveOrganization}
         onUpdate={handleUpdateOrganization}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Organization"
+        description="Are you sure you want to delete this organization? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

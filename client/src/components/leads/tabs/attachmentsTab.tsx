@@ -1,7 +1,8 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Upload, File } from "lucide-react";
 import { useAttachmentData } from "@/hooks";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 interface AttachmentsTabProps {
   leadId: string;
@@ -18,6 +19,10 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     deleteAttachment,
   } = useAttachmentData(leadId);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [attachmentToDelete, setAttachmentToDelete] = useState<string | null>(
+    null,
+  );
 
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return "0 Bytes";
@@ -74,15 +79,20 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     }
   };
 
-  const handleDeleteAttachment = async (attachmentId: string) => {
-    if (!window.confirm("Are you sure you want to delete this attachment?")) {
-      return;
-    }
+  const handleDeleteAttachment = (attachmentId: string) => {
+    setAttachmentToDelete(attachmentId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!attachmentToDelete) return;
 
     try {
-      await deleteAttachment(attachmentId);
+      await deleteAttachment(attachmentToDelete);
     } catch (err) {
       console.error("Error deleting attachment:", err);
+    } finally {
+      setAttachmentToDelete(null);
     }
   };
 
@@ -97,17 +107,18 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
       {/* Upload Area */}
       <div
-        className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
+        className="bg-linear-to-br from-accent to-muted/40
+             border-2 border-dashed border-border
+             rounded-lg p-8 text-center
+             hover:border-primary/50
+             hover:bg-accent/80
+             transition-colors cursor-pointer group"
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();
           const files = e.dataTransfer.files;
           if (files.length > 0) {
-            const event = new ClipboardEvent("paste");
-            Object.defineProperty(event, "dataTransfer", {
-              value: { files },
-            });
             handleFileSelect({
               target: { files },
             } as any);
@@ -122,19 +133,34 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
           className="hidden"
           accept="*/*"
         />
-        <Upload className="w-12 h-12 text-blue-600 dark:text-blue-400 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+
+        <Upload
+          className="w-12 h-12 text-primary
+               mx-auto mb-3
+               group-hover:scale-110
+               transition-transform"
+        />
+
+        <h3 className="text-lg font-semibold text-foreground mb-1">
           Upload Attachment
         </h3>
-        <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
+
+        <p className="text-muted-foreground text-sm mb-2">
           Drag and drop your file or click to browse
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-500">
+
+        <p className="text-xs text-muted-foreground/70">
           Maximum file size: 10MB
         </p>
+
         {uploading && (
           <div className="mt-3">
-            <div className="w-6 h-6 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
+            <div
+              className="w-6 h-6 border-4
+                      border-primary
+                      border-t-transparent
+                      rounded-full animate-spin mx-auto"
+            />
           </div>
         )}
       </div>
@@ -213,6 +239,16 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Attachment"
+        description="Are you sure you want to delete this attachment? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 }
