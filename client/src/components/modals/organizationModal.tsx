@@ -5,23 +5,14 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import type {
   Organization,
   CreateOrganizationDTO,
   UpdateOrganizationDTO,
 } from "@/types";
+import { FormField, FormSelect } from "./form-fields";
+import { ModalFooter } from "./shared";
 
 interface OrganizationFormData {
   organizationName: string;
@@ -185,166 +176,103 @@ function OrganizationModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 py-4"
-        >
-          <div className="space-y-2">
-            <Label
-              htmlFor="organizationName"
-              className="text-sm font-semibold"
-            >
-              Organization Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="organizationName"
-              value={formData.organizationName}
-              onChange={(e) =>
-                handleInputChange("organizationName", e.target.value)
-              }
-              placeholder="Acme Corporation"
-              className={errors.organizationName ? "border-red-500" : ""}
-            />
-            {errors.organizationName && (
-              <p className="text-sm text-red-500">{errors.organizationName}</p>
-            )}
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          <FormField
+            id="organizationName"
+            label="Organization Name"
+            value={formData.organizationName}
+            onChange={(value) => handleInputChange("organizationName", value)}
+            placeholder="Acme Corporation"
+            required
+            error={errors.organizationName}
+          />
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="organizationWebsite"
-              className="text-sm font-semibold"
-            >
-              Website <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="organizationWebsite"
-              type="url"
-              value={formData.organizationWebsite}
-              onChange={(e) =>
-                handleInputChange("organizationWebsite", e.target.value)
-              }
-              placeholder="https://www.acme.com"
-              className={errors.organizationWebsite ? "border-red-500" : ""}
-            />
-            {errors.organizationWebsite && (
-              <p className="text-sm text-red-500">
-                {errors.organizationWebsite}
-              </p>
-            )}
-          </div>
+          <FormField
+            id="organizationWebsite"
+            label="Website"
+            type="url"
+            value={formData.organizationWebsite}
+            onChange={(value) => handleInputChange("organizationWebsite", value)}
+            placeholder="https://www.acme.com"
+            required
+            error={errors.organizationWebsite}
+          />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label
-                htmlFor="organizationSize"
-                className="text-sm font-semibold"
-              >
-                Organization Size <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="organizationSize"
-                type="number"
-                min="1"
-                max="10000000"
-                value={formData.organizationSize}
-                onChange={(e) =>
-                  handleInputChange(
-                    "organizationSize",
-                    parseInt(e.target.value) || 1,
-                  )
-                }
-                placeholder="50"
-                className={errors.organizationSize ? "border-red-500" : ""}
-              />
-              {errors.organizationSize && (
-                <p className="text-sm text-red-500">
-                  {errors.organizationSize}
-                </p>
-              )}
-            </div>
+            <FormField
+              id="organizationSize"
+              label="Organization Size"
+              type="number"
+              value={formData.organizationSize.toString()}
+              onChange={(value) =>
+                handleInputChange(
+                  "organizationSize",
+                  parseInt(value) || 1
+                )
+              }
+              placeholder="50"
+              required
+              error={errors.organizationSize}
+              min={1}
+              max={10000000}
+            />
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="organizationIndustry"
-                className="text-sm font-semibold"
-              >
-                Industry <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.organizationIndustry}
-                onValueChange={(value) =>
-                  handleInputChange("organizationIndustry", value)
-                }
-              >
-                <SelectTrigger
-                  id="organizationIndustry"
-                  className={
-                    errors.organizationIndustry ? "border-red-500" : ""
-                  }
-                >
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Software">
+            <FormSelect
+              id="organizationIndustry"
+              label="Industry"
+              value={formData.organizationIndustry}
+              onChange={(value) => handleInputChange("organizationIndustry", value)}
+              placeholder="Select industry"
+              required
+              error={errors.organizationIndustry}
+              options={[
+                {
+                  value: "Software",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                       <span>Software</span>
                     </div>
-                  </SelectItem>
-                  <SelectItem value="Textile">
+                  ),
+                },
+                {
+                  value: "Textile",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-purple-500"></div>
                       <span>Textile</span>
                     </div>
-                  </SelectItem>
-                  <SelectItem value="Foods">
+                  ),
+                },
+                {
+                  value: "Foods",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-green-500"></div>
                       <span>Foods</span>
                     </div>
-                  </SelectItem>
-                  <SelectItem value="Others">
+                  ),
+                },
+                {
+                  value: "Others",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-gray-500"></div>
                       <span>Others</span>
                     </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.organizationIndustry && (
-                <p className="text-sm text-red-500">
-                  {errors.organizationIndustry}
-                </p>
-              )}
-            </div>
+                  ),
+                },
+              ]}
+            />
           </div>
 
-          <DialogFooter className="gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : (
-                <span>
-                  {organization ? "Update Organization" : "Create Organization"}
-                </span>
-              )}
-            </Button>
-          </DialogFooter>
+          <ModalFooter
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            submitLabel={
+              organization ? "Update Organization" : "Create Organization"
+            }
+          />
         </form>
       </DialogContent>
     </Dialog>

@@ -1,18 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import type { Organization, OrganizationSize } from "../types";
-import { getOrganizationSizeCategory } from "../types";
+import type { Organization } from "../types";
 import { organizationService } from "../services";
 import { useAsync } from "./useAsync";
 import { useIndexedDB } from "./useIndexedDB";
 
 interface Statistics {
   total: number;
-  bySize: Record<OrganizationSize | string, number>;
   byIndustry: Record<string, number>;
 }
 
 interface Filters {
-  size: OrganizationSize | "";
   industry: string;
   search: string;
   dateFrom: string;
@@ -32,11 +29,9 @@ export const useOrganizationData = () => {
   >([]);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
-    bySize: {},
     byIndustry: {},
   });
   const [filters, setFilters] = useState<Filters>({
-    size: "",
     industry: "",
     search: "",
     dateFrom: "",
@@ -57,15 +52,10 @@ export const useOrganizationData = () => {
     (organizationsData: Organization[]) => {
       const stats: Statistics = {
         total: organizationsData.length,
-        bySize: {},
         byIndustry: {},
       };
 
       organizationsData.forEach((org) => {
-        // Count by size
-        stats.bySize[org.organizationSize] =
-          (stats.bySize[org.organizationSize] ?? 0) + 1;
-
         // Count by industry
         stats.byIndustry[org.organizationIndustry] =
           (stats.byIndustry[org.organizationIndustry] ?? 0) + 1;
@@ -81,13 +71,6 @@ export const useOrganizationData = () => {
    */
   const applyFilters = useCallback(() => {
     let filtered = [...organizations];
-
-    // Filter by size
-    if (filters.size) {
-      filtered = filtered.filter(
-        (org) => getOrganizationSizeCategory(org.organizationSize) === filters.size,
-      );
-    }
 
     // Filter by industry
     if (filters.industry) {
@@ -252,7 +235,6 @@ export const useOrganizationData = () => {
    */
   const resetFilters = useCallback(() => {
     setFilters({
-      size: "",
       industry: "",
       search: "",
       dateFrom: "",

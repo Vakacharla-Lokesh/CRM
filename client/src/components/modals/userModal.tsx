@@ -5,21 +5,12 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useAppContext } from "@/context";
 import { useTenantData } from "@/hooks";
 import type { User, UserRole, CreateUserDTO } from "@/types";
+import { FormField, FormSelect } from "./form-fields";
+import { ModalFooter } from "./shared";
 
 interface UserFormData {
   firstName: string;
@@ -174,7 +165,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {user ? "Edit User" : "Add New User"}
@@ -186,199 +177,119 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 py-4"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label
-                htmlFor="firstName"
-                className="text-sm font-semibold"
-              >
-                First Name <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="firstName"
-                value={formData.firstName}
-                onChange={(e) => handleInputChange("firstName", e.target.value)}
-                placeholder="John"
-                className={errors.firstName ? "border-red-500" : ""}
-              />
-              {errors.firstName && (
-                <p className="text-sm text-red-500">{errors.firstName}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label
-                htmlFor="lastName"
-                className="text-sm font-semibold"
-              >
-                Last Name
-              </Label>
-              <Input
-                id="lastName"
-                value={formData.lastName}
-                onChange={(e) => handleInputChange("lastName", e.target.value)}
-                placeholder="Doe"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label
-              htmlFor="userEmail"
-              className="text-sm font-semibold"
-            >
-              Email <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="userEmail"
-              type="email"
-              value={formData.userEmail}
-              onChange={(e) => handleInputChange("userEmail", e.target.value)}
-              placeholder="john.doe@example.com"
-              className={errors.userEmail ? "border-red-500" : ""}
+            <FormField
+              id="firstName"
+              label="First Name"
+              value={formData.firstName}
+              onChange={(value) => handleInputChange("firstName", value)}
+              placeholder="John"
+              required
+              error={errors.firstName}
             />
-            {errors.userEmail && (
-              <p className="text-sm text-red-500">{errors.userEmail}</p>
-            )}
+
+            <FormField
+              id="lastName"
+              label="Last Name"
+              value={formData.lastName}
+              onChange={(value) => handleInputChange("lastName", value)}
+              placeholder="Doe"
+            />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label
-                htmlFor="mobile"
-                className="text-sm font-semibold"
-              >
-                Mobile Number
-              </Label>
-              <Input
-                id="mobile"
-                type="tel"
-                value={formData.mobile}
-                onChange={(e) => handleInputChange("mobile", e.target.value)}
-                placeholder="9876543210"
-                className={errors.mobile ? "border-red-500" : ""}
-              />
-              {errors.mobile && (
-                <p className="text-sm text-red-500">{errors.mobile}</p>
-              )}
-            </div>
+          <FormField
+            id="userEmail"
+            label="Email"
+            type="email"
+            value={formData.userEmail}
+            onChange={(value) => handleInputChange("userEmail", value)}
+            placeholder="john.doe@example.com"
+            required
+            error={errors.userEmail}
+          />
 
-            <div className="space-y-2">
-              <Label
-                htmlFor="role"
-                className="text-sm font-semibold"
-              >
-                Role <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.role}
-                onValueChange={(value) => handleInputChange("role", value)}
-              >
-                <SelectTrigger id="role">
-                  <SelectValue placeholder="Select role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FormField
+              id="mobile"
+              label="Mobile Number"
+              type="tel"
+              value={formData.mobile}
+              onChange={(value) => handleInputChange("mobile", value)}
+              placeholder="9876543210"
+              error={errors.mobile}
+            />
+
+            <FormSelect
+              id="role"
+              label="Role"
+              value={formData.role}
+              onChange={(value) => handleInputChange("role", value)}
+              placeholder="Select role"
+              required
+              options={[
+                {
+                  value: "user",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-gray-500"></div>
                       <span>User</span>
                     </div>
-                  </SelectItem>
-                  <SelectItem value="admin">
+                  ),
+                },
+                {
+                  value: "admin",
+                  label: (
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-blue-500"></div>
                       <span>Admin</span>
                     </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+                  ),
+                },
+              ]}
+            />
           </div>
 
           {isSuperAdmin && (
-            <div className="space-y-2">
-              <Label
-                htmlFor="tenantId"
-                className="text-sm font-semibold"
-              >
-                Tenant <span className="text-red-500">*</span>
-              </Label>
-              <Select
-                value={formData.tenantId}
-                onValueChange={(value) => handleInputChange("tenantId", value)}
-                disabled={tenantsLoading}
-              >
-                <SelectTrigger id="tenantId" className={errors.tenantId ? "border-red-500" : ""}>
-                  <SelectValue placeholder={tenantsLoading ? "Loading tenants..." : "Select tenant"} />
-                </SelectTrigger>
-                <SelectContent>
-                  {tenants.map((tenant) => (
-                    <SelectItem key={tenant._id} value={tenant._id}>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                        <span>{tenant.tenantName}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.tenantId && (
-                <p className="text-sm text-red-500">{errors.tenantId}</p>
-              )}
-            </div>
+            <FormSelect
+              id="tenantId"
+              label="Tenant"
+              value={formData.tenantId}
+              onChange={(value) => handleInputChange("tenantId", value)}
+              placeholder={tenantsLoading ? "Loading tenants..." : "Select tenant"}
+              required
+              error={errors.tenantId}
+              disabled={tenantsLoading}
+              options={tenants.map((tenant) => ({
+                value: tenant._id,
+                label: (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                    <span>{tenant.tenantName}</span>
+                  </div>
+                ),
+              }))}
+            />
           )}
 
           {!user && (
-            <div className="space-y-2">
-              <Label
-                htmlFor="userPassword"
-                className="text-sm font-semibold"
-              >
-                Password <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="userPassword"
-                type="password"
-                value={formData.userPassword}
-                onChange={(e) =>
-                  handleInputChange("userPassword", e.target.value)
-                }
-                placeholder="Enter password (min. 6 characters)"
-                className={errors.userPassword ? "border-red-500" : ""}
-              />
-              {errors.userPassword && (
-                <p className="text-sm text-red-500">{errors.userPassword}</p>
-              )}
-            </div>
+            <FormField
+              id="userPassword"
+              label="Password"
+              type="password"
+              value={formData.userPassword}
+              onChange={(value) => handleInputChange("userPassword", value)}
+              placeholder="Enter password (min. 6 characters)"
+              required
+              error={errors.userPassword}
+            />
           )}
 
-          <DialogFooter className="gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : (
-                <span>{user ? "Update User" : "Create User"}</span>
-              )}
-            </Button>
-          </DialogFooter>
+          <ModalFooter
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            submitLabel={user ? "Update User" : "Create User"}
+          />
         </form>
       </DialogContent>
     </Dialog>
