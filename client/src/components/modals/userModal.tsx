@@ -8,35 +8,15 @@ import {
 } from "@/components/ui/dialog";
 import { useAppContext } from "@/context";
 import { useTenantData } from "@/hooks";
-import type { User, UserRole, CreateUserDTO } from "@/types";
+import type { CreateUserDTO } from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
 
-interface UserFormData {
-  firstName: string;
-  lastName: string;
-  userEmail: string;
-  mobile: string;
-  role: UserRole;
-  password: string;
-  tenantId: string;
-}
-
-interface FormErrors {
-  firstName?: string;
-  lastName?: string;
-  userEmail?: string;
-  mobile?: string;
-  password?: string;
-  tenantId?: string;
-}
-
-interface UserModalProps {
-  isOpen: boolean;
-  user: User | null;
-  onClose: () => void;
-  onSave: (userData: CreateUserDTO) => Promise<void>;
-}
+import type {
+  UserFormData,
+  UserFormErrors as FormErrors,
+  UserModalProps,
+} from "@/types/form-interfaces";
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
@@ -63,7 +43,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userEmail: user.userEmail,
         mobile: user.mobile || "",
         role: user.role,
-        password: "", // Don't show password for existing users
+        password: "",
         tenantId: user.tenantId,
       });
     } else {

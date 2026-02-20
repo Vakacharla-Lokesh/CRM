@@ -12,7 +12,7 @@ import type {
   FormErrors,
   LeadFormData,
   LeadModalProps,
-} from "@/types/form-interfaces/leadForm.interfaces";
+} from "@/types/form-interfaces/lead.form.interfaces";
 import { useOrganizationData } from "@/hooks";
 import { organizationService } from "@/services";
 import { FormField, FormSelect } from "./form-fields";
@@ -22,8 +22,8 @@ import { OrganizationSection } from "./sections";
 import {
   LEAD_SOURCES,
   LEAD_STATUSES,
-} from "@/types/form-interfaces/lead.options";
-import { mapToSelectOptions } from "@/components/common/mapSelectLeadOptions";
+} from "@/types/form-interfaces";
+import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
@@ -235,122 +235,128 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
-            {lead ? "Edit Lead" : "Add New Lead"}
-          </DialogTitle>
-          <DialogDescription>
-            {lead
-              ? "Update the lead information below."
-              : "Fill in the details to create a new lead."}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-150 max-h-[90vh] flex flex-col p-0">
+        <div className="px-6 pt-6">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold">
+              {lead ? "Edit Lead" : "Add New Lead"}
+            </DialogTitle>
+            <DialogDescription>
+              {lead
+                ? "Update the lead information below."
+                : "Fill in the details to create a new lead."}
+            </DialogDescription>
+          </DialogHeader>
+        </div>
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-6 py-4"
+          className="flex flex-col flex-1 min-h-0"
         >
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormField
-              id="leadFirstName"
-              label="First Name"
-              value={formData.leadFirstName}
-              onChange={(value) => handleInputChange("leadFirstName", value)}
-              placeholder="John"
-              required
-              error={errors.leadFirstName}
-            />
+          <div className="overflow-y-auto px-6 py-4 space-y-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormField
+                id="leadFirstName"
+                label="First Name"
+                value={formData.leadFirstName}
+                onChange={(value) => handleInputChange("leadFirstName", value)}
+                placeholder="John"
+                required
+                error={errors.leadFirstName}
+              />
 
-            <FormField
-              id="leadLastName"
-              label="Last Name"
-              value={formData.leadLastName}
-              onChange={(value) => handleInputChange("leadLastName", value)}
-              placeholder="Doe"
-            />
-          </div>
-
-          <FormField
-            id="leadEmail"
-            label="Email"
-            type="email"
-            value={formData.leadEmail}
-            onChange={(value) => handleInputChange("leadEmail", value)}
-            placeholder="john.doe@example.com"
-            required
-            error={errors.leadEmail}
-          />
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FormSelect
-              id="leadSource"
-              label="Lead Source"
-              value={formData.leadSource}
-              onChange={(value) => handleInputChange("leadSource", value)}
-              placeholder="Select source"
-              options={leadSourceOptions}
-            />
-
-            <FormSelect
-              id="leadStatus"
-              label="Lead Status"
-              value={formData.leadStatus}
-              onChange={(value) => handleInputChange("leadStatus", value)}
-              placeholder="Select status"
-              options={leadStatusOptions}
-            />
-          </div>
-
-          {lead && (
-            <div className="space-y-2">
-              <Label className="text-sm font-semibold">
-                Lead Score (Managed by System)
-              </Label>
-              <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-                <div className="flex-1">
-                  <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
-                      style={{ width: `${formData.leadScore}%` }}
-                    />
-                  </div>
-                </div>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-12 text-right">
-                  {formData.leadScore}
-                </span>
-              </div>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Lead score is automatically calculated based on engagement and
-                other factors.
-              </p>
+              <FormField
+                id="leadLastName"
+                label="Last Name"
+                value={formData.leadLastName}
+                onChange={(value) => handleInputChange("leadLastName", value)}
+                placeholder="Doe"
+              />
             </div>
-          )}
 
-          <OrganizationSection
-            organizations={organizations}
-            selectedOrgId={formData.organizationId}
-            onOrgSelect={(orgId: string) =>
-              handleInputChange("organizationId", orgId)
-            }
-            newOrgData={newOrgData}
-            onNewOrgChange={handleOrgInputChange}
-            errors={errors}
-            onModeChange={(mode: "select" | "create") =>
-              setOrganizationMode(mode)
-            }
-          />
+            <FormField
+              id="leadEmail"
+              label="Email"
+              type="email"
+              value={formData.leadEmail}
+              onChange={(value) => handleInputChange("leadEmail", value)}
+              placeholder="john.doe@example.com"
+              required
+              error={errors.leadEmail}
+            />
 
-          {submitError && <ErrorAlert message={submitError} />}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <FormSelect
+                id="leadSource"
+                label="Lead Source"
+                value={formData.leadSource}
+                onChange={(value) => handleInputChange("leadSource", value)}
+                placeholder="Select source"
+                options={leadSourceOptions}
+              />
 
-          <ModalFooter
-            onCancel={onClose}
-            isSubmitting={isSubmitting}
-            submitLabel={lead ? "Update Lead" : "Create Lead"}
-            loadingLabel={
-              organizationMode === "create" ? "Creating..." : "Saving..."
-            }
-          />
+              <FormSelect
+                id="leadStatus"
+                label="Lead Status"
+                value={formData.leadStatus}
+                onChange={(value) => handleInputChange("leadStatus", value)}
+                placeholder="Select status"
+                options={leadStatusOptions}
+              />
+            </div>
+
+            {lead && (
+              <div className="space-y-2">
+                <Label className="text-sm font-semibold">
+                  Lead Score (Managed by System)
+                </Label>
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                  <div className="flex-1">
+                    <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+                        style={{ width: `${formData.leadScore}%` }}
+                      />
+                    </div>
+                  </div>
+                  <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-12 text-right">
+                    {formData.leadScore}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Lead score is automatically calculated based on engagement and
+                  other factors.
+                </p>
+              </div>
+            )}
+
+            <OrganizationSection
+              organizations={organizations}
+              selectedOrgId={formData.organizationId}
+              onOrgSelect={(orgId: string) =>
+                handleInputChange("organizationId", orgId)
+              }
+              newOrgData={newOrgData}
+              onNewOrgChange={handleOrgInputChange}
+              errors={errors}
+              onModeChange={(mode: "select" | "create") =>
+                setOrganizationMode(mode)
+              }
+            />
+
+            {submitError && <ErrorAlert message={submitError} />}
+          </div>
+
+          <div className="px-6 pb-6 pt-4 border-t">
+            <ModalFooter
+              onCancel={onClose}
+              isSubmitting={isSubmitting}
+              submitLabel={lead ? "Update Lead" : "Create Lead"}
+              loadingLabel={
+                organizationMode === "create" ? "Creating..." : "Saving..."
+              }
+            />
+          </div>
         </form>
       </DialogContent>
     </Dialog>

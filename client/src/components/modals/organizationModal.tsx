@@ -6,35 +6,17 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type {
-  Organization,
-  CreateOrganizationDTO,
-  UpdateOrganizationDTO,
-} from "@/types";
+import type { CreateOrganizationDTO, UpdateOrganizationDTO } from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
 
-interface OrganizationFormData {
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize: number;
-  organizationIndustry: string;
-}
-
-interface FormErrors {
-  organizationName?: string;
-  organizationWebsite?: string;
-  organizationSize?: string;
-  organizationIndustry?: string;
-}
-
-interface OrganizationModalProps {
-  isOpen: boolean;
-  organization: Organization | null;
-  onClose: () => void;
-  onSave: (organizationData: CreateOrganizationDTO) => Promise<void>;
-  onUpdate?: (id: string, organizationData: UpdateOrganizationDTO) => Promise<void>;
-}
+import type {
+  OrganizationFormData,
+  FormErrors,
+  OrganizationModalProps,
+} from "@/types/form-interfaces/";
+import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces";
+import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
 
 function OrganizationModal({
   isOpen,
@@ -51,6 +33,8 @@ function OrganizationModal({
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const industryOptions = mapToSelectOptions(ORGANIZATION_INDUSTRIES);
 
   useEffect(() => {
     if (organization) {
@@ -176,7 +160,10 @@ function OrganizationModal({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
           <FormField
             id="organizationName"
             label="Organization Name"
@@ -192,7 +179,9 @@ function OrganizationModal({
             label="Website"
             type="url"
             value={formData.organizationWebsite}
-            onChange={(value) => handleInputChange("organizationWebsite", value)}
+            onChange={(value) =>
+              handleInputChange("organizationWebsite", value)
+            }
             placeholder="https://www.acme.com"
             required
             error={errors.organizationWebsite}
@@ -205,10 +194,7 @@ function OrganizationModal({
               type="number"
               value={formData.organizationSize.toString()}
               onChange={(value) =>
-                handleInputChange(
-                  "organizationSize",
-                  parseInt(value) || 1
-                )
+                handleInputChange("organizationSize", parseInt(value) || 1)
               }
               placeholder="50"
               required
@@ -221,48 +207,13 @@ function OrganizationModal({
               id="organizationIndustry"
               label="Industry"
               value={formData.organizationIndustry}
-              onChange={(value) => handleInputChange("organizationIndustry", value)}
+              onChange={(value) =>
+                handleInputChange("organizationIndustry", value)
+              }
               placeholder="Select industry"
               required
               error={errors.organizationIndustry}
-              options={[
-                {
-                  value: "Software",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span>Software</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Textile",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                      <span>Textile</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Foods",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span>Foods</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Others",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                      <span>Others</span>
-                    </div>
-                  ),
-                },
-              ]}
+              options={industryOptions}
             />
           </div>
 
