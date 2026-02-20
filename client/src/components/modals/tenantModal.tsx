@@ -6,28 +6,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { Tenant, CreateTenantDto } from "@/types/tenant";
+import type { CreateTenantDto } from "@/types/tenant";
 import { FormField } from "./form-fields";
 import { ModalFooter } from "./shared";
 
-interface TenantFormData {
-  tenantName: string;
-  email: string;
-  mobile: string;
-}
-
-interface FormErrors {
-  tenantName?: string;
-  email?: string;
-  mobile?: string;
-}
-
-interface TenantModalProps {
-  isOpen: boolean;
-  tenant: Tenant | null;
-  onClose: () => void;
-  onSave: (tenantData: CreateTenantDto) => Promise<void>;
-}
+import type {
+  TenantFormData,
+  TenantFormErrors as FormErrors,
+  TenantModalProps,
+} from "@/types/form-interfaces";
 
 function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   const [formData, setFormData] = useState<TenantFormData>({
@@ -118,7 +105,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={onClose}
+    >
       <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
@@ -131,7 +121,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
           <FormField
             id="tenantName"
             label="Tenant Name"
