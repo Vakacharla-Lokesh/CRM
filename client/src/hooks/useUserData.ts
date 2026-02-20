@@ -245,6 +245,7 @@ export const useUserData = () => {
     getUsersByRole,
     updatePassword,
     updateUserRole,
+    
     // Filter methods
     updateFilter,
     resetFilters,

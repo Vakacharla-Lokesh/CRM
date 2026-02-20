@@ -50,7 +50,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
           // Optional: Verify token is still valid
           // Uncomment this when you have a working /auth/status endpoint
-          /*
           try {
             const status = await authService.getStatus();
             if (!status.valid) {
@@ -66,7 +65,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             // Don't logout on verification failure - let the user stay logged in
             // The API calls will fail with 401 if token is invalid
           }
-          */
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
@@ -83,7 +81,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const handleOffline = () => setIsOnline(false);
 
     const handleAuthLogout = () => {
-      console.log('Auth logout event received');
+      console.log("Auth logout event received");
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
@@ -96,6 +94,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
+      window.removeEventListener("auth:logout", handleAuthLogout);
     };
   }, []);
 

@@ -26,15 +26,6 @@ interface FormFieldMeta {
   value: unknown;
 }
 
-/**
- * Form Management Hook
- * Handles form state, validation, and submission
- *
- * @param initialValues - Initial form values
- * @param onSubmit - Submit handler function
- * @param validate - Validation function
- * @returns Form state and handlers
- */
 export const useForm = <TValues extends Record<string, any>>(
   initialValues: TValues,
   onSubmit: (values: TValues) => void | Promise<void> = async () => {},
@@ -46,9 +37,6 @@ export const useForm = <TValues extends Record<string, any>>(
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValid, setIsValid] = useState(true);
 
-  /**
-   * Handle input change
-   */
   const handleChange = useCallback(
     (e: FormChangeEvent<TValues>) => {
       const target = "target" in e ? e.target : e;
@@ -60,7 +48,6 @@ export const useForm = <TValues extends Record<string, any>>(
         [name]: type === "checkbox" ? checked : value,
       }));
 
-      // Clear error for this field
       if (errors[name as keyof TValues]) {
         setErrors((prev) => {
           const newErrors = { ...prev };
@@ -72,9 +59,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [errors],
   );
 
-  /**
-   * Handle input blur
-   */
   const handleBlur = useCallback(
     (
       e: React.FocusEvent<
@@ -88,7 +72,6 @@ export const useForm = <TValues extends Record<string, any>>(
         [name]: true,
       }));
 
-      // Validate this field if validator exists
       if (validate) {
         const fieldErrors = validate(values);
         if (fieldErrors[name as keyof TValues]) {
@@ -102,9 +85,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [values, validate],
   );
 
-  /**
-   * Set field value programmatically
-   */
   const setFieldValue = useCallback((name: keyof TValues, value: unknown) => {
     setValues((prev) => ({
       ...prev,
@@ -112,9 +92,6 @@ export const useForm = <TValues extends Record<string, any>>(
     }));
   }, []);
 
-  /**
-   * Set field error
-   */
   const setFieldError = useCallback(
     (name: keyof TValues | "submit", error: string) => {
       setErrors((prev) => ({
@@ -124,10 +101,6 @@ export const useForm = <TValues extends Record<string, any>>(
     },
     [],
   );
-
-  /**
-   * Set field touched
-   */
   const setFieldTouched = useCallback(
     (name: keyof TValues, isTouched = true) => {
       setTouched((prev) => ({
@@ -138,9 +111,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [],
   );
 
-  /**
-   * Validate all fields
-   */
   const validateForm = useCallback(() => {
     if (!validate) {
       return true;
@@ -154,24 +124,18 @@ export const useForm = <TValues extends Record<string, any>>(
 
     return valid;
   }, [values, validate]);
-
-  /**
-   * Handle form submit
-   */
   const handleSubmit = useCallback(
     async (e?: SyntheticEvent<HTMLFormElement>) => {
       if (e) {
         e.preventDefault();
       }
 
-      // Mark all fields as touched
       const allTouched = Object.keys(values).reduce((acc, key) => {
         acc[key as keyof TValues] = true;
         return acc;
       }, {} as FormTouched<TValues>);
       setTouched(allTouched);
 
-      // Validate form
       const valid = validateForm();
 
       if (!valid) {
@@ -196,9 +160,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [values, validateForm, onSubmit],
   );
 
-  /**
-   * Reset form to initial values
-   */
   const resetForm = useCallback(() => {
     setValues(initialValues);
     setErrors({});
@@ -207,9 +168,6 @@ export const useForm = <TValues extends Record<string, any>>(
     setIsValid(true);
   }, [initialValues]);
 
-  /**
-   * Reset specific field
-   */
   const resetField = useCallback(
     (name: keyof TValues) => {
       setValues((prev) => ({
@@ -229,9 +187,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [initialValues],
   );
 
-  /**
-   * Get field props for easy spreading
-   */
   const getFieldProps = useCallback(
     (name: keyof TValues): FormFieldProps<TValues> => {
       return {
@@ -244,9 +199,6 @@ export const useForm = <TValues extends Record<string, any>>(
     [values, handleChange, handleBlur],
   );
 
-  /**
-   * Get field meta information
-   */
   const getFieldMeta = useCallback(
     (name: keyof TValues): FormFieldMeta => {
       return {

@@ -26,7 +26,7 @@ const useTenantData = () => {
   const fetchTenants = useCallback(async () => {
     const data = await tenantService.getAllTenants();
     setTenants(data);
-    
+
     // Store in IndexedDB for offline access
     try {
       for (const tenant of data) {
@@ -35,7 +35,7 @@ const useTenantData = () => {
     } catch (error) {
       console.error("Error storing tenants in IndexedDB:", error);
     }
-    
+
     return data;
   }, [updateItem]);
 
@@ -55,7 +55,6 @@ const useTenantData = () => {
   // Filtered tenants
   const filteredTenants = useMemo(() => {
     return tenants.filter((tenant) => {
-      // Search filter (name, email, mobile)
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -71,12 +70,12 @@ const useTenantData = () => {
         const tenantDate = tenant.createdAt
           ? new Date(tenant.createdAt)
           : new Date();
-        
+
         if (filters.dateFrom) {
           const fromDate = new Date(filters.dateFrom);
           if (tenantDate < fromDate) return false;
         }
-        
+
         if (filters.dateTo) {
           const toDate = new Date(filters.dateTo);
           toDate.setHours(23, 59, 59, 999);
@@ -110,13 +109,13 @@ const useTenantData = () => {
     async (tenantData: CreateTenantDto) => {
       const newTenant = await tenantService.createTenant(tenantData);
       setTenants((prev) => [...prev, newTenant]);
-      
+
       try {
         await updateItem(newTenant._id, { ...newTenant, id: newTenant._id });
       } catch (error) {
         console.error("Error storing new tenant in IndexedDB:", error);
       }
-      
+
       return newTenant;
     },
     [updateItem],
@@ -124,17 +123,22 @@ const useTenantData = () => {
 
   const updateTenant = useCallback(
     async (tenantId: string, tenantData: UpdateTenantDto) => {
-      const updatedTenant = await tenantService.updateTenant(tenantId, tenantData);
-      setTenants((prev) =>
-        prev.map((tenant) => (tenant._id === tenantId ? updatedTenant : tenant)),
+      const updatedTenant = await tenantService.updateTenant(
+        tenantId,
+        tenantData,
       );
-      
+      setTenants((prev) =>
+        prev.map((tenant) =>
+          tenant._id === tenantId ? updatedTenant : tenant,
+        ),
+      );
+
       try {
         await updateItem(tenantId, { ...updatedTenant, id: updatedTenant._id });
       } catch (error) {
         console.error("Error updating tenant in IndexedDB:", error);
       }
-      
+
       return updatedTenant;
     },
     [updateItem],
