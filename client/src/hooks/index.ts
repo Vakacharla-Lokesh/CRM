@@ -14,3 +14,4 @@ export { default as useTenantData } from './useTenantData.ts';
 export { useCallData } from './useCallData.ts';
 export { useCommentData } from './useCommentData.ts';
 export { useAttachmentData } from './useAttachmentData.ts';
+export { useDashboardStats } from './useDashboardStats.ts';
