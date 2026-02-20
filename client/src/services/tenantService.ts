@@ -4,7 +4,7 @@ import type { Tenant, CreateTenantDto, UpdateTenantDto } from "@/types/tenant";
 class TenantService {
   async getAllTenants(): Promise<Tenant[]> {
     const response = await apiClient.get<{ tenants: Tenant[]; count: number }>(
-      "/tenants"
+      "/tenants",
     );
     return response.tenants;
   }
@@ -17,7 +17,7 @@ class TenantService {
   async createTenant(data: CreateTenantDto): Promise<Tenant> {
     const response = await apiClient.post<{ tenant: Tenant; message: string }>(
       "/tenants",
-      data
+      data,
     );
     return response.tenant;
   }
@@ -25,7 +25,7 @@ class TenantService {
   async updateTenant(id: string, data: UpdateTenantDto): Promise<Tenant> {
     const response = await apiClient.put<{ tenant: Tenant; message: string }>(
       `/tenants/${id}`,
-      data
+      data,
     );
     return response.tenant;
   }

@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useAppContext } from "@/context";
+import { useTenantData } from "@/hooks";
 import type { User, UserRole, CreateUserDTO } from "@/types";
 
 interface UserFormData {
@@ -26,6 +28,7 @@ interface UserFormData {
   mobile: string;
   role: UserRole;
   userPassword: string;
+  tenantId: string;
 }
 
 interface FormErrors {
@@ -34,6 +37,7 @@ interface FormErrors {
   userEmail?: string;
   mobile?: string;
   userPassword?: string;
+  tenantId?: string;
 }
 
 interface UserModalProps {
@@ -44,6 +48,10 @@ interface UserModalProps {
 }
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
+  const { user: currentUser } = useAppContext();
+  const { tenants, loading: tenantsLoading } = useTenantData();
+  const isSuperAdmin = currentUser?.role === "super_admin";
+  
   const [formData, setFormData] = useState<UserFormData>({
     firstName: "",
     lastName: "",
@@ -51,6 +59,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
     mobile: "",
     role: "user",
     userPassword: "",
+    tenantId: currentUser?.tenantId || "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -64,6 +73,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         mobile: user.mobile || "",
         role: user.role,
         userPassword: "", // Don't show password for existing users
+        tenantId: user.tenantId,
       });
     } else {
       setFormData({
@@ -73,10 +83,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         mobile: "",
         role: "user",
         userPassword: "",
+        tenantId: currentUser?.tenantId || "",
       });
     }
     setErrors({});
-  }, [user, isOpen]);
+  }, [user, isOpen, currentUser]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -96,6 +107,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       newErrors.userPassword = "Password is required for new users";
     } else if (formData.userPassword && formData.userPassword.length < 6) {
       newErrors.userPassword = "Password must be at least 6 characters";
+    }
+
+    // Tenant is required for super_admin users
+    if (isSuperAdmin && !formData.tenantId) {
+      newErrors.tenantId = "Tenant selection is required";
     }
 
     // Mobile validation - backend expects 10 digits starting with non-zero
@@ -127,7 +143,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userPassword: formData.userPassword,
         mobile: formData.mobile || undefined,
         role: formData.role,
-        tenantId: "tenant-1", // Must use actual tenant ID in real implementation
+        tenantId: formData.tenantId,
       };
 
       await onSave(userData);
@@ -282,6 +298,39 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
               </Select>
             </div>
           </div>
+
+          {isSuperAdmin && (
+            <div className="space-y-2">
+              <Label
+                htmlFor="tenantId"
+                className="text-sm font-semibold"
+              >
+                Tenant <span className="text-red-500">*</span>
+              </Label>
+              <Select
+                value={formData.tenantId}
+                onValueChange={(value) => handleInputChange("tenantId", value)}
+                disabled={tenantsLoading}
+              >
+                <SelectTrigger id="tenantId" className={errors.tenantId ? "border-red-500" : ""}>
+                  <SelectValue placeholder={tenantsLoading ? "Loading tenants..." : "Select tenant"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((tenant) => (
+                    <SelectItem key={tenant._id} value={tenant._id}>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                        <span>{tenant.tenantName}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.tenantId && (
+                <p className="text-sm text-red-500">{errors.tenantId}</p>
+              )}
+            </div>
+          )}
 
           {!user && (
             <div className="space-y-2">

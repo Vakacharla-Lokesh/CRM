@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/organizations/organization-columns";
-import type { CreateOrganizationDTO, Organization } from "@/types";
+import type { CreateOrganizationDTO, Organization, UpdateOrganizationDTO } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download, Search } from "lucide-react";
 import { Input } from "../components/ui/input";
@@ -53,17 +53,25 @@ const OrganizationsPage = () => {
     organizationData: CreateOrganizationDTO,
   ) => {
     try {
-      if (selectedOrganization) {
-        // EDIT mode - needs updateOrganization from hook
-        await updateOrganization(selectedOrganization._id, organizationData);
-      } else {
-        // CREATE mode
-        await createOrganization(organizationData);
-      }
+      await createOrganization(organizationData);
       await fetchOrganizations();
       handleCloseModal();
     } catch (error) {
       console.error("Error saving organization:", error);
+      throw error;
+    }
+  };
+
+  const handleUpdateOrganization = async (
+    id: string,
+    organizationData: UpdateOrganizationDTO,
+  ) => {
+    try {
+      await updateOrganization(id, organizationData);
+      await fetchOrganizations();
+      handleCloseModal();
+    } catch (error) {
+      console.error("Error updating organization:", error);
       throw error;
     }
   };
@@ -253,6 +261,7 @@ const OrganizationsPage = () => {
         organization={selectedOrganization}
         onClose={handleCloseModal}
         onSave={handleSaveOrganization}
+        onUpdate={handleUpdateOrganization}
       />
     </div>
   );

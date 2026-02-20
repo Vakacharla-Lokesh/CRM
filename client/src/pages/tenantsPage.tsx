@@ -19,6 +19,8 @@ const TenantsPage = () => {
     clearFilters,
     createTenant,
     updateTenant,
+    deleteTenant,
+    refresh,
   } = useTenantData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -44,6 +46,28 @@ const TenantsPage = () => {
     setIsModalOpen(true);
   };
 
+  const handleEditTenant = (id: string) => {
+    const tenant = filteredTenants.find((t) => t._id === id);
+    if (tenant) {
+      setSelectedTenant(tenant);
+      setIsModalOpen(true);
+    } else {
+      console.error("Tenant not found for editing:", id);
+    }
+  };
+
+  const handleDeleteTenant = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this tenant?")) {
+      try {
+        await deleteTenant(id);
+        refresh(); // Refresh the tenant data after deletion
+      } catch (error) {
+        console.error("Error deleting tenant:", error);
+        alert("Failed to delete tenant. Please try again.");
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -55,7 +79,10 @@ const TenantsPage = () => {
             Manage tenant organizations
           </p>
         </div>
-        <Button onClick={handleOpenModal} className="gap-2">
+        <Button
+          onClick={handleOpenModal}
+          className="gap-2"
+        >
           <Plus className="h-4 w-4" />
           Add Tenant
         </Button>
@@ -126,7 +153,10 @@ const TenantsPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={columns({
+            onEdit: handleEditTenant,
+            onDelete: handleDeleteTenant,
+          })}
           data={filteredTenants}
           name="Tenants"
           searchColumn="tenantName"
