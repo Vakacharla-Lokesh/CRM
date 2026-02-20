@@ -5,7 +5,7 @@ const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const payload = {
       userEmail: credentials.userEmail,
-      password: credentials.userPassword,
+      password: credentials.password,
     };
     return apiClient.post<AuthResponse>("/auth/login", payload);
   },
@@ -15,7 +15,7 @@ const authService = {
       firstName: userData.firstName,
       lastName: userData.lastName,
       userEmail: userData.userEmail,
-      password: userData.userPassword,
+      password: userData.password,
       tenantName: userData.tenantName,
       role: "user",
     };

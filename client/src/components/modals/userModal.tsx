@@ -18,7 +18,7 @@ interface UserFormData {
   userEmail: string;
   mobile: string;
   role: UserRole;
-  userPassword: string;
+  password: string;
   tenantId: string;
 }
 
@@ -27,7 +27,7 @@ interface FormErrors {
   lastName?: string;
   userEmail?: string;
   mobile?: string;
-  userPassword?: string;
+  password?: string;
   tenantId?: string;
 }
 
@@ -42,14 +42,14 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
   const { tenants, loading: tenantsLoading } = useTenantData();
   const isSuperAdmin = currentUser?.role === "super_admin";
-  
+
   const [formData, setFormData] = useState<UserFormData>({
     firstName: "",
     lastName: "",
     userEmail: "",
     mobile: "",
     role: "user",
-    userPassword: "",
+    password: "",
     tenantId: currentUser?.tenantId || "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -63,7 +63,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userEmail: user.userEmail,
         mobile: user.mobile || "",
         role: user.role,
-        userPassword: "", // Don't show password for existing users
+        password: "", // Don't show password for existing users
         tenantId: user.tenantId,
       });
     } else {
@@ -73,7 +73,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         userEmail: "",
         mobile: "",
         role: "user",
-        userPassword: "",
+        password: "",
         tenantId: currentUser?.tenantId || "",
       });
     }
@@ -94,10 +94,10 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
     }
 
     // Password is only required for new users
-    if (!user && !formData.userPassword.trim()) {
-      newErrors.userPassword = "Password is required for new users";
-    } else if (formData.userPassword && formData.userPassword.length < 6) {
-      newErrors.userPassword = "Password must be at least 6 characters";
+    if (!user && !formData.password.trim()) {
+      newErrors.password = "Password is required for new users";
+    } else if (formData.password && formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     // Tenant is required for super_admin users
@@ -131,7 +131,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         firstName: formData.firstName,
         lastName: formData.lastName || undefined,
         userEmail: formData.userEmail,
-        userPassword: formData.userPassword,
+        password: formData.password,
         mobile: formData.mobile || undefined,
         role: formData.role,
         tenantId: formData.tenantId,
@@ -177,7 +177,10 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               id="firstName"
@@ -256,7 +259,9 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
               label="Tenant"
               value={formData.tenantId}
               onChange={(value) => handleInputChange("tenantId", value)}
-              placeholder={tenantsLoading ? "Loading tenants..." : "Select tenant"}
+              placeholder={
+                tenantsLoading ? "Loading tenants..." : "Select tenant"
+              }
               required
               error={errors.tenantId}
               disabled={tenantsLoading}
@@ -274,14 +279,14 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
           {!user && (
             <FormField
-              id="userPassword"
+              id="password"
               label="Password"
               type="password"
-              value={formData.userPassword}
-              onChange={(value) => handleInputChange("userPassword", value)}
+              value={formData.password}
+              onChange={(value) => handleInputChange("password", value)}
               placeholder="Enter password (min. 6 characters)"
               required
-              error={errors.userPassword}
+              error={errors.password}
             />
           )}
 

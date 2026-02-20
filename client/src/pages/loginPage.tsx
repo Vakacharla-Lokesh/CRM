@@ -9,13 +9,13 @@ import { Checkbox } from "../components/ui/checkbox";
 
 interface LoginFormData {
   userEmail: string;
-  userPassword: string;
+  password: string;
   rememberMe: boolean;
 }
 
 interface FormErrors {
   userEmail?: string;
-  userPassword?: string;
+  password?: string;
   submit?: string;
 }
 
@@ -33,10 +33,10 @@ function LoginPage() {
       errors.userEmail = "Please enter a valid email";
     }
 
-    if (!values.userPassword) {
-      errors.userPassword = "Password is required";
-    } else if (values.userPassword.length < 6) {
-      errors.userPassword = "Password must be at least 6 characters";
+    if (!values.password) {
+      errors.password = "Password is required";
+    } else if (values.password.length < 6) {
+      errors.password = "Password must be at least 6 characters";
     }
 
     return errors;
@@ -53,13 +53,13 @@ function LoginPage() {
   } = useForm<LoginFormData>(
     {
       userEmail: "",
-      userPassword: "",
+      password: "",
       rememberMe: false,
     },
     async (values: LoginFormData) => {
       try {
         // Call real login API
-        await login(values.userEmail, values.userPassword);
+        await login(values.userEmail, values.password);
 
         // Store remember me preference
         if (values.rememberMe) {
@@ -149,17 +149,17 @@ function LoginPage() {
 
           {/* Password Field */}
           <div className="space-y-2">
-            <Label htmlFor="userPassword">Password</Label>
+            <Label htmlFor="password">Password</Label>
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                id="userPassword"
-                name="userPassword"
-                value={values.userPassword}
+                id="password"
+                name="password"
+                value={values.password}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="••••••••"
-                aria-invalid={!!errors.userPassword}
+                aria-invalid={!!errors.password}
                 className="h-10 pr-10"
               />
               <button
@@ -196,9 +196,9 @@ function LoginPage() {
                 )}
               </button>
             </div>
-            {errors.userPassword && (
+            {errors.password && (
               <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.userPassword}
+                {errors.password}
               </p>
             )}
           </div>

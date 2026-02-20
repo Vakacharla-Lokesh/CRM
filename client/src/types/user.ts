@@ -17,7 +17,7 @@ export interface CreateUserDTO {
   firstName: string;
   lastName?: string;
   userEmail: string;
-  userPassword: string;
+  password: string;
   mobile?: string;
   role?: UserRole;
   tenantId: string;

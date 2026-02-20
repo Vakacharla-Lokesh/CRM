@@ -19,6 +19,12 @@ import { FormField, FormSelect } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
 import { OrganizationSection } from "./sections";
 
+import {
+  LEAD_SOURCES,
+  LEAD_STATUSES,
+} from "@/types/form-interfaces/lead.options";
+import { mapToSelectOptions } from "@/components/common/mapSelectLeadOptions";
+
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
 
@@ -44,6 +50,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const leadSourceOptions = mapToSelectOptions(LEAD_SOURCES);
+  const leadStatusOptions = mapToSelectOptions(LEAD_STATUSES);
 
   useEffect(() => {
     if (isOpen) {
@@ -238,7 +247,10 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               id="leadFirstName"
@@ -277,125 +289,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               value={formData.leadSource}
               onChange={(value) => handleInputChange("leadSource", value)}
               placeholder="Select source"
-              options={[
-                {
-                  value: "API",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span>API</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Outsource",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                      <span>Outsource</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Phone",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span>Phone</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Website",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-indigo-500"></div>
-                      <span>Website</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Facebook Ads",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-700"></div>
-                      <span>Facebook Ads</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Google Ads",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span>Google Ads</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Instagram",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-pink-500"></div>
-                      <span>Instagram</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "LinkedIn",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-800"></div>
-                      <span>LinkedIn</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Email Marketing",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                      <span>Email Marketing</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Referral",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-teal-500"></div>
-                      <span>Referral</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Cold Call",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-orange-500"></div>
-                      <span>Cold Call</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "WhatsApp",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-700"></div>
-                      <span>WhatsApp</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Other",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                      <span>Other</span>
-                    </div>
-                  ),
-                },
-              ]}
+              options={leadSourceOptions}
             />
 
             <FormSelect
@@ -404,44 +298,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               value={formData.leadStatus}
               onChange={(value) => handleInputChange("leadStatus", value)}
               placeholder="Select status"
-              options={[
-                {
-                  value: "New",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span>New</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Follow-Up",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-yellow-500"></div>
-                      <span>Follow-Up</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Converted",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span>Converted</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "Dead",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span>Dead</span>
-                    </div>
-                  ),
-                },
-              ]}
+              options={leadStatusOptions}
             />
           </div>
 

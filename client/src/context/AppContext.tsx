@@ -48,20 +48,20 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setUser(storedUser);
           setIsAuthenticated(true);
 
-          // Verify token is still valid
-          try {
-            const status = await authService.getStatus();
-            if (!status.valid) {
-              // Token expired, clear auth
-              setUser(null);
-              setToken(null);
-              setIsAuthenticated(false);
-              removeFromLocalStorage("auth_token");
-              removeFromLocalStorage("user_data");
-            }
-          } catch (error) {
-            console.error("Token verification failed:", error);
-          }
+          //   // Verify token is still valid
+          //   try {
+          //     const status = await authService.getStatus();
+          //     if (!status.valid) {
+          //       // Token expired, clear auth
+          //       setUser(null);
+          //       setToken(null);
+          //       setIsAuthenticated(false);
+          //       removeFromLocalStorage("auth_token");
+          //       removeFromLocalStorage("user_data");
+          //     }
+          //   } catch (error) {
+          //     console.error("Token verification failed:", error);
+          //   }
         }
       } catch (error) {
         console.error("Auth initialization failed:", error);
@@ -99,7 +99,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     try {
       const response = await authService.login({
         userEmail: email,
-        userPassword: password,
+        password: password,
       });
       const { user: userData, token: authToken } = response;
 
