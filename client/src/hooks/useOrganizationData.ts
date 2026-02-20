@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import type { Organization, OrganizationSize } from "../types";
+import { getOrganizationSizeCategory } from "../types";
 import { organizationService } from "../services";
 import { useAsync } from "./useAsync";
 import { useIndexedDB } from "./useIndexedDB";
@@ -84,7 +85,7 @@ export const useOrganizationData = () => {
     // Filter by size
     if (filters.size) {
       filtered = filtered.filter(
-        (org) => org.organizationSize === filters.size,
+        (org) => getOrganizationSizeCategory(org.organizationSize) === filters.size,
       );
     }
 

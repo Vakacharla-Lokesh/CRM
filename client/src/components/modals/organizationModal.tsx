@@ -20,7 +20,7 @@ import {
 import type {
   Organization,
   CreateOrganizationDTO,
-  OrganizationSize,
+  UpdateOrganizationDTO,
 } from "@/types";
 
 interface OrganizationFormData {
@@ -42,6 +42,7 @@ interface OrganizationModalProps {
   organization: Organization | null;
   onClose: () => void;
   onSave: (organizationData: CreateOrganizationDTO) => Promise<void>;
+  onUpdate?: (id: string, organizationData: UpdateOrganizationDTO) => Promise<void>;
 }
 
 function OrganizationModal({
@@ -49,6 +50,7 @@ function OrganizationModal({
   organization,
   onClose,
   onSave,
+  onUpdate,
 }: OrganizationModalProps) {
   const [formData, setFormData] = useState<OrganizationFormData>({
     organizationName: "",
@@ -121,32 +123,32 @@ function OrganizationModal({
     setIsSubmitting(true);
 
     try {
-      const organizationData: CreateOrganizationDTO = {
-        organizationName: formData.organizationName,
-        organizationWebsite: formData.organizationWebsite,
-        organizationSize: getOrganizationSizeCategory(
-          formData.organizationSize,
-        ),
-        organizationIndustry: formData.organizationIndustry,
-        tenantId: "",
-      };
-
-      await onSave(organizationData);
+      if (organization && onUpdate) {
+        // Edit mode - call onUpdate (no tenantId needed)
+        const updateData: UpdateOrganizationDTO = {
+          organizationName: formData.organizationName,
+          organizationWebsite: formData.organizationWebsite,
+          organizationSize: formData.organizationSize,
+          organizationIndustry: formData.organizationIndustry,
+        };
+        await onUpdate(organization._id, updateData);
+      } else {
+        // Create mode - call onSave
+        const createData: CreateOrganizationDTO = {
+          organizationName: formData.organizationName,
+          organizationWebsite: formData.organizationWebsite,
+          organizationSize: formData.organizationSize,
+          organizationIndustry: formData.organizationIndustry,
+          tenantId: "",
+        };
+        await onSave(createData);
+      }
       onClose();
     } catch (error) {
       console.error("Error saving organization:", error);
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getOrganizationSizeCategory = (size: number): OrganizationSize => {
-    if (size <= 10) return "1-10";
-    if (size <= 50) return "11-50";
-    if (size <= 200) return "51-200";
-    if (size <= 500) return "201-500";
-    if (size <= 1000) return "501-1000";
-    return "1000+";
   };
 
   const handleInputChange = (

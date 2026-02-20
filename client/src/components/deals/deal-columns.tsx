@@ -90,7 +90,7 @@ export const columns: ColumnDef<Deal>[] = [
     },
   },
   {
-    accessorKey: "dealStage",
+    accessorKey: "dealStatus",
     header: ({ column }) => {
       return (
         <Button
@@ -103,7 +103,7 @@ export const columns: ColumnDef<Deal>[] = [
       );
     },
     cell: ({ row }) => {
-      const status = row.getValue("dealStage") as string;
+      const status = row.getValue("dealStatus") as string;
       const statusColors: Record<string, string> = {
         Prospecting:
           "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

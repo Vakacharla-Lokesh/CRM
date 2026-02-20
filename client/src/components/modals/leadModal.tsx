@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { CreateLeadDTO, CreateOrganizationDTO, OrganizationSize } from "@/types";
+import type { CreateLeadDTO, CreateOrganizationDTO } from "@/types";
 import type {
   FormErrors,
   LeadFormData,
@@ -28,7 +28,7 @@ import { organizationService } from "@/services";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
-  
+
   const [formData, setFormData] = useState<LeadFormData>({
     leadFirstName: "",
     leadLastName: "",
@@ -39,7 +39,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     organizationId: "",
     notes: "",
   });
-  const [organizationMode, setOrganizationMode] = useState<"select" | "create">("select");
+  const [organizationMode, setOrganizationMode] = useState<"select" | "create">(
+    "select",
+  );
   const [newOrgData, setNewOrgData] = useState({
     organizationName: "",
     organizationWebsite: "",
@@ -123,8 +125,12 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         newErrors.organizationWebsite = "Please provide a valid website URL";
       }
 
-      if (newOrgData.organizationSize < 1 || newOrgData.organizationSize > 10000000) {
-        newErrors.organizationSize = "Organization size must be between 1 and 10,000,000";
+      if (
+        newOrgData.organizationSize < 1 ||
+        newOrgData.organizationSize > 10000000
+      ) {
+        newErrors.organizationSize =
+          "Organization size must be between 1 and 10,000,000";
       }
 
       if (!newOrgData.organizationIndustry) {
@@ -151,24 +157,16 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
 
       // Create new organization if in create mode
       if (organizationMode === "create") {
-        const getOrganizationSizeCategory = (size: number): OrganizationSize => {
-          if (size <= 10) return "1-10";
-          if (size <= 50) return "11-50";
-          if (size <= 200) return "51-200";
-          if (size <= 500) return "201-500";
-          if (size <= 1000) return "501-1000";
-          return "1000+";
-        };
-
         const organizationData: CreateOrganizationDTO = {
           organizationName: newOrgData.organizationName,
           organizationWebsite: newOrgData.organizationWebsite,
-          organizationSize: getOrganizationSizeCategory(newOrgData.organizationSize),
+          organizationSize: newOrgData.organizationSize,
           organizationIndustry: newOrgData.organizationIndustry,
           tenantId: "tenant-1",
         };
 
-        const newOrg = await organizationService.createOrganization(organizationData);
+        const newOrg =
+          await organizationService.createOrganization(organizationData);
         organizationId = newOrg._id;
       }
 
@@ -186,7 +184,10 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       onClose();
     } catch (error) {
       console.error("Error saving lead:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to save lead. Please try again.";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : "Failed to save lead. Please try again.";
       setSubmitError(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -463,17 +464,18 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                 <div className="flex-1">
                   <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+                      className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
                       style={{ width: `${formData.leadScore}%` }}
                     />
                   </div>
                 </div>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-[3rem] text-right">
+                <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-12 text-right">
                   {formData.leadScore}
                 </span>
               </div>
               <p className="text-xs text-gray-500 dark:text-gray-400">
-                Lead score is automatically calculated based on engagement and other factors.
+                Lead score is automatically calculated based on engagement and
+                other factors.
               </p>
             </div>
           )}
@@ -487,7 +489,11 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                 Organization
               </Label>
               <Select
-                value={organizationMode === "create" ? "create-new" : formData.organizationId}
+                value={
+                  organizationMode === "create"
+                    ? "create-new"
+                    : formData.organizationId
+                }
                 onValueChange={(value) => {
                   if (value === "create-new") {
                     setOrganizationMode("create");
@@ -505,11 +511,16 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                   <SelectItem value="create-new">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                      <span className="font-semibold">+ Create New Organization</span>
+                      <span className="font-semibold">
+                        + Create New Organization
+                      </span>
                     </div>
                   </SelectItem>
                   {organizations.map((org) => (
-                    <SelectItem key={org._id} value={org._id}>
+                    <SelectItem
+                      key={org._id}
+                      value={org._id}
+                    >
                       <div className="flex flex-col">
                         <span>{org.organizationName}</span>
                         <span className="text-xs text-gray-500">
@@ -522,16 +533,28 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               </Select>
             </div>
 
-            <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
-              organizationMode === "create" 
-                ? "max-h-[800px] opacity-100" 
-                : "max-h-0 opacity-0"
-            }`}>
+            <div
+              className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                organizationMode === "create"
+                  ? "max-h-200 opacity-100"
+                  : "max-h-0 opacity-0"
+              }`}
+            >
               <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-500">
                 <div className="flex items-center justify-between gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
                   <div className="flex items-center gap-2">
-                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    <svg
+                      className="w-5 h-5 text-blue-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
                     </svg>
                     <p className="text-sm text-blue-700 dark:text-blue-300">
                       Create a new organization to associate with this lead
@@ -553,7 +576,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                     Cancel
                   </button>
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label
                     htmlFor="organizationName"
@@ -572,7 +595,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                     autoFocus
                   />
                   {errors.organizationName && (
-                    <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">{errors.organizationName}</p>
+                    <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                      {errors.organizationName}
+                    </p>
                   )}
                 </div>
 
@@ -588,7 +613,10 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                     type="url"
                     value={newOrgData.organizationWebsite}
                     onChange={(e) =>
-                      handleOrgInputChange("organizationWebsite", e.target.value)
+                      handleOrgInputChange(
+                        "organizationWebsite",
+                        e.target.value,
+                      )
                     }
                     placeholder="https://www.acme.com"
                     className={`transition-all duration-200 ${errors.organizationWebsite ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
@@ -646,7 +674,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                       <SelectTrigger
                         id="organizationIndustry"
                         className={`transition-all duration-200 ${
-                          errors.organizationIndustry ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"
+                          errors.organizationIndustry
+                            ? "border-red-500 shake"
+                            : "focus:ring-2 focus:ring-blue-500/20"
                         }`}
                       >
                         <SelectValue placeholder="Select industry" />
@@ -691,7 +721,9 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
 
           {submitError && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md">
-              <p className="text-sm text-red-600 dark:text-red-400">{submitError}</p>
+              <p className="text-sm text-red-600 dark:text-red-400">
+                {submitError}
+              </p>
             </div>
           )}
 
@@ -711,7 +743,11 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>{organizationMode === "create" ? "Creating..." : "Saving..."}</span>
+                  <span>
+                    {organizationMode === "create"
+                      ? "Creating..."
+                      : "Saving..."}
+                  </span>
                 </div>
               ) : (
                 <span>{lead ? "Update Lead" : "Create Lead"}</span>

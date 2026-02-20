@@ -120,7 +120,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={onClose}
+    >
       <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
@@ -133,9 +136,15 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-6 py-4"
+        >
           <div className="space-y-2">
-            <Label htmlFor="tenantName" className="text-sm font-semibold">
+            <Label
+              htmlFor="tenantName"
+              className="text-sm font-semibold"
+            >
               Tenant Name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -151,7 +160,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm font-semibold">
+            <Label
+              htmlFor="email"
+              className="text-sm font-semibold"
+            >
               Email <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -168,7 +180,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="mobile" className="text-sm font-semibold">
+            <Label
+              htmlFor="mobile"
+              className="text-sm font-semibold"
+            >
               Mobile Number <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -193,7 +208,10 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
