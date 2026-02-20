@@ -27,7 +27,7 @@ function Navbar({
   };
 
   return (
-    <nav className="fixed top-0 left-0 z-50 h-16 w-full border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-sm">
+    <nav className="fixed top-0 left-0 z-50 h-16 w-full border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="mx-auto max-w-full flex items-center justify-between px-4 h-full">
         <div className="flex items-center gap-4">
           <button
