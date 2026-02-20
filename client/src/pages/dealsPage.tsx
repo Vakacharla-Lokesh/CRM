@@ -1,5 +1,5 @@
 import { DataTable } from "../components/common/data-table";
-import { columns } from "../components/deals/deal-columns";
+import { getColumns } from "../components/deals/deal-columns";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDealData } from "@/hooks";
+import { DealModal } from "@/components/modals";
+import type { Deal, UpdateDealDTO, DealStage } from "@/types";
+import { useState } from "react";
 
 const DealsPage = () => {
   const {
@@ -21,7 +24,34 @@ const DealsPage = () => {
     filters,
     updateFilter,
     clearFilters,
+    updateDeal,
   } = useDealData();
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+
+  const handleEdit = (deal: Deal) => {
+    setSelectedDeal(deal);
+    setIsModalOpen(true);
+  };
+
+  const handleSave = async (dealData: UpdateDealDTO) => {
+    if (!selectedDeal) return;
+    
+    try {
+      await updateDeal(selectedDeal._id, dealData);
+      setIsModalOpen(false);
+      setSelectedDeal(null);
+    } catch (error) {
+      console.error("Error updating deal:", error);
+      throw error;
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedDeal(null);
+  };
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("en-US", {
@@ -99,7 +129,7 @@ const DealsPage = () => {
           <Select
             value={filters.stage || "all"}
             onValueChange={(value) =>
-              updateFilter("stage", value === "all" ? "" : (value as any))
+              updateFilter("stage", value === "all" ? "" : (value as DealStage))
             }
           >
             <SelectTrigger className="w-full sm:w-45">
@@ -159,12 +189,19 @@ const DealsPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={getColumns({ onEdit: handleEdit })}
           data={filteredDeals}
           name="Deals"
           searchColumn="dealName"
         ></DataTable>
       )}
+
+      <DealModal
+        isOpen={isModalOpen}
+        deal={selectedDeal}
+        onClose={handleCloseModal}
+        onSave={handleSave}
+      />
     </div>
   );
 };

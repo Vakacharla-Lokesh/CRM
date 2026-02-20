@@ -71,7 +71,7 @@ export const useLeadData = () => {
     });
 
     // Calculate conversion rate
-    const converted = stats.byStatus["converted"] ?? 0;
+    const converted = stats.byStatus["Converted"] ?? 0;
     stats.conversionRate =
       stats.total > 0 ? Math.round((converted / stats.total) * 100) : 0;
 

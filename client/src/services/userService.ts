@@ -77,7 +77,8 @@ export const userService = {
   },
 
   updateRole: async (id: string, role: string): Promise<User> => {
-    return apiClient.patch<User>(`/users/${id}/role`, { role });
+    const response = await apiClient.patch<{ message: string; user: User }>(`/users/${id}/role`, { role });
+    return response.user;
   },
 
   sendPasswordReset: async (email: string): Promise<{ message: string }> => {

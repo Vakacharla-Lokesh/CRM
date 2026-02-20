@@ -46,7 +46,7 @@ function Sidebar({ isOpen }: SidebarProps) {
     <aside
       className={`transition-all duration-300 ${
         isOpen ? "w-64" : "w-20"
-      } border-r border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col`}
+      } border-r border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-sm`}
       style={{
         height: "calc(100vh - 4rem)",
         position: "sticky",
