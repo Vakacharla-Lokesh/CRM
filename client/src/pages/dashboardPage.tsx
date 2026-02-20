@@ -1,44 +1,32 @@
-import { useState, useEffect } from "react";
-import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
+import { Users, Megaphone, TrendingUp, DollarSign, TrendingDown, Building2 } from "lucide-react";
 import StatCard from "../components/common/statCard";
-import { useDashboardStats } from "../hooks";
-import type { Lead } from "../types";
+import { useDashboardStats, useAnalyticsData } from "../hooks";
+import { Progress } from "../components/ui/progress";
 
 function DashboardPage() {
   const { stats, changes, loading, error } = useDashboardStats();
+  const { leadTrends, organizationStats, loading: analyticsLoading } = useAnalyticsData(30);
 
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [, setIsLoading] = useState(true);
+  // Transform data for progress bars
+  const leadTrendData = leadTrends
+    .map((trend) => ({
+      date: new Date(trend._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      leads: trend.count,
+    }))
+    .slice(-10); // Show last 10 days
 
-  // Simulate loading leads data
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      const mockLeads: Lead[] = Array.from({ length: 25 }, (_, i) => ({
-        _id: `lead-${i + 1}`,
-        leadFirstName: `Lead`,
-        leadLastName: `${i + 1}`,
-        leadEmail: `lead${i + 1}@example.com`,
-        leadSource: i % 2 === 0 ? "API" : "Outsource",
-        leadStatus: ["New", "Converted", "Dead", "Follow-Up"][i % 4] as
-          | "New"
-          | "Converted"
-          | "Dead"
-          | "Follow-Up",
-        leadScore: Math.floor(Math.random() * 100),
-        organizationId: `org-${i + 1}`,
-        userId: `user-${i + 1}`,
-        tenantId: `tenant-1`,
-        createdAt: new Date(
-          Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000,
-        ),
-        updatedAt: new Date(),
-      }));
-      setLeads(mockLeads);
-      setIsLoading(false);
-    }, 500);
+  const maxLeads = Math.max(...leadTrendData.map(d => d.leads), 1);
 
-    return () => clearTimeout(timer);
-  }, []);
+  const orgStatsData = organizationStats.map((stat) => ({
+    industry: stat.industry,
+    organizations: stat.organizationCount,
+    leads: stat.leadCount,
+    converted: stat.convertedLeads,
+  }));
+
+  const maxOrgCount = Math.max(...orgStatsData.map(d => d.organizations), 1);
+  const maxLeadCount = Math.max(...orgStatsData.map(d => d.leads), 1);
+  const maxConvertedCount = Math.max(...orgStatsData.map(d => d.converted), 1);
 
   return (
     <div className="space-y-6">
@@ -94,59 +82,145 @@ function DashboardPage() {
         />
       </div>
 
-      {/* Charts Section */}
+      {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Campaign Performance Chart */}
-        <div className="lg:col-span-1 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Lead Graphs
-          </h2>
-          <div className="h-64 flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-50 dark:from-gray-700 dark:to-gray-600 rounded-lg">
-            <div className="text-center">
-              <p className="text-gray-600 dark:text-gray-400 mb-2">
-                Chart Component
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500">
-                (Will be integrated later with Chart.js or Recharts)
-              </p>
+        {/* Lead Trends */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Lead Trends
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Last 10 days activity</p>
             </div>
           </div>
+          {analyticsLoading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : leadTrendData.length === 0 ? (
+            <div className="py-12 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+              <div className="text-center">
+                <TrendingDown className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No data available</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start adding leads to see trends</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {leadTrendData.map((item, index) => (
+                <div key={index} className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="font-medium text-gray-700 dark:text-gray-300">{item.date}</span>
+                    <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{item.leads} leads</span>
+                  </div>
+                  <Progress 
+                    value={(item.leads / maxLeads) * 100} 
+                    className="h-2.5 bg-gray-100 dark:bg-gray-700"
+                    style={{
+                      '--progress-background': 'rgb(99, 102, 241)'
+                    } as React.CSSProperties}
+                  />
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Top Performing Leads */}
-        <div className="rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Top Leads
-          </h2>
-          <div className="space-y-3">
-            {leads.slice(0, 5).map((lead) => (
-              <div
-                key={lead._id}
-                className="p-3 rounded-lg bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:border-blue-300 dark:hover:border-blue-500 transition-colors cursor-pointer"
-              >
-                <p className="font-medium text-gray-900 dark:text-white text-sm">
-                  {lead.leadFirstName} {lead.leadLastName || ""}
-                </p>
-                <p className="text-xs text-gray-600 dark:text-gray-400">
-                  {lead.organizationId || "No organization"}
-                </p>
-                <div className="flex justify-between items-center mt-2">
-                  <span
-                    className={`text-xs font-semibold px-2 py-1 rounded ${
-                      lead.leadStatus === "Converted"
-                        ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                        : "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                    }`}
-                  >
-                    {lead.leadStatus}
-                  </span>
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                    {lead.leadScore}%
-                  </span>
-                </div>
-              </div>
-            ))}
+        {/* Organization Stats by Industry */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
+              <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                Organizations by Industry
+              </h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Performance breakdown</p>
+            </div>
           </div>
+          {analyticsLoading ? (
+            <div className="space-y-6">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="animate-pulse space-y-2">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
+                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : orgStatsData.length === 0 ? (
+            <div className="py-12 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
+              <div className="text-center">
+                <Building2 className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No data available</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start adding organizations to see stats</p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {orgStatsData.map((item, index) => (
+                <div key={index} className="space-y-3">
+                  <h3 className="font-semibold text-gray-900 dark:text-white capitalize">{item.industry}</h3>
+                  
+                  {/* Organizations Progress */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">Organizations</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.organizations}</span>
+                    </div>
+                    <Progress 
+                      value={(item.organizations / maxOrgCount) * 100} 
+                      className="h-2 bg-gray-100 dark:bg-gray-700"
+                      style={{
+                        '--progress-background': 'rgb(99, 102, 241)'
+                      } as React.CSSProperties}
+                    />
+                  </div>
+
+                  {/* Leads Progress */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">Leads</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.leads}</span>
+                    </div>
+                    <Progress 
+                      value={(item.leads / maxLeadCount) * 100} 
+                      className="h-2 bg-gray-100 dark:bg-gray-700"
+                      style={{
+                        '--progress-background': 'rgb(79, 70, 229)'
+                      } as React.CSSProperties}
+                    />
+                  </div>
+
+                  {/* Converted Progress */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-gray-600 dark:text-gray-400">Converted</span>
+                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.converted}</span>
+                    </div>
+                    <Progress 
+                      value={(item.converted / maxConvertedCount) * 100} 
+                      className="h-2 bg-gray-100 dark:bg-gray-700"
+                      style={{
+                        '--progress-background': 'rgb(67, 56, 202)'
+                      } as React.CSSProperties}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </div>

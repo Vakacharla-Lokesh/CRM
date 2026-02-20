@@ -3,6 +3,8 @@ import {
   getDashboardStats,
   getLeadTrends,
   getDealPipeline,
+  getOrganizationStats,
+  getLeadStatusBreakdown,
 } from "../controllers/analyticsController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { injectTenantFilter } from "../middlewares/rbac.js";
@@ -31,6 +33,22 @@ router.get(
   authenticate,
   injectTenantFilter,
   getDealPipeline
+);
+
+// Organization stats by industry - accessible by all authenticated users
+router.get(
+  "/organizations/stats",
+  authenticate,
+  injectTenantFilter,
+  getOrganizationStats
+);
+
+// Lead status breakdown - accessible by all authenticated users
+router.get(
+  "/leads/status-breakdown",
+  authenticate,
+  injectTenantFilter,
+  getLeadStatusBreakdown
 );
 
 export default router;

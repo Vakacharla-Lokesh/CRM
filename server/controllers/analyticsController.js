@@ -1,5 +1,6 @@
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
+import organizationModel from "../models/organizationModel.js";
 
 // Get dashboard statistics
 export const getDashboardStats = async (req, res, next) => {
@@ -203,6 +204,104 @@ export const getDealPipeline = async (req, res, next) => {
     ]);
 
     res.json({ pipeline });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get organization stats by industry
+export const getOrganizationStats = async (req, res, next) => {
+  try {
+    const filter = req.tenantFilter || {};
+
+    const stats = await organizationModel.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: "$organizationIndustry",
+          count: { $sum: 1 },
+          totalSize: { $sum: "$organizationSize" },
+          avgSize: { $avg: "$organizationSize" },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    // Also get leads per organization industry
+    const leadsPerIndustry = await leadModel.aggregate([
+      { $match: filter },
+      {
+        $lookup: {
+          from: "organizations",
+          localField: "organizationId",
+          foreignField: "_id",
+          as: "organization",
+        },
+      },
+      { $unwind: "$organization" },
+      {
+        $group: {
+          _id: "$organization.organizationIndustry",
+          leadCount: { $sum: 1 },
+          convertedLeads: {
+            $sum: { $cond: [{ $eq: ["$leadStatus", "Converted"] }, 1, 0] },
+          },
+        },
+      },
+    ]);
+
+    // Merge the data
+    const merged = stats.map((stat) => {
+      const leadData = leadsPerIndustry.find((l) => l._id === stat._id) || {
+        leadCount: 0,
+        convertedLeads: 0,
+      };
+      return {
+        industry: stat._id,
+        organizationCount: stat.count,
+        leadCount: leadData.leadCount,
+        convertedLeads: leadData.convertedLeads,
+        totalSize: stat.totalSize,
+        avgSize: Math.round(stat.avgSize),
+      };
+    });
+
+    res.json({ stats: merged });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Get lead status breakdown
+export const getLeadStatusBreakdown = async (req, res, next) => {
+  try {
+    const filter = req.tenantFilter || {};
+    const { days = 30 } = req.query;
+
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - parseInt(days));
+
+    const breakdown = await leadModel.aggregate([
+      {
+        $match: {
+          ...filter,
+          createdAt: { $gte: startDate },
+        },
+      },
+      {
+        $group: {
+          _id: "$leadStatus",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    res.json({ breakdown });
   } catch (err) {
     next(err);
   }

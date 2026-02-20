@@ -15,3 +15,4 @@ export { useCallData } from './useCallData.ts';
 export { useCommentData } from './useCommentData.ts';
 export { useAttachmentData } from './useAttachmentData.ts';
 export { useDashboardStats } from './useDashboardStats.ts';
+export { useAnalyticsData } from './useAnalyticsData.ts';
