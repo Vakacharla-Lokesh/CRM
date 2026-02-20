@@ -4,6 +4,9 @@ export * from "./auth";
 export * from "./deals";
 export * from "./organizations";
 export * from "./tenant";
+export * from "./calls";
+export * from "./comments";
+export * from "./attachments";
 
 // API Types
 export interface ApiRequestOptions {

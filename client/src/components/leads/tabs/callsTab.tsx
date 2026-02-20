@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -11,17 +11,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Trash2, Phone } from "lucide-react";
-
-interface Call {
-  _id: string;
-  leadId: string;
-  callType: "incoming" | "outgoing";
-  callNotes?: string;
-  status: "completed" | "missed" | "no-answer" | "voicemail";
-  duration?: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { useCallData } from "@/hooks";
+import type { CallType, CallStatus } from "@/types";
 
 interface CallsTabProps {
   leadId: string;
@@ -38,74 +29,34 @@ interface CallsTabProps {
  * - Delete call logs
  */
 function CallsTab({ leadId }: CallsTabProps) {
-  const [calls, setCalls] = useState<Call[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { calls, loading, error, createCall, deleteCall } = useCallData(leadId);
   const [isAdding, setIsAdding] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    callType: "outgoing" as "incoming" | "outgoing",
-    status: "completed" as "completed" | "missed" | "no-answer" | "voicemail",
+    callType: "outgoing" as CallType,
+    status: "completed" as CallStatus,
     duration: "",
     notes: "",
   });
-
-  useEffect(() => {
-    fetchCalls();
-  }, [leadId]);
-
-  const fetchCalls = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      // TODO: Replace with actual API call
-      // const response = await callService.getCallsByLead(leadId);
-      // setCalls(response);
-      setCalls([]);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load calls";
-      setError(message);
-      console.error("Error fetching calls:", err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleAddCall = async (e: React.FormEvent) => {
     e.preventDefault();
 
     try {
       setIsAdding(true);
-      setError(null);
 
       // Validate duration if provided
       if (formData.duration && isNaN(Number(formData.duration))) {
-        setError("Duration must be a valid number");
-        return;
+        throw new Error("Duration must be a valid number");
       }
 
-      // TODO: Replace with actual API call
-      // const newCall = await callService.createCall({
-      //   leadId,
-      //   callType: formData.callType,
-      //   status: formData.status,
-      //   duration: formData.duration ? Number(formData.duration) : undefined,
-      //   callNotes: formData.notes,
-      // });
-      // setCalls([newCall, ...calls]);
-
-      // Mock implementation
-      const mockCall: Call = {
-        _id: Date.now().toString(),
-        leadId,
+      await createCall({
         callType: formData.callType,
         status: formData.status,
         duration: formData.duration ? Number(formData.duration) : undefined,
         callNotes: formData.notes,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      setCalls([mockCall, ...calls]);
+      });
+
+      // Reset form
       setFormData({
         callType: "outgoing",
         status: "completed",
@@ -113,8 +64,6 @@ function CallsTab({ leadId }: CallsTabProps) {
         notes: "",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to add call";
-      setError(message);
       console.error("Error adding call:", err);
     } finally {
       setIsAdding(false);
@@ -122,15 +71,13 @@ function CallsTab({ leadId }: CallsTabProps) {
   };
 
   const handleDeleteCall = async (callId: string) => {
+    if (!window.confirm("Are you sure you want to delete this call?")) {
+      return;
+    }
+
     try {
-      setError(null);
-      // TODO: Replace with actual API call
-      // await callService.deleteCall(callId);
-      setCalls(calls.filter((c) => c._id !== callId));
+      await deleteCall(callId);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete call";
-      setError(message);
       console.error("Error deleting call:", err);
     }
   };
@@ -181,7 +128,7 @@ function CallsTab({ leadId }: CallsTabProps) {
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    callType: value as "incoming" | "outgoing",
+                    callType: value as CallType,
                   })
                 }
               >
@@ -206,11 +153,7 @@ function CallsTab({ leadId }: CallsTabProps) {
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    status: value as
-                      | "completed"
-                      | "missed"
-                      | "no-answer"
-                      | "voicemail",
+                    status: value as CallStatus,
                   })
                 }
               >

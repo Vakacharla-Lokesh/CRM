@@ -22,4 +22,7 @@ export {
   bulkAPI,
   searchAPI,
   analyticsAPI,
+  callsAPI,
+  commentsAPI,
+  attachmentsAPI,
 } from "./api";

@@ -11,3 +11,6 @@ export { useOrganizationData } from './useOrganizationData.ts';
 export { useUserData } from './useUserData.ts';
 export { default as useDealData } from './useDealData.ts';
 export { default as useTenantData } from './useTenantData.ts';
+export { useCallData } from './useCallData.ts';
+export { useCommentData } from './useCommentData.ts';
+export { useAttachmentData } from './useAttachmentData.ts';
