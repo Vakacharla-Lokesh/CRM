@@ -78,6 +78,11 @@ const TenantsPage = () => {
     }
   };
 
+  const viewUsersOfTenant = (id: string) => {
+    // Navigate to the users page for the selected tenant
+    window.location.href = `/tenants/${id}`;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -166,6 +171,7 @@ const TenantsPage = () => {
           columns={columns({
             onEdit: handleEditTenant,
             onDelete: handleDeleteTenant,
+            onViewUsers: viewUsersOfTenant,
           })}
           data={filteredTenants}
           name="Tenants"

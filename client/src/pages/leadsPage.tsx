@@ -120,7 +120,7 @@ const LeadsPage = () => {
       {/* Filters */}
       <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -132,51 +132,53 @@ const LeadsPage = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Select
-              value={filters.status || "all"}
-              onValueChange={(value) =>
-                updateFilter("status", value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All statuses" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All statuses</SelectItem>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="Follow-Up">Follow-Up</SelectItem>
-                <SelectItem value="Converted">Converted</SelectItem>
-                <SelectItem value="Dead">Dead</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex sm:flex-col lg:flex-row gap-x-2 mx-2">
+            <div className="space-y-2">
+              <Select
+                value={filters.status || "all"}
+                onValueChange={(value) =>
+                  updateFilter("status", value === "all" ? "" : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All statuses</SelectItem>
+                  <SelectItem value="New">New</SelectItem>
+                  <SelectItem value="Follow-Up">Follow-Up</SelectItem>
+                  <SelectItem value="Converted">Converted</SelectItem>
+                  <SelectItem value="Dead">Dead</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Select
+                value={filters.source || "all"}
+                onValueChange={(value) =>
+                  updateFilter("source", value === "all" ? "" : value)
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="All sources" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All sources</SelectItem>
+                  <SelectItem value="API">API</SelectItem>
+                  <SelectItem value="Website">Website</SelectItem>
+                  <SelectItem value="Phone">Phone</SelectItem>
+                  <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
+                  <SelectItem value="Google Ads">Google Ads</SelectItem>
+                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
+                  <SelectItem value="Referral">Referral</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <Select
-              value={filters.source || "all"}
-              onValueChange={(value) =>
-                updateFilter("source", value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All sources" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All sources</SelectItem>
-                <SelectItem value="API">API</SelectItem>
-                <SelectItem value="Website">Website</SelectItem>
-                <SelectItem value="Phone">Phone</SelectItem>
-                <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
-                <SelectItem value="Google Ads">Google Ads</SelectItem>
-                <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                <SelectItem value="Referral">Referral</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2 flex items-end">
+          <div className="space-y-2 flex items-end mx-8">
             <Button
               variant="outline"
               onClick={resetFilters}

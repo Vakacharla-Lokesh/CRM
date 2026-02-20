@@ -24,7 +24,9 @@ interface UserActivity {
 
 export const userService = {
   getAllUsers: async (): Promise<User[]> => {
-    const response = await apiClient.get<{ count: number; users: User[] }>("/users");
+    const response = await apiClient.get<{ count: number; users: User[] }>(
+      "/users",
+    );
     return response.users;
   },
 
@@ -39,12 +41,18 @@ export const userService = {
   },
 
   createUser: async (userData: Partial<User>): Promise<User> => {
-    const response = await apiClient.post<{ message: string; user: User }>("/users", userData);
+    const response = await apiClient.post<{ message: string; user: User }>(
+      "/users",
+      userData,
+    );
     return response.user;
   },
 
   updateUser: async (id: string, updates: Partial<User>): Promise<User> => {
-    const response = await apiClient.put<{ message: string; user: User }>(`/users/${id}`, updates);
+    const response = await apiClient.put<{ message: string; user: User }>(
+      `/users/${id}`,
+      updates,
+    );
     return response.user;
   },
 
@@ -62,6 +70,13 @@ export const userService = {
     return apiClient.get<User[]>(`/users?role=${encodeURIComponent(role)}`);
   },
 
+  getUsersByTenant: async (tenantId: string): Promise<User[]> => {
+    const response = await apiClient.get<{ count: number; users: User[] }>(
+      `/users/tenant/${encodeURIComponent(tenantId)}`,
+    );
+    return response.users;
+  },
+
   getUserStats: async (): Promise<UserStatistics> => {
     return apiClient.get<UserStatistics>("/users/stats");
   },
@@ -77,7 +92,10 @@ export const userService = {
   },
 
   updateRole: async (id: string, role: string): Promise<User> => {
-    const response = await apiClient.patch<{ message: string; user: User }>(`/users/${id}/role`, { role });
+    const response = await apiClient.patch<{ message: string; user: User }>(
+      `/users/${id}/role`,
+      { role },
+    );
     return response.user;
   },
 

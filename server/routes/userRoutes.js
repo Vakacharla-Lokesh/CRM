@@ -38,11 +38,7 @@ router.post(
 );
 
 // Authenticated routes - Specific paths before dynamic /:id
-router.get(
-  "/me",
-  authenticate,
-  getCurrentUser,
-);
+router.get("/me", authenticate, getCurrentUser);
 
 router.get(
   "/search",
@@ -81,7 +77,7 @@ router.post(
 router.get(
   "/tenant/:tenantId",
   authenticate,
-  authorize("admin", "super_admin"),
+  authorize("super_admin"),
   getUsersByTenant,
 );
 
@@ -130,16 +126,8 @@ router.patch(
   updateProfile,
 );
 
-router.get(
-  "/:id/activity",
-  authenticate,
-  getUserActivity,
-);
+router.get("/:id/activity", authenticate, getUserActivity);
 
-router.get(
-  "/:id/permissions",
-  authenticate,
-  getUserPermissions,
-);
+router.get("/:id/permissions", authenticate, getUserPermissions);
 
 export default router;

@@ -15,8 +15,10 @@ import {
 } from "@/components/ui/select";
 import { useUserData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { useParams } from "react-router-dom";
 
 const UsersPage = () => {
+  const { id } = useParams();
   const {
     filteredUsers,
     statistics,
@@ -28,7 +30,7 @@ const UsersPage = () => {
     createUser,
     updateUser,
     deleteUser,
-    fetchUsers,
+    fetchUserByTenant,
   } = useUserData();
 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -37,8 +39,10 @@ const UsersPage = () => {
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    if (id) {
+      fetchUserByTenant(id);
+    }
+  }, [fetchUserByTenant, id]);
 
   const handleAddUser = () => {
     setSelectedUser(null);
@@ -78,7 +82,7 @@ const UsersPage = () => {
 
     try {
       await deleteUser(userToDelete);
-      await fetchUsers();
+
     } catch (error) {
       console.error("Error deleting user:", error);
       alert("Failed to delete user. Please try again.");
@@ -220,7 +224,7 @@ const UsersPage = () => {
               {error.message}
             </p>
             <Button
-              onClick={() => fetchUsers()}
+              onClick={() => id && fetchUserByTenant(id)}
               variant="outline"
             >
               Retry

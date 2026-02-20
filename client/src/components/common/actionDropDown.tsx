@@ -8,13 +8,14 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 interface ActionDropdownProps {
   id: string;
   type?: string; // e.g. "Organization", "Lead"
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onViewUsers?: (id: string) => void; // Optional: for tenants to view associated users
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
@@ -22,6 +23,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   type = "Item",
   onEdit,
   onDelete,
+  onViewUsers,
 }) => {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(id);
@@ -45,6 +47,17 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
 
         {/* Copy ID */}
         <DropdownMenuItem onClick={handleCopy}>Copy {type} ID</DropdownMenuItem>
+
+        {/* View Users */}
+        {onViewUsers && (
+          <DropdownMenuItem
+            onClick={() => onViewUsers(id)}
+            className="flex items-center gap-2"
+          >
+            <Eye className="w-4 h-4" />
+            View Users
+          </DropdownMenuItem>
+        )}
 
         {/* Edit */}
         {onEdit && (

@@ -141,6 +141,10 @@ function AppRoutes() {
                       element={<TenantsPage />}
                     />
                     <Route
+                      path="/tenants/:id"
+                      element={<UsersPage />}
+                    />
+                    <Route
                       path="*"
                       element={
                         <Navigate
