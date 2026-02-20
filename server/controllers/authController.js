@@ -7,16 +7,16 @@ export const register = async (req, res, next) => {
   try {
     const { password, tenantName, ...userData } = req.body;
 
-    // Build the query to check for existing user
-    const existingUserQuery = { $or: [{ userEmail: userData.userEmail }] };
-
-    const existingUser = await userModel.findOne(existingUserQuery);
+    // Check for existing user by email
+    const existingUser = await userModel.findOne({
+      userEmail: userData.userEmail,
+    });
 
     console.log("existing user data: ", existingUser);
 
     if (existingUser) {
       return res.status(409).json({
-        message: "User with this email or mobile already exists",
+        message: "User with this email already exists",
       });
     }
 
@@ -38,12 +38,12 @@ export const register = async (req, res, next) => {
       });
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
+    // const hashedPassword = await bcrypt.hash(password, 12);
 
     const user = await userModel.create({
       ...userData,
       tenantId,
-      password: hashedPassword,
+      password,
     });
 
     // Generate token
@@ -61,7 +61,7 @@ export const register = async (req, res, next) => {
         user_id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        user_email: user.userEmail,
+        userEmail: user.userEmail,
         user_name: `${user.firstName} ${user.lastName || ""}`.trim(),
         mobile: user.mobile,
         role: user.role,
@@ -113,7 +113,7 @@ export const login = async (req, res, next) => {
         user_id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
-        user_email: user.userEmail,
+        userEmail: user.userEmail,
         user_name: `${user.firstName} ${user.lastName || ""}`.trim(),
         mobile: user.mobile,
         role: user.role,

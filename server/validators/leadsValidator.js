@@ -51,9 +51,7 @@ export const updateLeadSchema = z
       .optional(),
     leadScore: z.number().min(0).max(100).optional(),
     leadStatus: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
-    organizationId: z.string().optional(),
-  })
-  .strict();
+  });
 
 export const updateLeadStatusSchema = z
   .object({

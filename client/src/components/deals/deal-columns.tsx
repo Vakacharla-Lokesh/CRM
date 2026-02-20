@@ -15,7 +15,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { type Deal } from "@/types";
 
-export const columns: ColumnDef<Deal>[] = [
+interface ColumnActions {
+  onEdit?: (deal: Deal) => void;
+  onDelete?: (deal: Deal) => void;
+}
+
+export const getColumns = (actions?: ColumnActions): ColumnDef<Deal>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -53,20 +58,20 @@ export const columns: ColumnDef<Deal>[] = [
       );
     },
   },
-  {
-    accessorKey: "organizationId",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Organization
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
+  // {
+  //   accessorKey: "organizationId",
+  //   header: ({ column }) => {
+  //     return (
+  //       <Button
+  //         variant="ghost"
+  //         onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+  //       >
+  //         Organization
+  //         <ArrowUpDown className="ml-2 h-4 w-4" />
+  //       </Button>
+  //     );
+  //   },
+  // },
   {
     accessorKey: "dealValue",
     header: ({ column }) => {
@@ -174,12 +179,18 @@ export const columns: ColumnDef<Deal>[] = [
             >
               Copy deal ID
             </DropdownMenuItem>
-            <DropdownMenuItem className="flex items-center gap-2">
+            <DropdownMenuItem
+              className="flex items-center gap-2"
+              onClick={() => actions?.onEdit?.(deal)}
+            >
               <Pencil className="w-4 h-4" />
               Edit
             </DropdownMenuItem>
 
-            <DropdownMenuItem className="flex items-center gap-2 text-destructive focus:text-destructive">
+            <DropdownMenuItem
+              className="flex items-center gap-2 text-destructive focus:text-destructive"
+              onClick={() => actions?.onDelete?.(deal)}
+            >
               <Trash2 className="w-4 h-4" />
               Delete
             </DropdownMenuItem>

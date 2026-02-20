@@ -2,13 +2,14 @@ import { Link, useNavigate } from "react-router-dom";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/context";
 import { ModeToggle } from "../common/themeToggle";
+// import { MonitoringToggleButton } from "../common/monitoringToggle";
 
 function Navbar({
   // Sidebar toggle props
   onToggleSidebar,
   // Right panel toggle props
-  isRightPanelOpen,
-  onToggleRightPanel,
+  // isRightPanelOpen,
+  // onToggleRightPanel,
   // User menu props
   isUserMenuOpen,
   setIsUserMenuOpen,
@@ -68,24 +69,11 @@ function Navbar({
         <div className="flex items-center gap-2 sm:gap-3">
           <ModeToggle />
 
-          <button
-            onClick={() => onToggleRightPanel && onToggleRightPanel()}
-            className={`p-2 rounded-lg transition-colors ${
-              isRightPanelOpen
-                ? "bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                : "hover:bg-gray-100 dark:hover:bg-gray-700"
-            }`}
-            aria-label="Toggle monitoring panel"
-            title="Toggle monitoring panel"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M2 11a1 1 0 011-1h2a1 1 0 011 1v5a1 1 0 01-1 1H3a1 1 0 01-1-1v-5zM8 7a1 1 0 011-1h2a1 1 0 011 1v9a1 1 0 01-1 1H9a1 1 0 01-1-1V7zM14 4a1 1 0 011-1h2a1 1 0 011 1v12a1 1 0 01-1 1h-2a1 1 0 01-1-1V4z" />
-            </svg>
-          </button>
+          {/* Uncomment later for monitoring stats */}
+          {/* <MonitoringToggleButton
+            isOpen={isRightPanelOpen}
+            onToggle={onToggleRightPanel}
+          /> */}
 
           <div>
             <button
@@ -128,7 +116,7 @@ function Navbar({
               </a>
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border-t border-gray-200 dark:border-gray-600"
+                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition-colors border-t border-gray-200 dark:border-gray-600"
               >
                 Logout
               </button>

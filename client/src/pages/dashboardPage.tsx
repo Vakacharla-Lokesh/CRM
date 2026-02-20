@@ -85,7 +85,7 @@ function DashboardPage() {
       {/* Analytics Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Lead Trends */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
               <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
@@ -136,7 +136,7 @@ function DashboardPage() {
         </div>
 
         {/* Organization Stats by Industry */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div className="rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
               <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />

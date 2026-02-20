@@ -38,37 +38,28 @@ export const createUser = async (req, res, next) => {
 
     // Check if user already exists
     const existingUser = await userModel.findOne({
-      $or: [{ userEmail: userData.userEmail }],
+      userEmail: userData.userEmail,
     });
 
     if (existingUser) {
       return res.status(409).json({
-        message: "User with this email or mobile already exists",
+        message: "User with this email already exists",
       });
-    }
-
-    // Hash password if provided
-    let hashedPassword;
-    if (password) {
-      hashedPassword = await bcrypt.hash(password, 12);
     }
 
     // Create user
     const user = await userModel.create({
       ...userData,
-      ...(hashedPassword && { password: hashedPassword }),
+      password,
     });
+
+    // Convert to plain object and remove password
+    const userObject = user.toObject();
+    delete userObject.password;
 
     res.status(201).json({
       message: "User created successfully",
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userEmail: user.userEmail,
-        mobile: user.mobile,
-        role: user.role,
-      },
+      user: userObject,
     });
   } catch (err) {
     next(err);
@@ -94,16 +85,13 @@ export const updateUser = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Convert to plain object and remove password
+    const userObject = user.toObject();
+    delete userObject.password;
+
     res.json({
       message: "User updated successfully",
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userEmail: user.userEmail,
-        mobile: user.mobile,
-        role: user.role,
-      },
+      user: userObject,
     });
   } catch (err) {
     next(err);
@@ -154,14 +142,13 @@ export const updateUserRole = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Convert to plain object and remove password
+    const userObject = user.toObject();
+    delete userObject.password;
+
     res.json({
       message: "User role updated successfully",
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
+      user: userObject,
     });
   } catch (err) {
     next(err);
@@ -177,16 +164,12 @@ export const getCurrentUser = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
+    // Convert to plain object and remove password
+    const userObject = user.toObject();
+    delete userObject.password;
+
     res.json({
-      user: {
-        id: user._id,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        userEmail: user.userEmail,
-        mobile: user.mobile,
-        role: user.role,
-        tenantId: user.tenantId,
-      },
+      user: userObject,
     });
   } catch (err) {
     next(err);

@@ -9,24 +9,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Lead, LeadStatus, LeadSource } from "@/types";
-import { leadService } from "@/services";
+import type { Lead } from "@/types";
+import { useLeadData } from "@/hooks";
 
 interface EditLeadTabProps {
   lead: Lead;
   onUpdate: (lead: Lead) => void;
 }
 
-/**
- * EditLeadTab Component
- * Allows editing of lead information
- * Features:
- * - Edit basic lead information
- * - Update lead status
- * - Update lead score
- * - Save changes
- */
 function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
+  const { updateLead } = useLeadData();
+
   const [formData, setFormData] = useState<Lead>(lead);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,16 +51,15 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         return;
       }
 
-      // Call update service
-      const updatedLead = await leadService.updateLead(lead._id, {
+      updateLead(lead._id, {
         leadFirstName: formData.leadFirstName,
-        leadLastName: formData.leadLastName,
+        leadLastName: formData.leadLastName || "",
         leadEmail: formData.leadEmail,
-        leadSource: formData.leadSource as LeadSource,
-        leadStatus: formData.leadStatus as LeadStatus,
+        leadSource: formData.leadSource,
+        leadStatus: formData.leadStatus,
       });
 
-      onUpdate(updatedLead);
+      onUpdate(formData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
     } catch (err) {
@@ -173,7 +165,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="New">New</SelectItem>
-              <SelectItem value="Converted">Converted</SelectItem>
               <SelectItem value="Dead">Dead</SelectItem>
               <SelectItem value="Follow-Up">Follow-Up</SelectItem>
             </SelectContent>
