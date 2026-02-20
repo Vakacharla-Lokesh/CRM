@@ -97,7 +97,7 @@ function DashboardPage() {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Campaign Performance Chart */}
-        <div className="lg:col-span-1 bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+        <div className="lg:col-span-1 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Lead Graphs
           </h2>
@@ -114,7 +114,7 @@ function DashboardPage() {
         </div>
 
         {/* Top Performing Leads */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
+        <div className="rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
             Top Leads
           </h2>

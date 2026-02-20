@@ -105,7 +105,10 @@ const OrganizationsPage = () => {
           </p>
         </div>
         <div className="flex flex-row gap-4">
-          <Button className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground disabled:text-muted-foreground">
+          <Button
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
+            disabled={true}
+          >
             <Download className="w-4 h-4" />
             Export
           </Button>
@@ -120,7 +123,7 @@ const OrganizationsPage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Total Organizations
           </p>
@@ -131,7 +134,7 @@ const OrganizationsPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2">
             <div className="relative">

@@ -48,7 +48,6 @@ const LeadsPage = () => {
       setIsModalOpen(false);
     } catch (error) {
       console.error("Error creating lead:", error);
-      // Re-throw to let the modal handle the error display
       throw error;
     }
   };

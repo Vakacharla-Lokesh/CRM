@@ -89,7 +89,10 @@ const UsersPage = () => {
           </p>
         </div>
         <div className="flex flex-row gap-4">
-          <Button className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground disabled:text-muted-foreground">
+          <Button
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
+            disabled={true}
+          >
             <Download className="w-4 h-4" />
             Export
           </Button>
@@ -104,7 +107,7 @@ const UsersPage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Total Users
           </p>
@@ -112,19 +115,19 @@ const UsersPage = () => {
             {statistics.total}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
             {statistics.active}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
           <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
             {statistics.inactive}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
             {(statistics.byRole.admin || 0) +
@@ -134,7 +137,7 @@ const UsersPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <div className=" rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">

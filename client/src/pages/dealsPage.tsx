@@ -46,7 +46,7 @@ const DealsPage = () => {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Total Deals
           </p>
@@ -54,7 +54,7 @@ const DealsPage = () => {
             {statistics.total}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Total Value
           </p>
@@ -62,19 +62,19 @@ const DealsPage = () => {
             {formatCurrency(statistics.totalValue)}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Avg Value</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
             {formatCurrency(statistics.avgValue)}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Forecast</p>
           <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
             {formatCurrency(statistics.forecastValue)}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Won</p>
           <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
             {statistics.byStage.closed_won || 0}
@@ -83,7 +83,7 @@ const DealsPage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
