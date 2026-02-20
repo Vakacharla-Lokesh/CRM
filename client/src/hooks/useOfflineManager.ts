@@ -18,10 +18,6 @@ interface QueueStats {
   failed: number;
 }
 
-const generateIdempotencyKey = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-};
-
 export const useOfflineManager = () => {
   const [queue, setQueue] = useState<OfflineRequest[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -38,7 +34,7 @@ export const useOfflineManager = () => {
       headers?: Record<string, string>,
       maxRetries = 3,
     ): string => {
-      const idempotencyKey = generateIdempotencyKey();
+      const idempotencyKey = crypto.randomUUID();
       const request: OfflineRequest = {
         id: `${method}-${url}-${Date.now()}`,
         url,

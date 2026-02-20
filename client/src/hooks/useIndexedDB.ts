@@ -11,15 +11,6 @@ interface IndexedDBHookResult<T> {
   getAllByIndex: (indexName: string, key: unknown) => Promise<T[]>;
 }
 
-/**
- * IndexedDB Hook
- * Provides a simple interface for IndexedDB operations
- *
- * @param storeName - Name of the object store
- * @param dbName - Name of the database (default: 'appDB')
- * @param version - Database version (default: 2)
- * @returns IndexedDB operations
- */
 export const useIndexedDB = <T extends { id: string }>(
   storeName: string,
   dbName = DB_NAME,
@@ -27,28 +18,25 @@ export const useIndexedDB = <T extends { id: string }>(
 ): IndexedDBHookResult<T> => {
   const [, setIsInitialized] = useState(false);
 
-  /**
-   * Initialize database connection
-   */
   const initDB = useCallback(async (): Promise<IDBDatabase> => {
     const db = await initializeDatabase();
     setIsInitialized(true);
     return db;
   }, []);
 
-  /**
-   * Add item to store
-   */
   const addItem = useCallback(
     async (item: T): Promise<IDBValidKey> => {
       const db = await initDB();
       return new Promise((resolve, reject) => {
-        // Check if store exists
         if (!db.objectStoreNames.contains(storeName)) {
-          reject(new Error(`Object store "${storeName}" does not exist. Database may need to be reinitialized.`));
+          reject(
+            new Error(
+              `Object store "${storeName}" does not exist. Database may need to be reinitialized.`,
+            ),
+          );
           return;
         }
-        
+
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         const request = store.add(item);
@@ -65,9 +53,6 @@ export const useIndexedDB = <T extends { id: string }>(
     [initDB, storeName],
   );
 
-  /**
-   * Update item in store
-   */
   const updateItem = useCallback(
     async (id: string, item: T): Promise<IDBValidKey> => {
       const db = await initDB();
@@ -88,9 +73,6 @@ export const useIndexedDB = <T extends { id: string }>(
     [initDB, storeName],
   );
 
-  /**
-   * Delete item from store
-   */
   const deleteItem = useCallback(
     async (id: string): Promise<void> => {
       const db = await initDB();
@@ -111,9 +93,6 @@ export const useIndexedDB = <T extends { id: string }>(
     [initDB, storeName],
   );
 
-  /**
-   * Get item from store
-   */
   const getItem = useCallback(
     async (id: string): Promise<T | undefined> => {
       const db = await initDB();
@@ -134,9 +113,6 @@ export const useIndexedDB = <T extends { id: string }>(
     [initDB, storeName],
   );
 
-  /**
-   * Get all items from store
-   */
   const getAll = useCallback(async (): Promise<T[]> => {
     const db = await initDB();
     return new Promise((resolve, reject) => {
@@ -154,9 +130,6 @@ export const useIndexedDB = <T extends { id: string }>(
     });
   }, [initDB, storeName]);
 
-  /**
-   * Clear store
-   */
   const clear = useCallback(async (): Promise<void> => {
     const db = await initDB();
     return new Promise((resolve, reject) => {
@@ -174,9 +147,6 @@ export const useIndexedDB = <T extends { id: string }>(
     });
   }, [initDB, storeName]);
 
-  /**
-   * Get all items by index
-   */
   const getAllByIndex = useCallback(
     async (indexName: string, key: unknown): Promise<T[]> => {
       const db = await initDB();

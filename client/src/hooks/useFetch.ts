@@ -15,14 +15,6 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-/**
- * API Data Fetching Hook
- * Handles data fetching with caching, abort support, and error handling
- *
- * @param url - API endpoint URL
- * @param options - Fetch options
- * @returns Fetch state and utilities
- */
 export const useFetch = <T = unknown>(
   url: string,
   options: FetchOptions<T> = {},
@@ -39,20 +31,16 @@ export const useFetch = <T = unknown>(
     headers = {},
     body = null,
     cache = true,
-    cacheTime = 5 * 60 * 1000, // 5 minutes default
+    cacheTime = 5 * 60 * 1000,
     onSuccess = null,
     onError = null,
   } = options;
 
-  /**
-   * Fetch data from API
-   */
   const fetchData = useCallback(
     async (
       fetchUrl: string = url,
       fetchOptions: Partial<FetchOptions<T>> = {},
     ): Promise<T | undefined> => {
-      // Check cache first
       if (cache && method === "GET") {
         const cached = cacheRef.current.get(fetchUrl);
         if (cached && Date.now() - cached.timestamp < cacheTime) {
@@ -63,12 +51,10 @@ export const useFetch = <T = unknown>(
         }
       }
 
-      // Abort previous request
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
 
-      // Create new abort controller
       abortControllerRef.current = new AbortController();
 
       setLoading(true);
@@ -108,7 +94,6 @@ export const useFetch = <T = unknown>(
 
         const responseData = await response.json();
 
-        // Cache successful GET requests
         if (cache && method === "GET") {
           cacheRef.current.set(fetchUrl, {
             data: responseData,
@@ -121,7 +106,6 @@ export const useFetch = <T = unknown>(
         onSuccess?.(responseData);
         return responseData;
       } catch (err) {
-        // Ignore abort errors
         if (err instanceof Error && err.name === "AbortError") {
           return undefined;
         }
@@ -136,16 +120,10 @@ export const useFetch = <T = unknown>(
     [url, method, headers, body, cache, cacheTime, onSuccess, onError],
   );
 
-  /**
-   * Refetch data
-   */
   const refetch = useCallback(async () => {
     return fetchData(url);
   }, [fetchData, url]);
 
-  /**
-   * Clear cache
-   */
   const clearCache = useCallback(() => {
     cacheRef.current.clear();
   }, []);

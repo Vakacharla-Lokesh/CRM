@@ -16,12 +16,6 @@ interface Filters {
   dateTo: string;
 }
 
-/**
- * Organization Data Management Hook
- * Handles all organization-related operations including CRUD, filtering, and statistics
- *
- * @returns Organization data and operations
- */
 export const useOrganizationData = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
   const [filteredOrganizations, setFilteredOrganizations] = useState<
@@ -45,9 +39,6 @@ export const useOrganizationData = () => {
   } = useAsync<Organization | Organization[] | void>();
   const { updateItem, deleteItem } = useIndexedDB("organizations");
 
-  /**
-   * Calculate statistics from organizations
-   */
   const calculateStatistics = useCallback(
     (organizationsData: Organization[]) => {
       const stats: Statistics = {
@@ -56,7 +47,6 @@ export const useOrganizationData = () => {
       };
 
       organizationsData.forEach((org) => {
-        // Count by industry
         stats.byIndustry[org.organizationIndustry] =
           (stats.byIndustry[org.organizationIndustry] ?? 0) + 1;
       });
@@ -66,9 +56,6 @@ export const useOrganizationData = () => {
     [],
   );
 
-  /**
-   * Apply filters to organizations
-   */
   const applyFilters = useCallback(() => {
     let filtered = [...organizations];
 
@@ -110,9 +97,6 @@ export const useOrganizationData = () => {
     setFilteredOrganizations(filtered);
   }, [organizations, filters]);
 
-  /**
-   * Fetch all organizations from API
-   */
   const fetchOrganizations = useCallback(async () => {
     return executeAsync(async () => {
       const data = await organizationService.getAllOrganizations();
@@ -120,12 +104,10 @@ export const useOrganizationData = () => {
       setFilteredOrganizations(data);
       calculateStatistics(data);
 
-      // Persist to IndexedDB (use updateItem to upsert)
       for (const org of data) {
         try {
           await updateItem(org._id, { ...org, id: org._id });
         } catch (error) {
-          // Ignore errors for IndexedDB persistence
           console.warn("Failed to persist organization to IndexedDB:", error);
         }
       }
@@ -134,9 +116,6 @@ export const useOrganizationData = () => {
     });
   }, [executeAsync, updateItem, calculateStatistics]);
 
-  /**
-   * Fetch single organization by ID
-   */
   const fetchOrganizationById = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
@@ -147,9 +126,6 @@ export const useOrganizationData = () => {
     [executeAsync],
   );
 
-  /**
-   * Create new organization
-   */
   const createOrganization = useCallback(
     async (organizationData: Partial<Organization>) => {
       return executeAsync(async () => {
@@ -164,16 +140,13 @@ export const useOrganizationData = () => {
         } catch (error) {
           console.warn("Failed to persist organization to IndexedDB:", error);
         }
-        await fetchOrganizations(); // Refresh to recalculate stats
+        await fetchOrganizations();
         return newOrganization;
       });
     },
     [executeAsync, updateItem, fetchOrganizations],
   );
 
-  /**
-   * Update existing organization
-   */
   const updateOrganization = useCallback(
     async (id: string, updates: Partial<Organization>) => {
       return executeAsync(async () => {
@@ -185,31 +158,25 @@ export const useOrganizationData = () => {
           prev.map((org) => (org._id === id ? updated : org)),
         );
         await updateItem(id, { ...updated, id: updated._id });
-        await fetchOrganizations(); // Refresh to recalculate stats
+        await fetchOrganizations();
         return updated;
       });
     },
     [executeAsync, updateItem, fetchOrganizations],
   );
 
-  /**
-   * Delete organization
-   */
   const deleteOrganization = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
         await organizationService.deleteOrganization(id);
         setOrganizations((prev) => prev.filter((org) => org._id !== id));
         await deleteItem(id);
-        await fetchOrganizations(); // Refresh to recalculate stats
+        await fetchOrganizations();
       });
     },
     [executeAsync, deleteItem, fetchOrganizations],
   );
 
-  /**
-   * Search organizations
-   */
   const searchOrganizations = useCallback(
     async (query: string) => {
       return executeAsync(async () => {
@@ -220,9 +187,6 @@ export const useOrganizationData = () => {
     [executeAsync],
   );
 
-  /**
-   * Update filter
-   */
   const updateFilter = useCallback((key: keyof Filters, value: unknown) => {
     setFilters((prev) => ({
       ...prev,
@@ -230,9 +194,6 @@ export const useOrganizationData = () => {
     }));
   }, []);
 
-  /**
-   * Reset filters
-   */
   const resetFilters = useCallback(() => {
     setFilters({
       industry: "",
@@ -243,9 +204,6 @@ export const useOrganizationData = () => {
     setFilteredOrganizations(organizations);
   }, [organizations]);
 
-  /**
-   * Bulk update organizations
-   */
   const bulkUpdateOrganizations = useCallback(
     async (ids: string[], updates: Partial<Organization>) => {
       return executeAsync(async () => {
@@ -271,9 +229,6 @@ export const useOrganizationData = () => {
     [executeAsync, updateItem, fetchOrganizations, organizations],
   );
 
-  /**
-   * Bulk delete organizations
-   */
   const bulkDeleteOrganizations = useCallback(
     async (ids: string[]) => {
       return executeAsync(async () => {
@@ -290,7 +245,6 @@ export const useOrganizationData = () => {
     [executeAsync, deleteItem, fetchOrganizations],
   );
 
-  // Apply filters when organizations or filters change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();

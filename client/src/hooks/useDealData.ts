@@ -42,7 +42,6 @@ const useDealData = () => {
     const data = await dealService.getAllDeals();
     setDeals(data);
     
-    // Store in IndexedDB for offline access
     try {
       for (const deal of data) {
         await updateItem(deal._id, { ...deal, id: deal._id });
@@ -60,7 +59,6 @@ const useDealData = () => {
     execute(fetchDeals);
   }, [execute, fetchDeals]);
 
-  // Statistics calculation
   const statistics: DealStatistics = useMemo(() => {
     const total = deals.length;
     
@@ -84,7 +82,6 @@ const useDealData = () => {
       const value = deal.dealValue || 0;
       totalValue += value;
       
-      // Forecast = value * probability / 100
       const probability = deal.dealProbability || 0;
       forecastValue += (value * probability) / 100;
     });
@@ -100,13 +97,10 @@ const useDealData = () => {
     };
   }, [deals]);
 
-  // Filtered deals
   const filteredDeals = useMemo(() => {
     return deals.filter((deal) => {
-      // Stage filter
       if (filters.stage && deal.dealStage !== filters.stage) return false;
 
-      // Search filter
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
@@ -116,14 +110,12 @@ const useDealData = () => {
         if (!matchesSearch) return false;
       }
 
-      // Value range filter
       const dealValue = deal.dealValue || 0;
       if (filters.minValue !== null && dealValue < filters.minValue)
         return false;
       if (filters.maxValue !== null && dealValue > filters.maxValue)
         return false;
 
-      // Date range filter
       if (filters.dateFrom || filters.dateTo) {
         const dealDate = deal.createdAt
           ? new Date(deal.createdAt)
@@ -145,7 +137,6 @@ const useDealData = () => {
     });
   }, [deals, filters]);
 
-  // Filter update function
   const updateFilter = useCallback(
     <K extends keyof DealFilters>(key: K, value: DealFilters[K]) => {
       setFilters((prev) => ({ ...prev, [key]: value }));
@@ -153,7 +144,6 @@ const useDealData = () => {
     [],
   );
 
-  // Clear all filters
   const clearFilters = useCallback(() => {
     setFilters({
       stage: "",
@@ -165,7 +155,6 @@ const useDealData = () => {
     });
   }, []);
 
-  // CRUD Operations
   const createDeal = useCallback(
     async (dealData: CreateDealDTO) => {
       const newDeal = await dealService.createDeal(dealData);
@@ -205,7 +194,6 @@ const useDealData = () => {
     setDeals((prev) => prev.filter((deal) => deal._id !== dealId));
   }, []);
 
-  // Bulk Operations
   const bulkUpdateDeals = useCallback(
     async (dealIds: string[], updateData: Partial<UpdateDealDTO>) => {
       const result = await dealService.bulkUpdateDeals(
@@ -213,7 +201,6 @@ const useDealData = () => {
         updateData,
       );
       
-      // Refresh deals after bulk update
       await execute(fetchDeals);
       
       return result;
@@ -226,7 +213,6 @@ const useDealData = () => {
     setDeals((prev) => prev.filter((deal) => !dealIds.includes(deal._id)));
   }, []);
 
-  // Get deals by stage
   const getDealsByStage = useCallback(
     async (stage: DealStage) => {
       return dealService.getDealsByStage(stage);
@@ -234,7 +220,6 @@ const useDealData = () => {
     [],
   );
 
-  // Get deal statistics from server
   const getServerStats = useCallback(async () => {
     return dealService.getDealStats();
   }, []);

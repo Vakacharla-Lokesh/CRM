@@ -21,12 +21,6 @@ interface Filters {
   dateTo: string;
 }
 
-/**
- * Lead Data Management Hook
- * Handles all lead-related operations including CRUD, filtering, and statistics
- *
- * @returns Lead data and operations
- */
 export const useLeadData = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
@@ -53,9 +47,6 @@ export const useLeadData = () => {
   } = useAsync<Lead | Lead[] | void>();
   const { updateItem, deleteItem } = useIndexedDB("leads");
 
-  /**
-   * Calculate statistics from leads
-   */
   const calculateStatistics = useCallback((leadsData: Lead[]) => {
     const stats: Statistics = {
       total: leadsData.length,
@@ -67,10 +58,12 @@ export const useLeadData = () => {
 
     leadsData.forEach((lead) => {
       // Count by status
-      stats.byStatus[lead.leadStatus] = (stats.byStatus[lead.leadStatus] ?? 0) + 1;
+      stats.byStatus[lead.leadStatus] =
+        (stats.byStatus[lead.leadStatus] ?? 0) + 1;
 
       // Count by source
-      stats.bySource[lead.leadSource] = (stats.bySource[lead.leadSource] ?? 0) + 1;
+      stats.bySource[lead.leadSource] =
+        (stats.bySource[lead.leadSource] ?? 0) + 1;
 
       // Count by stage (not available in current schema)
       // stats.byStage[lead.stage ?? "unknown"] =
@@ -85,26 +78,16 @@ export const useLeadData = () => {
     setStatistics(stats);
   }, []);
 
-  /**
-   * Apply filters to leads
-   */
   const applyFilters = useCallback(() => {
     let filtered = [...leads];
 
-    // Filter by status
     if (filters.status) {
       filtered = filtered.filter((lead) => lead.leadStatus === filters.status);
     }
 
-    // Filter by source
     if (filters.source) {
       filtered = filtered.filter((lead) => lead.leadSource === filters.source);
     }
-
-    // Filter by stage (not available in current schema)
-    // if (filters.stage) {
-    //   filtered = filtered.filter((lead) => lead.stage === filters.stage);
-    // }
 
     // Filter by search
     if (filters.search) {
@@ -135,9 +118,6 @@ export const useLeadData = () => {
     setFilteredLeads(filtered);
   }, [leads, filters]);
 
-  /**
-   * Fetch all leads from API
-   */
   const fetchLeads = useCallback(async () => {
     return executeAsync(async () => {
       const data = await leadService.getAllLeads();
@@ -145,13 +125,11 @@ export const useLeadData = () => {
       setFilteredLeads(data);
       calculateStatistics(data);
 
-      // Persist to IndexedDB (use updateItem to upsert)
       for (const lead of data) {
         try {
           await updateItem(lead._id, { ...lead, id: lead._id });
         } catch (error) {
-          // Ignore errors for IndexedDB persistence
-          console.warn('Failed to persist lead to IndexedDB:', error);
+          console.warn("Failed to persist lead to IndexedDB:", error);
         }
       }
 
@@ -159,9 +137,6 @@ export const useLeadData = () => {
     });
   }, [executeAsync, updateItem, calculateStatistics]);
 
-  /**
-   * Fetch single lead by ID
-   */
   const fetchLeadById = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
@@ -172,9 +147,6 @@ export const useLeadData = () => {
     [executeAsync],
   );
 
-  /**
-   * Create new lead
-   */
   const createLead = useCallback(
     async (leadData: Partial<Lead>) => {
       return executeAsync(async () => {
@@ -183,18 +155,15 @@ export const useLeadData = () => {
         try {
           await updateItem(newLead._id, { ...newLead, id: newLead._id });
         } catch (error) {
-          console.warn('Failed to persist lead to IndexedDB:', error);
+          console.warn("Failed to persist lead to IndexedDB:", error);
         }
-        await fetchLeads(); // Refresh to recalculate stats
+        await fetchLeads();
         return newLead;
       });
     },
     [executeAsync, updateItem, fetchLeads],
   );
 
-  /**
-   * Update existing lead
-   */
   const updateLead = useCallback(
     async (id: string, updates: Partial<Lead>) => {
       return executeAsync(async () => {
@@ -210,9 +179,6 @@ export const useLeadData = () => {
     [executeAsync, updateItem, fetchLeads],
   );
 
-  /**
-   * Delete lead
-   */
   const deleteLead = useCallback(
     async (id: string) => {
       return executeAsync(async () => {
@@ -225,9 +191,6 @@ export const useLeadData = () => {
     [executeAsync, deleteItem, fetchLeads],
   );
 
-  /**
-   * Search leads
-   */
   const searchLeads = useCallback(
     async (query: string) => {
       return executeAsync(async () => {
@@ -238,9 +201,6 @@ export const useLeadData = () => {
     [executeAsync],
   );
 
-  /**
-   * Update filter
-   */
   const updateFilter = useCallback((key: keyof Filters, value: unknown) => {
     setFilters((prev) => ({
       ...prev,
@@ -248,9 +208,6 @@ export const useLeadData = () => {
     }));
   }, []);
 
-  /**
-   * Reset filters
-   */
   const resetFilters = useCallback(() => {
     setFilters({
       status: "",
@@ -263,18 +220,17 @@ export const useLeadData = () => {
     setFilteredLeads(leads);
   }, [leads]);
 
-  /**
-   * Bulk update leads
-   */
   const bulkUpdateLeads = useCallback(
     async (ids: string[], updates: Partial<Lead>) => {
       return executeAsync(async () => {
         await leadService.bulkUpdateLeads(ids, updates);
-        const updatedLeads = ids.map(id => {
-          const lead = leads.find(l => l._id === id);
-          return lead ? { ...lead, ...updates } : null;
-        }).filter(Boolean) as Lead[];
-        
+        const updatedLeads = ids
+          .map((id) => {
+            const lead = leads.find((l) => l._id === id);
+            return lead ? { ...lead, ...updates } : null;
+          })
+          .filter(Boolean) as Lead[];
+
         setLeads((prev) =>
           prev.map((lead) =>
             ids.includes(lead._id) ? { ...lead, ...updates } : lead,
@@ -289,9 +245,6 @@ export const useLeadData = () => {
     [executeAsync, updateItem, fetchLeads, leads],
   );
 
-  /**
-   * Bulk delete leads
-   */
   const bulkDeleteLeads = useCallback(
     async (ids: string[]) => {
       return executeAsync(async () => {
@@ -306,13 +259,11 @@ export const useLeadData = () => {
     [executeAsync, deleteItem, fetchLeads],
   );
 
-  // Apply filters when leads or filters change
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 
-  // Derived data
   const stats = useMemo(() => statistics, [statistics]);
   const totalPages = useMemo(
     () => Math.ceil(filteredLeads.length / 20),

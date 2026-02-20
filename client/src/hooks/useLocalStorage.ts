@@ -1,13 +1,5 @@
 import { useState, useCallback } from "react";
 
-/**
- * Local Storage Hook
- * Provides a simple interface for localStorage with type safety
- *
- * @param key - Storage key
- * @param initialValue - Initial value
- * @returns Current value, setter, and utilities
- */
 export const useLocalStorage = <T>(key: string, initialValue: T) => {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
@@ -19,9 +11,6 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
     }
   });
 
-  /**
-   * Update value in localStorage
-   */
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
       try {
@@ -36,9 +25,6 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
     [key, storedValue],
   );
 
-  /**
-   * Remove item from localStorage
-   */
   const removeValue = useCallback(() => {
     try {
       window.localStorage.removeItem(key);
@@ -51,9 +37,6 @@ export const useLocalStorage = <T>(key: string, initialValue: T) => {
   return [storedValue, setValue, removeValue] as const;
 };
 
-/**
- * Get value from local storage
- */
 export const getFromLocalStorage = <T = unknown>(
   key: string,
   defaultValue?: T,
@@ -67,9 +50,6 @@ export const getFromLocalStorage = <T = unknown>(
   }
 };
 
-/**
- * Save value to local storage
- */
 export const saveToLocalStorage = <T>(key: string, value: T): boolean => {
   try {
     window.localStorage.setItem(key, JSON.stringify(value));
@@ -80,9 +60,6 @@ export const saveToLocalStorage = <T>(key: string, value: T): boolean => {
   }
 };
 
-/**
- * Remove value from local storage
- */
 export const removeFromLocalStorage = (key: string): boolean => {
   try {
     window.localStorage.removeItem(key);
@@ -93,9 +70,6 @@ export const removeFromLocalStorage = (key: string): boolean => {
   }
 };
 
-/**
- * Clear all local storage
- */
 export const clearLocalStorage = (): boolean => {
   try {
     window.localStorage.clear();
