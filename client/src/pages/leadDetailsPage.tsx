@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { leadService } from "@/services";
@@ -27,6 +27,7 @@ function LeadDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("edit");
+  const [isConverting, setIsConverting] = useState(false);
 
   useEffect(() => {
     const fetchLead = async () => {
@@ -58,6 +59,35 @@ function LeadDetailsPage() {
 
   const handleLeadUpdate = (updatedLead: Lead) => {
     setLead(updatedLead);
+  };
+
+  const handleConvertToDeal = async () => {
+    if (!lead) return;
+
+    const confirmed = window.confirm(
+      `Are you sure you want to convert "${lead.leadFirstName} ${lead.leadLastName || ""}" to a deal?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      setIsConverting(true);
+      
+      const response = await leadService.convertLead(lead._id);
+      
+      setLead(response.lead);
+      
+      alert("Lead successfully converted to deal!");
+      
+      navigate("/deals");
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to convert lead to deal";
+      alert(message);
+      console.error("Error converting lead to deal:", err);
+    } finally {
+      setIsConverting(false);
+    }
   };
 
   if (loading) {
@@ -98,55 +128,79 @@ function LeadDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleGoBack}
-          className="gap-2"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            {lead.leadFirstName} {lead.leadLastName || ""}
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            {lead.leadEmail}
-          </p>
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleGoBack}
+            className="gap-2"
+          >
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Button>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              {lead.leadFirstName} {lead.leadLastName || ""}
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              {lead.leadEmail}
+            </p>
+          </div>
         </div>
+        
+        {/* Convert to Deal Button */}
+        {lead.leadStatus !== "Converted" && (
+          <Button
+            onClick={handleConvertToDeal}
+            disabled={isConverting}
+            className="gap-2"
+            size="lg"
+          >
+            {isConverting ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                Converting...
+              </>
+            ) : (
+              <>
+                <ArrowRight className="w-4 h-4" />
+                Convert to Deal
+              </>
+            )}
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
+      <div className="rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="w-full justify-start border-b border-gray-200 dark:border-gray-700 rounded-none bg-transparent p-0">
+          <TabsList className="w-full justify-start border-b border-gray-200 dark:border-gray-700 rounded-none p-0 h-12">
             <TabsTrigger
               value="edit"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
             >
               Edit Lead
             </TabsTrigger>
             <TabsTrigger
               value="comments"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
             >
               Comments
             </TabsTrigger>
             <TabsTrigger
               value="calls"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
             >
               Calls
             </TabsTrigger>
             <TabsTrigger
               value="attachments"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600"
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400 px-6 h-full"
             >
               Attachments
             </TabsTrigger>
@@ -155,7 +209,7 @@ function LeadDetailsPage() {
           {/* Tab Contents */}
           <TabsContent
             value="edit"
-            className="p-6"
+            className="p-6 mt-0"
           >
             <EditLeadTab
               lead={lead}
@@ -165,21 +219,21 @@ function LeadDetailsPage() {
 
           <TabsContent
             value="comments"
-            className="p-6"
+            className="p-6 mt-0"
           >
             <CommentsTab leadId={lead._id} />
           </TabsContent>
 
           <TabsContent
             value="calls"
-            className="p-6"
+            className="p-6 mt-0"
           >
             <CallsTab leadId={lead._id} />
           </TabsContent>
 
           <TabsContent
             value="attachments"
-            className="p-6"
+            className="p-6 mt-0"
           >
             <AttachmentsTab leadId={lead._id} />
           </TabsContent>

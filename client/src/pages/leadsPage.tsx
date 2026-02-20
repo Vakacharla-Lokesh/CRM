@@ -225,6 +225,7 @@ const LeadsPage = () => {
           columns={columns}
           data={filteredLeads}
           name="Leads"
+          searchColumn="leadEmail"
         />
       )}
 

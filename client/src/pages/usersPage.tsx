@@ -222,6 +222,7 @@ const UsersPage = () => {
           })}
           data={filteredUsers}
           name="Users"
+          searchColumn="userEmail"
         />
       )}
 

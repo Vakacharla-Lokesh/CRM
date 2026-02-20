@@ -96,12 +96,12 @@ export const useUserData = () => {
       calculateStatistics(data);
 
       for (const user of data) {
-        await addItem({ ...user, id: user._id });
+        await updateItem(user._id, { ...user, id: user._id });
       }
 
       return data;
     });
-  }, [executeAsync, addItem, calculateStatistics]);
+  }, [executeAsync, updateItem, calculateStatistics]);
 
   const fetchUserById = useCallback(
     async (id: string) => {
@@ -125,12 +125,12 @@ export const useUserData = () => {
       return executeAsync(async () => {
         const newUser = await userService.createUser(userData);
         setUsers((prev) => [...prev, newUser]);
-        await addItem({ ...newUser, id: newUser._id });
+        await updateItem(newUser._id, { ...newUser, id: newUser._id });
         await fetchUsers();
         return newUser;
       });
     },
-    [executeAsync, addItem, fetchUsers],
+    [executeAsync, updateItem, fetchUsers],
   );
 
   const updateUser = useCallback(

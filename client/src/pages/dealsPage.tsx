@@ -162,6 +162,7 @@ const DealsPage = () => {
           columns={columns}
           data={filteredDeals}
           name="Deals"
+          searchColumn="dealName"
         ></DataTable>
       )}
     </div>

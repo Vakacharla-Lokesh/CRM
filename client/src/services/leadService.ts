@@ -1,5 +1,5 @@
 import { apiClient } from "./api";
-import type { Lead } from "../types";
+import type { Lead, Deal } from "../types";
 
 interface LeadStats {
   total: number;
@@ -114,11 +114,11 @@ const leadService = {
 
   convertLead: async (
     leadId: string,
-    dealData: unknown,
-  ): Promise<{ message: string; dealId: string }> => {
-    return apiClient.post<{ message: string; dealId: string }>(
+    dealData?: { dealValue?: number; dealStatus?: string },
+  ): Promise<{ message: string; deal: Deal; lead: Lead }> => {
+    return apiClient.post<{ message: string; deal: Deal; lead: Lead }>(
       `/leads/${leadId}/convert`,
-      dealData,
+      dealData || {},
     );
   },
 

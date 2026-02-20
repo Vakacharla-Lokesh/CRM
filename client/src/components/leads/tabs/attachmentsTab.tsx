@@ -180,7 +180,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
       {/* Upload Area */}
       <div
-        className="bg-linear-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
+        className="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-900/10 border-2 border-dashed border-blue-200 dark:border-blue-800 rounded-lg p-8 text-center hover:border-blue-300 dark:hover:border-blue-700 transition-colors cursor-pointer group"
         onClick={() => fileInputRef.current?.click()}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {

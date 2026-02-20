@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { initializeDatabase, DB_NAME, DB_VERSION } from "../utils/indexedDB";
 
 interface IndexedDBHookResult<T> {
   addItem: (item: T) => Promise<IDBValidKey>;
@@ -16,13 +17,13 @@ interface IndexedDBHookResult<T> {
  *
  * @param storeName - Name of the object store
  * @param dbName - Name of the database (default: 'appDB')
- * @param version - Database version (default: 1)
+ * @param version - Database version (default: 2)
  * @returns IndexedDB operations
  */
 export const useIndexedDB = <T extends { id: string }>(
   storeName: string,
-  dbName = "appDB",
-  version = 1,
+  dbName = DB_NAME,
+  version = DB_VERSION,
 ): IndexedDBHookResult<T> => {
   const [, setIsInitialized] = useState(false);
 
@@ -30,26 +31,10 @@ export const useIndexedDB = <T extends { id: string }>(
    * Initialize database connection
    */
   const initDB = useCallback(async (): Promise<IDBDatabase> => {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(dbName, version);
-
-      request.onerror = () => {
-        reject(new Error(`Failed to open IndexedDB: ${request.error}`));
-      };
-
-      request.onsuccess = () => {
-        setIsInitialized(true);
-        resolve(request.result);
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        if (!db.objectStoreNames.contains(storeName)) {
-          db.createObjectStore(storeName, { keyPath: "id" });
-        }
-      };
-    });
-  }, [dbName, storeName, version]);
+    const db = await initializeDatabase();
+    setIsInitialized(true);
+    return db;
+  }, []);
 
   /**
    * Add item to store
@@ -58,6 +43,12 @@ export const useIndexedDB = <T extends { id: string }>(
     async (item: T): Promise<IDBValidKey> => {
       const db = await initDB();
       return new Promise((resolve, reject) => {
+        // Check if store exists
+        if (!db.objectStoreNames.contains(storeName)) {
+          reject(new Error(`Object store "${storeName}" does not exist. Database may need to be reinitialized.`));
+          return;
+        }
+        
         const transaction = db.transaction([storeName], "readwrite");
         const store = transaction.objectStore(storeName);
         const request = store.add(item);
