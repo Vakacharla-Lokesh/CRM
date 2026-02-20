@@ -11,11 +11,13 @@ import ActionDropdown from "../common/actionDropDown";
 interface ColumnsProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onViewUsers?: (id: string) => void;
 }
 
 export const columns = ({
   onEdit,
   onDelete,
+  onViewUsers,
 }: ColumnsProps = {}): ColumnDef<Tenant>[] => [
   {
     id: "select",
@@ -155,6 +157,7 @@ export const columns = ({
         type="Tenant"
         onEdit={onEdit}
         onDelete={onDelete}
+        onViewUsers={onViewUsers}
       />
     ),
   },

@@ -12,6 +12,14 @@ import { Input } from "../components/ui/input";
 import { OrganizationModal } from "@/components/modals";
 import { useOrganizationData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces/organization.options";
 
 const OrganizationsPage = () => {
   const {
@@ -32,7 +40,9 @@ const OrganizationsPage = () => {
     useState<Organization | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [organizationToDelete, setOrganizationToDelete] = useState<string | null>(null);
+  const [organizationToDelete, setOrganizationToDelete] = useState<
+    string | null
+  >(null);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -146,7 +156,7 @@ const OrganizationsPage = () => {
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2">
+          <div className="space-y-2 col-span-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
@@ -158,11 +168,29 @@ const OrganizationsPage = () => {
             </div>
           </div>
           <div className="space-y-2">
-            <Input
-              placeholder="Filter by industry..."
-              value={filters.industry}
-              onChange={(e) => updateFilter("industry", e.target.value)}
-            />
+            <Select
+              value={filters.industry || "all"}
+              onValueChange={(value) =>
+                updateFilter("industry", value === "all" ? "" : value)
+              }
+            >
+              <SelectTrigger className="w-full sm:w-45">
+                <SelectValue placeholder="All industries" />
+              </SelectTrigger>
+
+              <SelectContent>
+                <SelectItem value="all">All industries</SelectItem>
+
+                {ORGANIZATION_INDUSTRIES.map((industry) => (
+                  <SelectItem
+                    key={industry.value}
+                    value={industry.value}
+                  >
+                    {industry.value}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2 flex items-end">

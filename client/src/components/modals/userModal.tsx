@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAppContext } from "@/context";
-import { useTenantData } from "@/hooks";
 import type { CreateUserDTO } from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
@@ -18,11 +17,12 @@ import type {
   UserFormErrors as FormErrors,
   UserModalProps,
 } from "@/types/form-interfaces";
+import { useParams } from "react-router-dom";
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
-  const { tenants, loading: tenantsLoading } = useTenantData();
   const isSuperAdmin = currentUser?.role === "super_admin";
+  const { id } = useParams();
 
   const [formData, setFormData] = useState<UserFormData>({
     firstName: "",
@@ -56,11 +56,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         mobile: "",
         role: "user",
         password: "",
-        tenantId: currentUser?.tenantId || "",
+        tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
       });
     }
     setErrors({});
-  }, [user, isOpen, currentUser]);
+  }, [user, isOpen, currentUser, id, isSuperAdmin]);
 
   const validateForm = (): boolean => {
     const newErrors: FormErrors = {};
@@ -235,30 +235,6 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
             />
           </div>
 
-          {isSuperAdmin && (
-            <FormSelect
-              id="tenantId"
-              label="Tenant"
-              value={formData.tenantId}
-              onChange={(value) => handleInputChange("tenantId", value)}
-              placeholder={
-                tenantsLoading ? "Loading tenants..." : "Select tenant"
-              }
-              required
-              error={errors.tenantId}
-              disabled={tenantsLoading}
-              options={tenants.map((tenant) => ({
-                value: tenant._id,
-                label: (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                    <span>{tenant.tenantName}</span>
-                  </div>
-                ),
-              }))}
-            />
-          )}
-
           {!user && (
             <div className="relative">
               <FormField
@@ -277,7 +253,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                 className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 focus:outline-none"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <Eye className="h-4 w-4" />
+                ) : (
+                  <EyeOff className="h-4 w-4" />
+                )}
               </button>
             </div>
           )}

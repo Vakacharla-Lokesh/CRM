@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { userService } from "../services/userService.ts";
 import { useAsync } from "./useAsync";
 import { useIndexedDB } from "./useIndexedDB";
@@ -20,12 +20,6 @@ interface UserFilters {
 export const useUserData = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
-  const [statistics, setStatistics] = useState<UserStatistics>({
-    total: 0,
-    byRole: {},
-    active: 0,
-    inactive: 0,
-  });
   const [filters, setFilters] = useState<UserFilters>({
     role: "",
     status: "",
@@ -39,15 +33,15 @@ export const useUserData = () => {
   } = useAsync<User | User[] | void>();
   const { updateItem, deleteItem } = useIndexedDB("users");
 
-  const calculateStatistics = useCallback((usersData: User[]) => {
+  const statistics = useMemo(() => {
     const stats: UserStatistics = {
-      total: usersData.length,
+      total: users.length,
       byRole: {},
       active: 0,
       inactive: 0,
     };
 
-    usersData.forEach((user) => {
+    users.forEach((user) => {
       stats.byRole[user.role] = (stats.byRole[user.role] ?? 0) + 1;
 
       if (user.isActive !== false) {
@@ -57,8 +51,8 @@ export const useUserData = () => {
       }
     });
 
-    setStatistics(stats);
-  }, []);
+    return stats;
+  }, [users]);
 
   const applyFilters = useCallback(() => {
     let filtered = [...users];
@@ -93,7 +87,6 @@ export const useUserData = () => {
       const data = await userService.getAllUsers();
       setUsers(data);
       setFilteredUsers(data);
-      calculateStatistics(data);
 
       for (const user of data) {
         await updateItem(user._id, { ...user, id: user._id });
@@ -101,7 +94,7 @@ export const useUserData = () => {
 
       return data;
     });
-  }, [executeAsync, updateItem, calculateStatistics]);
+  }, [executeAsync, updateItem]);
 
   const fetchUserById = useCallback(
     async (id: string) => {
@@ -111,6 +104,23 @@ export const useUserData = () => {
       });
     },
     [executeAsync],
+  );
+
+  const fetchUserByTenant = useCallback(
+    async (id: string) => {
+      return executeAsync(async () => {
+        const data = await userService.getUsersByTenant(id);
+        setUsers(data);
+        setFilteredUsers(data);
+
+        for (const user of data) {
+          await updateItem(user._id, { ...user, id: user._id });
+        }
+
+        return data;
+      });
+    },
+    [executeAsync, updateItem],
   );
 
   const fetchCurrentUser = useCallback(async () => {
@@ -126,11 +136,10 @@ export const useUserData = () => {
         const newUser = await userService.createUser(userData);
         setUsers((prev) => [...prev, newUser]);
         await updateItem(newUser._id, { ...newUser, id: newUser._id });
-        await fetchUsers();
         return newUser;
       });
     },
-    [executeAsync, updateItem, fetchUsers],
+    [executeAsync, updateItem],
   );
 
   const updateUser = useCallback(
@@ -141,11 +150,10 @@ export const useUserData = () => {
           prev.map((user) => (user._id === id ? updated : user)),
         );
         await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers();
         return updated;
       });
     },
-    [executeAsync, updateItem, fetchUsers],
+    [executeAsync, updateItem],
   );
 
   const deleteUser = useCallback(
@@ -154,10 +162,9 @@ export const useUserData = () => {
         await userService.deleteUser(id);
         setUsers((prev) => prev.filter((user) => user._id !== id));
         await deleteItem(id);
-        await fetchUsers();
       });
     },
-    [executeAsync, deleteItem, fetchUsers],
+    [executeAsync, deleteItem],
   );
 
   const searchUsers = useCallback(
@@ -197,11 +204,10 @@ export const useUserData = () => {
           prev.map((user) => (user._id === id ? updated : user)),
         );
         await updateItem(id, { ...updated, id: updated._id });
-        await fetchUsers();
         return updated;
       });
     },
-    [executeAsync, updateItem, fetchUsers],
+    [executeAsync, updateItem],
   );
 
   const updateFilter = useCallback((key: keyof UserFilters, value: unknown) => {
@@ -237,6 +243,7 @@ export const useUserData = () => {
     // Methods
     fetchUsers,
     fetchUserById,
+    fetchUserByTenant,
     fetchCurrentUser,
     createUser,
     updateUser,
@@ -245,7 +252,7 @@ export const useUserData = () => {
     getUsersByRole,
     updatePassword,
     updateUserRole,
-    
+
     // Filter methods
     updateFilter,
     resetFilters,
