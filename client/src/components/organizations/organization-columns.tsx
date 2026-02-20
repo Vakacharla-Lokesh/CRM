@@ -5,7 +5,7 @@ import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { type Organization, getOrganizationSizeCategory } from "@/types";
+import { type Organization } from "@/types";
 import ActionDropdown from "../common/actionDropDown";
 
 interface ColumnsProps {
@@ -83,7 +83,7 @@ export const columns = ({
     },
     cell: ({ row }) => {
       const size = row.getValue("organizationSize") as number;
-      return getOrganizationSizeCategory(size);
+      return size;
     },
   },
   {

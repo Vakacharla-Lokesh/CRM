@@ -2,18 +2,12 @@ import { useState, useEffect, useCallback } from "react";
 import type { Attachment, CreateAttachmentDTO } from "../types";
 import { attachmentsAPI } from "../services";
 
-/**
- * Hook for managing attachments for a specific lead
- */
 export const useAttachmentData = (leadId: string) => {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  /**
-   * Fetch all attachments for the lead
-   */
   const fetchAttachments = useCallback(async () => {
     if (!leadId) return;
 
@@ -32,27 +26,21 @@ export const useAttachmentData = (leadId: string) => {
     }
   }, [leadId]);
 
-  /**
-   * Upload a new attachment
-   */
   const uploadAttachment = useCallback(
     async (file: File) => {
       try {
         setUploading(true);
         setError(null);
 
-        // Validate file size (max 10MB)
         const maxSize = 10 * 1024 * 1024;
         if (file.size > maxSize) {
           throw new Error("File size must be less than 10MB");
         }
 
-        // Convert file to base64
         const fileData = await new Promise<string>((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = () => {
             const result = reader.result as string;
-            // Remove the data URL prefix (e.g., "data:image/png;base64,")
             const base64 = result.split(",")[1];
             resolve(base64);
           };
@@ -84,16 +72,12 @@ export const useAttachmentData = (leadId: string) => {
     [leadId],
   );
 
-  /**
-   * Download an attachment
-   */
   const downloadAttachment = useCallback(
     async (attachment: Attachment) => {
       try {
         setError(null);
         const blob = await attachmentsAPI.download(attachment._id);
         
-        // Create a download link
         const url = window.URL.createObjectURL(blob);
         const link = document.createElement("a");
         link.href = url;
@@ -113,9 +97,6 @@ export const useAttachmentData = (leadId: string) => {
     [],
   );
 
-  /**
-   * Delete an attachment
-   */
   const deleteAttachment = useCallback(async (id: string) => {
     try {
       setError(null);
@@ -132,14 +113,10 @@ export const useAttachmentData = (leadId: string) => {
     }
   }, []);
 
-  /**
-   * Refresh attachments list
-   */
   const refresh = useCallback(() => {
     fetchAttachments();
   }, [fetchAttachments]);
 
-  // Fetch attachments on mount or when leadId changes
   useEffect(() => {
     fetchAttachments();
   }, [fetchAttachments]);

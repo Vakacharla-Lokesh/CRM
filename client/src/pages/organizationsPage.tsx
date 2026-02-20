@@ -1,17 +1,14 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/data-table";
 import { columns } from "../components/organizations/organization-columns";
-import type { CreateOrganizationDTO, Organization, UpdateOrganizationDTO } from "@/types";
+import type {
+  CreateOrganizationDTO,
+  Organization,
+  UpdateOrganizationDTO,
+} from "@/types";
 import { Button } from "../components/ui/button";
 import { Download, Search } from "lucide-react";
 import { Input } from "../components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import { OrganizationModal } from "@/components/modals";
 import { useOrganizationData } from "@/hooks";
 
@@ -131,33 +128,6 @@ const OrganizationsPage = () => {
             {statistics.total}
           </p>
         </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Small (1-50)
-          </p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {(statistics.bySize["1-10"] || 0) +
-              (statistics.bySize["11-50"] || 0)}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Medium (51-500)
-          </p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {(statistics.bySize["51-200"] || 0) +
-              (statistics.bySize["201-500"] || 0)}
-          </p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Large (500+)
-          </p>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-            {(statistics.bySize["501-1000"] || 0) +
-              (statistics.bySize["1000+"] || 0)}
-          </p>
-        </div>
       </div>
 
       {/* Filters */}
@@ -174,29 +144,6 @@ const OrganizationsPage = () => {
               />
             </div>
           </div>
-
-          <div className="space-y-2">
-            <Select
-              value={filters.size || "all"}
-              onValueChange={(value) =>
-                updateFilter("size", value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="All sizes" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All sizes</SelectItem>
-                <SelectItem value="1-10">1-10 employees</SelectItem>
-                <SelectItem value="11-50">11-50 employees</SelectItem>
-                <SelectItem value="51-200">51-200 employees</SelectItem>
-                <SelectItem value="201-500">201-500 employees</SelectItem>
-                <SelectItem value="501-1000">501-1000 employees</SelectItem>
-                <SelectItem value="1000+">1000+ employees</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="space-y-2">
             <Input
               placeholder="Filter by industry..."

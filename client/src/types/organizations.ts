@@ -38,14 +38,6 @@ export interface OrganizationListResponse {
   limit: number;
 }
 
-export type OrganizationSize =
-  | "1-10"
-  | "11-50"
-  | "51-200"
-  | "201-500"
-  | "501-1000"
-  | "1000+";
-
 export interface PointOfContact {
   _id?: string;
   contactName: string;
@@ -62,16 +54,4 @@ export function isOrganization(obj: any): obj is Organization {
     typeof obj.organizationName === "string" &&
     typeof obj.organizationIndustry === "string"
   );
-}
-
-/**
- * Convert numeric organization size to display category
- */
-export function getOrganizationSizeCategory(size: number): OrganizationSize {
-  if (size <= 10) return "1-10";
-  if (size <= 50) return "11-50";
-  if (size <= 200) return "51-200";
-  if (size <= 500) return "201-500";
-  if (size <= 1000) return "501-1000";
-  return "1000+";
 }

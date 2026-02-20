@@ -2,17 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import type { Call, CreateCallDTO, UpdateCallDTO } from "../types";
 import { callsAPI } from "../services";
 
-/**
- * Hook for managing calls for a specific lead
- */
 export const useCallData = (leadId: string) => {
   const [calls, setCalls] = useState<Call[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Fetch all calls for the lead
-   */
   const fetchCalls = useCallback(async () => {
     if (!leadId) return;
 
@@ -31,9 +25,6 @@ export const useCallData = (leadId: string) => {
     }
   }, [leadId]);
 
-  /**
-   * Create a new call
-   */
   const createCall = useCallback(
     async (data: Omit<CreateCallDTO, "leadId">) => {
       try {
@@ -52,9 +43,6 @@ export const useCallData = (leadId: string) => {
     [leadId],
   );
 
-  /**
-   * Update an existing call
-   */
   const updateCall = useCallback(async (id: string, data: UpdateCallDTO) => {
     try {
       setError(null);
@@ -72,9 +60,6 @@ export const useCallData = (leadId: string) => {
     }
   }, []);
 
-  /**
-   * Delete a call
-   */
   const deleteCall = useCallback(async (id: string) => {
     try {
       setError(null);
@@ -89,14 +74,10 @@ export const useCallData = (leadId: string) => {
     }
   }, []);
 
-  /**
-   * Refresh calls list
-   */
   const refresh = useCallback(() => {
     fetchCalls();
   }, [fetchCalls]);
 
-  // Fetch calls on mount or when leadId changes
   useEffect(() => {
     fetchCalls();
   }, [fetchCalls]);

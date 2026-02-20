@@ -2,17 +2,11 @@ import { useState, useEffect, useCallback } from "react";
 import type { Comment, CreateCommentDTO, UpdateCommentDTO } from "../types";
 import { commentsAPI } from "../services";
 
-/**
- * Hook for managing comments for a specific lead
- */
 export const useCommentData = (leadId: string) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  /**
-   * Fetch all comments for the lead
-   */
   const fetchComments = useCallback(async () => {
     if (!leadId) return;
 
@@ -31,9 +25,6 @@ export const useCommentData = (leadId: string) => {
     }
   }, [leadId]);
 
-  /**
-   * Create a new comment
-   */
   const createComment = useCallback(
     async (data: Omit<CreateCommentDTO, "leadId">) => {
       try {
@@ -52,9 +43,6 @@ export const useCommentData = (leadId: string) => {
     [leadId],
   );
 
-  /**
-   * Update an existing comment
-   */
   const updateComment = useCallback(
     async (id: string, data: UpdateCommentDTO) => {
       try {
@@ -77,9 +65,6 @@ export const useCommentData = (leadId: string) => {
     [],
   );
 
-  /**
-   * Delete a comment
-   */
   const deleteComment = useCallback(async (id: string) => {
     try {
       setError(null);
@@ -94,14 +79,10 @@ export const useCommentData = (leadId: string) => {
     }
   }, []);
 
-  /**
-   * Refresh comments list
-   */
   const refresh = useCallback(() => {
     fetchComments();
   }, [fetchComments]);
 
-  // Fetch comments on mount or when leadId changes
   useEffect(() => {
     fetchComments();
   }, [fetchComments]);

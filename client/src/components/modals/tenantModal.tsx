@@ -5,12 +5,10 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import type { Tenant, CreateTenantDto } from "@/types/tenant";
+import { FormField } from "./form-fields";
+import { ModalFooter } from "./shared";
 
 interface TenantFormData {
   tenantName: string;
@@ -93,7 +91,7 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
       const tenantData: CreateTenantDto = {
         tenantName: formData.tenantName,
         email: formData.email,
-        mobile: formData.mobile.replace(/[^0-9]/g, ""), // Remove any formatting
+        mobile: formData.mobile.replace(/[^0-9]/g, ""),
       };
 
       await onSave(tenantData);
@@ -120,10 +118,7 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={onClose}
-    >
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
@@ -136,92 +131,44 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 py-4"
-        >
-          <div className="space-y-2">
-            <Label
-              htmlFor="tenantName"
-              className="text-sm font-semibold"
-            >
-              Tenant Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="tenantName"
-              value={formData.tenantName}
-              onChange={(e) => handleInputChange("tenantName", e.target.value)}
-              placeholder="Acme Corporation"
-              className={errors.tenantName ? "border-red-500" : ""}
-            />
-            {errors.tenantName && (
-              <p className="text-sm text-red-500">{errors.tenantName}</p>
-            )}
-          </div>
+        <form onSubmit={handleSubmit} className="space-y-6 py-4">
+          <FormField
+            id="tenantName"
+            label="Tenant Name"
+            value={formData.tenantName}
+            onChange={(value) => handleInputChange("tenantName", value)}
+            placeholder="Acme Corporation"
+            required
+            error={errors.tenantName}
+          />
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="email"
-              className="text-sm font-semibold"
-            >
-              Email <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              placeholder="contact@acme.com"
-              className={errors.email ? "border-red-500" : ""}
-            />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email}</p>
-            )}
-          </div>
+          <FormField
+            id="email"
+            label="Email"
+            type="email"
+            value={formData.email}
+            onChange={(value) => handleInputChange("email", value)}
+            placeholder="contact@acme.com"
+            required
+            error={errors.email}
+          />
 
-          <div className="space-y-2">
-            <Label
-              htmlFor="mobile"
-              className="text-sm font-semibold"
-            >
-              Mobile Number <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="mobile"
-              type="tel"
-              value={formData.mobile}
-              onChange={(e) => handleInputChange("mobile", e.target.value)}
-              placeholder="9876543210"
-              className={errors.mobile ? "border-red-500" : ""}
-            />
-            {errors.mobile && (
-              <p className="text-sm text-red-500">{errors.mobile}</p>
-            )}
-          </div>
+          <FormField
+            id="mobile"
+            label="Mobile Number"
+            type="tel"
+            value={formData.mobile}
+            onChange={(value) => handleInputChange("mobile", value)}
+            placeholder="9876543210"
+            required
+            error={errors.mobile}
+          />
 
-          <DialogFooter className="gap-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onClose}
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Saving...</span>
-                </div>
-              ) : (
-                <span>{tenant ? "Update Tenant" : "Create Tenant"}</span>
-              )}
-            </Button>
-          </DialogFooter>
+          <ModalFooter
+            onCancel={onClose}
+            isSubmitting={isSubmitting}
+            submitLabel={tenant ? "Update Tenant" : "Create Tenant"}
+          />
         </form>
       </DialogContent>
     </Dialog>
