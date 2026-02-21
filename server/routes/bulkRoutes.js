@@ -6,6 +6,8 @@ import {
   bulkUpdateDeals,
   bulkCreateComments,
   bulkCreateCalls,
+  bulkCreateOrganizations,
+  bulkUpdateOrganizations,
 } from "../controllers/bulkController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
@@ -56,6 +58,21 @@ router.post(
   authenticate,
   authorize("user", "admin", "super_admin"),
   bulkCreateCalls,
+);
+
+// Bulk organizations operations
+router.post(
+  "/organizations/create",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  bulkCreateOrganizations,
+);
+
+router.post(
+  "/organizations/update",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  bulkUpdateOrganizations,
 );
 
 export default router;

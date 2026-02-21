@@ -1,6 +1,7 @@
 import pool from "../db/initDb.js";
+import organizationModel from "../models/organizationModel.js";
 
-// Bulk create leads
+// Bulk create leads using batch INSERT
 export const bulkCreateLeads = async (req, res, next) => {
   const { leads } = req.body;
   
@@ -13,65 +14,67 @@ export const bulkCreateLeads = async (req, res, next) => {
   try {
     await client.query("BEGIN");
     
-    const createdLeads = [];
-    const errors = [];
+    // Build multi-row INSERT statement
+    const values = [];
+    const placeholders = [];
+    let paramCount = 1;
     
-    for (let i = 0; i < leads.length; i++) {
-      try {
-        const lead = leads[i];
-        const {
-          firstName,
-          lastName,
-          email,
-          phone,
-          company,
-          jobTitle,
-          source,
-          status,
-          stage,
-          score,
-          tenantId,
-          assignedUserId,
-          organizationId,
-        } = lead;
+    leads.forEach((lead, index) => {
+      const {
+        firstName,
+        lastName,
+        email,
+        phone,
+        company,
+        jobTitle,
+        source,
+        status,
+        stage,
+        score,
+        tenantId,
+        assignedUserId,
+        organizationId,
+      } = lead;
+      
+      placeholders.push(
+        `($${paramCount}, $${paramCount + 1}, $${paramCount + 2}, $${paramCount + 3}, $${paramCount + 4}, $${paramCount + 5}, $${paramCount + 6}, $${paramCount + 7}, $${paramCount + 8}, $${paramCount + 9}, $${paramCount + 10}, $${paramCount + 11}, $${paramCount + 12})`
+      );
+      
+      values.push(
+        firstName,
+        lastName,
+        email,
+        phone,
+        company,
+        jobTitle,
+        source || "other",
+        status || "new",
+        stage || "prospect",
+        score || 0,
+        tenantId || req.user.tenantId,
+        assignedUserId,
+        organizationId,
+      );
+      
+      paramCount += 13;
+    });
 
-        const result = await client.query(
-          `INSERT INTO leads (
-            first_name, last_name, email, phone, company, job_title,
-            source, status, stage, score, tenant_id, assigned_user_id, organization_id
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-          RETURNING *`,
-          [
-            firstName,
-            lastName,
-            email,
-            phone,
-            company,
-            jobTitle,
-            source || "other",
-            status || "new",
-            stage || "prospect",
-            score || 0,
-            tenantId || req.user.tenantId,
-            assignedUserId,
-            organizationId,
-          ],
-        );
-
-        createdLeads.push(result.rows[0]);
-      } catch (error) {
-        errors.push({ index: i, error: error.message, lead: leads[i] });
-      }
-    }
+    const result = await client.query(
+      `INSERT INTO leads (
+        first_name, last_name, email, phone, company, job_title,
+        source, status, stage, score, tenant_id, assigned_user_id, organization_id
+      ) VALUES ${placeholders.join(", ")}
+      RETURNING *`,
+      values,
+    );
 
     await client.query("COMMIT");
 
     res.status(201).json({
-      message: `Bulk create completed: ${createdLeads.length} succeeded, ${errors.length} failed`,
-      created: createdLeads.length,
-      failed: errors.length,
-      leads: createdLeads,
-      errors: errors.length > 0 ? errors : undefined,
+      message: `Bulk create completed: ${result.rows.length} succeeded`,
+      created: result.rows.length,
+      failed: 0,
+      leads: result.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -145,7 +148,7 @@ export const bulkUpdateLeads = async (req, res, next) => {
   }
 };
 
-// Bulk create deals
+// Bulk create deals using batch INSERT
 export const bulkCreateDeals = async (req, res, next) => {
   const { deals } = req.body;
   
@@ -158,59 +161,61 @@ export const bulkCreateDeals = async (req, res, next) => {
   try {
     await client.query("BEGIN");
     
-    const createdDeals = [];
-    const errors = [];
+    // Build multi-row INSERT statement
+    const values = [];
+    const placeholders = [];
+    let paramCount = 1;
     
-    for (let i = 0; i < deals.length; i++) {
-      try {
-        const deal = deals[i];
-        const {
-          name,
-          value,
-          stage,
-          status,
-          probability,
-          expectedCloseDate,
-          tenantId,
-          leadId,
-          assignedUserId,
-          organizationId,
-        } = deal;
+    deals.forEach((deal) => {
+      const {
+        name,
+        value,
+        stage,
+        status,
+        probability,
+        expectedCloseDate,
+        tenantId,
+        leadId,
+        assignedUserId,
+        organizationId,
+      } = deal;
+      
+      placeholders.push(
+        `($${paramCount}, $${paramCount + 1}, $${paramCount + 2}, $${paramCount + 3}, $${paramCount + 4}, $${paramCount + 5}, $${paramCount + 6}, $${paramCount + 7}, $${paramCount + 8}, $${paramCount + 9})`
+      );
+      
+      values.push(
+        name,
+        value,
+        stage || "qualification",
+        status || "open",
+        probability || 0,
+        expectedCloseDate,
+        tenantId || req.user.tenantId,
+        leadId,
+        assignedUserId,
+        organizationId,
+      );
+      
+      paramCount += 10;
+    });
 
-        const result = await client.query(
-          `INSERT INTO deals (
-            name, value, stage, status, probability, expected_close_date,
-            tenant_id, lead_id, assigned_user_id, organization_id
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-          RETURNING *`,
-          [
-            name,
-            value,
-            stage || "qualification",
-            status || "open",
-            probability || 0,
-            expectedCloseDate,
-            tenantId || req.user.tenantId,
-            leadId,
-            assignedUserId,
-            organizationId,
-          ],
-        );
-
-        createdDeals.push(result.rows[0]);
-      } catch (error) {
-        errors.push({ index: i, error: error.message, deal: deals[i] });
-      }
-    }
+    const result = await client.query(
+      `INSERT INTO deals (
+        name, value, stage, status, probability, expected_close_date,
+        tenant_id, lead_id, assigned_user_id, organization_id
+      ) VALUES ${placeholders.join(", ")}
+      RETURNING *`,
+      values,
+    );
 
     await client.query("COMMIT");
 
     res.status(201).json({
-      message: `Bulk create completed: ${createdDeals.length} succeeded, ${errors.length} failed`,
-      created: createdDeals.length,
-      failed: errors.length,
-      deals: createdDeals,
-      errors: errors.length > 0 ? errors : undefined,
+      message: `Bulk create completed: ${result.rows.length} succeeded`,
+      created: result.rows.length,
+      failed: 0,
+      deals: result.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -284,7 +289,7 @@ export const bulkUpdateDeals = async (req, res, next) => {
   }
 };
 
-// Bulk create comments
+// Bulk create comments using batch INSERT
 export const bulkCreateComments = async (req, res, next) => {
   const { comments } = req.body;
   
@@ -297,35 +302,43 @@ export const bulkCreateComments = async (req, res, next) => {
   try {
     await client.query("BEGIN");
     
-    const createdComments = [];
-    const errors = [];
+    // Build multi-row INSERT statement
+    const values = [];
+    const placeholders = [];
+    let paramCount = 1;
     
-    for (let i = 0; i < comments.length; i++) {
-      try {
-        const comment = comments[i];
-        const { content, userId, entityType, entityId, parentCommentId } = comment;
+    comments.forEach((comment) => {
+      const { content, userId, entityType, entityId, parentCommentId } = comment;
+      
+      placeholders.push(
+        `($${paramCount}, $${paramCount + 1}, $${paramCount + 2}, $${paramCount + 3}, $${paramCount + 4})`
+      );
+      
+      values.push(
+        content,
+        userId,
+        entityType,
+        entityId,
+        parentCommentId || null,
+      );
+      
+      paramCount += 5;
+    });
 
-        const result = await client.query(
-          `INSERT INTO comments (content, user_id, entity_type, entity_id, parent_comment_id)
-          VALUES ($1, $2, $3, $4, $5)
-          RETURNING *`,
-          [content, userId, entityType, entityId, parentCommentId || null],
-        );
-
-        createdComments.push(result.rows[0]);
-      } catch (error) {
-        errors.push({ index: i, error: error.message, comment: comments[i] });
-      }
-    }
+    const result = await client.query(
+      `INSERT INTO comments (content, user_id, entity_type, entity_id, parent_comment_id)
+      VALUES ${placeholders.join(", ")}
+      RETURNING *`,
+      values,
+    );
 
     await client.query("COMMIT");
 
     res.status(201).json({
-      message: `Bulk create completed: ${createdComments.length} succeeded, ${errors.length} failed`,
-      created: createdComments.length,
-      failed: errors.length,
-      comments: createdComments,
-      errors: errors.length > 0 ? errors : undefined,
+      message: `Bulk create completed: ${result.rows.length} succeeded`,
+      created: result.rows.length,
+      failed: 0,
+      comments: result.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -335,7 +348,7 @@ export const bulkCreateComments = async (req, res, next) => {
   }
 };
 
-// Bulk create calls
+// Bulk create calls using batch INSERT
 export const bulkCreateCalls = async (req, res, next) => {
   const { calls } = req.body;
   
@@ -348,49 +361,142 @@ export const bulkCreateCalls = async (req, res, next) => {
   try {
     await client.query("BEGIN");
     
-    const createdCalls = [];
-    const errors = [];
+    // Build multi-row INSERT statement
+    const values = [];
+    const placeholders = [];
+    let paramCount = 1;
     
-    for (let i = 0; i < calls.length; i++) {
-      try {
-        const call = calls[i];
-        const {
-          direction,
-          duration,
-          notes,
-          outcome,
-          scheduledAt,
-          userId,
-          leadId,
-          dealId,
-        } = call;
+    calls.forEach((call) => {
+      const {
+        direction,
+        duration,
+        notes,
+        outcome,
+        scheduledAt,
+        userId,
+        leadId,
+        dealId,
+      } = call;
+      
+      placeholders.push(
+        `($${paramCount}, $${paramCount + 1}, $${paramCount + 2}, $${paramCount + 3}, $${paramCount + 4}, $${paramCount + 5}, $${paramCount + 6}, $${paramCount + 7})`
+      );
+      
+      values.push(
+        direction,
+        duration,
+        notes,
+        outcome,
+        scheduledAt,
+        userId,
+        leadId,
+        dealId,
+      );
+      
+      paramCount += 8;
+    });
 
-        const result = await client.query(
-          `INSERT INTO calls (direction, duration, notes, outcome, scheduled_at, user_id, lead_id, deal_id)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-          RETURNING *`,
-          [direction, duration, notes, outcome, scheduledAt, userId, leadId, dealId],
-        );
-
-        createdCalls.push(result.rows[0]);
-      } catch (error) {
-        errors.push({ index: i, error: error.message, call: calls[i] });
-      }
-    }
+    const result = await client.query(
+      `INSERT INTO calls (direction, duration, notes, outcome, scheduled_at, user_id, lead_id, deal_id)
+      VALUES ${placeholders.join(", ")}
+      RETURNING *`,
+      values,
+    );
 
     await client.query("COMMIT");
 
     res.status(201).json({
-      message: `Bulk create completed: ${createdCalls.length} succeeded, ${errors.length} failed`,
-      created: createdCalls.length,
-      failed: errors.length,
-      calls: createdCalls,
-      errors: errors.length > 0 ? errors : undefined,
+      message: `Bulk create completed: ${result.rows.length} succeeded`,
+      created: result.rows.length,
+      failed: 0,
+      calls: result.rows,
     });
   } catch (error) {
     await client.query("ROLLBACK");
     next(error);
   } finally {
     client.release();
+  }
+};
+
+// Bulk create organizations using MongoDB insertMany
+export const bulkCreateOrganizations = async (req, res, next) => {
+  const { organizations } = req.body;
+  
+  if (!Array.isArray(organizations) || organizations.length === 0) {
+    return res.status(400).json({ message: "Invalid organizations array" });
+  }
+
+  try {
+    // Prepare organization data with proper tenant and user IDs
+    const organizationData = organizations.map((org) => ({
+      ...org,
+      userId: org.userId || req.user.userId,
+      tenantId: org.tenantId || req.user.tenantId,
+    }));
+
+    // Use MongoDB's insertMany for batch insert
+    const createdOrganizations = await organizationModel.insertMany(
+      organizationData,
+      { ordered: false }, // Continue on error
+    );
+
+    res.status(201).json({
+      message: `Bulk create completed: ${createdOrganizations.length} succeeded`,
+      created: createdOrganizations.length,
+      failed: 0,
+      organizations: createdOrganizations,
+    });
+  } catch (error) {
+    // Handle partial success in MongoDB
+    if (error.name === "MongoBulkWriteError" && error.insertedDocs) {
+      return res.status(207).json({
+        message: `Bulk create partially completed: ${error.insertedDocs.length} succeeded, ${organizations.length - error.insertedDocs.length} failed`,
+        created: error.insertedDocs.length,
+        failed: organizations.length - error.insertedDocs.length,
+        organizations: error.insertedDocs,
+        errors: error.writeErrors?.map((e) => ({
+          index: e.index,
+          error: e.errmsg,
+        })),
+      });
+    }
+    next(error);
+  }
+};
+
+// Bulk update organizations using MongoDB bulkWrite
+export const bulkUpdateOrganizations = async (req, res, next) => {
+  const { updates } = req.body;
+  
+  if (!Array.isArray(updates) || updates.length === 0) {
+    return res.status(400).json({ message: "Invalid updates array" });
+  }
+
+  try {
+    // Prepare bulk write operations
+    const bulkOps = updates.map((update) => {
+      const { id, ...updateData } = update;
+      return {
+        updateOne: {
+          filter: { _id: id },
+          update: { $set: updateData },
+        },
+      };
+    });
+
+    // Execute bulk write
+    const result = await organizationModel.bulkWrite(bulkOps, {
+      ordered: false, // Continue on error
+    });
+
+    res.status(200).json({
+      message: `Bulk update completed: ${result.modifiedCount} succeeded`,
+      updated: result.modifiedCount,
+      matched: result.matchedCount,
+      failed: updates.length - result.matchedCount,
+    });
+  } catch (error) {
+    next(error);
   }
 };
