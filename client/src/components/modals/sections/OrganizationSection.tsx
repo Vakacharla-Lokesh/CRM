@@ -69,7 +69,7 @@ export function OrganizationSection({
   };
 
   return (
-    <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-800/50">
+    <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="space-y-2">
         <Label htmlFor="organization" className="text-sm font-semibold">
           Organization

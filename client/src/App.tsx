@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { Layout } from "./components/layout";
 import { AppProvider, useAppContext } from "./context";
+import { OfflineProvider } from "./context/OfflineContext";
 
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "./components/common/suspenseFallback";
@@ -23,6 +24,7 @@ const TenantsPage = lazy(() => import("./pages/tenantsPage"));
 import "./app.css";
 import { ThemeProvider } from "./components/common/theme-provider";
 import LeadDetailsPage from "./pages/leadDetailsPage";
+import LandingPage from "./pages/landingPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -62,6 +64,10 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
+        <Route
+          path="/"
+          element={<LandingPage />}
+        />
         <Route
           path="/login"
           element={
@@ -177,12 +183,14 @@ function AppRoutes() {
 function App() {
   return (
     <AppProvider>
-      <ThemeProvider
-        defaultTheme="dark"
-        storageKey="vite-ui-theme"
-      >
-        <AppRoutes />
-      </ThemeProvider>
+      <OfflineProvider>
+        <ThemeProvider
+          defaultTheme="dark"
+          storageKey="vite-ui-theme"
+        >
+          <AppRoutes />
+        </ThemeProvider>
+      </OfflineProvider>
     </AppProvider>
   );
 }

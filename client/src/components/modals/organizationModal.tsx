@@ -17,6 +17,7 @@ import type {
 } from "@/types/form-interfaces/";
 import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
+import { useAppContext } from "@/context/AppContext";
 
 function OrganizationModal({
   isOpen,
@@ -35,6 +36,8 @@ function OrganizationModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const industryOptions = mapToSelectOptions(ORGANIZATION_INDUSTRIES);
+
+  const { user } = useAppContext();
 
   useEffect(() => {
     if (organization) {
@@ -114,7 +117,7 @@ function OrganizationModal({
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
           organizationIndustry: formData.organizationIndustry,
-          tenantId: "",
+          tenantId: user?.tenantId || "tenant-1",
         };
         await onSave(createData);
       }

@@ -1,35 +1,36 @@
 import { useEffect, useState } from "react";
+import { useOffline } from "@/context/OfflineContext";
 
 function SyncBadge() {
-  const [queueCount, setQueueCount] = useState(0);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const {
+    getStats,
+    isSyncing,
+    syncQueue,
+    lastSyncTime: contextLastSyncTime,
+    isOnline,
+  } = useOffline();
+
+  const stats = getStats();
+  const [localLastSync, setLocalLastSync] = useState<Date | null>(null);
 
   useEffect(() => {
-    const updateQueueCount = () => {
-      setQueueCount(
-        Math.max(0, Math.random() > 0.8 ? Math.floor(Math.random() * 10) : 0),
-      );
-    };
-
-    updateQueueCount();
-    const interval = setInterval(updateQueueCount, 10000);
-
-    return () => clearInterval(interval);
-  }, []);
+    if (contextLastSyncTime) {
+      setLocalLastSync(contextLastSyncTime);
+    }
+  }, [contextLastSyncTime]);
 
   const handleSync = async () => {
-    if (isSyncing) return;
+    if (isSyncing || stats.pending === 0) return;
 
-    setIsSyncing(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
-      setQueueCount(0);
-      setLastSyncTime(new Date());
-    } finally {
-      setIsSyncing(false);
+      await syncQueue();
+      setLocalLastSync(new Date());
+    } catch (error) {
+      console.error("Sync failed:", error);
     }
   };
+
+  const lastSyncTime = contextLastSyncTime || localLastSync;
 
   return (
     <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
@@ -44,23 +45,47 @@ function SyncBadge() {
         )}
       </div>
 
-      {queueCount > 0 ? (
+      {stats.pending > 0 ? (
         <div className="space-y-3">
           <div className="p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
             <p className="text-sm font-bold text-yellow-700 dark:text-yellow-400">
-              {queueCount} {queueCount === 1 ? "item" : "items"} pending
+              {stats.pending} {stats.pending === 1 ? "item" : "items"} pending
             </p>
             <p className="text-xs text-yellow-600 dark:text-yellow-500 mt-1">
-              Changes will sync when online
+              {isOnline
+                ? "Syncing in progress..."
+                : "Changes will sync when online"}
             </p>
+            {Object.entries(stats.byEntity).length > 0 && (
+              <div className="mt-2 space-y-1">
+                {Object.entries(stats.byEntity).map(([entity, count]) => (
+                  <div
+                    key={entity}
+                    className="text-xs text-yellow-600 dark:text-yellow-500 flex items-center gap-2"
+                  >
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500" />
+                    <span className="capitalize">{entity}: {count}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isSyncing ? "Syncing..." : "Sync Now"}
-          </button>
+          {isOnline && (
+            <button
+              onClick={handleSync}
+              disabled={isSyncing}
+              className="w-full px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSyncing ? "Syncing..." : "Sync Now"}
+            </button>
+          )}
+          {stats.failed > 0 && (
+            <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded">
+              <p className="text-xs text-red-700 dark:text-red-400">
+                {stats.failed} {stats.failed === 1 ? "item" : "items"} failed
+              </p>
+            </div>
+          )}
         </div>
       ) : (
         <div className="space-y-2">
