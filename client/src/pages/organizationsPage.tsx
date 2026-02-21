@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces/organization.options";
+import { useNavigate } from "react-router-dom";
 
 const OrganizationsPage = () => {
   const {
@@ -43,6 +44,7 @@ const OrganizationsPage = () => {
   const [organizationToDelete, setOrganizationToDelete] = useState<
     string | null
   >(null);
+  const navigate = useNavigate();
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -111,6 +113,9 @@ const OrganizationsPage = () => {
     } finally {
       setOrganizationToDelete(null);
     }
+  };
+  const handleViewLeads = (id: string) => {
+    navigate(`/organizations/${id}/leads`);
   };
 
   return (
@@ -237,6 +242,7 @@ const OrganizationsPage = () => {
           columns={columns({
             onEdit: handleEditOrganization,
             onDelete: handleDeleteOrganization,
+            onViewLeads: handleViewLeads,
           })}
           data={filteredOrganizations}
           name="Organizations"

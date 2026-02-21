@@ -25,6 +25,7 @@ import "./app.css";
 import { ThemeProvider } from "./components/common/theme-provider";
 import LeadDetailsPage from "./pages/leadDetailsPage";
 import LandingPage from "./pages/landingPage";
+import OrganizationLeadsPage from "./pages/organizationLeadsPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -133,6 +134,10 @@ function AppRoutes() {
                     <Route
                       path="/organizations"
                       element={<OrganizationsPage />}
+                    />
+                    <Route
+                      path="/organizations/:id/leads"
+                      element={<OrganizationLeadsPage />}
                     />
                     <Route
                       path="/deals"
