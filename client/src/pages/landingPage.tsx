@@ -1,78 +1,162 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ArrowRight, Check, Github, ExternalLink } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  Github,
+  Users,
+  Building2,
+  DollarSign,
+  BarChart3,
+  Phone,
+  MessageSquare,
+  ShieldCheck,
+  Zap,
+  Globe,
+  ChevronRight,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+
+const features = [
+  {
+    icon: Users,
+    title: "Lead Management",
+    description:
+      "Track and qualify leads through your sales funnel with rich profiles, scoring, and status tracking.",
+  },
+  {
+    icon: DollarSign,
+    title: "Deal Pipeline",
+    description:
+      "Move deals from prospecting to close with stage-based tracking and deal value management.",
+  },
+  {
+    icon: Building2,
+    title: "Organization Tracking",
+    description:
+      "Maintain detailed company profiles with industry, size, website, and linked leads.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Multi-Tenant & RBAC",
+    description:
+      "Isolated workspaces per tenant with role-based access — user, admin, and super admin.",
+  },
+  {
+    icon: Phone,
+    title: "Call Logs",
+    description:
+      "Log incoming and outgoing calls with status, duration, and notes for complete history.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Comments & Activity",
+    description:
+      "Attach comments to leads and keep a full audit trail of every customer interaction.",
+  },
+  {
+    icon: BarChart3,
+    title: "Analytics Dashboard",
+    description:
+      "Real-time metrics on leads, deals, conversion rates, and campaign performance.",
+  },
+  {
+    icon: Zap,
+    title: "Bulk Operations",
+    description:
+      "Create or update hundreds of leads, deals, and organizations in a single transactional request.",
+  },
+  {
+    icon: Globe,
+    title: "Offline Support",
+    description:
+      "Queue actions when offline and auto-sync when your connection is restored.",
+  },
+];
+
+const stats = [
+  { label: "Entities Managed", value: "Leads & Deals" },
+  { label: "Access Control", value: "Role-Based" },
+  { label: "Architecture", value: "Multi-Tenant" },
+  { label: "Data Ops", value: "Bulk + Transactional" },
+];
 
 export default function LandingPage() {
-  const [scrollY, setScrollY] = useState(0);
   const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY);
+    const handleScroll = () => setScrolled(window.scrollY > 16);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  const features = [
-    {
-      title: "Lead Management",
-      description:
-        "Track and nurture leads through your sales funnel with comprehensive lead tracking and qualification",
-    },
-    {
-      title: "Deal Pipeline",
-      description:
-        "Manage deals from prospect to close with visual pipeline tracking and automated workflows",
-    },
-    {
-      title: "Organization Tracking",
-      description: "Maintain detailed profiles of companies and organizations you work with",
-    },
-    {
-      title: "Multi-Tenant Support",
-      description: "Secure, isolated workspaces for multiple teams or clients with role-based access control",
-    },
-    {
-      title: "Call & Activity Logs",
-      description:
-        "Record calls, comments, and activities to maintain complete customer interaction history",
-    },
-    {
-      title: "Analytics Dashboard",
-      description: "Real-time insights and metrics to track performance and make data-driven decisions",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md z-50 border-b border-neutral-200">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: "var(--background)",
+        color: "var(--foreground)",
+      }}
+    >
+      {/* ── Navbar ── */}
+      <nav
+        className="fixed top-0 w-full z-50 transition-all duration-300"
+        style={{
+          backgroundColor: scrolled
+            ? "color-mix(in srgb, var(--card) 90%, transparent)"
+            : "transparent",
+          backdropFilter: scrolled ? "blur(12px)" : "none",
+          borderBottom: scrolled
+            ? "1px solid var(--border)"
+            : "1px solid transparent",
+        }}
+      >
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+          {/* Logo */}
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-neutral-900 rounded" />
-            <span className="font-semibold text-neutral-900">CRM Pro</span>
+            <img
+              src="/crm.png"
+              alt="Campaign Flux"
+              className="h-7"
+            />
+            <span
+              className="font-semibold text-lg"
+              style={{ fontFamily: "var(--font-sans)" }}
+            >
+              Campaign Flux
+            </span>
           </div>
-          <div className="flex items-center gap-4">
+
+          {/* Actions */}
+          <div className="flex items-center gap-3">
             <a
               href="https://github.com/Vakacharla-Lokesh/CRM"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-neutral-600 hover:text-neutral-900 transition-colors"
+              className="p-2 rounded-lg transition-colors hover:opacity-70"
+              style={{ color: "var(--muted-foreground)" }}
+              aria-label="GitHub"
             >
               <Github size={20} />
             </a>
-            <Button 
+            <Button
               variant="outline"
-              onClick={() => navigate('/login')}
-              className="border-neutral-300 hover:bg-neutral-50"
+              onClick={() => navigate("/login")}
+              style={{ borderColor: "var(--border)" }}
             >
               Login
             </Button>
-            <Button 
-              onClick={() => navigate('/signup')}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white"
+            <Button
+              onClick={() => navigate("/signup")}
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
               Get Started
             </Button>
@@ -80,160 +164,204 @@ export default function LandingPage() {
         </div>
       </nav>
 
-      {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="max-w-4xl mx-auto text-center">
-          <div
-            className="inline-block mb-6 px-3 py-1 border border-neutral-200 rounded-full text-sm text-neutral-600 backdrop-blur-sm"
+      {/* ── Hero ── */}
+      <section className="pt-40 pb-28 px-6 text-center">
+        <div className="max-w-4xl mx-auto">
+          <Badge
+            className="mb-6 px-4 py-1.5 text-sm font-medium rounded-full"
             style={{
-              opacity: 1 - scrollY / 500,
-              transform: `translateY(${scrollY * 0.3}px)`,
+              backgroundColor: "var(--accent)",
+              color: "var(--accent-foreground)",
+              border: "none",
             }}
           >
-            Open-source CRM for modern teams
-          </div>
+            CRM built for modern sales teams
+          </Badge>
 
           <h1
-            className="text-6xl md:text-7xl font-light text-neutral-900 mb-6 leading-tight tracking-tight"
-            style={{
-              opacity: 1 - scrollY / 500,
-              transform: `translateY(${scrollY * 0.2}px)`,
-            }}
+            className="text-5xl md:text-7xl font-bold leading-tight mb-6"
+            style={{ fontFamily: "var(--font-sans)", letterSpacing: "-0.02em" }}
           >
-            Manage relationships,{" "}
-            <span className="relative">
-              <span className="absolute inset-0 bg-neutral-100 -z-10 rounded" />
-              grow revenue
-            </span>
+            Manage your{" "}
+            <span style={{ color: "var(--primary)" }}>entire pipeline</span>
+            <br />
+            in one place
           </h1>
 
           <p
-            className="text-xl text-neutral-600 mb-8 max-w-2xl mx-auto leading-relaxed"
-            style={{
-              opacity: 1 - scrollY / 500,
-              transform: `translateY(${scrollY * 0.15}px)`,
-            }}
+            className="text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed"
+            style={{ color: "var(--muted-foreground)" }}
           >
-            A lightweight, open-source CRM built for teams that want to move
-            fast. No enterprise bloat. Just powerful customer relationship
-            management.
+            Campaign Flux brings together lead tracking, deal management,
+            organization profiles, call logs, and real-time analytics — all
+            under a secure multi-tenant architecture.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button 
-              onClick={() => navigate('/signup')}
-              className="bg-neutral-900 hover:bg-neutral-800 text-white h-12 px-8 text-base gap-2"
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              onClick={() => navigate("/signup")}
+              className="h-12 px-8 text-base gap-2"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
-              Start Free <ArrowRight size={18} />
+              Start for free <ArrowRight size={18} />
             </Button>
             <Button
-              onClick={() => navigate('/login')}
+              size="lg"
               variant="outline"
+              onClick={() => navigate("/login")}
               className="h-12 px-8 text-base"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
             >
-              Login to Dashboard
+              Sign in <ChevronRight size={18} />
             </Button>
-          </div>
-
-          <div className="relative w-full h-80 md:h-96 bg-gradient-to-b from-neutral-50 to-white rounded-lg border border-neutral-200 overflow-hidden">
-            <div className="absolute inset-0 flex items-center justify-center text-neutral-400">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-neutral-100 rounded-lg mx-auto mb-4" />
-                <p className="text-sm">Dashboard Preview</p>
-              </div>
-            </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
-      <section className="py-24 px-6 bg-neutral-50">
+      {/* ── Stats strip ── */}
+      <section
+        className="py-12 px-6"
+        style={{ backgroundColor: "var(--card)" }}
+      >
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <div
+                className="text-2xl font-bold mb-1"
+                style={{
+                  color: "var(--primary)",
+                  fontFamily: "var(--font-sans)",
+                }}
+              >
+                {s.value}
+              </div>
+              <div
+                className="text-sm"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                {s.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Separator style={{ backgroundColor: "var(--border)" }} />
+
+      {/* ── Features ── */}
+      <section className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-20">
-            <h2 className="text-4xl md:text-5xl font-light text-neutral-900 mb-4">
-              Everything you need
+          <div className="text-center mb-16">
+            <h2
+              className="text-4xl md:text-5xl font-bold mb-4"
+              style={{
+                fontFamily: "var(--font-sans)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Everything your sales team needs
             </h2>
-            <p className="text-lg text-neutral-600">
-              Purpose-built features for CRM success
+            <p
+              className="text-lg"
+              style={{ color: "var(--muted-foreground)" }}
+            >
+              Purpose-built features — no bloat, no fluff.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="p-8 bg-white rounded-lg border border-neutral-200 hover:border-neutral-300 transition-colors group"
-              >
-                <div className="w-10 h-10 bg-neutral-100 rounded-lg mb-4 group-hover:bg-neutral-900 transition-colors flex items-center justify-center">
-                  <Check
-                    size={20}
-                    className="text-neutral-400 group-hover:text-white transition-colors"
-                  />
-                </div>
-                <h3 className="text-lg font-medium text-neutral-900 mb-3">
-                  {feature.title}
-                </h3>
-                <p className="text-neutral-600 leading-relaxed">
-                  {feature.description}
-                </p>
-              </div>
-            ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature) => {
+              const Icon = feature.icon;
+              return (
+                <Card
+                  key={feature.title}
+                  className="group transition-all duration-200 hover:shadow-md border"
+                  style={{
+                    backgroundColor: "var(--card)",
+                    borderColor: "var(--border)",
+                    borderRadius: "var(--radius-lg)",
+                  }}
+                >
+                  <CardHeader className="pb-3">
+                    <div
+                      className="w-10 h-10 rounded-xl flex items-center justify-center mb-3 transition-colors duration-200 group-hover:opacity-90"
+                      style={{ backgroundColor: "var(--accent)" }}
+                    >
+                      <Icon
+                        size={20}
+                        style={{ color: "var(--primary)" }}
+                      />
+                    </div>
+                    <CardTitle
+                      className="text-base font-semibold"
+                      style={{ color: "var(--card-foreground)" }}
+                    >
+                      {feature.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{ color: "var(--muted-foreground)" }}
+                    >
+                      {feature.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 text-center">
-            <div>
-              <div className="text-4xl font-light text-neutral-900 mb-2">
-                Leads
-              </div>
-              <p className="text-neutral-600">Management</p>
-            </div>
-            <div>
-              <div className="text-4xl font-light text-neutral-900 mb-2">
-                Deals
-              </div>
-              <p className="text-neutral-600">Pipeline Tracking</p>
-            </div>
-            <div>
-              <div className="text-4xl font-light text-neutral-900 mb-2">
-                Multi
-              </div>
-              <p className="text-neutral-600">Tenant Support</p>
-            </div>
-            <div>
-              <div className="text-4xl font-light text-neutral-900 mb-2">
-                Real-time
-              </div>
-              <p className="text-neutral-600">Analytics</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Separator style={{ backgroundColor: "var(--border)" }} />
 
-      {/* CTA Section */}
-      <section className="py-24 px-6 bg-neutral-900 text-white">
-        <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-5xl md:text-6xl font-light mb-6 leading-tight">
-            Ready to transform your sales?
+      {/* ── CTA ── */}
+      <section
+        className="py-28 px-6 text-center"
+        style={{ backgroundColor: "var(--card)" }}
+      >
+        <div className="max-w-3xl mx-auto">
+          <h2
+            className="text-4xl md:text-5xl font-bold mb-6"
+            style={{ fontFamily: "var(--font-sans)", letterSpacing: "-0.02em" }}
+          >
+            Ready to take control of your pipeline?
           </h2>
-          <p className="text-xl text-neutral-300 mb-8 max-w-2xl mx-auto">
-            Start managing leads, deals, and organizations more effectively today.
+          <p
+            className="text-lg mb-10"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            Join Campaign Flux today and start converting more leads into deals.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button 
-              onClick={() => navigate('/signup')}
-              className="bg-white hover:bg-neutral-100 text-neutral-900 h-12 px-8 text-base gap-2"
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              size="lg"
+              onClick={() => navigate("/signup")}
+              className="h-12 px-10 text-base gap-2"
+              style={{
+                backgroundColor: "var(--primary)",
+                color: "var(--primary-foreground)",
+              }}
             >
-              Get Started Free <ArrowRight size={18} />
+              Create your account <ArrowRight size={18} />
             </Button>
-            <Button 
-              onClick={() => navigate('/login')}
+            <Button
+              size="lg"
               variant="outline"
-              className="border-white text-white hover:bg-white/10 h-12 px-8 text-base"
+              onClick={() => navigate("/login")}
+              className="h-12 px-10 text-base"
+              style={{
+                borderColor: "var(--border)",
+                color: "var(--foreground)",
+              }}
             >
               Login
             </Button>
@@ -241,153 +369,43 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-neutral-200 py-12 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="grid md:grid-cols-4 gap-12 mb-12">
-            <div>
-              <h3 className="font-semibold text-neutral-900 mb-4">Product</h3>
-              <ul className="space-y-3 text-neutral-600 text-sm">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Features
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Documentation
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-neutral-900 mb-4">Company</h3>
-              <ul className="space-y-3 text-neutral-600 text-sm">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    About
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Blog
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Careers
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-neutral-900 mb-4">Resources</h3>
-              <ul className="space-y-3 text-neutral-600 text-sm">
-                <li>
-                  <a
-                    href="https://github.com/Vakacharla-Lokesh/CRM"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    GitHub
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Community
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Contact
-                  </a>
-                </li>
-              </ul>
-            </div>
-            <div>
-              <h3 className="font-semibold text-neutral-900 mb-4">Legal</h3>
-              <ul className="space-y-3 text-neutral-600 text-sm">
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Privacy
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    Terms
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="#"
-                    className="hover:text-neutral-900 transition-colors"
-                  >
-                    License
-                  </a>
-                </li>
-              </ul>
-            </div>
+      {/* ── Footer ── */}
+      <footer
+        className="py-10 px-6"
+        style={{
+          borderTop: "1px solid var(--border)",
+          backgroundColor: "var(--background)",
+        }}
+      >
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <img
+              src="/crm.png"
+              alt="Campaign Flux"
+              className="h-5"
+            />
+            <span
+              className="text-sm font-medium"
+              style={{ color: "var(--foreground)" }}
+            >
+              Campaign Flux
+            </span>
           </div>
-
-          <div className="border-t border-neutral-200 pt-8 flex flex-col md:flex-row items-center justify-between text-sm text-neutral-600">
-            <p>&copy; 2024 CRM Pro. All rights reserved.</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <a
-                href="https://github.com/Vakacharla-Lokesh/CRM"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-neutral-900 transition-colors flex items-center gap-2"
-              >
-                <Github size={16} /> GitHub
-              </a>
-              <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  navigate('/login');
-                }}
-                className="hover:text-neutral-900 transition-colors flex items-center gap-2"
-              >
-                <ExternalLink size={16} /> Login
-              </a>
-            </div>
-          </div>
+          <p
+            className="text-sm"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            Built with MongoDB Atlas · React · Node.js
+          </p>
+          <a
+            href="https://github.com/Vakacharla-Lokesh/CRM"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 text-sm transition-opacity hover:opacity-70"
+            style={{ color: "var(--muted-foreground)" }}
+          >
+            <Github size={15} /> View on GitHub
+          </a>
         </div>
       </footer>
     </div>

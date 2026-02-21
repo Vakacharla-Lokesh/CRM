@@ -51,3 +51,20 @@ export const API = {
 };
 
 export default API;
+
+export type {
+  DashboardStats,
+  DashboardChanges,
+  DashboardPeriod,
+} from "./analytics.api";
+
+export type {
+  LeadTrendDay,
+  LeadStatusEntry,
+  ScoreBucket,
+  DealPipelineStage,
+  DealPipelineSummary,
+  DealPipelineMonthlyTrend,
+  OrgIndustryStat,
+  TopOrganization,
+} from "./analytics.api";
