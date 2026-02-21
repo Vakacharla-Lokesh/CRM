@@ -15,7 +15,10 @@ export const leadsAPI = {
     userId?: string;
     search?: string;
   }) => {
-    const response = await get<{ count: number; leads: Lead[] }>("/leads", params);
+    const response = await get<{ count: number; leads: Lead[] }>(
+      "/leads",
+      params,
+    );
     return {
       leads: response.leads,
       total: response.count,
@@ -30,12 +33,18 @@ export const leadsAPI = {
   },
 
   create: async (data: CreateLeadDTO) => {
-    const response = await post<{ message: string; lead: Lead }>("/leads", data);
+    const response = await post<{ message: string; lead: Lead }>(
+      "/leads",
+      data,
+    );
     return response.lead;
   },
 
   update: async (id: string, data: UpdateLeadDTO) => {
-    const response = await put<{ message: string; lead: Lead }>(`/leads/${id}`, data);
+    const response = await put<{ message: string; lead: Lead }>(
+      `/leads/${id}`,
+      data,
+    );
     return response.lead;
   },
 
@@ -54,4 +63,9 @@ export const leadsAPI = {
 
   getActivity: (leadId: string, params?: { page?: number; limit?: number }) =>
     get(`/leads/${leadId}/activity`, params),
+
+  getByOrganization: async (organizationId: string) =>
+    get<{ count: number; leads: Lead[] }>(
+      `/leads/organization/${organizationId}`,
+    ),
 };

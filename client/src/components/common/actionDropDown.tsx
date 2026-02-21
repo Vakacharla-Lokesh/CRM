@@ -16,6 +16,7 @@ interface ActionDropdownProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onViewUsers?: (id: string) => void; // Optional: for tenants to view associated users
+  viewUsersLabel?: string; // <-- ADD THIS
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
@@ -24,6 +25,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   onEdit,
   onDelete,
   onViewUsers,
+  viewUsersLabel = "View Users",
 }) => {
   const handleCopy = async () => {
     await navigator.clipboard.writeText(id);
@@ -55,7 +57,7 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
             className="flex items-center gap-2"
           >
             <Eye className="w-4 h-4" />
-            View Users
+            {viewUsersLabel}
           </DropdownMenuItem>
         )}
 
