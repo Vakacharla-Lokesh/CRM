@@ -1,56 +1,102 @@
-import { Users, Megaphone, TrendingUp, DollarSign, TrendingDown, Building2 } from "lucide-react";
+import {
+  Users,
+  Megaphone,
+  TrendingUp,
+  DollarSign,
+  TrendingDown,
+  Building2,
+} from "lucide-react";
 import StatCard from "../components/common/statCard";
 import { useDashboardStats, useAnalyticsData } from "../hooks";
 import { Progress } from "../components/ui/progress";
+import { SkeletonRows } from "@/components/dashboard/skeletonRow";
+import { EmptyState } from "@/components/dashboard/emptyState";
+import { ProgressRow } from "@/components/dashboard/progressRow";
 
 function DashboardPage() {
   const { stats, changes, loading, error } = useDashboardStats();
-  const { leadTrends, organizationStats, loading: analyticsLoading } = useAnalyticsData(30);
 
-  // Transform data for progress bars
-  const leadTrendData = leadTrends
-    .map((trend) => ({
-      date: new Date(trend._id).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      leads: trend.count,
-    }))
-    .slice(-10); // Show last 10 days
+  const {
+    leadTrends,
+    leadStatusBreakdown,
+    organizationStats,
+    dealPipeline,
+    dealPipelineSummary,
+    loading: analyticsLoading,
+  } = useAnalyticsData(30);
 
-  const maxLeads = Math.max(...leadTrendData.map(d => d.leads), 1);
-
-  const orgStatsData = organizationStats.map((stat) => ({
-    industry: stat.industry,
-    organizations: stat.organizationCount,
-    leads: stat.leadCount,
-    converted: stat.convertedLeads,
+  // ── Lead trend display data (last 10 days) ─────────────────────────────────
+  // New shape: { date, total, byStatus[] }
+  const leadTrendData = leadTrends.slice(-10).map((t) => ({
+    date: new Date(t.date).toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    }),
+    leads: t.total,
   }));
 
-  const maxOrgCount = Math.max(...orgStatsData.map(d => d.organizations), 1);
-  const maxLeadCount = Math.max(...orgStatsData.map(d => d.leads), 1);
-  const maxConvertedCount = Math.max(...orgStatsData.map(d => d.converted), 1);
+  const maxLeads = Math.max(...leadTrendData.map((d) => d.leads), 1);
+
+  // ── Org stats display data ─────────────────────────────────────────────────
+  // New shape: { industry, organizationCount, totalLeads, convertedLeads, conversionRate }
+  const orgStatsData = organizationStats.map((s) => ({
+    industry: s.industry ?? "Unknown",
+    organizations: s.organizationCount,
+    leads: s.totalLeads, // was leadCount, now totalLeads
+    converted: s.convertedLeads,
+    conversionRate: s.conversionRate,
+  }));
+
+  const maxOrgCount = Math.max(...orgStatsData.map((d) => d.organizations), 1);
+  const maxLeadCount = Math.max(...orgStatsData.map((d) => d.leads), 1);
+  const maxConvertedCount = Math.max(
+    ...orgStatsData.map((d) => d.converted),
+    1,
+  );
+
+  // ── Deal pipeline display data ─────────────────────────────────────────────
+  const maxDealValue = Math.max(...dealPipeline.map((d) => d.totalValue), 1);
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+          <h1
+            className="text-3xl font-bold"
+            style={{
+              color: "var(--foreground)",
+              fontFamily: "var(--font-sans)",
+            }}
+          >
             Dashboard
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
+          <p
+            className="mt-1 text-sm"
+            style={{ color: "var(--muted-foreground)" }}
+          >
             Welcome back! Here's your marketing overview.
           </p>
         </div>
       </div>
 
-      {/* Error Message */}
+      {/* Error */}
       {error && (
-        <div className="bg-red-100 dark:bg-red-900/30 border border-red-400 dark:border-red-500 text-red-700 dark:text-red-400 px-4 py-3 rounded">
+        <div
+          className="px-4 py-3 rounded-lg border text-sm"
+          style={{
+            backgroundColor:
+              "color-mix(in srgb, var(--destructive) 10%, transparent)",
+            borderColor: "var(--destructive)",
+            color: "var(--destructive)",
+          }}
+        >
           <p className="font-medium">Error loading dashboard stats</p>
-          <p className="text-sm">{error}</p>
+          <p className="opacity-80">{error}</p>
         </div>
       )}
 
-      {/* Stats Grid */}
+      {/* ── Stat Cards ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Users size={32} />}
@@ -62,7 +108,7 @@ function DashboardPage() {
         <StatCard
           icon={<Megaphone size={32} />}
           label="Active Campaigns"
-          value={loading ? "..." : stats.activeCampaigns}
+          value={loading ? "..." : stats.activeCampaigns.toString()}
           change={`${changes.campaignsChange >= 0 ? "+" : ""}${changes.campaignsChange.toFixed(1)}%`}
           trend={changes.campaignsChange >= 0 ? "up" : "down"}
         />
@@ -76,58 +122,95 @@ function DashboardPage() {
         <StatCard
           icon={<DollarSign size={32} />}
           label="Revenue"
-          value={loading ? "..." : `$${(stats.revenue / 1000).toFixed(1)}K`}
+          value={
+            loading
+              ? "..."
+              : stats.revenue >= 1000
+                ? `$${(stats.revenue / 1000).toFixed(1)}K`
+                : `$${stats.revenue.toLocaleString()}`
+          }
           change={`${changes.revenueChange >= 0 ? "+" : ""}${changes.revenueChange.toFixed(1)}%`}
           trend={changes.revenueChange >= 0 ? "up" : "down"}
         />
       </div>
 
-      {/* Analytics Section */}
+      {/* ── Analytics Row 1: Lead Trends + Deal Pipeline ─────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Lead Trends */}
-        <div className="rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
+        <div
+          className="rounded-xl p-6 border"
+          style={{
+            backgroundColor: "var(--card)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <TrendingUp className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+            <div
+              className="p-2 rounded-lg"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
+              }}
+            >
+              <TrendingUp
+                className="w-5 h-5"
+                style={{ color: "var(--primary)" }}
+              />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h2
+                className="text-base font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
                 Lead Trends
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Last 10 days activity</p>
+              <p
+                className="text-xs"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                Last 10 days activity
+              </p>
             </div>
           </div>
+
           {analyticsLoading ? (
-            <div className="space-y-4">
-              {[...Array(5)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
-                </div>
-              ))}
-            </div>
+            <SkeletonRows count={5} />
           ) : leadTrendData.length === 0 ? (
-            <div className="py-12 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-              <div className="text-center">
-                <TrendingDown className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 font-medium">No data available</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start adding leads to see trends</p>
-              </div>
-            </div>
+            <EmptyState
+              icon={<TrendingDown className="w-12 h-12" />}
+              message="No lead data"
+              sub="Start adding leads to see trends"
+            />
           ) : (
             <div className="space-y-4">
-              {leadTrendData.map((item, index) => (
-                <div key={index} className="space-y-2">
+              {leadTrendData.map((item, i) => (
+                <div
+                  key={i}
+                  className="space-y-1.5"
+                >
                   <div className="flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-700 dark:text-gray-300">{item.date}</span>
-                    <span className="text-indigo-600 dark:text-indigo-400 font-semibold">{item.leads} leads</span>
+                    <span
+                      style={{ color: "var(--foreground)" }}
+                      className="font-medium"
+                    >
+                      {item.date}
+                    </span>
+                    <span
+                      style={{ color: "var(--primary)" }}
+                      className="font-semibold"
+                    >
+                      {item.leads} leads
+                    </span>
                   </div>
-                  <Progress 
-                    value={(item.leads / maxLeads) * 100} 
-                    className="h-2.5 bg-gray-100 dark:bg-gray-700"
-                    style={{
-                      '--progress-background': 'rgb(99, 102, 241)'
-                    } as React.CSSProperties}
+                  <Progress
+                    value={(item.leads / maxLeads) * 100}
+                    className="h-2.5"
+                    style={
+                      {
+                        "--progress-background": "var(--primary)",
+                      } as React.CSSProperties
+                    }
                   />
                 </div>
               ))}
@@ -135,88 +218,310 @@ function DashboardPage() {
           )}
         </div>
 
-        {/* Organization Stats by Industry */}
-        <div className="rounded-xl shadow-lg p-6 border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
-              <Building2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+        {/* Deal Pipeline */}
+        <div
+          className="rounded-xl p-6 border"
+          style={{
+            backgroundColor: "var(--card)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-2">
+            <div
+              className="p-2 rounded-lg"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
+              }}
+            >
+              <DollarSign
+                className="w-5 h-5"
+                style={{ color: "var(--primary)" }}
+              />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                Organizations by Industry
+              <h2
+                className="text-base font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
+                Deal Pipeline
               </h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Performance breakdown</p>
+              <p
+                className="text-xs"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                Value by stage
+              </p>
             </div>
           </div>
+
+          {/* Pipeline summary strip */}
+          {!analyticsLoading && dealPipelineSummary.totalDeals > 0 && (
+            <div
+              className="flex items-center gap-4 mb-5 mt-3 px-3 py-2 rounded-lg text-xs"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--muted) 40%, transparent)",
+                color: "var(--muted-foreground)",
+              }}
+            >
+              <span>
+                <strong style={{ color: "var(--foreground)" }}>
+                  {dealPipelineSummary.totalDeals}
+                </strong>{" "}
+                deals
+              </span>
+              <span>
+                <strong style={{ color: "var(--foreground)" }}>
+                  ${(dealPipelineSummary.totalPipelineValue / 1000).toFixed(1)}K
+                </strong>{" "}
+                total
+              </span>
+              <span>
+                <strong style={{ color: "var(--foreground)" }}>
+                  ${(dealPipelineSummary.avgDealValue / 1000).toFixed(1)}K
+                </strong>{" "}
+                avg
+              </span>
+            </div>
+          )}
+
           {analyticsLoading ? (
-            <div className="space-y-6">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse space-y-2">
-                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3"></div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
-                  <div className="h-2 bg-gray-100 dark:bg-gray-700/50 rounded"></div>
+            <SkeletonRows count={4} />
+          ) : dealPipeline.length === 0 ? (
+            <EmptyState
+              icon={<DollarSign className="w-12 h-12" />}
+              message="No deal data"
+              sub="Start adding deals to see pipeline"
+            />
+          ) : (
+            <div className="space-y-4 mt-2">
+              {dealPipeline.map((stage, i) => (
+                <div
+                  key={i}
+                  className="space-y-1.5"
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <span
+                      style={{ color: "var(--foreground)" }}
+                      className="font-medium"
+                    >
+                      {stage.stage}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        {stage.count} deals
+                      </span>
+                      <span
+                        style={{ color: "var(--primary)" }}
+                        className="font-semibold"
+                      >
+                        ${(stage.totalValue / 1000).toFixed(1)}K
+                      </span>
+                    </div>
+                  </div>
+                  <Progress
+                    value={(stage.totalValue / maxDealValue) * 100}
+                    className="h-2"
+                    style={
+                      {
+                        "--progress-background": "var(--primary)",
+                      } as React.CSSProperties
+                    }
+                  />
                 </div>
               ))}
             </div>
-          ) : orgStatsData.length === 0 ? (
-            <div className="py-12 flex items-center justify-center bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600">
-              <div className="text-center">
-                <Building2 className="w-12 h-12 text-gray-400 dark:text-gray-500 mx-auto mb-3" />
-                <p className="text-gray-500 dark:text-gray-400 font-medium">No data available</p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Start adding organizations to see stats</p>
-              </div>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Lead Status Breakdown */}
+        <div
+          className="rounded-xl p-6 border"
+          style={{
+            backgroundColor: "var(--card)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="p-2 rounded-lg"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
+              }}
+            >
+              <Users
+                className="w-5 h-5"
+                style={{ color: "var(--primary)" }}
+              />
             </div>
+            <div>
+              <h2
+                className="text-base font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
+                Lead Status
+              </h2>
+              <p
+                className="text-xs"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                Last 30 days breakdown
+              </p>
+            </div>
+          </div>
+
+          {analyticsLoading ? (
+            <SkeletonRows count={4} />
+          ) : leadStatusBreakdown.length === 0 ? (
+            <EmptyState
+              icon={<Users className="w-12 h-12" />}
+              message="No status data"
+              sub="Start adding leads to see breakdown"
+            />
+          ) : (
+            <div className="space-y-4">
+              {leadStatusBreakdown.map((item, i) => (
+                <div
+                  key={i}
+                  className="space-y-1.5"
+                >
+                  <div className="flex items-center justify-between text-sm">
+                    <span
+                      className="font-medium"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {item.status}
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="text-xs"
+                        style={{ color: "var(--muted-foreground)" }}
+                      >
+                        {item.percentage}%
+                      </span>
+                      <span
+                        className="font-semibold"
+                        style={{ color: "var(--primary)" }}
+                      >
+                        {item.count}
+                      </span>
+                    </div>
+                  </div>
+                  <Progress
+                    value={item.percentage}
+                    className="h-2"
+                    style={
+                      {
+                        "--progress-background": "var(--primary)",
+                      } as React.CSSProperties
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Organizations by Industry */}
+        <div
+          className="rounded-xl p-6 border"
+          style={{
+            backgroundColor: "var(--card)",
+            borderColor: "var(--border)",
+            boxShadow: "var(--shadow-sm)",
+          }}
+        >
+          <div className="flex items-center gap-3 mb-6">
+            <div
+              className="p-2 rounded-lg"
+              style={{
+                backgroundColor:
+                  "color-mix(in srgb, var(--primary) 12%, transparent)",
+              }}
+            >
+              <Building2
+                className="w-5 h-5"
+                style={{ color: "var(--primary)" }}
+              />
+            </div>
+            <div>
+              <h2
+                className="text-base font-semibold"
+                style={{ color: "var(--foreground)" }}
+              >
+                Organizations by Industry
+              </h2>
+              <p
+                className="text-xs"
+                style={{ color: "var(--muted-foreground)" }}
+              >
+                Performance breakdown
+              </p>
+            </div>
+          </div>
+
+          {analyticsLoading ? (
+            <SkeletonRows
+              count={3}
+              taller
+            />
+          ) : orgStatsData.length === 0 ? (
+            <EmptyState
+              icon={<Building2 className="w-12 h-12" />}
+              message="No org data"
+              sub="Start adding organizations to see stats"
+            />
           ) : (
             <div className="space-y-6">
-              {orgStatsData.map((item, index) => (
-                <div key={index} className="space-y-3">
-                  <h3 className="font-semibold text-gray-900 dark:text-white capitalize">{item.industry}</h3>
-                  
-                  {/* Organizations Progress */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600 dark:text-gray-400">Organizations</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.organizations}</span>
-                    </div>
-                    <Progress 
-                      value={(item.organizations / maxOrgCount) * 100} 
-                      className="h-2 bg-gray-100 dark:bg-gray-700"
+              {orgStatsData.map((item, i) => (
+                <div
+                  key={i}
+                  className="space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <h3
+                      className="font-semibold text-sm capitalize"
+                      style={{ color: "var(--foreground)" }}
+                    >
+                      {item.industry}
+                    </h3>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full"
                       style={{
-                        '--progress-background': 'rgb(99, 102, 241)'
-                      } as React.CSSProperties}
-                    />
+                        backgroundColor:
+                          "color-mix(in srgb, var(--primary) 12%, transparent)",
+                        color: "var(--primary)",
+                      }}
+                    >
+                      {item.conversionRate}% converted
+                    </span>
                   </div>
 
-                  {/* Leads Progress */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600 dark:text-gray-400">Leads</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.leads}</span>
-                    </div>
-                    <Progress 
-                      value={(item.leads / maxLeadCount) * 100} 
-                      className="h-2 bg-gray-100 dark:bg-gray-700"
-                      style={{
-                        '--progress-background': 'rgb(79, 70, 229)'
-                      } as React.CSSProperties}
-                    />
-                  </div>
-
-                  {/* Converted Progress */}
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-gray-600 dark:text-gray-400">Converted</span>
-                      <span className="font-medium text-gray-900 dark:text-gray-100">{item.converted}</span>
-                    </div>
-                    <Progress 
-                      value={(item.converted / maxConvertedCount) * 100} 
-                      className="h-2 bg-gray-100 dark:bg-gray-700"
-                      style={{
-                        '--progress-background': 'rgb(67, 56, 202)'
-                      } as React.CSSProperties}
-                    />
-                  </div>
+                  <ProgressRow
+                    label="Organizations"
+                    value={item.organizations}
+                    max={maxOrgCount}
+                  />
+                  <ProgressRow
+                    label="Leads"
+                    value={item.leads}
+                    max={maxLeadCount}
+                  />
+                  <ProgressRow
+                    label="Converted"
+                    value={item.converted}
+                    max={maxConvertedCount}
+                    dimmed
+                  />
                 </div>
               ))}
             </div>
@@ -226,5 +531,7 @@ function DashboardPage() {
     </div>
   );
 }
+
+// ── Small reusable sub-components ─────────────────────────────────────────────
 
 export default DashboardPage;

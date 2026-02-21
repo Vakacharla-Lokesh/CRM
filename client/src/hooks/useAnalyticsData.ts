@@ -1,29 +1,66 @@
 import { useState, useEffect, useCallback } from "react";
 import { analyticsAPI } from "../services";
+import type {
+  LeadTrendDay,
+  LeadStatusEntry,
+  ScoreBucket,
+  DealPipelineStage,
+  DealPipelineSummary,
+  DealPipelineMonthlyTrend,
+  DealTrendDay,
+  OrgIndustryStat,
+  TopOrganization,
+} from "../services/api/analytics.api";
 
-interface LeadTrend {
-  _id: string;
-  count: number;
+interface UseAnalyticsDataReturn {
+  // Leads
+  leadTrends: LeadTrendDay[];
+  leadStatusBreakdown: LeadStatusEntry[];
+  leadScoreDistribution: ScoreBucket[];
+  // Deals
+  dealPipeline: DealPipelineStage[];
+  dealPipelineSummary: DealPipelineSummary;
+  dealPipelineMonthlyTrends: DealPipelineMonthlyTrend[];
+  dealTrends: DealTrendDay[];
+  // Orgs
+  organizationStats: OrgIndustryStat[];
+  topOrganizations: TopOrganization[];
+  // Meta
+  loading: boolean;
+  error: string | null;
+  refreshData: () => void;
 }
 
-interface LeadStatusBreakdown {
-  _id: string;
-  count: number;
-}
+const defaultPipelineSummary: DealPipelineSummary = {
+  totalPipelineValue: 0,
+  totalDeals: 0,
+  avgDealValue: 0,
+};
 
-interface OrganizationStat {
-  industry: string;
-  organizationCount: number;
-  leadCount: number;
-  convertedLeads: number;
-  totalSize: number;
-  avgSize: number;
-}
+export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
+  const [leadTrends, setLeadTrends] = useState<LeadTrendDay[]>([]);
+  const [leadStatusBreakdown, setLeadStatusBreakdown] = useState<
+    LeadStatusEntry[]
+  >([]);
+  const [leadScoreDistribution, setLeadScoreDistribution] = useState<
+    ScoreBucket[]
+  >([]);
 
-export const useAnalyticsData = (days: number = 30) => {
-  const [leadTrends, setLeadTrends] = useState<LeadTrend[]>([]);
-  const [leadStatusBreakdown, setLeadStatusBreakdown] = useState<LeadStatusBreakdown[]>([]);
-  const [organizationStats, setOrganizationStats] = useState<OrganizationStat[]>([]);
+  const [dealPipeline, setDealPipeline] = useState<DealPipelineStage[]>([]);
+  const [dealPipelineSummary, setDealPipelineSummary] =
+    useState<DealPipelineSummary>(defaultPipelineSummary);
+  const [dealPipelineMonthlyTrends, setDealPipelineMonthlyTrends] = useState<
+    DealPipelineMonthlyTrend[]
+  >([]);
+  const [dealTrends, setDealTrends] = useState<DealTrendDay[]>([]);
+
+  const [organizationStats, setOrganizationStats] = useState<OrgIndustryStat[]>(
+    [],
+  );
+  const [topOrganizations, setTopOrganizations] = useState<TopOrganization[]>(
+    [],
+  );
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -32,26 +69,40 @@ export const useAnalyticsData = (days: number = 30) => {
       setLoading(true);
       setError(null);
 
-      const [trendsResponse, statusResponse, orgResponse] = await Promise.all([
+      const [
+        trendsRes,
+        statusRes,
+        scoreRes,
+        pipelineRes,
+        dealTrendsRes,
+        orgStatsRes,
+        topOrgsRes,
+      ] = await Promise.all([
         analyticsAPI.leadTrends({ days }),
         analyticsAPI.leadStatusBreakdown({ days }),
+        analyticsAPI.leadScoreDistribution(),
+        analyticsAPI.dealPipeline(),
+        analyticsAPI.dealTrends({ days }),
         analyticsAPI.organizationStats(),
+        analyticsAPI.topOrganizations({ limit: 10 }),
       ]);
 
-      if (trendsResponse && typeof trendsResponse === 'object' && 'trends' in trendsResponse) {
-        setLeadTrends(trendsResponse.trends as LeadTrend[]);
-      }
+      setLeadTrends(trendsRes.trends);
+      setLeadStatusBreakdown(statusRes.breakdown);
+      setLeadScoreDistribution(scoreRes.distribution);
 
-      if (statusResponse && typeof statusResponse === 'object' && 'breakdown' in statusResponse) {
-        setLeadStatusBreakdown(statusResponse.breakdown as LeadStatusBreakdown[]);
-      }
+      setDealPipeline(pipelineRes.pipeline);
+      setDealPipelineSummary(pipelineRes.summary);
+      setDealPipelineMonthlyTrends(pipelineRes.trends);
+      setDealTrends(dealTrendsRes.trends);
 
-      if (orgResponse && typeof orgResponse === 'object' && 'stats' in orgResponse) {
-        setOrganizationStats(orgResponse.stats as OrganizationStat[]);
-      }
+      setOrganizationStats(orgStatsRes.stats);
+      setTopOrganizations(topOrgsRes.organizations);
     } catch (err) {
       console.error("Error fetching analytics data:", err);
-      setError(err instanceof Error ? err.message : "Failed to fetch analytics data");
+      setError(
+        err instanceof Error ? err.message : "Failed to fetch analytics data",
+      );
     } finally {
       setLoading(false);
     }
@@ -68,7 +119,13 @@ export const useAnalyticsData = (days: number = 30) => {
   return {
     leadTrends,
     leadStatusBreakdown,
+    leadScoreDistribution,
+    dealPipeline,
+    dealPipelineSummary,
+    dealPipelineMonthlyTrends,
+    dealTrends,
     organizationStats,
+    topOrganizations,
     loading,
     error,
     refreshData,
