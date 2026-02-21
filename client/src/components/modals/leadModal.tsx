@@ -19,14 +19,14 @@ import { FormField, FormSelect } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
 import { OrganizationSection } from "./sections";
 
-import {
-  LEAD_SOURCES,
-  LEAD_STATUSES,
-} from "@/types/form-interfaces";
+import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
+import { useAppContext } from "@/context/AppContext";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
+
+  const { user } = useAppContext();
 
   const [formData, setFormData] = useState<LeadFormData>({
     leadFirstName: "",
@@ -129,7 +129,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
 
       if (
         newOrgData.organizationSize < 1 ||
-        newOrgData.organizationSize > 10000000
+        newOrgData.organizationSize > 1_00_00_000
       ) {
         newErrors.organizationSize =
           "Organization size must be between 1 and 10,000,000";
@@ -164,7 +164,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           organizationWebsite: newOrgData.organizationWebsite,
           organizationSize: newOrgData.organizationSize,
           organizationIndustry: newOrgData.organizationIndustry,
-          tenantId: "tenant-1",
+          tenantId: user?.tenantId || "tenant-1",
         };
 
         const newOrg =
@@ -179,7 +179,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         leadSource: formData.leadSource,
         leadStatus: formData.leadStatus,
         organizationId: organizationId || undefined,
-        tenantId: "tenant-1",
+        tenantId: user?.tenantId || "tenant-1",
       };
 
       await onSave(leadData);

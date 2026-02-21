@@ -16,6 +16,7 @@ import callRoutes from "../routes/callRoutes.js";
 import commentRoutes from "../routes/commentRoutes.js";
 import attachmentRoutes from "../routes/attachmentRoutes.js";
 import analyticsRoutes from "../routes/analyticsRoutes.js";
+import bulkRoutes from "../routes/bulkRoutes.js";
 
 // MIDDLEWARES
 import { errorHandler, notFound } from "../middlewares/errorHandler.js";
@@ -60,6 +61,7 @@ app.use("/api/calls", callRoutes);
 app.use("/api/comments", commentRoutes);
 app.use("/api/attachments", attachmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/bulk", bulkRoutes);
 
 // ERROR HANDLING
 app.use(notFound);

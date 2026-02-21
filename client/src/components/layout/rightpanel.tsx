@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/static-components */
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   Radio,
   RefreshCw,
@@ -10,12 +9,15 @@ import {
   BarChart2,
   Search,
   Zap,
+  WifiOff,
+  Wifi,
 } from "lucide-react";
 import ConnectivityLEDs from "../common/connectivityLEDs";
 import SyncBadge from "../common/syncBadge";
 import MemoryVisualizer from "../common/memoryVisualizer";
 import WorkerStatus from "../common/workerStatus";
 import LiveFeed from "../common/liveFeed";
+import { useOffline } from "@/context/OfflineContext";
 import type {
   ExpandedSections,
   RightPanelProps,
@@ -54,8 +56,16 @@ const Section = ({
 );
 
 function RightPanel({ isOpen }: RightPanelProps) {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [offlineQueueCount, _setOfflineQueueCount] = useState(0);
+  const {
+    isOfflineModeEnabled,
+    toggleOfflineMode,
+    getStats,
+    syncQueue,
+    isSyncing,
+    isOnline: offlineManagerIsOnline,
+  } = useOffline();
+  
+  const stats = getStats();
   const [expandedSections, setExpandedSections] = useState<ExpandedSections>({
     quickActions: true,
     connectivity: true,
@@ -65,28 +75,18 @@ function RightPanel({ isOpen }: RightPanelProps) {
     liveFeed: true,
   });
 
-  useEffect(() => {
-    const handleOnline = () => {
-      setIsOnline(true);
-      console.log("App is back online");
-    };
-
-    const handleOffline = () => {
-      setIsOnline(false);
-      console.log("App is offline");
-    };
-
-    window.addEventListener("online", handleOnline);
-    window.addEventListener("offline", handleOffline);
-
-    return () => {
-      window.removeEventListener("online", handleOnline);
-      window.removeEventListener("offline", handleOffline);
-    };
-  }, []);
+  const handleToggleOfflineMode = () => {
+    toggleOfflineMode(!isOfflineModeEnabled);
+  };
 
   const handleSync = async () => {
-    console.log("Sync triggered");
+    if (!isSyncing && stats.pending > 0) {
+      try {
+        await syncQueue();
+      } catch (error) {
+        console.error("Sync failed:", error);
+      }
+    }
   };
 
   const handleStressTest = () => {
@@ -131,38 +131,53 @@ function RightPanel({ isOpen }: RightPanelProps) {
           isExpanded={expandedSections.quickActions}
           onToggle={() => toggleSection("quickActions")}
         >
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 px-3 py-2 text-xs font-medium bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <span
-                className={`w-2 h-2 rounded-full ${
-                  isOnline ? "bg-green-500" : "bg-red-500"
-                }`}
-              />
-              <span>{isOnline ? "Online" : "Offline"}</span>
-            </div>
+          <div className="space-y-2">
+            <button
+              onClick={handleToggleOfflineMode}
+              className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg shadow transition-colors ${
+                isOfflineModeEnabled
+                  ? "text-white bg-orange-600 hover:bg-orange-700 dark:bg-orange-500 dark:hover:bg-orange-600"
+                  : "text-white bg-gray-600 hover:bg-gray-700 dark:bg-gray-500 dark:hover:bg-gray-600"
+              }`}
+              title={
+                isOfflineModeEnabled
+                  ? "Offline mode enabled - all requests go to queue"
+                  : "Offline mode disabled - requests go directly to server"
+              }
+            >
+              {isOfflineModeEnabled ? (
+                <WifiOff size={16} />
+              ) : (
+                <Wifi size={16} />
+              )}
+              <span>{isOfflineModeEnabled ? "Offline Mode ON" : "Offline Mode OFF"}</span>
+            </button>
 
             <button
               onClick={handleSync}
+              disabled={isSyncing || stats.pending === 0 || !offlineManagerIsOnline}
               className={`w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium rounded-lg shadow transition-colors ${
-                isOnline
+                offlineManagerIsOnline && stats.pending > 0
                   ? "text-white bg-green-600 hover:bg-green-700 dark:bg-green-500 dark:hover:bg-green-600"
-                  : "text-white bg-yellow-600 hover:bg-yellow-700 dark:bg-yellow-500 dark:hover:bg-yellow-600"
+                  : "text-white bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
               }`}
               title={
-                isOnline
-                  ? "All synced"
-                  : `${offlineQueueCount} items pending sync`
+                !offlineManagerIsOnline
+                  ? "Cannot sync while offline"
+                  : stats.pending === 0
+                  ? "Nothing to sync"
+                  : `${stats.pending} items pending sync`
               }
             >
               <span
                 className={`w-2.5 h-2.5 rounded-full ${
-                  isOnline ? "bg-green-300" : "bg-yellow-300"
-                } animate-pulse`}
+                  offlineManagerIsOnline && stats.pending > 0 ? "bg-green-300 animate-pulse" : "bg-gray-300"
+                }`}
               />
-              <span>{isOnline ? "Synced" : "Syncing"}</span>
-              {offlineQueueCount > 0 && (
+              <span>{isSyncing ? "Syncing..." : "Sync Queue"}</span>
+              {stats.pending > 0 && (
                 <span className="ml-2 px-2 py-0.5 text-xs bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-full font-bold">
-                  {offlineQueueCount}
+                  {stats.pending}
                 </span>
               )}
             </button>
