@@ -10,7 +10,14 @@ interface OfflineRequest {
   retries: number;
   maxRetries: number;
   idempotencyKey: string;
-  entityType: "leads" | "deals" | "comments" | "calls" | "attachments" | "organizations" | "users";
+  entityType:
+    | "leads"
+    | "deals"
+    | "comments"
+    | "calls"
+    | "attachments"
+    | "organizations"
+    | "users";
   operationType: "create" | "update" | "delete";
 }
 
@@ -55,27 +62,33 @@ export const useOfflineManager = () => {
     });
   }, []);
 
-  const saveToIndexedDB = useCallback(async (request: OfflineRequest) => {
-    try {
-      const db = await openDB();
-      const tx = db.transaction("offlineQueue", "readwrite");
-      const store = tx.objectStore("offlineQueue");
-      await store.put(request);
-    } catch (error) {
-      console.error("Failed to save to IndexedDB:", error);
-    }
-  }, [openDB]);
+  const saveToIndexedDB = useCallback(
+    async (request: OfflineRequest) => {
+      try {
+        const db = await openDB();
+        const tx = db.transaction("offlineQueue", "readwrite");
+        const store = tx.objectStore("offlineQueue");
+        await store.put(request);
+      } catch (error) {
+        console.error("Failed to save to IndexedDB:", error);
+      }
+    },
+    [openDB],
+  );
 
-  const removeFromIndexedDB = useCallback(async (requestId: string) => {
-    try {
-      const db = await openDB();
-      const tx = db.transaction("offlineQueue", "readwrite");
-      const store = tx.objectStore("offlineQueue");
-      await store.delete(requestId);
-    } catch (error) {
-      console.error("Failed to remove from IndexedDB:", error);
-    }
-  }, [openDB]);
+  const removeFromIndexedDB = useCallback(
+    async (requestId: string) => {
+      try {
+        const db = await openDB();
+        const tx = db.transaction("offlineQueue", "readwrite");
+        const store = tx.objectStore("offlineQueue");
+        await store.delete(requestId);
+      } catch (error) {
+        console.error("Failed to remove from IndexedDB:", error);
+      }
+    },
+    [openDB],
+  );
 
   const clearIndexedDB = useCallback(async () => {
     try {
@@ -88,7 +101,6 @@ export const useOfflineManager = () => {
     }
   }, [openDB]);
 
-  // Load queue from IndexedDB on mount
   useEffect(() => {
     const loadQueue = async () => {
       try {
@@ -96,18 +108,20 @@ export const useOfflineManager = () => {
         const tx = db.transaction("offlineQueue", "readonly");
         const store = tx.objectStore("offlineQueue");
         const allRequests = await getAllFromStore(store);
-        
+
         allRequests.forEach((req: OfflineRequest) => {
           queueRef.current.set(req.id, req);
         });
-        
+
         setQueue(Array.from(queueRef.current.values()));
       } catch (error) {
         console.error("Failed to load queue from IndexedDB:", error);
       }
     };
 
-    const getAllFromStore = (store: IDBObjectStore): Promise<OfflineRequest[]> => {
+    const getAllFromStore = (
+      store: IDBObjectStore,
+    ): Promise<OfflineRequest[]> => {
       return new Promise((resolve, reject) => {
         const request = store.getAll();
         request.onsuccess = () => resolve(request.result);
@@ -128,7 +142,6 @@ export const useOfflineManager = () => {
       entityType: OfflineRequest["entityType"] = "leads",
       operationType: OfflineRequest["operationType"] = "create",
     ): string => {
-      // Only add to queue if offline mode is enabled or user is offline
       if (!isOfflineModeEnabled && isOnline) {
         return "";
       }
@@ -157,21 +170,27 @@ export const useOfflineManager = () => {
     [isOfflineModeEnabled, isOnline, saveToIndexedDB],
   );
 
-  const removeFromQueue = useCallback((requestId: string) => {
-    queueRef.current.delete(requestId);
-    setQueue(Array.from(queueRef.current.values()));
-    removeFromIndexedDB(requestId);
-  }, [removeFromIndexedDB]);
-
-  const retryRequest = useCallback((requestId: string) => {
-    const request = queueRef.current.get(requestId);
-    if (request) {
-      request.retries += 1;
-      queueRef.current.set(requestId, request);
+  const removeFromQueue = useCallback(
+    (requestId: string) => {
+      queueRef.current.delete(requestId);
       setQueue(Array.from(queueRef.current.values()));
-      saveToIndexedDB(request);
-    }
-  }, [saveToIndexedDB]);
+      removeFromIndexedDB(requestId);
+    },
+    [removeFromIndexedDB],
+  );
+
+  const retryRequest = useCallback(
+    (requestId: string) => {
+      const request = queueRef.current.get(requestId);
+      if (request) {
+        request.retries += 1;
+        queueRef.current.set(requestId, request);
+        setQueue(Array.from(queueRef.current.values()));
+        saveToIndexedDB(request);
+      }
+    },
+    [saveToIndexedDB],
+  );
 
   const clearQueue = useCallback(() => {
     queueRef.current.clear();
@@ -193,17 +212,18 @@ export const useOfflineManager = () => {
     };
 
     try {
-      // Group requests by entity type and operation type
-      const grouped = queue.reduce((acc, request) => {
-        const key = `${request.entityType}-${request.operationType}`;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(request);
-        return acc;
-      }, {} as Record<string, OfflineRequest[]>);
+      const grouped = queue.reduce(
+        (acc, request) => {
+          const key = `${request.entityType}-${request.operationType}`;
+          if (!acc[key]) {
+            acc[key] = [];
+          }
+          acc[key].push(request);
+          return acc;
+        },
+        {} as Record<string, OfflineRequest[]>,
+      );
 
-      // Process each group
       for (const [key, requests] of Object.entries(grouped)) {
         const [entityType, operationType] = key.split("-") as [
           OfflineRequest["entityType"],
@@ -211,16 +231,12 @@ export const useOfflineManager = () => {
         ];
 
         try {
-          // Prepare bulk payload
           const payload = requests.map((req) => req.body);
 
-          // Determine bulk endpoint
           const bulkEndpoint = `/api/bulk/${entityType}/${operationType}`;
 
-          // Get auth token from localStorage
           const token = localStorage.getItem("auth_token");
 
-          // Send bulk request
           const response = await fetch(bulkEndpoint, {
             method: "POST",
             headers: {
@@ -240,7 +256,6 @@ export const useOfflineManager = () => {
 
           const data = await response.json();
 
-          // Remove successful requests from queue
           requests.forEach((req) => {
             removeFromQueue(req.id);
           });
@@ -249,7 +264,6 @@ export const useOfflineManager = () => {
         } catch (error) {
           console.error(`Failed to sync ${key}:`, error);
 
-          // Handle individual request retries
           requests.forEach((req) => {
             if (req.retries < req.maxRetries) {
               retryRequest(req.id);
@@ -269,7 +283,6 @@ export const useOfflineManager = () => {
       setIsSyncing(false);
     }
 
-    // Dispatch custom event for sync completion
     if (result.failed > 0 || result.succeeded > 0) {
       const event = new CustomEvent("offlineSync", {
         detail: result,
@@ -282,10 +295,13 @@ export const useOfflineManager = () => {
 
   const getStats = useCallback((): QueueStats => {
     const failed = queue.filter((r) => r.retries >= r.maxRetries).length;
-    const byEntity = queue.reduce((acc, r) => {
-      acc[r.entityType] = (acc[r.entityType] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const byEntity = queue.reduce(
+      (acc, r) => {
+        acc[r.entityType] = (acc[r.entityType] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
 
     return {
       total: queue.length,
@@ -300,7 +316,6 @@ export const useOfflineManager = () => {
     localStorage.setItem("offlineModeEnabled", String(enabled));
   }, []);
 
-  // Load offline mode preference on mount
   useEffect(() => {
     const savedPreference = localStorage.getItem("offlineModeEnabled");
     if (savedPreference) {
@@ -308,7 +323,6 @@ export const useOfflineManager = () => {
     }
   }, []);
 
-  // Handle online/offline events
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
