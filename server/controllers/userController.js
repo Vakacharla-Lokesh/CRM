@@ -296,16 +296,26 @@ export const sendPasswordReset = async (req, res, next) => {
 // Update user profile
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, email, phone, department, position } = req.body;
+    const { name, firstName, lastName, email, phone, department, position } = req.body;
     const updateData = {};
 
-    if (name) {
+    // Handle firstName and lastName directly, or parse from name
+    if (firstName !== undefined) {
+      updateData.firstName = firstName;
+    } else if (name) {
       const nameParts = name.split(" ");
       updateData.firstName = nameParts[0];
+    }
+
+    if (lastName !== undefined) {
+      updateData.lastName = lastName;
+    } else if (name && !firstName) {
+      const nameParts = name.split(" ");
       if (nameParts.length > 1) {
         updateData.lastName = nameParts.slice(1).join(" ");
       }
     }
+
     if (email) updateData.userEmail = email;
     if (phone) updateData.mobile = phone;
     if (department) updateData.department = department;
@@ -320,7 +330,11 @@ export const updateProfile = async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json(user);
+    // Convert to plain object and remove password
+    const userObject = user.toObject();
+    delete userObject.password;
+
+    res.json(userObject);
   } catch (err) {
     next(err);
   }

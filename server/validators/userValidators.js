@@ -50,6 +50,8 @@ export const passwordResetSchema = z
 export const updateProfileSchema = z
   .object({
     name: z.string().min(1).optional(),
+    firstName: z.string().min(1).optional(),
+    lastName: z.string().optional(),
     email: z.string().email().optional(),
     phone: z.string().optional(),
     department: z.string().optional(),

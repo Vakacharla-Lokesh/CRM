@@ -1,7 +1,9 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/context";
 import { ModeToggle } from "../common/themeToggle";
+import { SettingsModal } from "../modals";
 // import { MonitoringToggleButton } from "../common/monitoringToggle";
 
 function Navbar({
@@ -16,6 +18,7 @@ function Navbar({
 }: NavbarProps) {
   const navigate = useNavigate();
   const { user, logout } = useAppContext();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -25,6 +28,11 @@ function Navbar({
       console.error("Logout failed:", error);
       navigate("/login");
     }
+  };
+
+  const handleSettingsClick = () => {
+    setIsUserMenuOpen(false);
+    setIsSettingsOpen(true);
   };
 
   return (
@@ -108,12 +116,12 @@ function Navbar({
               >
                 Profile
               </a>
-              <a
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              <button
+                onClick={handleSettingsClick}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 Settings
-              </a>
+              </button>
               <button
                 onClick={handleLogout}
                 className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition-colors border-t border-gray-200 dark:border-gray-600"
@@ -124,6 +132,11 @@ function Navbar({
           </div>
         </div>
       </div>
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+      />
     </nav>
   );
 }

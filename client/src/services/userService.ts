@@ -8,6 +8,8 @@ interface PasswordData {
 
 interface ProfileData {
   name?: string;
+  firstName?: string;
+  lastName?: string;
   email?: string;
   phone?: string;
   department?: string;
