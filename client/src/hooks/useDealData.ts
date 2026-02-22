@@ -1,15 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useAsync, useIndexedDB } from "@/hooks";
 import dealService from "@/services/dealService";
-import type {
-  Deal,
-  DealStage,
-  CreateDealDTO,
-  UpdateDealDTO,
-} from "@/types";
+import type { Deal, DealStatus, CreateDealDTO, UpdateDealDTO } from "@/types";
 
 export interface DealFilters {
-  stage: DealStage | "";
+  status: DealStatus | "";
+  stage: DealStatus | "";
   search: string;
   dateFrom: string;
   dateTo: string;
@@ -19,7 +15,8 @@ export interface DealFilters {
 
 interface DealStatistics {
   total: number;
-  byStage: Record<DealStage, number>;
+  byStatus: Record<DealStatus, number>;
+  byStage: Record<string, number>;
   totalValue: number;
   avgValue: number;
   forecastValue: number;
@@ -28,6 +25,7 @@ interface DealStatistics {
 const useDealData = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
   const [filters, setFilters] = useState<DealFilters>({
+    status: "",
     stage: "",
     search: "",
     dateFrom: "",
@@ -41,7 +39,7 @@ const useDealData = () => {
   const fetchDeals = useCallback(async () => {
     const data = await dealService.getAllDeals();
     setDeals(data);
-    
+
     try {
       for (const deal of data) {
         await updateItem(deal._id, { ...deal, id: deal._id });
@@ -49,7 +47,7 @@ const useDealData = () => {
     } catch (error) {
       console.error("Error storing deals in IndexedDB:", error);
     }
-    
+
     return data;
   }, [updateItem]);
 
@@ -61,8 +59,17 @@ const useDealData = () => {
 
   const statistics: DealStatistics = useMemo(() => {
     const total = deals.length;
-    
-    const byStage: Record<DealStage, number> = {
+
+    const byStatus: Record<DealStatus, number> = {
+      Prospecting: 0,
+      Qualification: 0,
+      Negotiation: 0,
+      "Ready to close": 0,
+      Won: 0,
+      Lost: 0,
+    };
+
+    const byStage: Record<string, number> = {
       prospecting: 0,
       qualification: 0,
       proposal: 0,
@@ -75,38 +82,44 @@ const useDealData = () => {
     let forecastValue = 0;
 
     deals.forEach((deal) => {
-      if (deal.dealStage) {
-        byStage[deal.dealStage] = (byStage[deal.dealStage] || 0) + 1;
+      if (deal.dealStatus) {
+        byStatus[deal.dealStatus] = (byStatus[deal.dealStatus] || 0) + 1;
+        
+        // Map status to stage for byStage
+        const stageKey = deal.dealStatus.toLowerCase().replace(/ /g, "_");
+        if (stageKey === "won") {
+          byStage.closed_won = (byStage.closed_won || 0) + 1;
+        } else if (stageKey === "lost") {
+          byStage.closed_lost = (byStage.closed_lost || 0) + 1;
+        } else if (stageKey === "ready_to_close") {
+          byStage.negotiation = (byStage.negotiation || 0) + 1;
+        } else {
+          byStage[stageKey] = (byStage[stageKey] || 0) + 1;
+        }
       }
+      totalValue += deal.dealValue || 0;
       
-      const value = deal.dealValue || 0;
-      totalValue += value;
-      
-      const probability = deal.dealProbability || 0;
-      forecastValue += (value * probability) / 100;
+      // Calculate forecast value (only for deals not yet won or lost)
+      if (deal.dealStatus !== "Won" && deal.dealStatus !== "Lost") {
+        forecastValue += deal.dealValue || 0;
+      }
     });
 
     const avgValue = total > 0 ? totalValue / total : 0;
 
-    return {
-      total,
-      byStage,
-      totalValue,
-      avgValue,
-      forecastValue,
-    };
+    return { total, byStatus, byStage, totalValue, avgValue, forecastValue };
   }, [deals]);
 
   const filteredDeals = useMemo(() => {
     return deals.filter((deal) => {
-      if (filters.stage && deal.dealStage !== filters.stage) return false;
+      if (filters.status && deal.dealStatus !== filters.status) return false;
+      if (filters.stage && deal.dealStatus !== filters.stage) return false;
 
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matchesSearch =
           deal.dealName?.toLowerCase().includes(searchLower) ||
           deal.organizationId?.toString().includes(searchLower);
-
         if (!matchesSearch) return false;
       }
 
@@ -117,15 +130,10 @@ const useDealData = () => {
         return false;
 
       if (filters.dateFrom || filters.dateTo) {
-        const dealDate = deal.createdAt
-          ? new Date(deal.createdAt)
-          : new Date();
-        
+        const dealDate = deal.createdAt ? new Date(deal.createdAt) : new Date();
         if (filters.dateFrom) {
-          const fromDate = new Date(filters.dateFrom);
-          if (dealDate < fromDate) return false;
+          if (dealDate < new Date(filters.dateFrom)) return false;
         }
-        
         if (filters.dateTo) {
           const toDate = new Date(filters.dateTo);
           toDate.setHours(23, 59, 59, 999);
@@ -146,6 +154,7 @@ const useDealData = () => {
 
   const clearFilters = useCallback(() => {
     setFilters({
+      status: "",
       stage: "",
       search: "",
       dateFrom: "",
@@ -159,13 +168,13 @@ const useDealData = () => {
     async (dealData: CreateDealDTO) => {
       const newDeal = await dealService.createDeal(dealData);
       setDeals((prev) => [...prev, newDeal]);
-      
+
       try {
         await updateItem(newDeal._id, { ...newDeal, id: newDeal._id });
       } catch (error) {
         console.error("Error storing new deal in IndexedDB:", error);
       }
-      
+
       return newDeal;
     },
     [updateItem],
@@ -177,13 +186,13 @@ const useDealData = () => {
       setDeals((prev) =>
         prev.map((deal) => (deal._id === dealId ? updatedDeal : deal)),
       );
-      
+
       try {
         await updateItem(dealId, { ...updatedDeal, id: updatedDeal._id });
       } catch (error) {
         console.error("Error updating deal in IndexedDB:", error);
       }
-      
+
       return updatedDeal;
     },
     [updateItem],
@@ -196,13 +205,8 @@ const useDealData = () => {
 
   const bulkUpdateDeals = useCallback(
     async (dealIds: string[], updateData: Partial<UpdateDealDTO>) => {
-      const result = await dealService.bulkUpdateDeals(
-        dealIds,
-        updateData,
-      );
-      
+      const result = await dealService.bulkUpdateDeals(dealIds, updateData);
       await execute(fetchDeals);
-      
       return result;
     },
     [execute, fetchDeals],
@@ -213,49 +217,24 @@ const useDealData = () => {
     setDeals((prev) => prev.filter((deal) => !dealIds.includes(deal._id)));
   }, []);
 
-  const getDealsByStage = useCallback(
-    async (stage: DealStage) => {
-      return dealService.getDealsByStage(stage);
-    },
-    [],
-  );
-
-  const getServerStats = useCallback(async () => {
-    return dealService.getDealStats();
-  }, []);
-
-  // Refresh deals
   const refresh = useCallback(() => {
     execute(fetchDeals);
   }, [execute, fetchDeals]);
 
   return {
-    // Data
     deals,
     filteredDeals,
     statistics,
-
-    // State
     loading,
     error,
-
-    // Filters
     filters,
     updateFilter,
     clearFilters,
-
-    // CRUD
     createDeal,
     updateDeal,
     deleteDeal,
-
-    // Bulk operations
     bulkUpdateDeals,
     bulkDeleteDeals,
-
-    // Additional operations
-    getDealsByStage,
-    getServerStats,
     refresh,
   };
 };

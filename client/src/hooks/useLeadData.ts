@@ -4,14 +4,6 @@ import { leadService } from "../services";
 import { useAsync } from "./useAsync";
 import { useIndexedDB } from "./useIndexedDB";
 
-interface Statistics {
-  total: number;
-  byStatus: Record<LeadStatus | string, number>;
-  bySource: Record<LeadSource | string, number>;
-  byStage: Record<string, number>;
-  conversionRate: number;
-}
-
 interface Filters {
   status: LeadStatus | "";
   source: LeadSource | "";
@@ -24,13 +16,6 @@ interface Filters {
 export const useLeadData = () => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [filteredLeads, setFilteredLeads] = useState<Lead[]>([]);
-  const [statistics, setStatistics] = useState<Statistics>({
-    total: 0,
-    byStatus: {},
-    bySource: {},
-    byStage: {},
-    conversionRate: 0,
-  });
   const [filters, setFilters] = useState<Filters>({
     status: "",
     source: "",
@@ -46,37 +31,6 @@ export const useLeadData = () => {
     error,
   } = useAsync<Lead | Lead[] | void>();
   const { updateItem, deleteItem } = useIndexedDB("leads");
-
-  const calculateStatistics = useCallback((leadsData: Lead[]) => {
-    const stats: Statistics = {
-      total: leadsData.length,
-      byStatus: {},
-      bySource: {},
-      byStage: {},
-      conversionRate: 0,
-    };
-
-    leadsData.forEach((lead) => {
-      // Count by status
-      stats.byStatus[lead.leadStatus] =
-        (stats.byStatus[lead.leadStatus] ?? 0) + 1;
-
-      // Count by source
-      stats.bySource[lead.leadSource] =
-        (stats.bySource[lead.leadSource] ?? 0) + 1;
-
-      // Count by stage (not available in current schema)
-      // stats.byStage[lead.stage ?? "unknown"] =
-      //   (stats.byStage[lead.stage ?? "unknown"] ?? 0) + 1;
-    });
-
-    // Calculate conversion rate
-    const converted = stats.byStatus["Converted"] ?? 0;
-    stats.conversionRate =
-      stats.total > 0 ? Math.round((converted / stats.total) * 100) : 0;
-
-    setStatistics(stats);
-  }, []);
 
   const applyFilters = useCallback(() => {
     let filtered = [...leads];
@@ -123,7 +77,6 @@ export const useLeadData = () => {
       const data = await leadService.getAllLeads();
       setLeads(data);
       setFilteredLeads(data);
-      calculateStatistics(data);
 
       for (const lead of data) {
         try {
@@ -135,7 +88,7 @@ export const useLeadData = () => {
 
       return data;
     });
-  }, [executeAsync, updateItem, calculateStatistics]);
+  }, [executeAsync, updateItem]);
 
   const fetchLeadById = useCallback(
     async (id: string) => {
@@ -264,7 +217,6 @@ export const useLeadData = () => {
     applyFilters();
   }, [applyFilters]);
 
-  const stats = useMemo(() => statistics, [statistics]);
   const totalPages = useMemo(
     () => Math.ceil(filteredLeads.length / 20),
     [filteredLeads],
@@ -274,7 +226,6 @@ export const useLeadData = () => {
     // Data
     leads,
     filteredLeads,
-    statistics: stats,
     filters,
     loading,
     error,

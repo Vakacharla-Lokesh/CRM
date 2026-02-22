@@ -1,37 +1,49 @@
+// ─── Lead ────────────────────────────────────────────────────────────────────
+// Mirrors server/models/leadModel.js exactly.
+
+/** Matches the backend enum exactly */
+export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
+
+/** Matches the backend enum exactly */
+export type LeadSource = "API" | "Outsource";
+
 export interface Lead {
   _id: string;
+  /** Alias of _id (set by Mongoose alias) */
   leadId?: string;
+  organizationId?: string;
+  userId: string;
+  tenantId: string;
   leadFirstName: string;
-  leadLastName?: string;
+  leadLastName?: string | null;
   leadEmail: string;
   leadSource: LeadSource;
-  leadStatus: LeadStatus;
+  /** 0 – 100 */
   leadScore: number;
-  organizationId?: string;
-  tenantId: string;
-  userId: string;
+  leadStatus: LeadStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateLeadDTO {
+  organizationId?: string;
   leadFirstName: string;
   leadLastName?: string;
   leadEmail: string;
   leadSource?: LeadSource;
-  leadStatus?: LeadStatus;
   leadScore?: number;
-  organizationId?: string;
+  leadStatus: LeadStatus;
   tenantId: string;
 }
 
 export interface UpdateLeadDTO {
+  organizationId?: string;
   leadFirstName?: string;
   leadLastName?: string;
   leadEmail?: string;
   leadSource?: LeadSource;
-  leadStatus?: LeadStatus;
   leadScore?: number;
+  leadStatus?: LeadStatus;
   userId?: string;
 }
 
@@ -41,17 +53,6 @@ export interface LeadListResponse {
   page: number;
   limit: number;
 }
-
-export interface LeadSegment {
-  segmentId: string;
-  count: number;
-  avgScore: number;
-  leads: Lead[];
-}
-
-export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
-
-export type LeadSource = "API" | "Outsource";
 
 export interface LeadFilter {
   status?: LeadStatus[];
@@ -63,51 +64,23 @@ export interface LeadFilter {
   search?: string;
 }
 
-export interface LeadActivityLog {
-  _id: string;
-  leadId: string;
-  userId: string;
-  action: "created" | "updated" | "called" | "emailed" | "assigned";
-  details: Record<string, any>;
-  timestamp: Date;
-}
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
-export function isLead(obj: any): obj is Lead {
+export function isLead(obj: unknown): obj is Lead {
   return (
-    obj &&
-    typeof obj._id === "string" &&
-    typeof obj.leadEmail === "string" &&
-    typeof obj.leadStatus === "string"
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof (obj as Lead)._id === "string" &&
+    typeof (obj as Lead).leadEmail === "string" &&
+    typeof (obj as Lead).leadStatus === "string"
   );
 }
 
-export function isLeadArray(obj: any): obj is Lead[] {
+export function isLeadArray(obj: unknown): obj is Lead[] {
   return Array.isArray(obj) && obj.every(isLead);
 }
 
-export interface LeadWithComputed extends Lead {
-  fullName: string;
-  statusColor: string;
-  scoreColor: string;
-  daysSinceActivity: number;
-}
-
-export function enrichLead(lead: Lead): LeadWithComputed {
-  const fullName = `${lead.leadFirstName} ${lead.leadLastName}`.trim();
-  const statusColor = getStatusColor(lead.leadStatus);
-  const scoreColor = getScoreColor(lead.leadScore);
-  const daysSinceActivity = 0;
-
-  return {
-    ...lead,
-    fullName,
-    statusColor,
-    scoreColor,
-    daysSinceActivity,
-  };
-}
-
-function getStatusColor(status: LeadStatus): string {
+export function getLeadStatusColor(status: LeadStatus): string {
   const colors: Record<LeadStatus, string> = {
     New: "bg-blue-100 text-blue-800",
     Converted: "bg-green-100 text-green-800",
@@ -117,9 +90,24 @@ function getStatusColor(status: LeadStatus): string {
   return colors[status];
 }
 
-function getScoreColor(score: number): string {
+export function getLeadScoreColor(score: number): string {
   if (score >= 80) return "text-green-600";
   if (score >= 60) return "text-blue-600";
   if (score >= 40) return "text-yellow-600";
   return "text-red-600";
+}
+
+export interface LeadWithComputed extends Lead {
+  fullName: string;
+  statusColor: string;
+  scoreColor: string;
+}
+
+export function enrichLead(lead: Lead): LeadWithComputed {
+  return {
+    ...lead,
+    fullName: `${lead.leadFirstName} ${lead.leadLastName ?? ""}`.trim(),
+    statusColor: getLeadStatusColor(lead.leadStatus),
+    scoreColor: getLeadScoreColor(lead.leadScore),
+  };
 }

@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { useState, useCallback } from "react";
-import { initializeDatabase, DB_NAME, DB_VERSION } from "../utils/indexedDB";
+import { initializeDatabase } from "../utils/indexedDB";
 
 interface IndexedDBHookResult<T> {
   addItem: (item: T) => Promise<IDBValidKey>;
@@ -14,8 +14,6 @@ interface IndexedDBHookResult<T> {
 
 export const useIndexedDB = <T extends { id: string }>(
   storeName: string,
-  dbName = DB_NAME,
-  version = DB_VERSION,
 ): IndexedDBHookResult<T> => {
   const [, setIsInitialized] = useState(false);
 

@@ -7,6 +7,7 @@ export * from "./tenant";
 export * from "./calls";
 export * from "./comments";
 export * from "./attachments";
+export * from "./campaigns";
 
 // API Types
 export interface ApiRequestOptions {

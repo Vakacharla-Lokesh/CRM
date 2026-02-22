@@ -12,6 +12,7 @@ import {
   type ColumnFiltersState,
   getFilteredRowModel,
   type VisibilityState,
+  type RowSelectionState,
 } from "@tanstack/react-table";
 
 import {
@@ -29,12 +30,14 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   name: string;
-  searchColumn?: string; // Optional: column to search by
+  searchColumn?: string;
+  onSelectionChange?: (selectedRows: TData[]) => void;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  onSelectionChange,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -42,9 +45,7 @@ export function DataTable<TData, TValue>({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
-  const [rowSelection, setRowSelection] = React.useState({});
-
-  // console.log(data);
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
   const table = useReactTable({
     data,
@@ -56,7 +57,21 @@ export function DataTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      setRowSelection((prev) => {
+        const next = typeof updater === "function" ? updater(prev) : updater;
+
+        if (onSelectionChange) {
+          const selectedRows = table
+            .getRowModel()
+            .rows.filter((row) => next[row.id])
+            .map((row) => row.original);
+          onSelectionChange(selectedRows);
+        }
+
+        return next;
+      });
+    },
     state: {
       sorting,
       columnFilters,

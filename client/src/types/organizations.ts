@@ -1,16 +1,23 @@
-/**
- * Organization Model Types
- */
+export type OrganizationIndustry = "Software" | "Textile" | "Foods" | "Others";
+
+export interface PointOfContact {
+  _id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  position?: string;
+  isPrimary?: boolean;
+}
 
 export interface Organization {
   _id: string;
-  organizationName: string;
-  organizationWebsite?: string;
-  organizationSize: number; // Server stores as number (1-10000000)
-  organizationIndustry: string;
+  organizationId?: string;
   tenantId: string;
-  userId: string; // Owner
-  pointsOfContact?: PointOfContact[];
+  userId: string;
+  organizationName: string;
+  organizationSize?: number;
+  organizationWebsite: string;
+  organizationIndustry: OrganizationIndustry;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,17 +25,16 @@ export interface Organization {
 export interface CreateOrganizationDTO {
   tenantId: string;
   organizationName: string;
-  organizationWebsite?: string;
-  organizationSize: number; // Server expects number (1-10000000)
-  organizationIndustry: string;
+  organizationWebsite: string;
+  organizationSize?: number;
+  organizationIndustry: OrganizationIndustry;
 }
 
 export interface UpdateOrganizationDTO {
   organizationName?: string;
   organizationWebsite?: string;
-  organizationSize?: number; // Server expects number (1-10000000)
-  organizationIndustry?: string;
-  pointsOfContact?: PointOfContact[];
+  organizationSize?: number;
+  organizationIndustry?: OrganizationIndustry;
 }
 
 export interface OrganizationListResponse {
@@ -38,20 +44,12 @@ export interface OrganizationListResponse {
   limit: number;
 }
 
-export interface PointOfContact {
-  _id?: string;
-  contactName: string;
-  contactEmail: string;
-  contactPhone?: string;
-  contactRole?: string;
-  isPrimary: boolean;
-}
-
-export function isOrganization(obj: any): obj is Organization {
+export function isOrganization(obj: unknown): obj is Organization {
   return (
-    obj &&
-    typeof obj._id === "string" &&
-    typeof obj.organizationName === "string" &&
-    typeof obj.organizationIndustry === "string"
+    typeof obj === "object" &&
+    obj !== null &&
+    typeof (obj as Organization)._id === "string" &&
+    typeof (obj as Organization).organizationName === "string" &&
+    typeof (obj as Organization).organizationIndustry === "string"
   );
 }
