@@ -1,5 +1,6 @@
 import commentModel from "../models/commentModel.js";
 import leadModel from "../models/leadModel.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 
 // Get all comments
 export const getAllComments = async (req, res, next) => {
@@ -52,6 +53,9 @@ export const createComment = async (req, res, next) => {
     }
 
     const comment = await commentModel.create(req.body);
+
+    // Update lead score after adding comment
+    await updateLeadScore(req.body.leadId);
 
     res.status(201).json({
       message: "Comment created successfully",
@@ -117,7 +121,11 @@ export const deleteComment = async (req, res, next) => {
       });
     }
 
+    const leadId = comment.leadId;
     await commentModel.findByIdAndDelete(req.params.id);
+
+    // Update lead score after deleting comment
+    await updateLeadScore(leadId);
 
     res.json({ message: "Comment deleted successfully" });
   } catch (err) {

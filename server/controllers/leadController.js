@@ -1,4 +1,5 @@
 import leadModel from "../models/leadModel.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 
 export const getAllLeads = async (req, res, next) => {
   try {
@@ -72,9 +73,15 @@ export const createLead = async (req, res, next) => {
 
     const lead = await leadModel.create(leadData);
 
+    // Calculate and update lead score
+    await updateLeadScore(lead._id);
+
+    // Fetch updated lead with score
+    const updatedLead = await leadModel.findById(lead._id);
+
     res.status(201).json({
       message: "Lead created successfully",
-      lead,
+      lead: updatedLead,
     });
   } catch (err) {
     next(err);
@@ -104,9 +111,15 @@ export const updateLead = async (req, res, next) => {
       { new: true, runValidators: true },
     );
 
+    // Recalculate lead score after update
+    await updateLeadScore(req.params.id);
+
+    // Fetch updated lead with new score
+    const leadWithScore = await leadModel.findById(req.params.id);
+
     res.json({
       message: "Lead updated successfully",
-      lead: updatedLead,
+      lead: leadWithScore,
     });
   } catch (err) {
     next(err);
@@ -207,7 +220,13 @@ export const updateLeadStatus = async (req, res, next) => {
     lead.leadStatus = leadStatus;
     await lead.save();
 
-    res.json({ message: "Lead status updated successfully", lead });
+    // Recalculate lead score after status change
+    await updateLeadScore(req.params.id);
+
+    // Fetch updated lead with new score
+    const updatedLead = await leadModel.findById(req.params.id);
+
+    res.json({ message: "Lead status updated successfully", lead: updatedLead });
   } catch (err) {
     next(err);
   }

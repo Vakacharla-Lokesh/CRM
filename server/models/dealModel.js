@@ -12,7 +12,7 @@ const dealsSchema = new Schema(
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
     dealName: { type: String, minLength: 1, maxLength: 100, required: true },
-    dealValue: { type: Number, min: 0, max: 1000000, default: 0 },
+    dealValue: { type: Number, min: 0, max: 10_00_000, default: 0 },
     dealStatus: {
       type: String,
       enum: [
