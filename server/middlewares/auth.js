@@ -1,34 +1,21 @@
-import jwt from "jsonwebtoken";
-import userModel from "../models/userModel.js";
+import passport from "../config/passport.js";
 
-export const authenticate = async (req, res, next) => {
-  try {
-    const token = req.headers.authorization?.split(" ")[1];
-
-    if (!token) {
-      return res.status(401).json({ message: "Authentication required" });
+export const authenticate = (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, (err, user, info) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ message: "Internal server error", error: err.message });
     }
-
-    // console.log("Decoded token: ", token);
-    // console.log(process.env.JWT_SECRET)
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    // console.log(decoded);
-    const user = await userModel.findById(decoded.userId);
 
     if (!user) {
-      return res.status(401).json({ message: "Invalid token" });
+      return res.status(401).json({
+        message: "Invalid or expired token",
+        error: info?.message || "Authentication required",
+      });
     }
 
-    req.user = {
-      userId: user._id,
-      role: user.role,
-      tenantId: decoded.tenantId,
-    };
-
+    req.user = user;
     next();
-  } catch (err) {
-    return res
-      .status(401)
-      .json({ message: "Invalid or expired token", error: err.message });
-  }
+  })(req, res, next);
 };
