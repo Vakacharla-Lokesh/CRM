@@ -58,9 +58,9 @@ const useTenantData = () => {
       for (const tenant of page.tenants) {
         await updateItem(tenant._id, { ...tenant, id: tenant._id });
       }
+      setLoadingMore(false);
     } catch (error) {
       console.error("Error loading more tenants:", error);
-    } finally {
       setLoadingMore(false);
     }
   }, [hasNextPage, loadingMore, nextCursor, updateItem]);

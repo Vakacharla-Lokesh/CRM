@@ -70,10 +70,10 @@ const TenantsPage = () => {
     try {
       await deleteTenant(tenantToDelete);
       refresh(); // Refresh the tenant data after deletion
+      setTenantToDelete(null);
     } catch (error) {
       console.error("Error deleting tenant:", error);
       alert("Failed to delete tenant. Please try again.");
-    } finally {
       setTenantToDelete(null);
     }
   };

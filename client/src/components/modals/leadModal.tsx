@@ -182,6 +182,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
 
       await onSave(leadData);
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving lead:", error);
       const errorMessage =
@@ -189,7 +190,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           ? error.message
           : "Failed to save lead. Please try again.";
       setSubmitError(errorMessage);
-    } finally {
       setIsSubmitting(false);
     }
   };

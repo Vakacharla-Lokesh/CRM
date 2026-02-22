@@ -9,7 +9,7 @@ export function SkeletonRows({
     <div className={`space-y-${taller ? "6" : "4"}`}>
       {Array.from({ length: count }).map((_, i) => (
         <div
-          key={i}
+          key={`skeleton-row-${i}`}
           className="animate-pulse space-y-2"
         >
           {taller && (

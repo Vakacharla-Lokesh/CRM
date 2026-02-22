@@ -27,9 +27,9 @@ const OrganizationLeadsPage = () => {
         ]);
         setLeads(leadsData.leads);
         setOrganization(orgData);
+        setLoading(false);
       } catch (err: any) {
         setError(err?.message || "Failed to load data");
-      } finally {
         setLoading(false);
       }
     };
@@ -88,7 +88,7 @@ const OrganizationLeadsPage = () => {
           </div>
 
           <DataTable
-            columns={columns}
+            columns={columns()}
             data={leads}
             name="Leads"
             searchColumn="leadFirstName"

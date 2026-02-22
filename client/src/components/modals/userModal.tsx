@@ -118,9 +118,9 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
       await onSave(userData);
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving user:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };

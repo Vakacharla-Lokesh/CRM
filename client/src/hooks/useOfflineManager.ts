@@ -279,7 +279,9 @@ export const useOfflineManager = () => {
       }
 
       setLastSyncTime(new Date());
-    } finally {
+      setIsSyncing(false);
+    } catch (error) {
+      console.log("Sync error:", error);
       setIsSyncing(false);
     }
 

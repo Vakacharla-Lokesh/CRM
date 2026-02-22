@@ -52,10 +52,10 @@ const DealsPage = () => {
 
     try {
       await deleteDeal(dealToDelete);
+      setDealToDelete(null);
     } catch (error) {
       console.error("Error deleting deal:", error);
       alert("Failed to delete deal. Please try again.");
-    } finally {
       setDealToDelete(null);
     }
   };

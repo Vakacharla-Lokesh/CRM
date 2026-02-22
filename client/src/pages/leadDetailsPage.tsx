@@ -34,10 +34,10 @@ function LeadDetailsPage() {
         setError(null);
         const response = await leadService.getLeadById(id);
         setLead(response);
+        setLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load lead");
         console.error("Error fetching lead:", err);
-      } finally {
         setLoading(false);
       }
     };
@@ -71,12 +71,12 @@ function LeadDetailsPage() {
       alert("Lead successfully converted to deal!");
 
       navigate("/deals");
+      setIsConverting(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to convert lead to deal";
       alert(message);
       console.error("Error converting lead to deal:", err);
-    } finally {
       setIsConverting(false);
     }
   };

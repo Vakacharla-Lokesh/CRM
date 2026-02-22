@@ -1,17 +1,8 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { MoreHorizontal, ArrowUpDown, Trash2, Pencil } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { type Lead } from "@/types";
@@ -163,55 +154,6 @@ export const columns = ({
           Source
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
-      );
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const lead = row.original;
-      // eslint-disable-next-line react-hooks/rules-of-hooks
-      const navigate = useNavigate();
-
-      const handleEdit = () => {
-        navigate(`/leads/${lead._id}`);
-      };
-
-      const handleDelete = () => {
-        console.log("Delete:", lead._id);
-      };
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              className="h-8 w-8 p-0"
-            >
-              <span className="sr-only">Open menu</span>
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Actions</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={handleEdit}
-              className="cursor-pointer gap-2"
-            >
-              <Pencil className="h-4 w-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="cursor-pointer gap-2 text-red-600 dark:text-red-400"
-            >
-              <Trash2 className="h-4 w-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       );
     },
   },

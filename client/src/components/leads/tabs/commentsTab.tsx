@@ -35,9 +35,9 @@ function CommentsTab({ leadId }: CommentsTabProps) {
       });
 
       setFormData({ title: "", description: "" });
+      setIsAdding(false);
     } catch (err) {
       console.error("Error adding comment:", err);
-    } finally {
       setIsAdding(false);
     }
   };
@@ -52,9 +52,9 @@ function CommentsTab({ leadId }: CommentsTabProps) {
 
     try {
       await deleteComment(commentToDelete);
+      setCommentToDelete(null);
     } catch (err) {
       console.error("Error deleting comment:", err);
-    } finally {
       setCommentToDelete(null);
     }
   };

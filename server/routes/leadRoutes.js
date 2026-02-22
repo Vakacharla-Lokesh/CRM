@@ -9,8 +9,8 @@ import {
   getLeadsByUser,
   getLeadsByOrganization,
   updateLeadStatus,
-  updateLeadScore,
   convertLeadToDeal,
+  updateLeadScoreManually,
 } from "../controllers/leadController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -97,7 +97,7 @@ router.patch(
   authenticate,
   authorize("user", "admin", "super_admin"),
   validate(updateLeadScoreSchema),
-  updateLeadScore,
+  updateLeadScoreManually,
 );
 
 router.post(

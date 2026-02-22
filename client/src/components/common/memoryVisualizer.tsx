@@ -6,8 +6,12 @@ function MemoryVisualizer() {
   const [currentMemory, setCurrentMemory] = useState(0);
   const [maxMemory, setMaxMemory] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  // eslint-disable-next-line react-hooks/purity
-  const lastClearTime = useRef<number>(Date.now());
+  const lastClearTime = useRef<number>(0);
+
+  useEffect(() => {
+    // Initialize lastClearTime on mount
+    lastClearTime.current = Date.now();
+  }, []);
 
   useEffect(() => {
     const collectMemoryData = () => {

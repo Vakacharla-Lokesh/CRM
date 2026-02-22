@@ -16,12 +16,12 @@ export const useAttachmentData = (leadId: string) => {
       setError(null);
       const response = await attachmentsAPI.getByLead(leadId);
       setAttachments(response.attachments);
+      setLoading(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load attachments";
       setError(message);
       console.error("Error fetching attachments:", err);
-    } finally {
       setLoading(false);
     }
   }, [leadId]);
@@ -58,15 +58,15 @@ export const useAttachmentData = (leadId: string) => {
 
         const newAttachment = await attachmentsAPI.create(data);
         setAttachments((prev) => [newAttachment, ...prev]);
+        setUploading(false);
         return newAttachment;
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to upload attachment";
         setError(message);
         console.error("Error uploading attachment:", err);
-        throw err;
-      } finally {
         setUploading(false);
+        throw err;
       }
     },
     [leadId],

@@ -20,6 +20,8 @@ function LiveFeed() {
   const [isLiveMode, setIsLiveMode] = useState(true);
   const feedRef = useRef<HTMLDivElement>(null);
 
+  const eventIdCounter = useRef(0);
+
   useEffect(() => {
     const generateEvent = (): FeedEvent => {
       const eventTypes: EventType[] = [
@@ -44,7 +46,7 @@ function LiveFeed() {
       const lead = leads[Math.floor(Math.random() * leads.length)];
 
       return {
-        id: Date.now(),
+        id: ++eventIdCounter.current,
         type: eventType.type,
         icon: eventType.icon,
         color: eventType.color,

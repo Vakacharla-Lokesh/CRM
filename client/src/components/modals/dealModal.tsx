@@ -111,6 +111,7 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
 
       await onSave(dealData);
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving deal:", error);
       setErrors({
@@ -119,7 +120,6 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
             ? error.message
             : "Failed to save deal. Please try again.",
       });
-    } finally {
       setIsSubmitting(false);
     }
   };

@@ -150,7 +150,6 @@ export function OrganizationSection({
               }
               placeholder="Acme Corporation"
               className={`transition-all duration-200 ${errors.organizationName ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
-              autoFocus
             />
             {errors.organizationName && (
               <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">

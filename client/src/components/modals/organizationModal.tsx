@@ -120,9 +120,9 @@ function OrganizationModal({
         await onSave(createData);
       }
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving organization:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };

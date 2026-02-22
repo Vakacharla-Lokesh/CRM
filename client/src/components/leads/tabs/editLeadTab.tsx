@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,6 +24,11 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  // Sync formData with lead prop when it changes
+  useEffect(() => {
+    setFormData(lead);
+  }, [lead]);
 
   const handleInputChange = (field: keyof Lead, value: string | number) => {
     setFormData((prev) => ({
@@ -61,12 +66,12 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
       onUpdate(formData);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 3000);
+      setIsSaving(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to update lead";
       setError(message);
       console.error("Error updating lead:", err);
-    } finally {
       setIsSaving(false);
     }
   };

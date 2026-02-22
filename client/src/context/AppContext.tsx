@@ -63,9 +63,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           //     console.error("Token verification failed:", error);
           //   }
         }
+        setLoading(false);
       } catch (error) {
         console.error("Auth initialization failed:", error);
-      } finally {
         setLoading(false);
       }
     };
@@ -139,9 +139,14 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const logout = useCallback(async () => {
     try {
       await authService.logout();
+      setUser(null);
+      setToken(null);
+      setIsAuthenticated(false);
+
+      removeFromLocalStorage("auth_token");
+      removeFromLocalStorage("user_data");
     } catch (error) {
       console.error("Logout API call failed:", error);
-    } finally {
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
