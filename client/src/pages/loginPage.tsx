@@ -2,46 +2,22 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context";
 import { useForm } from "../hooks";
+import { validateLoginForm } from "../utils/formValidators";
+import type { LoginFormData, LoginFormErrors } from "../utils/formValidators";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 import { Checkbox } from "../components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
 
-interface LoginFormData {
-  userEmail: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-interface FormErrors {
-  userEmail?: string;
-  password?: string;
-  submit?: string;
-}
+type FormErrors = LoginFormErrors;
 
 function LoginPage() {
   const navigate = useNavigate();
   const { login } = useAppContext();
   const [showPassword, setShowPassword] = useState(false);
 
-  const validateForm = (values: LoginFormData): FormErrors => {
-    const errors: FormErrors = {};
-
-    if (!values.userEmail) {
-      errors.userEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.userEmail)) {
-      errors.userEmail = "Please enter a valid email";
-    }
-
-    if (!values.password) {
-      errors.password = "Password is required";
-    } else if (values.password.length < 6) {
-      errors.password = "Password must be at least 6 characters";
-    }
-
-    return errors;
-  };
+  const validateForm = (values: LoginFormData): FormErrors => validateLoginForm(values);
 
   const {
     values,

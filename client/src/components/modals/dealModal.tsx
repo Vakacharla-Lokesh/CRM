@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
 import {
   Dialog,
@@ -17,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Deal } from "@/types/deals";
+import { validateDealForm } from "@/utils/formValidators";
+import type { DealFormData } from "@/utils/formValidators";
 
 interface DealModalProps {
   isOpen: boolean;
@@ -33,11 +36,7 @@ type DealStatus =
   | "Won"
   | "Lost";
 
-interface DealFormData {
-  dealName: string;
-  dealValue: string;
-  dealStatus: DealStatus;
-}
+
 
 const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   const [formData, setFormData] = useState<DealFormData>({
@@ -74,21 +73,7 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   };
 
   const validateForm = (): boolean => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.dealName.trim()) {
-      newErrors.dealName = "Deal name is required";
-    }
-
-    if (!formData.dealValue.trim()) {
-      newErrors.dealValue = "Deal value is required";
-    } else {
-      const value = parseFloat(formData.dealValue);
-      if (isNaN(value) || value < 0) {
-        newErrors.dealValue = "Deal value must be a positive number";
-      }
-    }
-
+    const newErrors = validateDealForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -106,7 +91,7 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
       const dealData = {
         dealName: formData.dealName.trim(),
         dealValue: parseFloat(formData.dealValue),
-        dealStatus: formData.dealStatus,
+        dealStatus: formData.dealStatus as DealStatus,
       };
 
       await onSave(dealData);

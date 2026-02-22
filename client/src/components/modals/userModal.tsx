@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import {
@@ -18,6 +19,7 @@ import type {
   UserModalProps,
 } from "@/types/form-interfaces";
 import { useParams } from "react-router-dom";
+import { validateUserForm } from "@/utils/formValidators";
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
@@ -63,35 +65,10 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   }, [user, isOpen, currentUser, id, isSuperAdmin]);
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-
-    if (!formData.userEmail.trim()) {
-      newErrors.userEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
-      newErrors.userEmail = "Invalid email format";
-    }
-
-    if (!user && !formData.password.trim()) {
-      newErrors.password = "Password is required for new users";
-    } else if (formData.password && formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
-    }
-
-    if (isSuperAdmin && !formData.tenantId) {
-      newErrors.tenantId = "Tenant selection is required";
-    }
-
-    if (
-      formData.mobile &&
-      !/^[1-9]\d{9}$/.test(formData.mobile.replace(/[^0-9]/g, ""))
-    ) {
-      newErrors.mobile = "Invalid mobile number format";
-    }
-
+    const newErrors = validateUserForm(formData, {
+      isExistingUser: !!user,
+      isSuperAdmin,
+    });
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
