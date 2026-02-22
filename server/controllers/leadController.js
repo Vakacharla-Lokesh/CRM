@@ -53,7 +53,7 @@ export const getLeadById = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access this lead",
@@ -130,7 +130,7 @@ export const deleteLead = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this lead",
@@ -204,7 +204,7 @@ export const updateLeadStatus = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this lead",
@@ -231,7 +231,7 @@ export const updateLeadScore = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this lead",

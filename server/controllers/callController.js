@@ -43,7 +43,7 @@ export const createCall = async (req, res, next) => {
     // Check tenant access
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot add calls to leads from other tenants",
@@ -74,7 +74,7 @@ export const updateCall = async (req, res, next) => {
     const lead = await leadModel.findById(call.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this call",
@@ -109,7 +109,7 @@ export const deleteCall = async (req, res, next) => {
     const lead = await leadModel.findById(call.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this call",
@@ -136,7 +136,7 @@ export const getCallsByLead = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access calls from other tenants",

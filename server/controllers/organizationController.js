@@ -25,7 +25,7 @@ export const getOrganizationById = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      organization.tenantId !== req.user.tenantId
+      organization.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access this organization",
@@ -74,7 +74,7 @@ export const updateOrganization = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      organization.tenantId !== req.user.tenantId
+      organization.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this organization",
@@ -109,7 +109,7 @@ export const deleteOrganization = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      organization.tenantId !== req.user.tenantId
+      organization.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this organization",
