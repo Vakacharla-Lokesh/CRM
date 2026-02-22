@@ -49,7 +49,7 @@ const OrganizationsPage = () => {
   // Fetch organizations on mount
   useEffect(() => {
     fetchOrganizations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint_disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddOrganization = () => {

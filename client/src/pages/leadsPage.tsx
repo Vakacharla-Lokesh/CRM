@@ -43,7 +43,7 @@ const LeadsPage = () => {
   // Fetch leads on mount
   useEffect(() => {
     fetchLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint_disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddLead = () => {
