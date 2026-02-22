@@ -22,7 +22,7 @@ const OrganizationLeadsPage = () => {
       try {
         setLoading(true);
         const [leadsData, orgData] = await Promise.all([
-          leadsAPI.getByOrganization(id),
+          leadsAPI.list({ organizationId: id }),
           organizationsAPI.get(id),
         ]);
         setLeads(leadsData.leads);

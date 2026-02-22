@@ -31,13 +31,23 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   name: string;
   searchColumn?: string;
+
+  // Row selection callback
   onSelectionChange?: (selectedRows: TData[]) => void;
+
+  // Optional cursor pagination — when provided, disables internal pagination
+  hasNextPage?: boolean;
+  onLoadMore?: () => void;
+  loadingMore?: boolean;
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   onSelectionChange,
+  hasNextPage,
+  onLoadMore,
+  loadingMore,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -47,16 +57,24 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
+  const useCursorPagination = onLoadMore !== undefined;
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+
+    // Only use internal pagination when NOT in cursor mode
+    ...(useCursorPagination
+      ? {}
+      : { getPaginationRowModel: getPaginationRowModel() }),
+
     onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
+
     onRowSelectionChange: (updater) => {
       setRowSelection((prev) => {
         const next = typeof updater === "function" ? updater(prev) : updater;
@@ -66,12 +84,14 @@ export function DataTable<TData, TValue>({
             .getRowModel()
             .rows.filter((row) => next[row.id])
             .map((row) => row.original);
+
           onSelectionChange(selectedRows);
         }
 
         return next;
       });
     },
+
     state: {
       sorting,
       columnFilters,
@@ -87,21 +107,20 @@ export function DataTable<TData, TValue>({
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
@@ -134,27 +153,46 @@ export function DataTable<TData, TValue>({
             )}
           </TableBody>
         </Table>
+
         <div className="flex items-center justify-end space-x-2 py-4 mx-4">
           <div className="text-muted-foreground flex-1 text-sm">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
             {table.getFilteredRowModel().rows.length} row(s) selected.
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+
+          {useCursorPagination ? (
+            // Cursor pagination mode
+            hasNextPage && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onLoadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? "Loading..." : "Load More"}
+              </Button>
+            )
+          ) : (
+            // Internal pagination mode
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.previousPage()}
+                disabled={!table.getCanPreviousPage()}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.nextPage()}
+                disabled={!table.getCanNextPage()}
+              >
+                Next
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </div>
