@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import {
@@ -11,22 +12,11 @@ import { useAppContext } from "@/context";
 import { FormField } from "./form-fields";
 import { ModalFooter, ErrorAlert } from "./shared";
 import { userService } from "@/services";
-
-interface SettingsFormData {
-  firstName: string;
-  lastName: string;
-  oldPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-interface SettingsFormErrors {
-  firstName?: string;
-  lastName?: string;
-  oldPassword?: string;
-  newPassword?: string;
-  confirmPassword?: string;
-}
+import { validateSettingsForm } from "@/utils/formValidators";
+import type {
+  SettingsFormData,
+  SettingsFormErrors,
+} from "@/utils/formValidators";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -67,35 +57,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   }, [user, isOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: SettingsFormErrors = {};
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "First name is required";
-    }
-
-    if (
-      formData.newPassword ||
-      formData.oldPassword ||
-      formData.confirmPassword
-    ) {
-      if (!formData.oldPassword) {
-        newErrors.oldPassword =
-          "Current password is required to change password";
-      }
-
-      if (!formData.newPassword) {
-        newErrors.newPassword = "New password is required";
-      } else if (formData.newPassword.length < 8) {
-        newErrors.newPassword = "Password must be at least 8 characters";
-      }
-
-      if (!formData.confirmPassword) {
-        newErrors.confirmPassword = "Please confirm your new password";
-      } else if (formData.newPassword !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match";
-      }
-    }
-
+    const newErrors = validateSettingsForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

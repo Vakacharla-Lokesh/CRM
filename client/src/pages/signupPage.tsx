@@ -1,25 +1,10 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppContext } from "../context";
+import { validateSignupForm } from "../utils/formValidators";
+import type { SignupFormData, SignupFormErrors } from "../utils/formValidators";
 
-interface SignupFormData {
-  tenantName: string;
-  firstName: string;
-  userEmail: string;
-  password: string;
-  confirmPassword: string;
-  agreeToTerms: boolean;
-}
-
-interface FormErrors {
-  tenantName?: string;
-  firstName?: string;
-  userEmail?: string;
-  password?: string;
-  confirmPassword?: string;
-  agreeToTerms?: string;
-  submit?: string;
-}
+type FormErrors = SignupFormErrors;
 
 interface PasswordStrength {
   level: number;
@@ -27,20 +12,6 @@ interface PasswordStrength {
   color: string;
 }
 
-/**
- * SignupPage Component
- * Route: /signup
- * Purpose: User registration and account creation
- * Features:
- * - Tenant/Organization name input
- * - User name input
- * - Email and password inputs
- * - Password strength indicator
- * - Password confirmation
- * - Terms acceptance checkbox
- * - Form validation
- * - Loading state during submission
- */
 function SignupPage() {
   const navigate = useNavigate();
   const { signup } = useAppContext();
@@ -80,38 +51,7 @@ function SignupPage() {
   };
 
   const validateForm = () => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.tenantName.trim()) {
-      newErrors.tenantName = "Organization name is required";
-    }
-
-    if (!formData.firstName.trim()) {
-      newErrors.firstName = "Your name is required";
-    }
-
-    if (!formData.userEmail) {
-      newErrors.userEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.userEmail)) {
-      newErrors.userEmail = "Please enter a valid email";
-    }
-
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length < 8) {
-      newErrors.password = "Password must be at least 8 characters";
-    }
-
-    if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password";
-    } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
-    }
-
-    if (!formData.agreeToTerms) {
-      newErrors.agreeToTerms = "You must agree to the terms and conditions";
-    }
-
+    const newErrors = validateSignupForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -141,7 +81,6 @@ function SignupPage() {
     setErrors({});
 
     try {
-      // Call real signup API
       await signup({
         firstName: formData.firstName,
         userEmail: formData.userEmail,
@@ -149,7 +88,6 @@ function SignupPage() {
         tenantName: formData.tenantName,
       });
 
-      // Navigate to dashboard page after successful signup
       navigate("/dashboard");
       setIsLoading(false);
     } catch (error: any) {
@@ -345,11 +283,11 @@ function SignupPage() {
             {formData.password && (
               <div className="mt-3 space-y-2">
                 <div className="flex gap-1">
-                  {[...Array(5)].map((_, i) => (
+                  {[...Array(5)].map((_, id) => (
                     <div
-                      key={`strength-bar-${i}`}
+                      key={`strength-bar-${id}`}
                       className={`flex-1 h-1 rounded-full transition-colors ${
-                        i < passwordStrength.level
+                        id < passwordStrength.level
                           ? passwordStrength.color
                           : "bg-gray-200 dark:bg-gray-700"
                       }`}
@@ -454,7 +392,7 @@ function SignupPage() {
                 I agree to the{" "}
                 <button
                   type="button"
-                  onClick={() => window.open('/terms', '_blank')}
+                  onClick={() => window.open("/terms", "_blank")}
                   className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
                 >
                   Terms and Conditions
@@ -462,7 +400,7 @@ function SignupPage() {
                 and{" "}
                 <button
                   type="button"
-                  onClick={() => window.open('/privacy', '_blank')}
+                  onClick={() => window.open("/privacy", "_blank")}
                   className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
                 >
                   Privacy Policy

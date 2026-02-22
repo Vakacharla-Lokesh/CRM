@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
@@ -6,7 +7,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationIndustry } from "@/types";
+import type {
+  CreateOrganizationDTO,
+  UpdateOrganizationDTO,
+  OrganizationIndustry,
+} from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
 
@@ -18,6 +23,7 @@ import type {
 import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
 import { useAppContext } from "@/context/appContext";
+import { validateOrganizationForm } from "@/utils/formValidators";
 
 function OrganizationModal({
   isOpen,
@@ -62,31 +68,7 @@ function OrganizationModal({
   }, [organization, isOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.organizationName.trim()) {
-      newErrors.organizationName = "Organization name is required";
-    }
-
-    if (!formData.organizationWebsite.trim()) {
-      newErrors.organizationWebsite = "Website is required";
-    } else if (
-      !/^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!/-]))?$/.test(
-        formData.organizationWebsite,
-      )
-    ) {
-      newErrors.organizationWebsite = "Please provide a valid website URL";
-    }
-
-    if (formData.organizationSize < 1 || formData.organizationSize > 10000000) {
-      newErrors.organizationSize =
-        "Organization size must be between 1 and 10,000,000";
-    }
-
-    if (!formData.organizationIndustry) {
-      newErrors.organizationIndustry = "Industry is required";
-    }
-
+    const newErrors = validateOrganizationForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -106,7 +88,8 @@ function OrganizationModal({
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+          organizationIndustry:
+            formData.organizationIndustry as OrganizationIndustry,
         };
         await onUpdate(organization._id, updateData);
       } else {
@@ -114,7 +97,8 @@ function OrganizationModal({
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+          organizationIndustry:
+            formData.organizationIndustry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
         await onSave(createData);

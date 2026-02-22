@@ -15,6 +15,7 @@ import type {
   TenantFormErrors as FormErrors,
   TenantModalProps,
 } from "@/types/form-interfaces";
+import { validateTenantForm } from "@/utils/formValidators";
 
 function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   const [formData, setFormData] = useState<TenantFormData>({
@@ -43,24 +44,7 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   }, [tenant, isOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.tenantName.trim()) {
-      newErrors.tenantName = "Tenant name is required";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
-      newErrors.email = "Please provide a valid email address";
-    }
-
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
-    } else if (!/^[1-9]\d{9}$/.test(formData.mobile.replace(/[^0-9]/g, ""))) {
-      newErrors.mobile = "Please provide a valid 10-digit mobile number";
-    }
-
+    const newErrors = validateTenantForm(formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

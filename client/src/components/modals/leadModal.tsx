@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
@@ -22,6 +23,7 @@ import { OrganizationSection } from "./sections";
 import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
 import { useAppContext } from "@/context/appContext";
+import { validateLeadForm } from "@/utils/formValidators";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
@@ -99,46 +101,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   }, [lead, isOpen]);
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.leadFirstName.trim()) {
-      newErrors.leadFirstName = "First name is required";
-    }
-
-    if (!formData.leadEmail.trim()) {
-      newErrors.leadEmail = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.leadEmail)) {
-      newErrors.leadEmail = "Invalid email format";
-    }
-
-    if (organizationMode === "create") {
-      if (!newOrgData.organizationName.trim()) {
-        newErrors.organizationName = "Organization name is required";
-      }
-
-      if (!newOrgData.organizationWebsite.trim()) {
-        newErrors.organizationWebsite = "Website is required";
-      } else if (
-        !/^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!/-]))?$/.test(
-          newOrgData.organizationWebsite,
-        )
-      ) {
-        newErrors.organizationWebsite = "Please provide a valid website URL";
-      }
-
-      if (
-        newOrgData.organizationSize < 1 ||
-        newOrgData.organizationSize > 1_00_00_000
-      ) {
-        newErrors.organizationSize =
-          "Organization size must be between 1 and 10,000,000";
-      }
-
-      if (!newOrgData.organizationIndustry) {
-        newErrors.organizationIndustry = "Industry is required";
-      }
-    }
-
+    const newErrors = validateLeadForm(formData, organizationMode, newOrgData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
