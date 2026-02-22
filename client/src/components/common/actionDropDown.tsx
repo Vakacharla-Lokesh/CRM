@@ -12,11 +12,11 @@ import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 interface ActionDropdownProps {
   id: string;
-  type?: string; // e.g. "Organization", "Lead"
+  type?: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
-  onViewUsers?: (id: string) => void; // Optional: for tenants to view associated users
-  viewUsersLabel?: string; // <-- ADD THIS
+  onViewUsers?: (id: string) => void;
+  viewUsersLabel?: string;
 }
 
 const ActionDropdown: React.FC<ActionDropdownProps> = ({
@@ -47,10 +47,8 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {/* Copy ID */}
         <DropdownMenuItem onClick={handleCopy}>Copy {type} ID</DropdownMenuItem>
 
-        {/* View Users */}
         {onViewUsers && (
           <DropdownMenuItem
             onClick={() => onViewUsers(id)}
@@ -61,7 +59,6 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
           </DropdownMenuItem>
         )}
 
-        {/* Edit */}
         {onEdit && (
           <DropdownMenuItem
             onClick={() => onEdit(id)}
@@ -72,7 +69,6 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
           </DropdownMenuItem>
         )}
 
-        {/* Delete */}
         {onDelete && (
           <DropdownMenuItem
             onClick={() => onDelete(id)}

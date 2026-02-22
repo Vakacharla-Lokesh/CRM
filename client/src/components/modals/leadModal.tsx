@@ -111,7 +111,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       newErrors.leadEmail = "Invalid email format";
     }
 
-    // Validate organization fields if creating new organization
     if (organizationMode === "create") {
       if (!newOrgData.organizationName.trim()) {
         newErrors.organizationName = "Organization name is required";
@@ -157,7 +156,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     try {
       let organizationId = formData.organizationId;
 
-      // Create new organization if in create mode
       if (organizationMode === "create") {
         const organizationData: CreateOrganizationDTO = {
           organizationName: newOrgData.organizationName,

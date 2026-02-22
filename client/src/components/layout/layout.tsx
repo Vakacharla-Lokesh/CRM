@@ -19,7 +19,6 @@ function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen text-gray-900 dark:text-slate-200">
-      {/* Navbar */}
       <Navbar
         onToggleSidebar={toggleSidebar}
         isSidebarOpen={isSidebarOpen}
@@ -29,12 +28,9 @@ function Layout({ children }: LayoutProps) {
         setIsUserMenuOpen={setIsUserMenuOpen}
       />
 
-      {/* Main Content Area */}
       <div className="flex pt-16 overflow-hidden">
-        {/* Left Sidebar */}
         <Sidebar isOpen={isSidebarOpen} />
 
-        {/* Main Content */}
         <main
           className="flex-1 overflow-y-auto transition-all duration-300"
           style={{
@@ -45,7 +41,6 @@ function Layout({ children }: LayoutProps) {
           <div className="p-6">{children}</div>
         </main>
 
-        {/* Right Panel */}
         <RightPanel isOpen={isRightPanelOpen} />
       </div>
     </div>

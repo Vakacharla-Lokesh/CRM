@@ -4,15 +4,9 @@ import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/context";
 import { ModeToggle } from "../common/themeToggle";
 import { SettingsModal } from "../modals";
-// import { MonitoringToggleButton } from "../common/monitoringToggle";
 
 function Navbar({
-  // Sidebar toggle props
   onToggleSidebar,
-  // Right panel toggle props
-  // isRightPanelOpen,
-  // onToggleRightPanel,
-  // User menu props
   isUserMenuOpen,
   setIsUserMenuOpen,
 }: NavbarProps) {
@@ -77,7 +71,6 @@ function Navbar({
         <div className="flex items-center gap-2 sm:gap-3">
           <ModeToggle />
 
-          {/* Uncomment later for monitoring stats */}
           {/* <MonitoringToggleButton
             isOpen={isRightPanelOpen}
             onToggle={onToggleRightPanel}

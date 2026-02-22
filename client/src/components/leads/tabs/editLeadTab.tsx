@@ -40,7 +40,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
       setError(null);
       setSuccess(false);
 
-      // Validate required fields
       if (!formData.leadFirstName.trim()) {
         setError("First name is required");
         return;
@@ -76,7 +75,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Status Messages */}
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -91,9 +89,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       )}
 
-      {/* Form Fields */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* First Name */}
         <div className="space-y-2">
           <Label htmlFor="firstName">First Name *</Label>
           <Input
@@ -105,7 +101,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           />
         </div>
 
-        {/* Last Name */}
         <div className="space-y-2">
           <Label htmlFor="lastName">Last Name</Label>
           <Input
@@ -117,7 +112,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           />
         </div>
 
-        {/* Email */}
         <div className="space-y-2">
           <Label htmlFor="email">Email *</Label>
           <Input
@@ -130,7 +124,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           />
         </div>
 
-        {/* Lead Source */}
         <div className="space-y-2">
           <Label htmlFor="source">Lead Source</Label>
           <Select
@@ -150,7 +143,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           </Select>
         </div>
 
-        {/* Lead Status */}
         <div className="space-y-2">
           <Label htmlFor="status">Status</Label>
           <Select
@@ -172,7 +164,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       </div>
 
-      {/* Lead Score - Read Only */}
       <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-between">
           <div>
@@ -187,7 +178,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 transition-all duration-300"
+            className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
             style={{ width: `${formData.leadScore}%` }}
           />
         </div>
@@ -198,7 +189,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       </div>
 
-      {/* Metadata */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <div className="space-y-1">
           <p className="text-xs text-gray-600 dark:text-gray-400">Created</p>
@@ -218,7 +208,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       </div>
 
-      {/* Save Button */}
       <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
         <Button
           onClick={handleSave}

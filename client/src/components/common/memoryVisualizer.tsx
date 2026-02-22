@@ -24,7 +24,6 @@ function MemoryVisualizer() {
 
         setMemoryData((prev) => {
           if (timeSinceLastClear >= 5000) {
-            // Clear graph every 5 seconds
             lastClearTime.current = now;
             return [usedMemory];
           }
@@ -47,14 +46,12 @@ function MemoryVisualizer() {
     const width = canvas.width;
     const height = canvas.height;
 
-    // Clear canvas
     ctx.clearRect(0, 0, width, height);
 
     const min = Math.min(...memoryData);
     const max = Math.max(...memoryData);
     const range = max - min || 1;
 
-    // Grid lines (using theme border color)
     const gridColor =
       getComputedStyle(document.documentElement).getPropertyValue(
         "--color-border",
@@ -74,7 +71,7 @@ function MemoryVisualizer() {
       getComputedStyle(document.documentElement).getPropertyValue(
         "--color-chart-1",
       ) || "#6366f1";
-    const fillColor = lineColor.trim() + "1A"; // 10% opacity
+    const fillColor = lineColor.trim() + "1A";
 
     ctx.strokeStyle = lineColor.trim();
     ctx.lineWidth = 2;
@@ -89,7 +86,6 @@ function MemoryVisualizer() {
 
     ctx.stroke();
 
-    // Fill under the line
     ctx.lineTo(width, height);
     ctx.lineTo(0, height);
     ctx.closePath();
