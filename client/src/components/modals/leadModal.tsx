@@ -21,7 +21,7 @@ import { OrganizationSection } from "./sections";
 
 import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext } from "@/context/appContext";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();

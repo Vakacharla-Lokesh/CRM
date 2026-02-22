@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { columns } from "@/components/leads/lead-columns";
+import { columns } from "@/components/leads/leadColumns";
 import { leadsAPI, organizationsAPI } from "@/services/api";
 import type { Lead, Organization } from "@/types";
 import { DataTable } from "@/components/common/dataTable";

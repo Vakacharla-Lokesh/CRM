@@ -15,8 +15,17 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 
 import { type Lead } from "@/types";
+import ActionDropdown from "../common/actionDropDown";
 
-export const columns: ColumnDef<Lead>[] = [
+interface ColumnsProps {
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+}
+
+export const columns = ({
+  onEdit,
+  onDelete,
+}: ColumnsProps = {}): ColumnDef<Lead>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -205,5 +214,17 @@ export const columns: ColumnDef<Lead>[] = [
         </DropdownMenu>
       );
     },
+  },
+  {
+    id: "actions",
+    header: "Actions",
+    cell: ({ row }) => (
+      <ActionDropdown
+        id={row.original._id}
+        type="Lead"
+        onEdit={onEdit}
+        onDelete={onDelete}
+      />
+    ),
   },
 ];

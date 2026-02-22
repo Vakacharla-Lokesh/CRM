@@ -1,2 +1,2 @@
-export { FormField } from "./FormField";
-export { FormSelect } from "./FormSelect";
+export { FormField } from "./formField";
+export { FormSelect } from "./formSelect";

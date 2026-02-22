@@ -1,8 +1,9 @@
 import { DataTable } from "../components/common/dataTable";
-import { getColumns } from "../components/deals/deal-columns";
+import { columns } from "../components/deals/dealColumns";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import {
   Select,
   SelectContent,
@@ -25,14 +26,38 @@ const DealsPage = () => {
     updateFilter,
     clearFilters,
     updateDeal,
+    deleteDeal,
   } = useDealData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [dealToDelete, setDealToDelete] = useState<string | null>(null);
 
-  const handleEdit = (deal: Deal) => {
-    setSelectedDeal(deal);
-    setIsModalOpen(true);
+  const handleEdit = (id: string) => {
+    const deal = filteredDeals.find((d) => d._id === id);
+    if (deal) {
+      setSelectedDeal(deal);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleDeleteDeal = (id: string) => {
+    setDealToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!dealToDelete) return;
+
+    try {
+      await deleteDeal(dealToDelete);
+    } catch (error) {
+      console.error("Error deleting deal:", error);
+      alert("Failed to delete deal. Please try again.");
+    } finally {
+      setDealToDelete(null);
+    }
   };
 
   const handleSave = async (dealData: UpdateDealDTO) => {
@@ -189,7 +214,7 @@ const DealsPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={getColumns({ onEdit: handleEdit })}
+          columns={columns({ onEdit: handleEdit, onDelete: handleDeleteDeal })}
           data={filteredDeals}
           name="Deals"
           searchColumn="dealName"
@@ -201,6 +226,16 @@ const DealsPage = () => {
         deal={selectedDeal}
         onClose={handleCloseModal}
         onSave={handleSave}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Deal"
+        description="Are you sure you want to delete this deal? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

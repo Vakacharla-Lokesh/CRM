@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/organizations/organization-columns";
+import { columns } from "../components/organizations/organizationColumns";
 import type {
   CreateOrganizationDTO,
   Organization,

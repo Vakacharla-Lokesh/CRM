@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/tenants/tenant-columns";
+import { columns } from "../components/tenants/tenantColumns";
 import type { Tenant, CreateTenantDto } from "@/types/tenant";
 import { Button } from "@/components/ui/button";
 import { TenantModal } from "@/components/modals";

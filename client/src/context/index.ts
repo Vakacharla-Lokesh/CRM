@@ -1,3 +1,3 @@
-export { AppProvider, useAppContext } from "./AppContext";
-export { default as AppContext } from "./AppContext";
-export { OfflineProvider, useOffline } from "./OfflineContext";
+export { AppProvider, useAppContext } from "./appContext";
+export { default as AppContext } from "./appContext";
+export { OfflineProvider, useOffline } from "./offlineContext";
