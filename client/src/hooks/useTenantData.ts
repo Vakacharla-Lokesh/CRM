@@ -15,6 +15,9 @@ interface TenantStatistics {
 
 const useTenantData = () => {
   const [tenants, setTenants] = useState<Tenant[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filters, setFilters] = useState<TenantFilters>({
     search: "",
     dateFrom: "",
@@ -24,20 +27,43 @@ const useTenantData = () => {
   const { updateItem } = useIndexedDB<Tenant & { id: string }>("tenants");
 
   const fetchTenants = useCallback(async () => {
-    const data = await tenantService.getAllTenants();
-    setTenants(data);
+    const page = await tenantService.getAllTenants({ limit: 20 });
+    setTenants(page.tenants);
+    setNextCursor(page.nextCursor);
+    setHasNextPage(page.hasNextPage);
 
-    // Store in IndexedDB for offline access
     try {
-      for (const tenant of data) {
+      for (const tenant of page.tenants) {
         await updateItem(tenant._id, { ...tenant, id: tenant._id });
       }
     } catch (error) {
       console.error("Error storing tenants in IndexedDB:", error);
     }
 
-    return data;
+    return page.tenants;
   }, [updateItem]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || loadingMore || !nextCursor) return;
+    setLoadingMore(true);
+    try {
+      const page = await tenantService.getAllTenants({
+        cursor: nextCursor,
+        limit: 20,
+      });
+      setTenants((prev) => [...prev, ...page.tenants]);
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
+
+      for (const tenant of page.tenants) {
+        await updateItem(tenant._id, { ...tenant, id: tenant._id });
+      }
+    } catch (error) {
+      console.error("Error loading more tenants:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasNextPage, loadingMore, nextCursor, updateItem]);
 
   const { execute, loading, error } = useAsync<Tenant[]>();
 
@@ -176,6 +202,11 @@ const useTenantData = () => {
 
     // Additional operations
     refresh,
+
+    nextCursor,
+    hasNextPage,
+    loadingMore,
+    loadMore,
   };
 };
 

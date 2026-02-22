@@ -18,6 +18,9 @@ interface Filters {
 
 export const useOrganizationData = () => {
   const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
@@ -99,12 +102,14 @@ export const useOrganizationData = () => {
 
   const fetchOrganizations = useCallback(async () => {
     return executeAsync(async () => {
-      const data = await organizationService.getAllOrganizations();
-      setOrganizations(data);
-      setFilteredOrganizations(data);
-      calculateStatistics(data);
+      const page = await organizationService.getAllOrganizations({ limit: 20 });
+      setOrganizations(page.organizations);
+      setFilteredOrganizations(page.organizations);
+      calculateStatistics(page.organizations);
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
 
-      for (const org of data) {
+      for (const org of page.organizations) {
         try {
           await updateItem(org._id, { ...org, id: org._id });
         } catch (error) {
@@ -112,9 +117,39 @@ export const useOrganizationData = () => {
         }
       }
 
-      return data;
+      return page.organizations;
     });
   }, [executeAsync, updateItem, calculateStatistics]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || loadingMore || !nextCursor) return;
+    setLoadingMore(true);
+    try {
+      const page = await organizationService.getAllOrganizations({
+        cursor: nextCursor,
+        limit: 20,
+      });
+      setOrganizations((prev) => {
+        const combined = [...prev, ...page.organizations];
+        calculateStatistics(combined);
+        return combined;
+      });
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
+
+      for (const org of page.organizations) {
+        try {
+          await updateItem(org._id, { ...org, id: org._id });
+        } catch (error) {
+          console.warn("Failed to persist organization to IndexedDB:", error);
+        }
+      }
+    } catch (error) {
+      console.error("Error loading more organizations:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasNextPage, loadingMore, nextCursor, updateItem, calculateStatistics]);
 
   const fetchOrganizationById = useCallback(
     async (id: string) => {
@@ -246,7 +281,6 @@ export const useOrganizationData = () => {
   );
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 
@@ -280,5 +314,10 @@ export const useOrganizationData = () => {
     // Filter methods
     updateFilter,
     resetFilters,
+
+    nextCursor,
+    hasNextPage,
+    loadingMore,
+    loadMore,
   };
 };

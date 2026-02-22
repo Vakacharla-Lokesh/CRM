@@ -72,10 +72,10 @@ export async function exportLeads(selectedIds?: string[]): Promise<void> {
 export async function exportOrganizations(
   selectedIds?: string[],
 ): Promise<void> {
-  const all = await organizationService.getAllOrganizations();
+  const page = await organizationService.getAllOrganizations();
   const orgs = selectedIds?.length
-    ? all.filter((o) => selectedIds.includes(o._id))
-    : all;
+    ? page.organizations.filter((o) => selectedIds.includes(o._id))
+    : page.organizations;
 
   const columns = ORGANIZATION_COLUMNS as string[];
   const rows = stripInternalFields(
@@ -86,10 +86,10 @@ export async function exportOrganizations(
 }
 
 export async function exportDeals(selectedIds?: string[]): Promise<void> {
-  const all = await dealService.getAllDeals();
+  const page = await dealService.getAllDeals();
   const deals = selectedIds?.length
-    ? all.filter((d) => selectedIds.includes(d._id))
-    : all;
+    ? page.deals.filter((d) => selectedIds.includes(d._id))
+    : page.deals;
 
   const columns = DEAL_COLUMNS as string[];
   const rows = stripInternalFields(

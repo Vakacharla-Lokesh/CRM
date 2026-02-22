@@ -24,12 +24,32 @@ interface UserActivity {
   timestamp: string;
 }
 
+export interface CursorUserPage {
+  users: User[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 export const userService = {
-  getAllUsers: async (): Promise<User[]> => {
-    const response = await apiClient.get<{ count: number; users: User[] }>(
-      "/users",
-    );
-    return response.users;
+  getAllUsers: async (params?: {
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<CursorUserPage> => {
+    const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
+    if (params?.cursor) queryParams.cursor = params.cursor;
+
+    const response = await apiClient.get<{
+      count: number;
+      users: User[];
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    }>("/users", queryParams);
+
+    return {
+      users: response.users,
+      nextCursor: response.nextCursor,
+      hasNextPage: response.hasNextPage,
+    };
   },
 
   getUserById: async (id: string): Promise<User> => {

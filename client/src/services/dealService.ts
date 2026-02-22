@@ -17,13 +17,32 @@ interface DealActivity {
   createdAt: string;
 }
 
+export interface CursorDealPage {
+  deals: Deal[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 const dealService = {
-  getAllDeals: async (): Promise<Deal[]> => {
+  getAllDeals: async (params?: {
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<CursorDealPage> => {
+    const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
+    if (params?.cursor) queryParams.cursor = params.cursor;
+
     const response = await apiClient.get<{
       count: number;
       deals: Deal[];
-    }>("/deals");
-    return response.deals;
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    }>("/deals", queryParams);
+
+    return {
+      deals: response.deals,
+      nextCursor: response.nextCursor,
+      hasNextPage: response.hasNextPage,
+    };
   },
 
   getDealById: async (id: string): Promise<Deal> => {

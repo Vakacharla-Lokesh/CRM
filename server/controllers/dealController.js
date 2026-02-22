@@ -4,12 +4,28 @@ import dealModel from "../models/dealModel.js";
 export const getAllDeals = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const deals = await dealModel.find(filter);
+    const limit = parseInt(req.query.limit) || 20;
+    const cursor = req.query.cursor;
 
-    res.json({
-      count: deals.length,
-      deals,
-    });
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
+
+    const deals = await dealModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .limit(limit + 1);
+
+    const hasNextPage = deals.length > limit;
+    if (hasNextPage) deals.pop();
+
+    const nextCursor =
+      hasNextPage && deals.length > 0
+        ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
+        : null;
+
+    res.json({ count: deals.length, deals, nextCursor, hasNextPage });
   } catch (err) {
     next(err);
   }
