@@ -19,16 +19,6 @@ interface CallsTabProps {
   leadId: string;
 }
 
-/**
- * CallsTab Component
- * Manage call logs for a lead
- * Features:
- * - Log new incoming/outgoing calls
- * - Track call status and duration
- * - Add call notes
- * - View call history
- * - Delete call logs
- */
 function CallsTab({ leadId }: CallsTabProps) {
   const { calls, loading, error, createCall, deleteCall } = useCallData(leadId);
   const [isAdding, setIsAdding] = useState(false);
@@ -47,7 +37,6 @@ function CallsTab({ leadId }: CallsTabProps) {
     try {
       setIsAdding(true);
 
-      // Validate duration if provided
       if (formData.duration && isNaN(Number(formData.duration))) {
         throw new Error("Duration must be a valid number");
       }
@@ -59,7 +48,6 @@ function CallsTab({ leadId }: CallsTabProps) {
         callNotes: formData.notes,
       });
 
-      // Reset form
       setFormData({
         callType: "outgoing",
         status: "completed",
@@ -111,14 +99,12 @@ function CallsTab({ leadId }: CallsTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
-      {/* Log Call Form */}
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Log New Call
@@ -128,7 +114,6 @@ function CallsTab({ leadId }: CallsTabProps) {
           className="space-y-4"
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Call Type */}
             <div className="space-y-2">
               <Label htmlFor="callType">Call Type *</Label>
               <Select
@@ -153,7 +138,6 @@ function CallsTab({ leadId }: CallsTabProps) {
               </Select>
             </div>
 
-            {/* Status */}
             <div className="space-y-2">
               <Label htmlFor="status">Status *</Label>
               <Select
@@ -180,7 +164,6 @@ function CallsTab({ leadId }: CallsTabProps) {
               </Select>
             </div>
 
-            {/* Duration */}
             <div className="space-y-2">
               <Label htmlFor="duration">Duration (minutes)</Label>
               <Input
@@ -199,7 +182,6 @@ function CallsTab({ leadId }: CallsTabProps) {
             </div>
           </div>
 
-          {/* Notes */}
           <div className="space-y-2">
             <Label htmlFor="notes">Call Notes</Label>
             <Textarea
@@ -228,7 +210,6 @@ function CallsTab({ leadId }: CallsTabProps) {
         </form>
       </div>
 
-      {/* Calls List */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Call History ({calls.length})

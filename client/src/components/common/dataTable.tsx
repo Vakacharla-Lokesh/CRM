@@ -31,11 +31,7 @@ interface DataTableProps<TData, TValue> {
   data: TData[];
   name: string;
   searchColumn?: string;
-
-  // Row selection callback
   onSelectionChange?: (selectedRows: TData[]) => void;
-
-  // Optional cursor pagination — when provided, disables internal pagination
   hasNextPage?: boolean;
   onLoadMore?: () => void;
   loadingMore?: boolean;
@@ -64,7 +60,6 @@ export function DataTable<TData, TValue>({
     columns,
     getCoreRowModel: getCoreRowModel(),
 
-    // Only use internal pagination when NOT in cursor mode
     ...(useCursorPagination
       ? {}
       : { getPaginationRowModel: getPaginationRowModel() }),
@@ -161,7 +156,6 @@ export function DataTable<TData, TValue>({
           </div>
 
           {useCursorPagination ? (
-            // Cursor pagination mode
             hasNextPage && (
               <Button
                 variant="outline"
@@ -173,7 +167,6 @@ export function DataTable<TData, TValue>({
               </Button>
             )
           ) : (
-            // Internal pagination mode
             <>
               <Button
                 variant="outline"

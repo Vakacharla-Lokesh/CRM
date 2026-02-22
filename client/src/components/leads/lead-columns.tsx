@@ -170,7 +170,6 @@ export const columns: ColumnDef<Lead>[] = [
       };
 
       const handleDelete = () => {
-        // TODO: Implement delete functionality
         console.log("Delete:", lead._id);
       };
 

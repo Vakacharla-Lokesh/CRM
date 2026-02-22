@@ -21,7 +21,6 @@ function LiveFeed() {
   const feedRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Simulate real-time events
     const generateEvent = (): FeedEvent => {
       const eventTypes: EventType[] = [
         { type: "lead_created", icon: <Plus size={16} />, color: "green" },
@@ -59,7 +58,6 @@ function LiveFeed() {
     const interval = setInterval(() => {
       setEvents((prev) => {
         const newEvents = [generateEvent(), ...prev];
-        // Keep only last 50 events
         return newEvents.slice(0, 50);
       });
     }, 2000);
@@ -67,7 +65,6 @@ function LiveFeed() {
     return () => clearInterval(interval);
   }, [isLiveMode]);
 
-  // Auto-scroll to latest events
   useEffect(() => {
     if (feedRef.current && isLiveMode) {
       feedRef.current.scrollTop = 0;
@@ -130,7 +127,6 @@ function LiveFeed() {
         </div>
       </div>
 
-      {/* Feed Container */}
       <div
         ref={feedRef}
         className="flex-1 overflow-y-auto space-y-2 max-h-64"
@@ -170,7 +166,6 @@ function LiveFeed() {
         )}
       </div>
 
-      {/* Event Counter */}
       <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
         <p className="text-xs text-gray-600 dark:text-gray-400">
           <span className="font-semibold text-gray-900 dark:text-white">
@@ -180,7 +175,6 @@ function LiveFeed() {
         </p>
       </div>
 
-      {/* Add CSS animation */}
       <style>{`
         @keyframes fadeIn {
           from {

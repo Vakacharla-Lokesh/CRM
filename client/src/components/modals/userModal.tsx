@@ -75,19 +75,16 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       newErrors.userEmail = "Invalid email format";
     }
 
-    // Password is only required for new users
     if (!user && !formData.password.trim()) {
       newErrors.password = "Password is required for new users";
     } else if (formData.password && formData.password.length < 6) {
       newErrors.password = "Password must be at least 6 characters";
     }
 
-    // Tenant is required for super_admin users
     if (isSuperAdmin && !formData.tenantId) {
       newErrors.tenantId = "Tenant selection is required";
     }
 
-    // Mobile validation - backend expects 10 digits starting with non-zero
     if (
       formData.mobile &&
       !/^[1-9]\d{9}$/.test(formData.mobile.replace(/[^0-9]/g, ""))

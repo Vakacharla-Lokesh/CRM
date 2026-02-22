@@ -26,10 +26,8 @@ function ConnectivityLED() {
     shortPoll: false,
   });
 
-  // Simulate checking connection status
   useEffect(() => {
     const checkConnectivity = () => {
-      // This will be connected to real WebSocket/SSE
       setConnectivity({
         ws: Math.random() > 0.5,
         sse: Math.random() > 0.3,

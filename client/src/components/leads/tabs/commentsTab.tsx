@@ -11,17 +11,9 @@ interface CommentsTabProps {
   leadId: string;
 }
 
-/**
- * CommentsTab Component
- * Manage comments for a lead
- * Features:
- * - Add new comments with title and description
- * - View all comments
- * - Delete comments
- * - Shows creation timestamp
- */
 function CommentsTab({ leadId }: CommentsTabProps) {
-  const { comments, loading, error, createComment, deleteComment } = useCommentData(leadId);
+  const { comments, loading, error, createComment, deleteComment } =
+    useCommentData(leadId);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({ title: "", description: "" });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -42,7 +34,6 @@ function CommentsTab({ leadId }: CommentsTabProps) {
         commentDesc: formData.description,
       });
 
-      // Reset form
       setFormData({ title: "", description: "" });
     } catch (err) {
       console.error("Error adding comment:", err);
@@ -70,14 +61,12 @@ function CommentsTab({ leadId }: CommentsTabProps) {
 
   return (
     <div className="space-y-6">
-      {/* Error Message */}
       {error && (
         <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
         </div>
       )}
 
-      {/* Add Comment Form */}
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Add New Comment
@@ -126,7 +115,6 @@ function CommentsTab({ leadId }: CommentsTabProps) {
         </form>
       </div>
 
-      {/* Comments List */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
           Comments ({comments.length})

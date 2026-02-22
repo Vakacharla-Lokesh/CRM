@@ -102,7 +102,6 @@ function OrganizationModal({
 
     try {
       if (organization && onUpdate) {
-        // Edit mode - call onUpdate (no tenantId needed)
         const updateData: UpdateOrganizationDTO = {
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
@@ -111,7 +110,6 @@ function OrganizationModal({
         };
         await onUpdate(organization._id, updateData);
       } else {
-        // Create mode - call onSave
         const createData: CreateOrganizationDTO = {
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,

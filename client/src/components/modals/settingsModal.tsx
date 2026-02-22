@@ -73,10 +73,14 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       newErrors.firstName = "First name is required";
     }
 
-    // Password validation only if user wants to change password
-    if (formData.newPassword || formData.oldPassword || formData.confirmPassword) {
+    if (
+      formData.newPassword ||
+      formData.oldPassword ||
+      formData.confirmPassword
+    ) {
       if (!formData.oldPassword) {
-        newErrors.oldPassword = "Current password is required to change password";
+        newErrors.oldPassword =
+          "Current password is required to change password";
       }
 
       if (!formData.newPassword) {
@@ -106,7 +110,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
     setSuccessMessage(null);
 
     try {
-      // Update profile (first name, last name)
       const profileUpdated =
         formData.firstName !== user.firstName ||
         formData.lastName !== user.lastName;
@@ -119,7 +122,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         updateUser(updatedUser);
       }
 
-      // Update password if provided
       if (formData.newPassword) {
         await userService.updatePassword(user._id, {
           oldPassword: formData.oldPassword,
@@ -154,7 +156,10 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={handleClose}
+    >
       <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
@@ -163,7 +168,10 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
           {submitError && <ErrorAlert message={submitError} />}
           {successMessage && (
             <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
@@ -173,7 +181,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             </div>
           )}
 
-          {/* Profile Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Profile Information
@@ -205,7 +212,6 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
             />
           </div>
 
-          {/* Password Section */}
           <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
             <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
               Change Password
@@ -242,11 +248,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={() => setShowOldPassword(!showOldPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  {showOldPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.oldPassword && (
@@ -282,11 +284,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  {showNewPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
               {errors.newPassword && (
