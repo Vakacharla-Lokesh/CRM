@@ -1,30 +1,25 @@
-// server/controllers/leadController.js
-
 import leadModel from "../models/leadModel.js";
 
-// Get all leads — cursor-based pagination
 export const getAllLeads = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
 
     const limit = parseInt(req.query.limit) || 20;
-    const cursor = req.query.cursor; // base64-encoded _id of last item
+    const cursor = req.query.cursor;
 
     if (cursor) {
-      // Decode the cursor (it's the _id of the last seen document)
       const lastId = Buffer.from(cursor, "base64").toString("utf8");
-      filter._id = { $gt: lastId }; // fetch records AFTER this id
+      filter._id = { $gt: lastId };
     }
 
     const leads = await leadModel
       .find(filter)
-      .sort({ _id: 1 }) // consistent sort required for cursor pagination
-      .limit(limit + 1); // fetch one extra to know if there's a next page
+      .sort({ _id: 1 })
+      .limit(limit + 1);
 
     const hasNextPage = leads.length > limit;
-    if (hasNextPage) leads.pop(); // remove the extra item
+    if (hasNextPage) leads.pop();
 
-    // Encode the last item's _id as the next cursor
     const nextCursor =
       hasNextPage && leads.length > 0
         ? Buffer.from(leads[leads.length - 1]._id.toString()).toString("base64")
@@ -40,8 +35,6 @@ export const getAllLeads = async (req, res, next) => {
     next(err);
   }
 };
-
-// ---- All other controllers unchanged below ----
 
 export const getLeadById = async (req, res, next) => {
   try {
@@ -247,7 +240,6 @@ export const updateLeadScore = async (req, res, next) => {
   }
 };
 
-// Convert lead to deal
 export const convertLeadToDeal = async (req, res, next) => {
   try {
     const lead = await leadModel.findById(req.params.id);
@@ -256,7 +248,6 @@ export const convertLeadToDeal = async (req, res, next) => {
       return res.status(404).json({ message: "Lead not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       lead.tenantId?.toString() !== req.user.tenantId?.toString()
@@ -266,24 +257,20 @@ export const convertLeadToDeal = async (req, res, next) => {
       });
     }
 
-    // Check if lead is already converted
     if (lead.leadStatus === "Converted") {
       return res.status(400).json({
         message: "Lead has already been converted to a deal",
       });
     }
 
-    // Check if organizationId exists
     if (!lead.organizationId) {
       return res.status(400).json({
         message: "Lead must have an organization to convert to deal",
       });
     }
 
-    // Import dealModel dynamically to avoid circular dependencies
     const dealModel = (await import("../models/dealModel.js")).default;
 
-    // Create deal from lead
     const dealData = {
       leadId: lead._id,
       organizationId: lead.organizationId,
@@ -296,7 +283,6 @@ export const convertLeadToDeal = async (req, res, next) => {
 
     const deal = await dealModel.create(dealData);
 
-    // Update lead status to Converted
     lead.leadStatus = "Converted";
     await lead.save();
 

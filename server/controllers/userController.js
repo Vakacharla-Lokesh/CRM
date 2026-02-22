@@ -5,12 +5,28 @@ import bcrypt from "bcryptjs";
 export const getAllUsers = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const users = await userModel.find(filter);
+    const limit = parseInt(req.query.limit) || 20;
+    const cursor = req.query.cursor;
 
-    res.json({
-      count: users.length,
-      users,
-    });
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
+
+    const users = await userModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .limit(limit + 1);
+
+    const hasNextPage = users.length > limit;
+    if (hasNextPage) users.pop();
+
+    const nextCursor =
+      hasNextPage && users.length > 0
+        ? Buffer.from(users[users.length - 1]._id.toString()).toString("base64")
+        : null;
+
+    res.json({ count: users.length, users, nextCursor, hasNextPage });
   } catch (err) {
     next(err);
   }
@@ -296,7 +312,8 @@ export const sendPasswordReset = async (req, res, next) => {
 // Update user profile
 export const updateProfile = async (req, res, next) => {
   try {
-    const { name, firstName, lastName, email, phone, department, position } = req.body;
+    const { name, firstName, lastName, email, phone, department, position } =
+      req.body;
     const updateData = {};
 
     // Handle firstName and lastName directly, or parse from name

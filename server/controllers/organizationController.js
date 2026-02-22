@@ -3,11 +3,34 @@ import organizationModel from "../models/organizationModel.js";
 export const getAllOrganizations = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const organizations = await organizationModel.find(filter);
+    const limit = parseInt(req.query.limit) || 20;
+    const cursor = req.query.cursor;
+
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
+
+    const organizations = await organizationModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .limit(limit + 1);
+
+    const hasNextPage = organizations.length > limit;
+    if (hasNextPage) organizations.pop();
+
+    const nextCursor =
+      hasNextPage && organizations.length > 0
+        ? Buffer.from(
+            organizations[organizations.length - 1]._id.toString(),
+          ).toString("base64")
+        : null;
 
     res.json({
       count: organizations.length,
       organizations,
+      nextCursor,
+      hasNextPage,
     });
   } catch (err) {
     next(err);
@@ -22,7 +45,6 @@ export const getOrganizationById = async (req, res, next) => {
       return res.status(404).json({ message: "Organization not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       organization.tenantId.toString() !== req.user.tenantId
@@ -133,7 +155,8 @@ export const getOrganizationsByTenant = async (req, res, next) => {
       req.params.tenantId !== req.user.tenantId
     ) {
       return res.status(403).json({
-        message: "Forbidden: You cannot access organizations from other tenants",
+        message:
+          "Forbidden: You cannot access organizations from other tenants",
       });
     }
 

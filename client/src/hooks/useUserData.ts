@@ -20,6 +20,9 @@ interface UserFilters {
 export const useUserData = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filters, setFilters] = useState<UserFilters>({
     role: "",
     status: "",
@@ -84,17 +87,41 @@ export const useUserData = () => {
 
   const fetchUsers = useCallback(async () => {
     return executeAsync(async () => {
-      const data = await userService.getAllUsers();
-      setUsers(data);
-      setFilteredUsers(data);
+      const page = await userService.getAllUsers({ limit: 20 });
+      setUsers(page.users);
+      setFilteredUsers(page.users);
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
 
-      for (const user of data) {
+      for (const user of page.users) {
         await updateItem(user._id, { ...user, id: user._id });
       }
 
-      return data;
+      return page.users;
     });
   }, [executeAsync, updateItem]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || loadingMore || !nextCursor) return;
+    setLoadingMore(true);
+    try {
+      const page = await userService.getAllUsers({
+        cursor: nextCursor,
+        limit: 20,
+      });
+      setUsers((prev) => [...prev, ...page.users]);
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
+
+      for (const user of page.users) {
+        await updateItem(user._id, { ...user, id: user._id });
+      }
+    } catch (error) {
+      console.error("Error loading more users:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasNextPage, loadingMore, nextCursor, updateItem]);
 
   const fetchUserById = useCallback(
     async (id: string) => {
@@ -227,7 +254,6 @@ export const useUserData = () => {
   }, [users]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 
@@ -256,5 +282,10 @@ export const useUserData = () => {
     // Filter methods
     updateFilter,
     resetFilters,
+
+    nextCursor,
+    hasNextPage,
+    loadingMore,
+    loadMore,
   };
 };

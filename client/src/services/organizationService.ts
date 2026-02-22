@@ -17,13 +17,32 @@ interface OrganizationActivity {
   createdAt: string;
 }
 
+export interface CursorOrgPage {
+  organizations: Organization[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 const organizationService = {
-  getAllOrganizations: async (): Promise<Organization[]> => {
+  getAllOrganizations: async (params?: {
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<CursorOrgPage> => {
+    const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
+    if (params?.cursor) queryParams.cursor = params.cursor;
+
     const response = await apiClient.get<{
       count: number;
       organizations: Organization[];
-    }>("/organizations");
-    return response.organizations;
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    }>("/organizations", queryParams);
+
+    return {
+      organizations: response.organizations,
+      nextCursor: response.nextCursor,
+      hasNextPage: response.hasNextPage,
+    };
   },
 
   getOrganizationById: async (id: string): Promise<Organization> => {

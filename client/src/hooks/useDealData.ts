@@ -24,6 +24,9 @@ interface DealStatistics {
 
 const useDealData = () => {
   const [deals, setDeals] = useState<Deal[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [filters, setFilters] = useState<DealFilters>({
     status: "",
     stage: "",
@@ -37,19 +40,43 @@ const useDealData = () => {
   const { updateItem } = useIndexedDB<Deal & { id: string }>("deals");
 
   const fetchDeals = useCallback(async () => {
-    const data = await dealService.getAllDeals();
-    setDeals(data);
+    const page = await dealService.getAllDeals({ limit: 20 });
+    setDeals(page.deals);
+    setNextCursor(page.nextCursor);
+    setHasNextPage(page.hasNextPage);
 
     try {
-      for (const deal of data) {
+      for (const deal of page.deals) {
         await updateItem(deal._id, { ...deal, id: deal._id });
       }
     } catch (error) {
       console.error("Error storing deals in IndexedDB:", error);
     }
 
-    return data;
+    return page.deals;
   }, [updateItem]);
+
+  const loadMore = useCallback(async () => {
+    if (!hasNextPage || loadingMore || !nextCursor) return;
+    setLoadingMore(true);
+    try {
+      const page = await dealService.getAllDeals({
+        cursor: nextCursor,
+        limit: 20,
+      });
+      setDeals((prev) => [...prev, ...page.deals]);
+      setNextCursor(page.nextCursor);
+      setHasNextPage(page.hasNextPage);
+
+      for (const deal of page.deals) {
+        await updateItem(deal._id, { ...deal, id: deal._id });
+      }
+    } catch (error) {
+      console.error("Error loading more deals:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [hasNextPage, loadingMore, nextCursor, updateItem]);
 
   const { execute, loading, error } = useAsync<Deal[]>();
 
@@ -84,7 +111,7 @@ const useDealData = () => {
     deals.forEach((deal) => {
       if (deal.dealStatus) {
         byStatus[deal.dealStatus] = (byStatus[deal.dealStatus] || 0) + 1;
-        
+
         // Map status to stage for byStage
         const stageKey = deal.dealStatus.toLowerCase().replace(/ /g, "_");
         if (stageKey === "won") {
@@ -98,7 +125,7 @@ const useDealData = () => {
         }
       }
       totalValue += deal.dealValue || 0;
-      
+
       // Calculate forecast value (only for deals not yet won or lost)
       if (deal.dealStatus !== "Won" && deal.dealStatus !== "Lost") {
         forecastValue += deal.dealValue || 0;
@@ -236,6 +263,10 @@ const useDealData = () => {
     bulkUpdateDeals,
     bulkDeleteDeals,
     refresh,
+    nextCursor,
+    hasNextPage,
+    loadingMore,
+    loadMore,
   };
 };
 

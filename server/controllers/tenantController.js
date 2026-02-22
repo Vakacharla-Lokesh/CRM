@@ -3,12 +3,31 @@ import tenantModel from "../models/tenantModel.js";
 // Get all tenants
 export const getAllTenants = async (req, res, next) => {
   try {
-    const tenants = await tenantModel.find();
+    const filter = {};
+    const limit = parseInt(req.query.limit) || 20;
+    const cursor = req.query.cursor;
 
-    res.json({
-      count: tenants.length,
-      tenants,
-    });
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
+
+    const tenants = await tenantModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .limit(limit + 1);
+
+    const hasNextPage = tenants.length > limit;
+    if (hasNextPage) tenants.pop();
+
+    const nextCursor =
+      hasNextPage && tenants.length > 0
+        ? Buffer.from(tenants[tenants.length - 1]._id.toString()).toString(
+            "base64",
+          )
+        : null;
+
+    res.json({ count: tenants.length, tenants, nextCursor, hasNextPage });
   } catch (err) {
     next(err);
   }

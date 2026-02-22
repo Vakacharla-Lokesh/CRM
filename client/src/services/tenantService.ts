@@ -1,12 +1,32 @@
 import { apiClient } from "./api";
 import type { Tenant, CreateTenantDto, UpdateTenantDto } from "@/types/tenant";
 
+export interface CursorTenantPage {
+  tenants: Tenant[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 class TenantService {
-  async getAllTenants(): Promise<Tenant[]> {
-    const response = await apiClient.get<{ tenants: Tenant[]; count: number }>(
-      "/tenants",
-    );
-    return response.tenants;
+  async getAllTenants(params?: {
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<CursorTenantPage> {
+    const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
+    if (params?.cursor) queryParams.cursor = params.cursor;
+
+    const response = await apiClient.get<{
+      tenants: Tenant[];
+      count: number;
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    }>("/tenants", queryParams);
+
+    return {
+      tenants: response.tenants,
+      nextCursor: response.nextCursor,
+      hasNextPage: response.hasNextPage,
+    };
   }
 
   async getTenantById(id: string): Promise<Tenant> {
