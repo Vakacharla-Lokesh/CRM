@@ -98,12 +98,12 @@ export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
 
       setOrganizationStats(orgStatsRes.stats);
       setTopOrganizations(topOrgsRes.organizations);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching analytics data:", err);
       setError(
         err instanceof Error ? err.message : "Failed to fetch analytics data",
       );
-    } finally {
       setLoading(false);
     }
   }, [days]);

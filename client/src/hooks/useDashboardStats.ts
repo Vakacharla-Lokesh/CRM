@@ -58,12 +58,12 @@ export const useDashboardStats = (): UseDashboardStatsReturn => {
       setStats(response.stats);
       setChanges(response.changes);
       setPeriod(response.period);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching dashboard stats:", err);
       setError(
         err instanceof Error ? err.message : "Failed to fetch dashboard stats",
       );
-    } finally {
       setLoading(false);
     }
   }, []);

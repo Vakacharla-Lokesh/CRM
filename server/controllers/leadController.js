@@ -232,7 +232,7 @@ export const updateLeadStatus = async (req, res, next) => {
   }
 };
 
-export const updateLeadScore = async (req, res, next) => {
+export const updateLeadScoreManually = async (req, res, next) => {
   try {
     const { leadScore } = req.body;
     const lead = await leadModel.findById(req.params.id);

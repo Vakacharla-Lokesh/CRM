@@ -107,10 +107,10 @@ const OrganizationsPage = () => {
     try {
       await deleteOrganization(organizationToDelete);
       await fetchOrganizations();
+      setOrganizationToDelete(null);
     } catch (error) {
       console.error("Error deleting organization:", error);
       alert("Failed to delete organization. Please try again.");
-    } finally {
       setOrganizationToDelete(null);
     }
   };

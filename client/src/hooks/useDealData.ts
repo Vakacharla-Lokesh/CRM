@@ -71,9 +71,9 @@ const useDealData = () => {
       for (const deal of page.deals) {
         await updateItem(deal._id, { ...deal, id: deal._id });
       }
+      setLoadingMore(false);
     } catch (error) {
       console.error("Error loading more deals:", error);
-    } finally {
       setLoadingMore(false);
     }
   }, [hasNextPage, loadingMore, nextCursor, updateItem]);

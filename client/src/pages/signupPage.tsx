@@ -151,6 +151,7 @@ function SignupPage() {
 
       // Navigate to dashboard page after successful signup
       navigate("/dashboard");
+      setIsLoading(false);
     } catch (error: any) {
       console.error("Signup error:", error);
       setErrors({
@@ -159,7 +160,6 @@ function SignupPage() {
           error?.message ||
           "Signup failed. Please try again.",
       });
-    } finally {
       setIsLoading(false);
     }
   };
@@ -347,7 +347,7 @@ function SignupPage() {
                 <div className="flex gap-1">
                   {[...Array(5)].map((_, i) => (
                     <div
-                      key={i}
+                      key={`strength-bar-${i}`}
                       className={`flex-1 h-1 rounded-full transition-colors ${
                         i < passwordStrength.level
                           ? passwordStrength.color
@@ -452,19 +452,21 @@ function SignupPage() {
               />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 I agree to the{" "}
-                <a
-                  href="#"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                <button
+                  type="button"
+                  onClick={() => window.open('/terms', '_blank')}
+                  className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
                 >
                   Terms and Conditions
-                </a>{" "}
+                </button>{" "}
                 and{" "}
-                <a
-                  href="#"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                <button
+                  type="button"
+                  onClick={() => window.open('/privacy', '_blank')}
+                  className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
                 >
                   Privacy Policy
-                </a>
+                </button>
               </span>
             </label>
             {errors.agreeToTerms && (

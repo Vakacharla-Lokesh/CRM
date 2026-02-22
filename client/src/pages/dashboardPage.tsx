@@ -184,9 +184,9 @@ function DashboardPage() {
             />
           ) : (
             <div className="space-y-4">
-              {leadTrendData.map((item, i) => (
+              {leadTrendData.map((item) => (
                 <div
-                  key={i}
+                  key={item.date}
                   className="space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-sm">
@@ -297,9 +297,9 @@ function DashboardPage() {
             />
           ) : (
             <div className="space-y-4 mt-2">
-              {dealPipeline.map((stage, i) => (
+              {dealPipeline.map((stage) => (
                 <div
-                  key={i}
+                  key={stage.stage}
                   className="space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-sm">
@@ -389,9 +389,9 @@ function DashboardPage() {
             />
           ) : (
             <div className="space-y-4">
-              {leadStatusBreakdown.map((item, i) => (
+              {leadStatusBreakdown.map((item) => (
                 <div
-                  key={i}
+                  key={item.status}
                   className="space-y-1.5"
                 >
                   <div className="flex items-center justify-between text-sm">
@@ -482,9 +482,9 @@ function DashboardPage() {
             />
           ) : (
             <div className="space-y-6">
-              {orgStatsData.map((item, i) => (
+              {orgStatsData.map((item) => (
                 <div
-                  key={i}
+                  key={item.industry}
                   className="space-y-3"
                 >
                   <div className="flex items-center justify-between">

@@ -103,12 +103,12 @@ function Navbar({
                   {user?.userEmail || "guest@example.com"}
                 </p>
               </div>
-              <a
-                href="#"
-                className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+              <button
+                onClick={() => console.log('Navigate to profile')}
+                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 Profile
-              </a>
+              </button>
               <button
                 onClick={handleSettingsClick}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"

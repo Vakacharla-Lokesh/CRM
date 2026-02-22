@@ -144,9 +144,9 @@ export const useOrganizationData = () => {
           console.warn("Failed to persist organization to IndexedDB:", error);
         }
       }
+      setLoadingMore(false);
     } catch (error) {
       console.error("Error loading more organizations:", error);
-    } finally {
       setLoadingMore(false);
     }
   }, [hasNextPage, loadingMore, nextCursor, updateItem, calculateStatistics]);

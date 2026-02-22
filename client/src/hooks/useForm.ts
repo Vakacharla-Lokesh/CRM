@@ -146,6 +146,7 @@ export const useForm = <TValues extends Record<string, any>>(
 
       try {
         await onSubmit(values);
+        setIsSubmitting(false);
       } catch (error) {
         const err = error instanceof Error ? error : new Error(String(error));
         console.error("Form submission error:", err);
@@ -153,7 +154,6 @@ export const useForm = <TValues extends Record<string, any>>(
           ...prev,
           submit: err.message || "Submission failed",
         }));
-      } finally {
         setIsSubmitting(false);
       }
     },

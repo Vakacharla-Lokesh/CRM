@@ -82,11 +82,10 @@ const UsersPage = () => {
 
     try {
       await deleteUser(userToDelete);
-
+      setUserToDelete(null);
     } catch (error) {
       console.error("Error deleting user:", error);
       alert("Failed to delete user. Please try again.");
-    } finally {
       setUserToDelete(null);
     }
   };

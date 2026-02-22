@@ -116,9 +116,9 @@ export const useUserData = () => {
       for (const user of page.users) {
         await updateItem(user._id, { ...user, id: user._id });
       }
+      setLoadingMore(false);
     } catch (error) {
       console.error("Error loading more users:", error);
-    } finally {
       setLoadingMore(false);
     }
   }, [hasNextPage, loadingMore, nextCursor, updateItem]);

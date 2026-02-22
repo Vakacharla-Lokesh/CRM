@@ -89,9 +89,9 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
     try {
       await deleteAttachment(attachmentToDelete);
+      setAttachmentToDelete(null);
     } catch (err) {
       console.error("Error deleting attachment:", err);
-    } finally {
       setAttachmentToDelete(null);
     }
   };

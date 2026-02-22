@@ -15,12 +15,12 @@ export const useCommentData = (leadId: string) => {
       setError(null);
       const response = await commentsAPI.getByLead(leadId);
       setComments(response.comments);
+      setLoading(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load comments";
       setError(message);
       console.error("Error fetching comments:", err);
-    } finally {
       setLoading(false);
     }
   }, [leadId]);

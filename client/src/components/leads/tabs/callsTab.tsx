@@ -54,9 +54,9 @@ function CallsTab({ leadId }: CallsTabProps) {
         duration: "",
         notes: "",
       });
+      setIsAdding(false);
     } catch (err) {
       console.error("Error adding call:", err);
-    } finally {
       setIsAdding(false);
     }
   };
@@ -71,9 +71,9 @@ function CallsTab({ leadId }: CallsTabProps) {
 
     try {
       await deleteCall(callToDelete);
+      setCallToDelete(null);
     } catch (err) {
       console.error("Error deleting call:", err);
-    } finally {
       setCallToDelete(null);
     }
   };

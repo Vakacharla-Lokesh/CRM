@@ -15,12 +15,12 @@ export const useCallData = (leadId: string) => {
       setError(null);
       const response = await callsAPI.getByLead(leadId);
       setCalls(response.calls);
+      setLoading(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load calls";
       setError(message);
       console.error("Error fetching calls:", err);
-    } finally {
       setLoading(false);
     }
   }, [leadId]);

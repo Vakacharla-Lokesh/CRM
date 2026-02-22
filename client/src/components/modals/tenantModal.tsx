@@ -83,9 +83,9 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
 
       await onSave(tenantData);
       onClose();
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving tenant:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };

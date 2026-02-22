@@ -114,9 +114,9 @@ export function useLeadData() {
       calculateStatistics(page.leads);
       setNextCursor(page.nextCursor);
       setHasNextPage(page.hasNextPage);
+      setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch leads"));
-    } finally {
       setLoading(false);
     }
   }, [filters, applyFilters, calculateStatistics]);
@@ -139,11 +139,11 @@ export function useLeadData() {
       });
       setNextCursor(page.nextCursor);
       setHasNextPage(page.hasNextPage);
+      setLoadingMore(false);
     } catch (err) {
       setError(
         err instanceof Error ? err : new Error("Failed to load more leads"),
       );
-    } finally {
       setLoadingMore(false);
     }
   }, [

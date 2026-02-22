@@ -138,13 +138,13 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
           onClose();
         }, 1000);
       }
+      setIsSubmitting(false);
     } catch (error: unknown) {
       if (error instanceof Error) {
         setSubmitError(error.message || "Failed to update settings");
       } else {
         setSubmitError("Failed to update settings");
       }
-    } finally {
       setIsSubmitting(false);
     }
   };
