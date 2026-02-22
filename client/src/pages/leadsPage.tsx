@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/leads/lead-columns";
+import { columns } from "../components/leads/leadColumns";
 import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download, Search } from "lucide-react";
@@ -15,6 +15,8 @@ import {
 import { LeadModal } from "@/components/modals";
 import { useLeadData } from "@/hooks";
 import { exportLeads } from "@/services/exportService";
+import { useNavigate } from "react-router";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 const LeadsPage = () => {
   const {
@@ -24,6 +26,7 @@ const LeadsPage = () => {
     filters,
     fetchLeads,
     createLead,
+    deleteLead,
     updateFilter,
     resetFilters,
   } = useLeadData();
@@ -31,6 +34,11 @@ const LeadsPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
+
+  const navigate = useNavigate();
 
   // Fetch leads on mount
   useEffect(() => {
@@ -41,6 +49,27 @@ const LeadsPage = () => {
   const handleAddLead = () => {
     setSelectedLead(null);
     setIsModalOpen(true);
+  };
+
+  const handleEditLead = (id: string) => {
+    navigate(`/leads/${id}`);
+  };
+
+  const handleDeleteLead = (id: string) => {
+    setLeadToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (leadToDelete) {
+      try {
+        await deleteLead(leadToDelete);
+        setDeleteDialogOpen(false);
+        setLeadToDelete(null);
+      } catch (error) {
+        console.error("Error deleting lead:", error);
+      }
+    }
   };
 
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
@@ -248,7 +277,10 @@ const LeadsPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={columns}
+          columns={columns({
+            onEdit: handleEditLead,
+            onDelete: handleDeleteLead,
+          })}
           data={filteredLeads}
           name="Leads"
           searchColumn="leadEmail"
@@ -263,6 +295,16 @@ const LeadsPage = () => {
         lead={selectedLead}
         onClose={handleCloseModal}
         onSave={handleSaveLead}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Lead"
+        description="Are you sure you want to delete this lead? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

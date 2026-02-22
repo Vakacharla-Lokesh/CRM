@@ -17,7 +17,7 @@ import type {
 } from "@/types/form-interfaces/";
 import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
-import { useAppContext } from "@/context/AppContext";
+import { useAppContext } from "@/context/appContext";
 
 function OrganizationModal({
   isOpen,

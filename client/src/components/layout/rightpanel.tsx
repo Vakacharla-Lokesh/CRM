@@ -17,7 +17,7 @@ import SyncBadge from "../common/syncBadge";
 import MemoryVisualizer from "../common/memoryVisualizer";
 import WorkerStatus from "../common/workerStatus";
 import LiveFeed from "../common/liveFeed";
-import { useOffline } from "@/context/OfflineContext";
+import { useOffline } from "@/context/offlineContext";
 import type {
   ExpandedSections,
   RightPanelProps,

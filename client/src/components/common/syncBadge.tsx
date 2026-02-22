@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useOffline } from "@/context/OfflineContext";
+import { useOffline } from "@/context/offlineContext";
 
 function SyncBadge() {
   const {

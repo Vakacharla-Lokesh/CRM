@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import { Layout } from "./components/layout";
 import { AppProvider, useAppContext } from "./context";
-import { OfflineProvider } from "./context/OfflineContext";
+import { OfflineProvider } from "./context/offlineContext";
 
 import { lazy, Suspense } from "react";
 import { PageLoadingFallback } from "./components/common/suspenseFallback";

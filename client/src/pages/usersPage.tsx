@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/users/user-columns";
+import { columns } from "../components/users/userColumns";
 import type { CreateUserDTO, User } from "@/types";
 import { Button } from "../components/ui/button";
 import { Download, Search } from "lucide-react";

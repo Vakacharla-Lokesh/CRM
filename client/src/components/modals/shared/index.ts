@@ -1,2 +1,2 @@
-export { ModalFooter } from "./ModalFooter";
-export { ErrorAlert } from "./ErrorAlert";
+export { ModalFooter } from "./modalFooter";
+export { ErrorAlert } from "./errorAlert";

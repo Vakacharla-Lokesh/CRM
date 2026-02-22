@@ -51,7 +51,7 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  authorize("admin", "super_admin"),
+  authorize("user", "admin", "super_admin"),
   deleteCall,
 );
 

@@ -128,7 +128,6 @@ export const deleteOrganization = async (req, res, next) => {
       return res.status(404).json({ message: "Organization not found" });
     }
 
-    // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
       organization.tenantId.toString() !== req.user.tenantId
