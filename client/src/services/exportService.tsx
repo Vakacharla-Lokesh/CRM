@@ -58,8 +58,8 @@ function timestamp(): string {
 export async function exportLeads(selectedIds?: string[]): Promise<void> {
   const all = await leadService.getAllLeads();
   const leads = selectedIds?.length
-    ? all.filter((l) => selectedIds.includes(l._id))
-    : all;
+    ? all.leads.filter((l) => selectedIds.includes(l._id))
+    : all.leads;
 
   const columns = LEAD_COLUMNS as string[];
   const rows = stripInternalFields(

@@ -1,21 +1,48 @@
+// server/controllers/leadController.js
+
 import leadModel from "../models/leadModel.js";
 
-// Get all leads
+// Get all leads — cursor-based pagination
 export const getAllLeads = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const leads = await leadModel.find(filter);
+
+    const limit = parseInt(req.query.limit) || 20;
+    const cursor = req.query.cursor; // base64-encoded _id of last item
+
+    if (cursor) {
+      // Decode the cursor (it's the _id of the last seen document)
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId }; // fetch records AFTER this id
+    }
+
+    const leads = await leadModel
+      .find(filter)
+      .sort({ _id: 1 }) // consistent sort required for cursor pagination
+      .limit(limit + 1); // fetch one extra to know if there's a next page
+
+    const hasNextPage = leads.length > limit;
+    if (hasNextPage) leads.pop(); // remove the extra item
+
+    // Encode the last item's _id as the next cursor
+    const nextCursor =
+      hasNextPage && leads.length > 0
+        ? Buffer.from(leads[leads.length - 1]._id.toString()).toString("base64")
+        : null;
 
     res.json({
       count: leads.length,
       leads,
+      nextCursor,
+      hasNextPage,
     });
   } catch (err) {
     next(err);
   }
 };
 
-// Get lead by ID
+// ---- All other controllers unchanged below ----
+
 export const getLeadById = async (req, res, next) => {
   try {
     const lead = await leadModel.findById(req.params.id);
@@ -39,7 +66,6 @@ export const getLeadById = async (req, res, next) => {
   }
 };
 
-// Create a new lead
 export const createLead = async (req, res, next) => {
   try {
     const leadData = {
@@ -62,7 +88,6 @@ export const createLead = async (req, res, next) => {
   }
 };
 
-// Update lead
 export const updateLead = async (req, res, next) => {
   try {
     const lead = await leadModel.findById(req.params.id);
@@ -80,7 +105,6 @@ export const updateLead = async (req, res, next) => {
       });
     }
 
-    // Update lead
     const updatedLead = await leadModel.findByIdAndUpdate(
       req.params.id,
       req.body,
@@ -96,7 +120,6 @@ export const updateLead = async (req, res, next) => {
   }
 };
 
-// Delete lead
 export const deleteLead = async (req, res, next) => {
   try {
     const lead = await leadModel.findById(req.params.id);
@@ -122,7 +145,6 @@ export const deleteLead = async (req, res, next) => {
   }
 };
 
-// Get leads by tenant
 export const getLeadsByTenant = async (req, res, next) => {
   try {
     if (req.user.role !== "super_admin") {
@@ -133,16 +155,12 @@ export const getLeadsByTenant = async (req, res, next) => {
 
     const leads = await leadModel.find({ tenantId: req.params.tenantId });
 
-    res.json({
-      count: leads.length,
-      leads,
-    });
+    res.json({ count: leads.length, leads });
   } catch (err) {
     next(err);
   }
 };
 
-// Get leads by user
 export const getLeadsByUser = async (req, res, next) => {
   try {
     const filter = { userId: req.params.userId };
@@ -153,16 +171,12 @@ export const getLeadsByUser = async (req, res, next) => {
 
     const leads = await leadModel.find(filter);
 
-    res.json({
-      count: leads.length,
-      leads,
-    });
+    res.json({ count: leads.length, leads });
   } catch (err) {
     next(err);
   }
 };
 
-// Get leads by organization
 export const getLeadsByOrganization = async (req, res, next) => {
   try {
     const filter = { organizationId: req.params.organizationId };
@@ -173,10 +187,7 @@ export const getLeadsByOrganization = async (req, res, next) => {
 
     const leads = await leadModel.find(filter);
 
-    res.json({
-      count: leads.length,
-      leads,
-    });
+    res.json({ count: leads.length, leads });
   } catch (err) {
     next(err);
   }
@@ -203,16 +214,12 @@ export const updateLeadStatus = async (req, res, next) => {
     lead.leadStatus = leadStatus;
     await lead.save();
 
-    res.json({
-      message: "Lead status updated successfully",
-      lead,
-    });
+    res.json({ message: "Lead status updated successfully", lead });
   } catch (err) {
     next(err);
   }
 };
 
-// Update lead score
 export const updateLeadScore = async (req, res, next) => {
   try {
     const { leadScore } = req.body;
@@ -234,10 +241,7 @@ export const updateLeadScore = async (req, res, next) => {
     lead.leadScore = leadScore;
     await lead.save();
 
-    res.json({
-      message: "Lead score updated successfully",
-      lead,
-    });
+    res.json({ message: "Lead score updated successfully", lead });
   } catch (err) {
     next(err);
   }

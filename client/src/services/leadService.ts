@@ -17,12 +17,34 @@ interface LeadActivity {
   createdAt: string;
 }
 
+export interface CursorLeadPage {
+  leads: Lead[];
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
 const leadService = {
-  getAllLeads: async (): Promise<Lead[]> => {
-    const response = await apiClient.get<{ count: number; leads: Lead[] }>(
-      "/leads",
-    );
-    return response.leads;
+  getAllLeads: async (params?: {
+    cursor?: string | null;
+    limit?: number;
+  }): Promise<CursorLeadPage> => {
+    const queryParams: Record<string, unknown> = {
+      limit: params?.limit ?? 20,
+    };
+    if (params?.cursor) queryParams.cursor = params.cursor;
+
+    const response = await apiClient.get<{
+      count: number;
+      leads: Lead[];
+      nextCursor: string | null;
+      hasNextPage: boolean;
+    }>("/leads", queryParams);
+
+    return {
+      leads: response.leads,
+      nextCursor: response.nextCursor,
+      hasNextPage: response.hasNextPage,
+    };
   },
 
   getLeadById: async (id: string): Promise<Lead> => {
@@ -50,66 +72,8 @@ const leadService = {
     return apiClient.delete<{ message: string }>(`/leads/${id}`);
   },
 
-  searchLeads: async (query: string): Promise<Lead[]> => {
-    return apiClient.get<Lead[]>(
-      `/leads/search?q=${encodeURIComponent(query)}`,
-    );
-  },
-
   getLeadStats: async (): Promise<LeadStats> => {
     return apiClient.get<LeadStats>("/leads/stats");
-  },
-
-  getLeadsByStatus: async (status: string): Promise<Lead[]> => {
-    return apiClient.get<Lead[]>(`/leads?status=${encodeURIComponent(status)}`);
-  },
-
-  getLeadsBySource: async (source: string): Promise<Lead[]> => {
-    return apiClient.get<Lead[]>(`/leads?source=${encodeURIComponent(source)}`);
-  },
-
-  getLeadsByStage: async (stage: string): Promise<Lead[]> => {
-    return apiClient.get<Lead[]>(`/leads?stage=${encodeURIComponent(stage)}`);
-  },
-
-  bulkUpdateLeads: async (
-    leadIds: string[],
-    updates: Partial<Lead>,
-  ): Promise<{ message: string; updated: number }> => {
-    return apiClient.post<{ message: string; updated: number }>(
-      "/leads/bulk-update",
-      { leadIds, updates },
-    );
-  },
-
-  bulkDeleteLeads: async (
-    leadIds: string[],
-  ): Promise<{ message: string; deleted: number }> => {
-    return apiClient.post<{ message: string; deleted: number }>(
-      "/leads/bulk-delete",
-      { leadIds },
-    );
-  },
-
-  exportLeads: async (
-    format: string = "csv",
-    filters: Record<string, string> = {},
-  ): Promise<Blob> => {
-    const params = new URLSearchParams({ format, ...filters });
-    return apiClient.get<Blob>(`/leads/export?${params.toString()}`);
-  },
-
-  importLeads: async (
-    file: File | Blob,
-  ): Promise<{ message: string; imported: number }> => {
-    return apiClient.upload<{ message: string; imported: number }>(
-      "/leads/import",
-      file,
-    );
-  },
-
-  assignLead: async (leadId: string, userId: string): Promise<Lead> => {
-    return apiClient.patch<Lead>(`/leads/${leadId}/assign`, { userId });
   },
 
   convertLead: async (
@@ -119,16 +83,6 @@ const leadService = {
     return apiClient.post<{ message: string; deal: Deal; lead: Lead }>(
       `/leads/${leadId}/convert`,
       dealData || {},
-    );
-  },
-
-  addLeadNote: async (
-    leadId: string,
-    note: string,
-  ): Promise<{ message: string; noteId: string }> => {
-    return apiClient.post<{ message: string; noteId: string }>(
-      `/leads/${leadId}/notes`,
-      { note },
     );
   },
 

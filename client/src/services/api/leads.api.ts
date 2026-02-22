@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-empty-object-type */
+
 import { get, post, put, delete_ } from "./core";
 import type {
   Lead,
@@ -6,25 +8,59 @@ import type {
   UpdateLeadDTO,
 } from "../../types";
 
+export interface CursorLeadListResponse {
+  leads: Lead[];
+  count: number;
+  nextCursor: string | null;
+  hasNextPage: boolean;
+}
+
+export interface OffsetLeadListResponse extends LeadListResponse {}
+
+export interface LeadListParams {
+  page?: number;
+  limit?: number;
+
+  cursor?: string | null;
+
+  status?: string;
+  organizationId?: string;
+  userId?: string;
+  search?: string;
+}
+
 export const leadsAPI = {
-  list: async (params?: {
-    page?: number;
-    limit?: number;
-    status?: string;
-    organizationId?: string;
-    userId?: string;
-    search?: string;
-  }) => {
-    const response = await get<{ count: number; leads: Lead[] }>(
-      "/leads",
-      params,
-    );
+  list: async (
+    params?: LeadListParams,
+  ): Promise<CursorLeadListResponse | OffsetLeadListResponse> => {
+    const { cursor, ...rest } = params ?? {};
+
+    const queryParams: Record<string, unknown> = { ...rest };
+
+    if (cursor) queryParams.cursor = cursor;
+
+    const response = await get<{
+      count: number;
+      leads: Lead[];
+      nextCursor?: string | null;
+      hasNextPage?: boolean;
+    }>("/leads", queryParams);
+
+    if ("nextCursor" in response || "hasNextPage" in response) {
+      return {
+        leads: response.leads,
+        count: response.count,
+        nextCursor: response.nextCursor ?? null,
+        hasNextPage: response.hasNextPage ?? false,
+      };
+    }
+
     return {
       leads: response.leads,
       total: response.count,
       page: params?.page || 1,
       limit: params?.limit || response.count,
-    } as LeadListResponse;
+    };
   },
 
   get: async (id: string) => {
@@ -61,8 +97,16 @@ export const leadsAPI = {
 
   scoreLeads: (leadIds: string[]) => post<Lead[]>("/leads/score", { leadIds }),
 
-  getActivity: (leadId: string, params?: { page?: number; limit?: number }) =>
-    get(`/leads/${leadId}/activity`, params),
+  getActivity: (
+    leadId: string,
+    params?: { page?: number; limit?: number; cursor?: string },
+  ) => {
+    const { cursor, ...rest } = params ?? {};
+    const queryParams: Record<string, unknown> = { ...rest };
+    if (cursor) queryParams.cursor = cursor;
+
+    return get(`/leads/${leadId}/activity`, queryParams);
+  },
 
   getByOrganization: async (organizationId: string) =>
     get<{ count: number; leads: Lead[] }>(
