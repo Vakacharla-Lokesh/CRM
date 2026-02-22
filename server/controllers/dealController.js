@@ -27,7 +27,7 @@ export const getDealById = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      deal.tenantId !== req.user.tenantId
+      deal.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access this deal",
@@ -77,7 +77,7 @@ export const updateDeal = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      deal.tenantId !== req.user.tenantId
+      deal.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this deal",
@@ -112,7 +112,7 @@ export const deleteDeal = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      deal.tenantId !== req.user.tenantId
+      deal.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this deal",
@@ -227,7 +227,7 @@ export const updateDealStatus = async (req, res, next) => {
     // Check tenant access for non-super_admin
     if (
       req.user.role !== "super_admin" &&
-      deal.tenantId !== req.user.tenantId
+      deal.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this deal",

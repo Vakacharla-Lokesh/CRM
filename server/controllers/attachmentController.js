@@ -43,7 +43,7 @@ export const createAttachment = async (req, res, next) => {
     // Check tenant access
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message:
@@ -89,7 +89,7 @@ export const deleteAttachment = async (req, res, next) => {
     const lead = await leadModel.findById(attachment.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this attachment",
@@ -116,7 +116,7 @@ export const getAttachmentsByLead = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access attachments from other tenants",
@@ -160,7 +160,7 @@ export const downloadAttachment = async (req, res, next) => {
     const lead = await leadModel.findById(attachment.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot download this attachment",

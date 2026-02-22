@@ -43,7 +43,7 @@ export const createComment = async (req, res, next) => {
     // Check tenant access
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message:
@@ -75,7 +75,7 @@ export const updateComment = async (req, res, next) => {
     const lead = await leadModel.findById(comment.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot update this comment",
@@ -110,7 +110,7 @@ export const deleteComment = async (req, res, next) => {
     const lead = await leadModel.findById(comment.leadId);
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot delete this comment",
@@ -137,7 +137,7 @@ export const getCommentsByLead = async (req, res, next) => {
 
     if (
       req.user.role !== "super_admin" &&
-      lead.tenantId !== req.user.tenantId
+      lead.tenantId.toString() !== req.user.tenantId
     ) {
       return res.status(403).json({
         message: "Forbidden: You cannot access comments from other tenants",
