@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
+/* eslint_disable @typescript-eslint/no-empty-object-type */
 
 import { get, post, put, delete_ } from "./core";
 import type {

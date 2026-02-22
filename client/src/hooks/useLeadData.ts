@@ -214,7 +214,7 @@ export function useLeadData() {
 
   useEffect(() => {
     fetchLeads();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint_disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {
