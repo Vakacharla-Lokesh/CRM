@@ -1,5 +1,6 @@
 import callModel from "../models/callModel.js";
 import leadModel from "../models/leadModel.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 
 // Get all calls
 export const getAllCalls = async (req, res, next) => {
@@ -51,6 +52,9 @@ export const createCall = async (req, res, next) => {
     }
 
     const call = await callModel.create(req.body);
+
+    // Update lead score after adding call
+    await updateLeadScore(req.body.leadId);
 
     res.status(201).json({
       message: "Call created successfully",
@@ -116,7 +120,11 @@ export const deleteCall = async (req, res, next) => {
       });
     }
 
+    const leadId = call.leadId;
     await callModel.findByIdAndDelete(req.params.id);
+
+    // Update lead score after deleting call
+    await updateLeadScore(leadId);
 
     res.json({ message: "Call deleted successfully" });
   } catch (err) {

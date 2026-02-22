@@ -1,5 +1,6 @@
 import attachmentModel from "../models/attachmentModel.js";
 import leadModel from "../models/leadModel.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 
 // Get all attachments
 export const getAllAttachments = async (req, res, next) => {
@@ -59,6 +60,9 @@ export const createAttachment = async (req, res, next) => {
 
     const attachment = await attachmentModel.create(attachmentData);
 
+    // Update lead score after adding attachment
+    await updateLeadScore(req.body.leadId);
+
     res.status(201).json({
       message: "Attachment created successfully",
       attachment: {
@@ -96,7 +100,11 @@ export const deleteAttachment = async (req, res, next) => {
       });
     }
 
+    const leadId = attachment.leadId;
     await attachmentModel.findByIdAndDelete(req.params.id);
+
+    // Update lead score after deleting attachment
+    await updateLeadScore(leadId);
 
     res.json({ message: "Attachment deleted successfully" });
   } catch (err) {
