@@ -1,4 +1,4 @@
-import { DataTable } from "../components/common/data-table";
+import { DataTable } from "../components/common/dataTable";
 import { getColumns } from "../components/deals/deal-columns";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/select";
 import { useDealData } from "@/hooks";
 import { DealModal } from "@/components/modals";
-import type { Deal, UpdateDealDTO, DealStage } from "@/types";
+import type { Deal, UpdateDealDTO, DealStatus } from "@/types";
 import { useState } from "react";
 
 const DealsPage = () => {
@@ -129,7 +129,7 @@ const DealsPage = () => {
           <Select
             value={filters.stage || "all"}
             onValueChange={(value) =>
-              updateFilter("stage", value === "all" ? "" : (value as DealStage))
+              updateFilter("stage", value === "all" ? "" : (value as DealStatus))
             }
           >
             <SelectTrigger className="w-full sm:w-45">
@@ -137,12 +137,12 @@ const DealsPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
-              <SelectItem value="prospecting">Prospecting</SelectItem>
-              <SelectItem value="qualification">Qualification</SelectItem>
-              <SelectItem value="proposal">Proposal</SelectItem>
-              <SelectItem value="negotiation">Negotiation</SelectItem>
-              <SelectItem value="closed_won">Closed Won</SelectItem>
-              <SelectItem value="closed_lost">Closed Lost</SelectItem>
+              <SelectItem value="Prospecting">Prospecting</SelectItem>
+              <SelectItem value="Qualification">Qualification</SelectItem>
+              <SelectItem value="Negotiation">Negotiation</SelectItem>
+              <SelectItem value="Ready to close">Ready to close</SelectItem>
+              <SelectItem value="Won">Won</SelectItem>
+              <SelectItem value="Lost">Lost</SelectItem>
             </SelectContent>
           </Select>
           <Button

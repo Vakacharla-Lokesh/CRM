@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import type { CreateLeadDTO, CreateOrganizationDTO } from "@/types";
+import type { CreateLeadDTO, CreateOrganizationDTO, OrganizationIndustry } from "@/types";
 import type {
   FormErrors,
   LeadFormData,
@@ -163,7 +163,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           organizationName: newOrgData.organizationName,
           organizationWebsite: newOrgData.organizationWebsite,
           organizationSize: newOrgData.organizationSize,
-          organizationIndustry: newOrgData.organizationIndustry,
+          organizationIndustry: newOrgData.organizationIndustry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
 

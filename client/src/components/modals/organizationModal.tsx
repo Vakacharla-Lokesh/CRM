@@ -6,7 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type { CreateOrganizationDTO, UpdateOrganizationDTO } from "@/types";
+import type { CreateOrganizationDTO, UpdateOrganizationDTO, OrganizationIndustry } from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
 
@@ -107,7 +107,7 @@ function OrganizationModal({
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry,
+          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
         };
         await onUpdate(organization._id, updateData);
       } else {
@@ -116,7 +116,7 @@ function OrganizationModal({
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry,
+          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
         await onSave(createData);

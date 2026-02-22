@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { DataTable } from "../components/common/data-table";
+import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/leads/lead-columns";
 import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
@@ -14,11 +14,11 @@ import {
 } from "../components/ui/select";
 import { LeadModal } from "@/components/modals";
 import { useLeadData } from "@/hooks";
+import { exportLeads } from "@/services/exportService";
 
 const LeadsPage = () => {
   const {
     filteredLeads,
-    statistics,
     loading,
     error,
     filters,
@@ -30,6 +30,7 @@ const LeadsPage = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
 
   // Fetch leads on mount
   useEffect(() => {
@@ -57,6 +58,10 @@ const LeadsPage = () => {
     setSelectedLead(null);
   };
 
+  const handleExport = async () => {
+    await exportLeads(selectedLeadIds);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -70,11 +75,12 @@ const LeadsPage = () => {
         </div>
         <div className="flex flex-row gap-4">
           <Button
-            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
-            disabled={true}
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            onClick={handleExport}
           >
             <Download className="w-4 h-4" />
             Export
+            {selectedLeadIds.length > 0 ? ` (${selectedLeadIds.length})` : ""}
           </Button>
           <Button
             onClick={handleAddLead}
@@ -92,27 +98,52 @@ const LeadsPage = () => {
             Total Leads
           </p>
           <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {statistics.total}
+            {filteredLeads.length}
           </p>
         </div>
         <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">New</p>
           <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {statistics.byStatus["New"] || 0}
+            {filteredLeads.filter((lead) => lead.leadStatus === "New").length}
           </p>
         </div>
         <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
           <p className="text-sm text-gray-600 dark:text-gray-400">Follow-Up</p>
           <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">
-            {statistics.byStatus["Follow-Up"] || 0}
+            {
+              filteredLeads.filter((lead) => lead.leadStatus === "Follow-Up")
+                .length
+            }
           </p>
         </div>
         <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Conversion Rate
-          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Converted</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {statistics.conversionRate}%
+            {
+              filteredLeads.filter((lead) => lead.leadStatus === "Converted")
+                .length
+            }
+          </p>
+        </div>
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+          <p className="text-sm text-gray-600 dark:text-gray-400">Dead</p>
+          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
+            {filteredLeads.filter((lead) => lead.leadStatus === "Dead").length}
+          </p>
+        </div>
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 col-span-1 sm:col-span-2 lg:col-span-4">
+          <p>Conversion Rate</p>
+          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
+            {filteredLeads.length > 0
+              ? Math.round(
+                  (filteredLeads.filter(
+                    (lead) => lead.leadStatus === "Converted",
+                  ).length /
+                    filteredLeads.length) *
+                    100,
+                )
+              : 0}
+            %
           </p>
         </div>
       </div>
@@ -221,6 +252,9 @@ const LeadsPage = () => {
           data={filteredLeads}
           name="Leads"
           searchColumn="leadEmail"
+          onSelectionChange={(rows) =>
+            setSelectedLeadIds(rows.map((r) => r._id))
+          }
         />
       )}
 

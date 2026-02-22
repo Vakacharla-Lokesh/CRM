@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DataTable } from "../components/common/data-table";
+import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/tenants/tenant-columns";
 import type { Tenant, CreateTenantDto } from "@/types/tenant";
 import { Button } from "@/components/ui/button";
