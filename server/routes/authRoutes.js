@@ -5,6 +5,7 @@ import {
   logout,
   refreshToken,
   getProfile,
+  checkToken,
 } from "../controllers/authController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -17,5 +18,6 @@ router.post("/login", validate(loginSchema), login);
 router.post("/logout", logout);
 router.post("/refresh", refreshToken);
 router.get("/profile", authenticate, getProfile);
+router.get("/status", checkToken);
 
 export default router;

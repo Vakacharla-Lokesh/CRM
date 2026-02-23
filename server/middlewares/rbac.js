@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+
 export const authorize = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
@@ -31,7 +33,9 @@ export const validateTenantAccess = (req, res, next) => {
 
 export const injectTenantFilter = (req, res, next) => {
   if (req.user.role !== "super_admin") {
-    req.tenantFilter = { tenantId: req.user.tenantId };
+    req.tenantFilter = {
+      tenantId: new mongoose.Types.ObjectId(req.user.tenantId),
+    };
   } else {
     req.tenantFilter = {};
   }

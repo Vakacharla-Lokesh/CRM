@@ -42,4 +42,5 @@ exponential fallback with jitter to add rate limiter
 
 >>>refresh token implementation
 
-search feature implement
+>>>search feature implement (backend)
+

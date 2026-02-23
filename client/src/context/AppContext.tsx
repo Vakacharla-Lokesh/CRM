@@ -46,21 +46,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           setToken(storedToken);
           setUser(storedUser);
           setIsAuthenticated(true);
-
-          //   // Verify token is still valid
-          //   try {
-          //     const status = await authService.getStatus();
-          //     if (!status.valid) {
-          //       // Token expired, clear auth
-          //       setUser(null);
-          //       setToken(null);
-          //       setIsAuthenticated(false);
-          //       removeFromLocalStorage("auth_token");
-          //       removeFromLocalStorage("user_data");
-          //     }
-          //   } catch (error) {
-          //     console.error("Token verification failed:", error);
-          //   }
         }
         setLoading(false);
       } catch (error) {
@@ -128,7 +113,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const signup = useCallback(async (userData: SignupData) => {
     try {
       const response = await authService.signup(userData);
-      const { user: newUser, token: authToken } = response;
+      const { user: newUser, token: authToken, refreshToken: refreshTokenValue } = response;
 
       setUser(newUser);
       setToken(authToken);
@@ -136,6 +121,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", newUser);
+      if (refreshTokenValue) {
+        saveToLocalStorage("refresh_token", refreshTokenValue);
+      }
 
       return response;
     } catch (error) {

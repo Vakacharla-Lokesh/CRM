@@ -113,6 +113,7 @@ export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
   }, [fetchAnalyticsData]);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchAnalyticsData();
   }, [fetchAnalyticsData]);
 
