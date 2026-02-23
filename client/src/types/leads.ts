@@ -1,15 +1,23 @@
-// ─── Lead ────────────────────────────────────────────────────────────────────
-// Mirrors server/models/leadModel.js exactly.
-
 /** Matches the backend enum exactly */
 export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
 
-/** Matches the backend enum exactly */
-export type LeadSource = "API" | "Outsource";
+export type LeadSource =
+  | "API"
+  | "Outsource"
+  | "Phone"
+  | "Website"
+  | "Facebook Ads"
+  | "Google Ads"
+  | "Instagram"
+  | "LinkedIn"
+  | "Email Marketing"
+  | "Referral"
+  | "Cold Call"
+  | "WhatsApp"
+  | "Other";
 
 export interface Lead {
   _id: string;
-  /** Alias of _id (set by Mongoose alias) */
   leadId?: string;
   organizationId?: string;
   userId: string;
@@ -64,7 +72,7 @@ export interface LeadFilter {
   search?: string;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// Helpers
 
 export function isLead(obj: unknown): obj is Lead {
   return (

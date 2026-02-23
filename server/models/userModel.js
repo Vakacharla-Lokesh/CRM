@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
 
+// MongoDB collection schema
 const userSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "userId", auto: true },
@@ -32,6 +33,7 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
+// Pre hook used for hashing pasword before saving to collection
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
 
@@ -42,5 +44,9 @@ userSchema.pre("save", async function () {
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
+
+// Indexes
+userSchema.index({ userId: 1 });
+userSchema.index({ tenantId: 1 });
 
 export default model("Users", userSchema);

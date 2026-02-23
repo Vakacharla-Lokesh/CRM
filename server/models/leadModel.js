@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 
+// MongoDB collection schema
 const leadsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "leadId", auto: true },
@@ -20,7 +21,21 @@ const leadsSchema = new Schema(
     },
     leadSource: {
       type: String,
-      enum: ["API", "Outsource"],
+      enum: [
+        "API",
+        "Outsource",
+        "Phone",
+        "Website",
+        "Facebook Ads",
+        "Google Ads",
+        "Instagram",
+        "LinkedIn",
+        "Email Marketing",
+        "Referral",
+        "Cold Call",
+        "WhatsApp",
+        "Other",
+      ],
       default: "API",
     },
     leadScore: { type: Number, min: 0, max: 100, default: 0 },
@@ -32,5 +47,10 @@ const leadsSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Indexes
+leadsSchema.index({ userId: 1, createdAt: -1 });
+leadsSchema.index({ tenantId: 1 });
+leadsSchema.index({ organizationId: 1 });
 
 export default model("Leads", leadsSchema);

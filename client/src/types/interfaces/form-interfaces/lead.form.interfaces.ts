@@ -1,4 +1,4 @@
-import type { CreateLeadDTO, Lead, LeadSource, LeadStatus } from "../leads";
+import type { CreateLeadDTO, Lead, LeadSource, LeadStatus } from "../../leads";
 
 export interface LeadFormData {
   leadFirstName: string;

@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 
+// MongoDB collection schema
 const dealsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "dealId", auto: true },
@@ -27,5 +28,9 @@ const dealsSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Indexes
+dealsSchema.index({ leadId: 1, createdAt: -1 });
+dealsSchema.index({ tenantId: 1 });
 
 export default model("Deals", dealsSchema);

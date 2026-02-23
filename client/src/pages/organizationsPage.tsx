@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces/organization.options";
+import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import { useNavigate } from "react-router-dom";
 
 const OrganizationsPage = () => {
