@@ -46,7 +46,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 };
 
 // Indexes
-userSchema.index({ userId: 1 });
 userSchema.index({ tenantId: 1 });
 
 export default model("Users", userSchema);

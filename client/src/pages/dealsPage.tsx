@@ -13,8 +13,14 @@ import {
 } from "@/components/ui/select";
 import { useDealData } from "@/hooks";
 import { DealModal } from "@/components/modals";
-import type { Deal, UpdateDealDTO, DealStatus } from "@/types";
+import {
+  type Deal,
+  type UpdateDealDTO,
+  type DealStatus,
+  dealStatuses,
+} from "@/types";
 import { useState } from "react";
+import DealStatistics from "@/components/deals/dealStatistics";
 
 const DealsPage = () => {
   const {
@@ -62,7 +68,7 @@ const DealsPage = () => {
 
   const handleSave = async (dealData: UpdateDealDTO) => {
     if (!selectedDeal) return;
-    
+
     try {
       await updateDeal(selectedDeal._id, dealData);
       setIsModalOpen(false);
@@ -78,14 +84,6 @@ const DealsPage = () => {
     setSelectedDeal(null);
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(value);
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -99,43 +97,7 @@ const DealsPage = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Deals
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {statistics.total}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Value
-          </p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {formatCurrency(statistics.totalValue)}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Avg Value</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {formatCurrency(statistics.avgValue)}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Forecast</p>
-          <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-            {formatCurrency(statistics.forecastValue)}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Won</p>
-          <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400 mt-1">
-            {statistics.byStage.closed_won || 0}
-          </p>
-        </div>
-      </div>
+      <DealStatistics statistics={statistics} />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -154,7 +116,10 @@ const DealsPage = () => {
           <Select
             value={filters.stage || "all"}
             onValueChange={(value) =>
-              updateFilter("stage", value === "all" ? "" : (value as DealStatus))
+              updateFilter(
+                "stage",
+                value === "all" ? "" : (value as DealStatus),
+              )
             }
           >
             <SelectTrigger className="w-full sm:w-45">
@@ -162,14 +127,17 @@ const DealsPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
-              <SelectItem value="Prospecting">Prospecting</SelectItem>
-              <SelectItem value="Qualification">Qualification</SelectItem>
-              <SelectItem value="Negotiation">Negotiation</SelectItem>
-              <SelectItem value="Ready to close">Ready to close</SelectItem>
-              <SelectItem value="Won">Won</SelectItem>
-              <SelectItem value="Lost">Lost</SelectItem>
+              {dealStatuses.map((status) => (
+                <SelectItem
+                  key={status}
+                  value={status}
+                >
+                  {status}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
+          
           <Button
             variant="outline"
             onClick={clearFilters}
