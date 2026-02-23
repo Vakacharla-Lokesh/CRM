@@ -160,7 +160,7 @@ const LeadsPage = () => {
             {filteredLeads.filter((lead) => lead.leadStatus === "Dead").length}
           </p>
         </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 col-span-1 sm:col-span-2 lg:col-span-4">
+        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 col-span-1">
           <p>Conversion Rate</p>
           <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
             {filteredLeads.length > 0
