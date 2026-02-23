@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 
+// MongoDB collection schema
 const tenantSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "tenantId", auto: true },
@@ -20,5 +21,8 @@ const tenantSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Indexes
+tenantSchema.index({ tenantId: 1 });
 
 export default model("Tenants", tenantSchema);

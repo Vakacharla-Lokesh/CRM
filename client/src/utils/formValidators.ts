@@ -1,19 +1,19 @@
 import type {
   OrganizationFormData,
   FormErrors as OrgFormErrors,
-} from "@/types/form-interfaces/organization.form.interfaces";
+} from "@/types/interfaces/form-interfaces/organization.form.interfaces";
 import type {
   UserFormData,
   FormErrors as UserFormErrors,
-} from "@/types/form-interfaces/user.form.interfaces";
+} from "@/types/interfaces/form-interfaces/user.form.interfaces";
 import type {
   TenantFormData,
   FormErrors as TenantFormErrors,
-} from "@/types/form-interfaces/tenant.form.interfaces";
+} from "@/types/interfaces/form-interfaces/tenant.form.interfaces";
 import type {
   LeadFormData,
   FormErrors as LeadFormErrors,
-} from "@/types/form-interfaces/lead.form.interfaces";
+} from "@/types/interfaces/form-interfaces/lead.form.interfaces";
 
 // Constants for validation
 const URL_REGEX =

@@ -14,7 +14,7 @@ import type {
   TenantFormData,
   TenantFormErrors as FormErrors,
   TenantModalProps,
-} from "@/types/form-interfaces";
+} from "@/types/interfaces/form-interfaces";
 import { validateTenantForm } from "@/utils/formValidators";
 
 function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {

@@ -13,14 +13,14 @@ import type {
   FormErrors,
   LeadFormData,
   LeadModalProps,
-} from "@/types/form-interfaces/lead.form.interfaces";
+} from "@/types/interfaces/form-interfaces/lead.form.interfaces";
 import { useOrganizationData } from "@/hooks";
 import { organizationService } from "@/services";
 import { FormField, FormSelect } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
 import { OrganizationSection } from "./sections";
 
-import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/form-interfaces";
+import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
 import { useAppContext } from "@/context/appContext";
 import { validateLeadForm } from "@/utils/formValidators";

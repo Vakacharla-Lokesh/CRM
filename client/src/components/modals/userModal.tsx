@@ -17,7 +17,7 @@ import type {
   UserFormData,
   UserFormErrors as FormErrors,
   UserModalProps,
-} from "@/types/form-interfaces";
+} from "@/types/interfaces/form-interfaces";
 import { useParams } from "react-router-dom";
 import { validateUserForm } from "@/utils/formValidators";
 

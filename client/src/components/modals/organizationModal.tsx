@@ -19,8 +19,8 @@ import type {
   OrganizationFormData,
   FormErrors,
   OrganizationModalProps,
-} from "@/types/form-interfaces/";
-import { ORGANIZATION_INDUSTRIES } from "@/types/form-interfaces";
+} from "@/types/interfaces/form-interfaces";
+import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
 import { useAppContext } from "@/context/appContext";
 import { validateOrganizationForm } from "@/utils/formValidators";

@@ -1,7 +1,7 @@
 import {
   type ColoredOption,
   type SelectOption,
-} from "@/types/form-interfaces/select";
+} from "@/types/interfaces/form-interfaces/select";
 
 export const mapToSelectOptions = <T extends string>(
   options: readonly ColoredOption<T>[],

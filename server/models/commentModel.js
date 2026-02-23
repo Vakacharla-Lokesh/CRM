@@ -1,5 +1,6 @@
 import { Schema, model } from "mongoose";
 
+// MongoDB collection schema
 const commentsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "commentId", auto: true },
@@ -9,5 +10,8 @@ const commentsSchema = new Schema(
   },
   { timestamps: true },
 );
+
+// Indexes
+commentsSchema.index({ leadId: 1, createdAt: -1 });
 
 export default model("Comments", commentsSchema);
