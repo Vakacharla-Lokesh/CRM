@@ -34,7 +34,7 @@ export const useUserData = () => {
     loading,
     error,
   } = useAsync<User | User[] | void>();
-  const { updateItem, deleteItem } = useIndexedDB("users");
+  const { updateItem, deleteItem, getAll } = useIndexedDB("users");
 
   const statistics = useMemo(() => {
     const stats: UserStatistics = {
@@ -87,6 +87,13 @@ export const useUserData = () => {
 
   const fetchUsers = useCallback(async () => {
     return executeAsync(async () => {
+      if (!navigator.onLine) {
+        const cached = await getAll() as User[];
+        setUsers(cached);
+        setFilteredUsers(cached);
+        return cached;
+      }
+
       const page = await userService.getAllUsers({ limit: 20 });
       setUsers(page.users);
       setFilteredUsers(page.users);
@@ -99,7 +106,7 @@ export const useUserData = () => {
 
       return page.users;
     });
-  }, [executeAsync, updateItem]);
+  }, [executeAsync, updateItem, getAll]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;

@@ -37,9 +37,17 @@ const useDealData = () => {
     maxValue: null,
   });
 
-  const { updateItem } = useIndexedDB<Deal & { id: string }>("deals");
+  const { updateItem, getAll } = useIndexedDB<Deal & { id: string }>("deals");
 
   const fetchDeals = useCallback(async () => {
+    if (!navigator.onLine) {
+      const cached = await getAll();
+      setDeals(cached);
+      setNextCursor(null);
+      setHasNextPage(false);
+      return cached;
+    }
+
     const page = await dealService.getAllDeals({ limit: 20 });
     setDeals(page.deals);
     setNextCursor(page.nextCursor);
@@ -54,7 +62,7 @@ const useDealData = () => {
     }
 
     return page.deals;
-  }, [updateItem]);
+  }, [updateItem, getAll]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;

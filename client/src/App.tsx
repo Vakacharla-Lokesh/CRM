@@ -9,17 +9,16 @@ import { Layout } from "./components/layout";
 import { AppProvider, useAppContext } from "./context";
 import { OfflineProvider } from "./context/offlineContext";
 
-import { lazy, Suspense } from "react";
-import { PageLoadingFallback } from "./components/common/suspenseFallback";
 
-const LoginPage = lazy(() => import("./pages/loginPage"));
-const SignupPage = lazy(() => import("./pages/signupPage"));
-const DashboardPage = lazy(() => import("./pages/dashboardPage"));
-const UsersPage = lazy(() => import("./pages/usersPage"));
-const LeadsPage = lazy(() => import("./pages/leadsPage"));
-const OrganizationsPage = lazy(() => import("./pages/organizationsPage"));
-const DealsPage = lazy(() => import("./pages/dealsPage"));
-const TenantsPage = lazy(() => import("./pages/tenantsPage"));
+
+import LoginPage from "./pages/loginPage";
+import SignupPage from "./pages/signupPage";
+import DashboardPage from "./pages/dashboardPage";
+import UsersPage from "./pages/usersPage";
+import LeadsPage from "./pages/leadsPage";
+import OrganizationsPage from "./pages/organizationsPage";
+import DealsPage from "./pages/dealsPage";
+import TenantsPage from "./pages/tenantsPage";
 
 import "./app.css";
 import { ThemeProvider } from "./components/common/theme-provider";
@@ -73,9 +72,7 @@ function AppRoutes() {
           path="/login"
           element={
             !isAuthenticated ? (
-              <Suspense fallback={<PageLoadingFallback />}>
-                <LoginPage />
-              </Suspense>
+              <LoginPage />
             ) : (
               <Navigate
                 to="/dashboard"
@@ -88,9 +85,7 @@ function AppRoutes() {
           path="/signup"
           element={
             !isAuthenticated ? (
-              <Suspense fallback={<PageLoadingFallback />}>
-                <SignupPage />
-              </Suspense>
+              <SignupPage />
             ) : (
               <Navigate
                 to="/dashboard"
@@ -108,8 +103,7 @@ function AppRoutes() {
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={toggleDarkMode}
               >
-                <Suspense fallback={<PageLoadingFallback />}>
-                  <Routes>
+                <Routes>
                     <Route
                       path="/dashboard"
                       element={<DashboardPage />}
@@ -165,7 +159,6 @@ function AppRoutes() {
                       }
                     />
                   </Routes>
-                </Suspense>
               </Layout>
             }
           />

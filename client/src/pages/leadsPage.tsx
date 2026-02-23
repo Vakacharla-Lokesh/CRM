@@ -89,6 +89,7 @@ const LeadsPage = () => {
 
   const handleExport = async () => {
     await exportLeads(selectedLeadIds);
+    setSelectedLeadIds([]);
   };
 
   return (
@@ -106,6 +107,7 @@ const LeadsPage = () => {
           <Button
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
             onClick={handleExport}
+            disabled={selectedLeadIds.length === 0}
           >
             <Download className="w-4 h-4" />
             Export

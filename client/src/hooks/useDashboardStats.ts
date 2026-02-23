@@ -49,6 +49,11 @@ export const useDashboardStats = (): UseDashboardStatsReturn => {
   const [error, setError] = useState<string | null>(null);
 
   const fetchDashboardStats = useCallback(async () => {
+    if (!navigator.onLine) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);

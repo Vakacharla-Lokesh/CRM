@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import { useNavigate } from "react-router-dom";
+import { exportOrganizations } from "@/services/exportService";
 
 const OrganizationsPage = () => {
   const {
@@ -39,6 +40,9 @@ const OrganizationsPage = () => {
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
+  const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<
+    string[]
+  >([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [organizationToDelete, setOrganizationToDelete] = useState<
@@ -50,6 +54,7 @@ const OrganizationsPage = () => {
   useEffect(() => {
     fetchOrganizations();
     // eslint_disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleAddOrganization = () => {
@@ -118,6 +123,11 @@ const OrganizationsPage = () => {
     navigate(`/organizations/${id}/leads`);
   };
 
+  const handleExport = async () => {
+    await exportOrganizations(selectedOrganizationIds);
+    setSelectedOrganizationIds([]);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -132,7 +142,8 @@ const OrganizationsPage = () => {
         <div className="flex flex-row gap-4">
           <Button
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
-            disabled={true}
+            onClick={handleExport}
+            disabled={selectedOrganizationIds.length === 0}
           >
             <Download className="w-4 h-4" />
             Export
@@ -247,6 +258,9 @@ const OrganizationsPage = () => {
           data={filteredOrganizations}
           name="Organizations"
           searchColumn="organizationName"
+          onSelectionChange={(rows) =>
+            setSelectedOrganizationIds(rows.map((r) => r._id))
+          }
         ></DataTable>
       )}
 

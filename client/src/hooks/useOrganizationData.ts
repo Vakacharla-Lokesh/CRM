@@ -40,7 +40,7 @@ export const useOrganizationData = () => {
     loading,
     error,
   } = useAsync<Organization | Organization[] | void>();
-  const { updateItem, deleteItem } = useIndexedDB("organizations");
+  const { updateItem, deleteItem, getAll } = useIndexedDB("organizations");
 
   const calculateStatistics = useCallback(
     (organizationsData: Organization[]) => {
@@ -102,6 +102,14 @@ export const useOrganizationData = () => {
 
   const fetchOrganizations = useCallback(async () => {
     return executeAsync(async () => {
+      if (!navigator.onLine) {
+        const cached = await getAll() as Organization[];
+        setOrganizations(cached);
+        setFilteredOrganizations(cached);
+        calculateStatistics(cached);
+        return cached;
+      }
+
       const page = await organizationService.getAllOrganizations({ limit: 20 });
       setOrganizations(page.organizations);
       setFilteredOrganizations(page.organizations);
@@ -119,7 +127,7 @@ export const useOrganizationData = () => {
 
       return page.organizations;
     });
-  }, [executeAsync, updateItem, calculateStatistics]);
+  }, [executeAsync, updateItem, calculateStatistics, getAll]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;
