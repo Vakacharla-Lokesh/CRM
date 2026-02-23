@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { useOffline } from "@/context/offlineContext";
 
 interface ActionDropdownProps {
   id: string;
@@ -27,6 +28,8 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   onViewUsers,
   viewUsersLabel = "View Users",
 }) => {
+  const { isOnline } = useOffline();
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(id);
   };
@@ -37,6 +40,8 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
         <Button
           variant="ghost"
           className="h-8 w-8 p-0"
+          disabled={!isOnline}
+          title={!isOnline ? "Actions unavailable while offline" : undefined}
         >
           <span className="sr-only">Open menu</span>
           <MoreHorizontal className="h-4 w-4" />

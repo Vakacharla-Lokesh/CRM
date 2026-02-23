@@ -6,6 +6,15 @@ export type DealStatus =
   | "Won"
   | "Lost";
 
+export const dealStatuses: DealStatus[] = [
+  "Prospecting",
+  "Qualification",
+  "Negotiation",
+  "Ready to close",
+  "Won",
+  "Lost",
+];
+
 export interface Deal {
   _id: string;
   dealId?: string;
