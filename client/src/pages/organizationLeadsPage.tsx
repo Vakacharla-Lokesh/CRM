@@ -6,6 +6,8 @@ import { columns } from "@/components/leads/leadColumns";
 import { leadsAPI, organizationsAPI } from "@/services/api";
 import type { Lead, Organization } from "@/types";
 import { DataTable } from "@/components/common/dataTable";
+import { useLeadData } from "@/hooks/useLeadData";
+import { ConfirmDialog } from "@/components/common/confirm-dialog";
 
 const OrganizationLeadsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -14,6 +16,10 @@ const OrganizationLeadsPage = () => {
   const [organization, setOrganization] = useState<Organization | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { deleteLead } = useLeadData();
+
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -28,6 +34,7 @@ const OrganizationLeadsPage = () => {
         setLeads(leadsData.leads);
         setOrganization(orgData);
         setLoading(false);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         setError(err?.message || "Failed to load data");
         setLoading(false);
@@ -36,6 +43,27 @@ const OrganizationLeadsPage = () => {
 
     fetchData();
   }, [id]);
+
+  const handleEditLead = (id: string) => {
+    navigate(`/leads/${id}`);
+  };
+
+  const handleDeleteLead = (id: string) => {
+    setLeadToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (leadToDelete) {
+      try {
+        await deleteLead(leadToDelete);
+        setDeleteDialogOpen(false);
+        setLeadToDelete(null);
+      } catch (error) {
+        console.error("Error deleting lead:", error);
+      }
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -88,13 +116,26 @@ const OrganizationLeadsPage = () => {
           </div>
 
           <DataTable
-            columns={columns()}
+            columns={columns({
+              onEdit: handleEditLead,
+              onDelete: handleDeleteLead,
+            })}
             data={leads}
             name="Leads"
             searchColumn="leadFirstName"
           />
         </>
       )}
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Lead"
+        description="Are you sure you want to delete this lead? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
     </div>
   );
 };

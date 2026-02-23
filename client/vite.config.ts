@@ -18,4 +18,20 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // React runtime — changes rarely, cached aggressively
+          "vendor-react": ["react", "react-dom", "react-router-dom"],
+          // Charting — recharts is the biggest single dependency
+          "vendor-charts": ["recharts"],
+          // Table
+          "vendor-table": ["@tanstack/react-table"],
+          // UI primitives + icons
+          "vendor-ui": ["radix-ui", "lucide-react", "class-variance-authority", "clsx", "tailwind-merge"],
+        },
+      },
+    },
+  },
 });
