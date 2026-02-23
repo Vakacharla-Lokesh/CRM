@@ -6,10 +6,9 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Layout } from "./components/layout";
-import { AppProvider, useAppContext } from "./context";
+import { AppProvider } from "./context";
+import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
-
-
 
 import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
@@ -104,61 +103,61 @@ function AppRoutes() {
                 onToggleDarkMode={toggleDarkMode}
               >
                 <Routes>
-                    <Route
-                      path="/dashboard"
-                      element={<DashboardPage />}
-                    />
-                    <Route
-                      path="/"
-                      element={
-                        <Navigate
-                          to="/dashboard"
-                          replace
-                        />
-                      }
-                    />
-                    <Route
-                      path="/leads"
-                      element={<LeadsPage />}
-                    />
-                    <Route
-                      path="/leads/:id"
-                      element={<LeadDetailsPage />}
-                    />
-                    <Route
-                      path="/organizations"
-                      element={<OrganizationsPage />}
-                    />
-                    <Route
-                      path="/organizations/:id/leads"
-                      element={<OrganizationLeadsPage />}
-                    />
-                    <Route
-                      path="/deals"
-                      element={<DealsPage />}
-                    />
-                    <Route
-                      path="/users"
-                      element={<UsersPage />}
-                    />
-                    <Route
-                      path="/tenants"
-                      element={<TenantsPage />}
-                    />
-                    <Route
-                      path="/tenants/:id"
-                      element={<UsersPage />}
-                    />
-                    <Route
-                      path="*"
-                      element={
-                        <Navigate
-                          to="/dashboard"
-                          replace
-                        />
-                      }
-                    />
-                  </Routes>
+                  <Route
+                    path="/dashboard"
+                    element={<DashboardPage />}
+                  />
+                  <Route
+                    path="/"
+                    element={
+                      <Navigate
+                        to="/dashboard"
+                        replace
+                      />
+                    }
+                  />
+                  <Route
+                    path="/leads"
+                    element={<LeadsPage />}
+                  />
+                  <Route
+                    path="/leads/:id"
+                    element={<LeadDetailsPage />}
+                  />
+                  <Route
+                    path="/organizations"
+                    element={<OrganizationsPage />}
+                  />
+                  <Route
+                    path="/organizations/:id/leads"
+                    element={<OrganizationLeadsPage />}
+                  />
+                  <Route
+                    path="/deals"
+                    element={<DealsPage />}
+                  />
+                  <Route
+                    path="/users"
+                    element={<UsersPage />}
+                  />
+                  <Route
+                    path="/tenants"
+                    element={<TenantsPage />}
+                  />
+                  <Route
+                    path="/tenants/:id"
+                    element={<UsersPage />}
+                  />
+                  <Route
+                    path="*"
+                    element={
+                      <Navigate
+                        to="/dashboard"
+                        replace
+                      />
+                    }
+                  />
+                </Routes>
               </Layout>
             }
           />

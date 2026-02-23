@@ -1,7 +1,6 @@
 /* eslint_disable react-refresh/only-export-components */
 import {
   createContext,
-  useContext,
   useState,
   useEffect,
   useCallback,
@@ -15,7 +14,7 @@ import {
 } from "../hooks/useLocalStorage";
 import type { User, SignupData, AuthResponse } from "../types";
 
-interface AppContextType {
+export interface AppContextType {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
@@ -78,10 +77,12 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const handleOffline = () => setIsOnline(false);
 
     const handleAuthLogout = () => {
-      console.log("Auth logout event received");
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
+      removeFromLocalStorage("auth_token");
+      removeFromLocalStorage("user_data");
+      removeFromLocalStorage("refresh_token");
     };
 
     window.addEventListener("online", handleOnline);
@@ -101,7 +102,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         userEmail: email,
         password: password,
       });
-      const { user: userData, token: authToken } = response;
+      const {
+        user: userData,
+        token: authToken,
+        refreshToken: refreshTokenValue,
+      } = response;
 
       setUser(userData);
       setToken(authToken);
@@ -109,6 +114,9 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", userData);
+      if (refreshTokenValue) {
+        saveToLocalStorage("refresh_token", refreshTokenValue);
+      }
 
       return response;
     } catch (error) {
@@ -138,21 +146,17 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
-      await authService.logout();
-      setUser(null);
-      setToken(null);
-      setIsAuthenticated(false);
-
-      removeFromLocalStorage("auth_token");
-      removeFromLocalStorage("user_data");
+      const storedRefreshToken = getFromLocalStorage<string>("refresh_token");
+      await authService.logout(storedRefreshToken ?? undefined);
     } catch (error) {
       console.error("Logout API call failed:", error);
+    } finally {
       setUser(null);
       setToken(null);
       setIsAuthenticated(false);
-
       removeFromLocalStorage("auth_token");
       removeFromLocalStorage("user_data");
+      removeFromLocalStorage("refresh_token");
     }
   }, []);
 
@@ -163,13 +167,19 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const refreshToken = useCallback(async () => {
     try {
-      const response = await authService.refreshToken();
-      const { token: newToken } = response;
+      const storedRefreshToken = getFromLocalStorage<string>("refresh_token");
+      if (!storedRefreshToken) throw new Error("No refresh token stored");
 
-      setToken(newToken);
-      saveToLocalStorage("auth_token", newToken);
+      const response = await authService.refreshToken(storedRefreshToken);
+      const { token: newAccessToken, refreshToken: newRefreshToken } = response;
 
-      return newToken;
+      setToken(newAccessToken);
+      saveToLocalStorage("auth_token", newAccessToken);
+      if (newRefreshToken) {
+        saveToLocalStorage("refresh_token", newRefreshToken);
+      }
+
+      return newAccessToken;
     } catch (error) {
       console.error("Token refresh failed:", error);
       await logout();
@@ -192,14 +202,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
-
-export const useAppContext = () => {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error("useAppContext must be used within AppProvider");
-  }
-  return context;
 };
 
 export default AppContext;

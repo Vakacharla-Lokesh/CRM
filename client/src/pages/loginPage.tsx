@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppContext } from "../context";
+import { useAppContext } from "@/hooks";
 import { useForm } from "../hooks";
 import { validateLoginForm } from "../utils/formValidators";
 import type { LoginFormData, LoginFormErrors } from "../utils/formValidators";

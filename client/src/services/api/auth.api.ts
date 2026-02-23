@@ -1,4 +1,4 @@
-import { post, delete_ } from "./core";
+import { post } from "./core";
 import type { LoginRequest, RegisterRequest, LoginResponse } from "../../types";
 
 export const authAPI = {
@@ -8,7 +8,11 @@ export const authAPI = {
   register: (data: RegisterRequest) =>
     post<LoginResponse>("/auth/register", data),
 
-  logout: () => delete_<void>("/auth/logout"),
+  logout: (refreshToken?: string) =>
+    post<void>("/auth/logout", { refreshToken }),
 
-  refreshToken: () => post<{ token: string }>("/auth/refresh", {}),
+  refreshToken: (refreshToken: string) =>
+    post<{ token: string; refreshToken: string }>("/auth/refresh", {
+      refreshToken,
+    }),
 };

@@ -13,43 +13,13 @@ export class APIError extends Error {
   }
 }
 
-interface ErrorResponse {
-  response: {
-    status: number;
-    data: {
-      message?: string;
-      [key: string]: unknown;
-    };
-  };
-}
-
-function handleErrorResponse(error: unknown): never {
-  if (error && typeof error === "object" && "response" in error) {
-    const response = (error as ErrorResponse).response;
-    if (
-      response &&
-      typeof response === "object" &&
-      "status" in response &&
-      "data" in response
-    ) {
-      const message = response.data?.message || "API Error";
-      throw new APIError(response.status as number, response.data, message);
-    }
-  }
-  throw error;
-}
-
 export function getToken(): string | null {
   let token = localStorage.getItem("auth_token");
-  // Remove surrounding quotes if they exist
-  if (!token) {
-    return null;
-  }
+  if (!token) return null;
   token = token.trim();
   if (token.startsWith('"') && token.endsWith('"')) {
     token = token.slice(1, -1);
   }
-
   return token;
 }
 
@@ -61,13 +31,115 @@ export function clearToken(): void {
   localStorage.removeItem("auth_token");
 }
 
+// ─── Silent Refresh Interceptor ──────────────────────────────────────────────
+
+let isRefreshing = false;
+let pendingQueue: Array<{
+  resolve: (token: string) => void;
+  reject: (err: unknown) => void;
+}> = [];
+
+function processQueue(error: unknown, token: string | null) {
+  pendingQueue.forEach((p) => {
+    if (error) p.reject(error);
+    else p.resolve(token!);
+  });
+  pendingQueue = [];
+}
+
+// Endpoints that should NEVER trigger a silent refresh attempt
+const AUTH_ENDPOINTS = [
+  "/auth/login",
+  "/auth/register",
+  "/auth/refresh",
+  "/auth/logout",
+];
+
+function isAuthEndpoint(endpoint: string): boolean {
+  return AUTH_ENDPOINTS.some((e) => endpoint.includes(e));
+}
+
+async function attemptTokenRefresh(): Promise<string> {
+  let rawRefreshToken = localStorage.getItem("refresh_token") ?? "";
+  rawRefreshToken = rawRefreshToken.trim();
+  if (rawRefreshToken.startsWith('"') && rawRefreshToken.endsWith('"')) {
+    rawRefreshToken = rawRefreshToken.slice(1, -1);
+  }
+  if (!rawRefreshToken) throw new Error("No refresh token available");
+
+  const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ refreshToken: rawRefreshToken }),
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    throw new APIError(response.status, {}, "Refresh token invalid or expired");
+  }
+
+  const data = await response.json();
+
+  // Update tokens in localStorage immediately
+  localStorage.setItem("auth_token", data.token);
+  if (data.refreshToken) {
+    localStorage.setItem("refresh_token", data.refreshToken);
+  }
+
+  return data.token;
+}
+
+// Wraps a fetch-based call with one silent-refresh retry on 401
+async function withSilentRefresh<T>(
+  endpoint: string,
+  doRequest: (token: string | null) => Promise<T>,
+): Promise<T> {
+  // Don't intercept auth endpoints — they manage tokens themselves
+  if (isAuthEndpoint(endpoint)) {
+    return doRequest(getToken());
+  }
+
+  try {
+    return await doRequest(getToken());
+  } catch (error) {
+    if (!(error instanceof APIError) || error.statusCode !== 401) {
+      throw error;
+    }
+
+    // If a refresh is already in flight, queue this request
+    if (isRefreshing) {
+      return new Promise<T>((resolve, reject) => {
+        pendingQueue.push({
+          resolve: (token) => doRequest(token).then(resolve).catch(reject),
+          reject,
+        });
+      });
+    }
+
+    isRefreshing = true;
+
+    try {
+      const newToken = await attemptTokenRefresh();
+      processQueue(null, newToken);
+      return await doRequest(newToken); // retry original request with new token
+    } catch (refreshError) {
+      processQueue(refreshError, null);
+      window.dispatchEvent(new Event("auth:logout"));
+      throw refreshError;
+    } finally {
+      isRefreshing = false;
+    }
+  }
+}
+
+// ─── HTTP Methods ─────────────────────────────────────────────────────────────
+
 export async function get<T>(
   endpoint: string,
   params?: Record<string, unknown>,
 ): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const url = new URL(`${API_BASE_URL}${endpoint}`);
-
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null) {
@@ -75,15 +147,10 @@ export async function get<T>(
         }
       });
     }
-
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(url.toString(), {
       method: "GET",
@@ -99,23 +166,16 @@ export async function get<T>(
         errorData.message || "Request failed",
       );
     }
-
-    return await response.json();
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+    return response.json() as Promise<T>;
+  });
 }
 
 export async function post<T>(endpoint: string, data?: unknown): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "POST",
@@ -132,23 +192,16 @@ export async function post<T>(endpoint: string, data?: unknown): Promise<T> {
         errorData.message || "Request failed",
       );
     }
-
     return response.json() as Promise<T>;
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+  });
 }
 
 export async function put<T>(endpoint: string, data?: unknown): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PUT",
@@ -165,23 +218,16 @@ export async function put<T>(endpoint: string, data?: unknown): Promise<T> {
         errorData.message || "Request failed",
       );
     }
-
     return response.json() as Promise<T>;
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+  });
 }
 
 export async function delete_<T>(endpoint: string): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "DELETE",
@@ -197,23 +243,16 @@ export async function delete_<T>(endpoint: string): Promise<T> {
         errorData.message || "Request failed",
       );
     }
-
     return response.json() as Promise<T>;
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+  });
 }
 
 export async function patch<T>(endpoint: string, data?: unknown): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       method: "PATCH",
@@ -230,24 +269,17 @@ export async function patch<T>(endpoint: string, data?: unknown): Promise<T> {
         errorData.message || "Request failed",
       );
     }
-
     return response.json() as Promise<T>;
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+  });
 }
 
 export async function upload<T>(
   endpoint: string,
   file: File | Blob,
 ): Promise<T> {
-  try {
+  return withSilentRefresh(endpoint, async (token) => {
     const headers: Record<string, string> = {};
-
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
+    if (token) headers.Authorization = `Bearer ${token}`;
 
     const formData = new FormData();
     formData.append("file", file);
@@ -267,11 +299,8 @@ export async function upload<T>(
         errorData.message || "Upload failed",
       );
     }
-
     return response.json() as Promise<T>;
-  } catch (error) {
-    return handleErrorResponse(error);
-  }
+  });
 }
 
 export const apiClient = {

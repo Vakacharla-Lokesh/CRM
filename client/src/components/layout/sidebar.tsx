@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 
-import { useAppContext } from "@/context";
+import { useAppContext } from "@/hooks";
 
 import {
   type SidebarProps,

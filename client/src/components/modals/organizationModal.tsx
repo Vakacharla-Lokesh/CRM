@@ -22,7 +22,7 @@ import type {
 } from "@/types/interfaces/form-interfaces";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
-import { useAppContext } from "@/context/appContext";
+import { useAppContext } from "@/hooks";
 import { validateOrganizationForm } from "@/utils/formValidators";
 
 function OrganizationModal({

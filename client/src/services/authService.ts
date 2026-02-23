@@ -22,12 +22,17 @@ const authService = {
     return apiClient.post<AuthResponse>("/auth/register", payload);
   },
 
-  logout: async (): Promise<void> => {
-    return apiClient.post<void>("/auth/logout");
+  logout: async (refreshToken?: string): Promise<void> => {
+    return apiClient.post<void>("/auth/logout", { refreshToken });
   },
 
-  refreshToken: async (): Promise<{ token: string }> => {
-    return apiClient.post<{ token: string }>("/auth/refresh");
+  refreshToken: async (
+    refreshToken: string,
+  ): Promise<{ token: string; refreshToken: string }> => {
+    return apiClient.post<{ token: string; refreshToken: string }>(
+      "/auth/refresh",
+      { refreshToken },
+    );
   },
 
   requestPasswordReset: async (email: string): Promise<{ message: string }> => {

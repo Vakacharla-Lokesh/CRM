@@ -1,4 +1,4 @@
-import { useAppContext } from "../context";
+import { useAppContext } from "@/hooks";
 import type { UserRole } from "../types";
 
 interface Resource {
