@@ -48,7 +48,6 @@ function formatUser(user) {
   };
 }
 
-
 export const register = async (req, res, next) => {
   try {
     const { password, tenantName, ...userData } = req.body;
@@ -206,5 +205,20 @@ export const getProfile = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+export const checkToken = (req, res) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith("Bearer ")) {
+    return res.json({ valid: false });
+  }
+
+  const token = authHeader.slice(7);
+  try {
+    jwt.verify(token, process.env.JWT_SECRET);
+    return res.json({ valid: true });
+  } catch {
+    return res.json({ valid: false });
   }
 };

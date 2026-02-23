@@ -25,8 +25,6 @@ function DashboardPage() {
     loading: analyticsLoading,
   } = useAnalyticsData(30);
 
-  // ── Lead trend display data (last 10 days) ─────────────────────────────────
-  // New shape: { date, total, byStatus[] }
   const leadTrendData = leadTrends.slice(-10).map((t) => ({
     date: new Date(t.date).toLocaleDateString("en-US", {
       month: "short",
@@ -37,12 +35,10 @@ function DashboardPage() {
 
   const maxLeads = Math.max(...leadTrendData.map((d) => d.leads), 1);
 
-  // ── Org stats display data ─────────────────────────────────────────────────
-  // New shape: { industry, organizationCount, totalLeads, convertedLeads, conversionRate }
   const orgStatsData = organizationStats.map((s) => ({
     industry: s.industry ?? "Unknown",
     organizations: s.organizationCount,
-    leads: s.totalLeads, // was leadCount, now totalLeads
+    leads: s.totalLeads,
     converted: s.convertedLeads,
     conversionRate: s.conversionRate,
   }));
@@ -54,7 +50,6 @@ function DashboardPage() {
     1,
   );
 
-  // ── Deal pipeline display data ─────────────────────────────────────────────
   const maxDealValue = Math.max(...dealPipeline.map((d) => d.totalValue), 1);
 
   return (
@@ -96,7 +91,6 @@ function DashboardPage() {
         </div>
       )}
 
-      {/* ── Stat Cards ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard
           icon={<Users size={32} />}
@@ -134,7 +128,6 @@ function DashboardPage() {
         />
       </div>
 
-      {/* ── Analytics Row 1: Lead Trends + Deal Pipeline ─────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Lead Trends */}
         <div
@@ -532,6 +525,5 @@ function DashboardPage() {
   );
 }
 
-// ── Small reusable sub-components ─────────────────────────────────────────────
 
 export default DashboardPage;

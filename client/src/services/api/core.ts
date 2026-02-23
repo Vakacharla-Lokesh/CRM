@@ -80,21 +80,18 @@ async function attemptTokenRefresh(): Promise<string> {
 
   const data = await response.json();
 
-  // Update tokens in localStorage immediately
-  localStorage.setItem("auth_token", data.token);
+  localStorage.setItem("auth_token", JSON.stringify(data.token));
   if (data.refreshToken) {
-    localStorage.setItem("refresh_token", data.refreshToken);
+    localStorage.setItem("refresh_token", JSON.stringify(data.refreshToken));
   }
 
   return data.token;
 }
 
-// Wraps a fetch-based call with one silent-refresh retry on 401
 async function withSilentRefresh<T>(
   endpoint: string,
   doRequest: (token: string | null) => Promise<T>,
 ): Promise<T> {
-  // Don't intercept auth endpoints — they manage tokens themselves
   if (isAuthEndpoint(endpoint)) {
     return doRequest(getToken());
   }
@@ -106,7 +103,6 @@ async function withSilentRefresh<T>(
       throw error;
     }
 
-    // If a refresh is already in flight, queue this request
     if (isRefreshing) {
       return new Promise<T>((resolve, reject) => {
         pendingQueue.push({
@@ -121,7 +117,7 @@ async function withSilentRefresh<T>(
     try {
       const newToken = await attemptTokenRefresh();
       processQueue(null, newToken);
-      return await doRequest(newToken); // retry original request with new token
+      return await doRequest(newToken);
     } catch (refreshError) {
       processQueue(refreshError, null);
       window.dispatchEvent(new Event("auth:logout"));
@@ -131,8 +127,6 @@ async function withSilentRefresh<T>(
     }
   }
 }
-
-// ─── HTTP Methods ─────────────────────────────────────────────────────────────
 
 export async function get<T>(
   endpoint: string,
