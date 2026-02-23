@@ -16,6 +16,7 @@ import {
 import { useUserData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { useParams } from "react-router-dom";
+import UserStatistics from "@/components/users/userStatistics";
 
 const UsersPage = () => {
   const { id } = useParams();
@@ -27,6 +28,7 @@ const UsersPage = () => {
     filters,
     updateFilter,
     resetFilters,
+    fetchUsers,
     createUser,
     updateUser,
     deleteUser,
@@ -41,8 +43,10 @@ const UsersPage = () => {
   useEffect(() => {
     if (id) {
       fetchUserByTenant(id);
+    } else {
+      fetchUsers();
     }
-  }, [fetchUserByTenant, id]);
+  }, [fetchUserByTenant, fetchUsers, id]);
 
   const handleAddUser = () => {
     setSelectedUser(null);
@@ -118,36 +122,7 @@ const UsersPage = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Users
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {statistics.total}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Active</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {statistics.active}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Inactive</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-            {statistics.inactive}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Admins</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {(statistics.byRole.admin || 0) +
-              (statistics.byRole.super_admin || 0)}
-          </p>
-        </div>
-      </div>
+      <UserStatistics statistics={statistics} />
 
       {/* Filters */}
       <div className=" rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

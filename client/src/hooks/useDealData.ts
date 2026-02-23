@@ -13,7 +13,7 @@ export interface DealFilters {
   maxValue: number | null;
 }
 
-interface DealStatistics {
+export interface DealStatistics {
   total: number;
   byStatus: Record<DealStatus, number>;
   byStage: Record<string, number>;

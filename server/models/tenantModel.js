@@ -22,7 +22,4 @@ const tenantSchema = new Schema(
   { timestamps: true },
 );
 
-// Indexes
-tenantSchema.index({ tenantId: 1 });
-
 export default model("Tenants", tenantSchema);

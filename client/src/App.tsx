@@ -6,6 +6,7 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Layout } from "./components/layout";
+import { AppRouter } from "./router/router";
 
 // Context and hooks
 import { AppProvider } from "./context";
@@ -13,23 +14,13 @@ import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
 import { ThemeProvider } from "./components/common/theme-provider";
 
-// Pages
+// Public pages
 import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
-import DashboardPage from "./pages/dashboardPage";
-import UsersPage from "./pages/usersPage";
-import LeadsPage from "./pages/leadsPage";
-import OrganizationsPage from "./pages/organizationsPage";
-import DealsPage from "./pages/dealsPage";
-import TenantsPage from "./pages/tenantsPage";
+import LandingPage from "./pages/landingPage";
 
 // Styles
 import "./App.css";
-
-// other imports
-import LeadDetailsPage from "./pages/leadDetailsPage";
-import LandingPage from "./pages/landingPage";
-import OrganizationLeadsPage from "./pages/organizationLeadsPage";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -51,9 +42,7 @@ function AppRoutes() {
     localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
   }, [isDarkMode]);
 
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
+  const toggleDarkMode = () => setIsDarkMode((prev: boolean) => !prev);
 
   if (loading) {
     return (
@@ -100,6 +89,7 @@ function AppRoutes() {
           }
         />
 
+        {/* Authenticated routes – delegated to AppRouter */}
         {isAuthenticated ? (
           <Route
             path="/*"
@@ -108,62 +98,7 @@ function AppRoutes() {
                 isDarkMode={isDarkMode}
                 onToggleDarkMode={toggleDarkMode}
               >
-                <Routes>
-                  <Route
-                    path="/dashboard"
-                    element={<DashboardPage />}
-                  />
-                  <Route
-                    path="/"
-                    element={
-                      <Navigate
-                        to="/dashboard"
-                        replace
-                      />
-                    }
-                  />
-                  <Route
-                    path="/leads"
-                    element={<LeadsPage />}
-                  />
-                  <Route
-                    path="/leads/:id"
-                    element={<LeadDetailsPage />}
-                  />
-                  <Route
-                    path="/organizations"
-                    element={<OrganizationsPage />}
-                  />
-                  <Route
-                    path="/organizations/:id/leads"
-                    element={<OrganizationLeadsPage />}
-                  />
-                  <Route
-                    path="/deals"
-                    element={<DealsPage />}
-                  />
-                  <Route
-                    path="/users"
-                    element={<UsersPage />}
-                  />
-                  <Route
-                    path="/tenants"
-                    element={<TenantsPage />}
-                  />
-                  <Route
-                    path="/tenants/:id"
-                    element={<UsersPage />}
-                  />
-                  <Route
-                    path="*"
-                    element={
-                      <Navigate
-                        to="/dashboard"
-                        replace
-                      />
-                    }
-                  />
-                </Routes>
+                <AppRouter />
               </Layout>
             }
           />
