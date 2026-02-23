@@ -230,6 +230,33 @@ export const getDealsByOrganization = async (req, res, next) => {
   }
 };
 
+// Search deals
+export const searchDeals = async (req, res, next) => {
+  try {
+    const filter = req.tenantFilter || {};
+    const { q, limit = 25 } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query 'q' is required" });
+    }
+
+    const searchRegex = new RegExp(q.trim(), "i");
+
+    filter.$or = [
+      { dealName: searchRegex },
+    ];
+
+    const deals = await dealModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(Math.min(parseInt(limit), 25));
+
+    res.json({ count: deals.length, deals });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Update deal status
 export const updateDealStatus = async (req, res, next) => {
   try {

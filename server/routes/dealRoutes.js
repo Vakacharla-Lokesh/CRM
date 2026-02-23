@@ -10,6 +10,7 @@ import {
   getDealsByLead,
   getDealsByOrganization,
   updateDealStatus,
+  searchDeals,
 } from "../controllers/dealController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -33,6 +34,14 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   getAllDeals,
+);
+
+router.get(
+  "/search",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  searchDeals,
 );
 
 router.get(
