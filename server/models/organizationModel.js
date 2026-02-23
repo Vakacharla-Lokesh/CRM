@@ -29,5 +29,11 @@ const organizationsSchema = new Schema(
 organizationsSchema.index({ tenantId: 1 });
 organizationsSchema.index({ userId: 1, createdAt: -1 });
 
+// search index
+organizationsSchema.index({
+  organizationName: "text",
+  organizationWebsite: "text",
+  organizationIndustry: "text",
+});
 
 export default model("Organizations", organizationsSchema);

@@ -7,6 +7,7 @@ import {
   deleteOrganization,
   getOrganizationsByTenant,
   getOrganizationsByUser,
+  searchOrganizations,
 } from "../controllers/organizationController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -28,6 +29,14 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   getAllOrganizations,
+);
+
+router.get(
+  "/search",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  searchOrganizations,
 );
 
 router.get(

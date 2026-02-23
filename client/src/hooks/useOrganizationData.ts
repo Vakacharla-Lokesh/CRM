@@ -24,6 +24,8 @@ export const useOrganizationData = () => {
   const [filteredOrganizations, setFilteredOrganizations] = useState<
     Organization[]
   >([]);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const [statistics, setStatistics] = useState<Statistics>({
     total: 0,
     byIndustry: {},
@@ -98,7 +100,8 @@ export const useOrganizationData = () => {
     }
 
     setFilteredOrganizations(filtered);
-  }, [organizations, filters]);
+    calculateStatistics(filtered);
+  }, [organizations, filters, calculateStatistics]);
 
   const fetchOrganizations = useCallback(async () => {
     return executeAsync(async () => {
@@ -222,12 +225,26 @@ export const useOrganizationData = () => {
 
   const searchOrganizations = useCallback(
     async (query: string) => {
-      return executeAsync(async () => {
-        const results = await organizationService.searchOrganizations(query);
-        return results;
-      });
+      if (!query || query.trim() === "") {
+        setIsSearchMode(false);
+        applyFilters();
+        return;
+      }
+
+      setIsSearchMode(true);
+      setSearchLoading(true);
+
+      try {
+        const results = await organizationService.searchOrganizations(query.trim());
+        setFilteredOrganizations(results);
+        calculateStatistics(results);
+      } catch (err) {
+        console.error("Organization search failed:", err);
+      } finally {
+        setSearchLoading(false);
+      }
     },
-    [executeAsync],
+    [applyFilters, calculateStatistics],
   );
 
   const updateFilter = useCallback((key: keyof Filters, value: unknown) => {
@@ -319,6 +336,8 @@ export const useOrganizationData = () => {
     searchOrganizations,
     bulkUpdateOrganizations,
     bulkDeleteOrganizations,
+    isSearchMode,
+    searchLoading,
 
     // Filter methods
     updateFilter,

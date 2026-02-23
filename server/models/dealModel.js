@@ -33,4 +33,9 @@ const dealsSchema = new Schema(
 dealsSchema.index({ leadId: 1, createdAt: -1 });
 dealsSchema.index({ tenantId: 1 });
 
+// search index
+dealsSchema.index({
+  dealName: "text",
+});
+
 export default model("Deals", dealsSchema);
