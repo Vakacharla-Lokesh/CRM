@@ -67,7 +67,7 @@ function CommentsTab({ leadId }: CommentsTabProps) {
         </div>
       )}
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+      <div className="bg-secondary dark:bg-secondary rounded-lg p-6 border border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Add New Comment
         </h3>

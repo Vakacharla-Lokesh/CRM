@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/select";
 import { Trash2, Phone } from "lucide-react";
 import { useCallData } from "@/hooks";
-import type { CallType, CallStatus } from "@/types";
+import { type CallType, type CallStatus, CALL_STATUSES } from "@/types";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { capitalize } from "@/utils";
 
 interface CallsTabProps {
   leadId: string;
@@ -105,7 +106,7 @@ function CallsTab({ leadId }: CallsTabProps) {
         </div>
       )}
 
-      <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 border border-gray-200 dark:border-gray-600">
+      <div className="bg-secondary dark:bg-secondary rounded-lg p-6 border border-gray-200 dark:border-gray-600">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
           Log New Call
         </h3>
@@ -156,10 +157,16 @@ function CallsTab({ leadId }: CallsTabProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="missed">Missed</SelectItem>
-                  <SelectItem value="no-answer">No Answer</SelectItem>
-                  <SelectItem value="voicemail">Voicemail</SelectItem>
+                  {CALL_STATUSES.map((status) => (
+                    <SelectItem
+                      key={status}
+                      value={status}
+                    >
+                      {status === "no-answer"
+                        ? "No Answer"
+                        : capitalize(status)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

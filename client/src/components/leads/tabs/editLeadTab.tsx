@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import type { Lead } from "@/types";
 import { useLeadData } from "@/hooks";
+import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 
 interface EditLeadTabProps {
   lead: Lead;
@@ -142,31 +143,41 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="API">API</SelectItem>
-              <SelectItem value="Outsource">Outsource</SelectItem>
+              {/* <SelectItem value="API">API</SelectItem>
+              <SelectItem value="Outsource">Outsource</SelectItem> */}
+              {LEAD_SOURCES.map((source) => (
+                <SelectItem
+                  key={source.value}
+                  value={source.value}
+                >
+                  {source.value}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="status">Status</Label>
-          <Select
-            value={formData.leadStatus}
-            onValueChange={(value) => handleInputChange("leadStatus", value)}
-          >
-            <SelectTrigger
-              id="status"
-              className="border-gray-300 dark:border-gray-600"
+        {formData.leadStatus != "Converted" && (
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
+              value={formData.leadStatus}
+              onValueChange={(value) => handleInputChange("leadStatus", value)}
             >
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="New">New</SelectItem>
-              <SelectItem value="Dead">Dead</SelectItem>
-              <SelectItem value="Follow-Up">Follow-Up</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+              <SelectTrigger
+                id="status"
+                className="border-gray-300 dark:border-gray-600"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="New">New</SelectItem>
+                <SelectItem value="Dead">Dead</SelectItem>
+                <SelectItem value="Follow-Up">Follow-Up</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
       </div>
 
       <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700">

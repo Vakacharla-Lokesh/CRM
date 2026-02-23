@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Deal } from "@/types/deals";
+import { dealStatuses, type Deal } from "@/types/deals";
 import { validateDealForm } from "@/utils/formValidators";
 import type { DealFormData } from "@/utils/formValidators";
 
@@ -36,8 +36,6 @@ type DealStatus =
   | "Won"
   | "Lost";
 
-
-
 const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   const [formData, setFormData] = useState<DealFormData>({
     dealName: "",
@@ -53,14 +51,16 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
       setFormData({
         dealName: deal.dealName || "",
         dealValue: deal.dealValue?.toString() || "",
-        dealStatus: ((deal as unknown as { dealStatus?: DealStatus }).dealStatus) || "Prospecting",
+        dealStatus:
+          (deal as unknown as { dealStatus?: DealStatus }).dealStatus ||
+          "Prospecting",
       });
     }
   }, [deal]);
 
   const handleChange = (
     field: keyof DealFormData,
-    value: string | DealStatus
+    value: string | DealStatus,
   ) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) {
@@ -122,7 +122,10 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={handleClose}
+    >
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Deal</DialogTitle>
@@ -130,7 +133,10 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
             Update the deal information below
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Deal Name */}
             <div className="space-y-2">
@@ -157,7 +163,9 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
               <Input
                 id="dealValue"
                 type="number"
-                step="0.01"
+                step="1"
+                min={1}
+                max={10_00_00_000}
                 value={formData.dealValue}
                 onChange={(e) => handleChange("dealValue", e.target.value)}
                 placeholder="Enter deal value"
@@ -181,12 +189,14 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Prospecting">Prospecting</SelectItem>
-                  <SelectItem value="Qualification">Qualification</SelectItem>
-                  <SelectItem value="Negotiation">Negotiation</SelectItem>
-                  <SelectItem value="Ready to close">Ready to close</SelectItem>
-                  <SelectItem value="Won">Won</SelectItem>
-                  <SelectItem value="Lost">Lost</SelectItem>
+                  {dealStatuses.map((status) => (
+                    <SelectItem
+                      key={status}
+                      value={status}
+                    >
+                      {status}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -209,7 +219,10 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+            >
               {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>

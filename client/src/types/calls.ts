@@ -1,7 +1,19 @@
 // Call Types
 export type CallType = "incoming" | "outgoing";
 
+export const CALL_TYPE_LABELS: Record<CallType, string> = {
+  incoming: "Incoming",
+  outgoing: "Outgoing",
+};
+
 export type CallStatus = "completed" | "missed" | "no-answer" | "voicemail";
+
+export const CALL_STATUSES: CallStatus[] = [
+  "completed",
+  "missed",
+  "no-answer",
+  "voicemail",
+];
 
 export interface Call {
   _id: string;
