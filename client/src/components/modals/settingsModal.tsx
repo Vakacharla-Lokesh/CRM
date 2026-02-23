@@ -8,7 +8,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useAppContext } from "@/context";
+import { useAppContext } from "@/hooks";
 import { FormField } from "./form-fields";
 import { ModalFooter, ErrorAlert } from "./shared";
 import { userService } from "@/services";

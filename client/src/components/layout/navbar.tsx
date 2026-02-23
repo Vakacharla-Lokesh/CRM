@@ -1,7 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
-import { useAppContext } from "@/context";
+import { useAppContext } from "@/hooks/";
 import { ModeToggle } from "../common/themeToggle";
 import { SettingsModal } from "../modals";
 

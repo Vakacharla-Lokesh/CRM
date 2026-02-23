@@ -22,7 +22,7 @@ import { OrganizationSection } from "./sections";
 
 import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
-import { useAppContext } from "@/context/appContext";
+import { useAppContext } from "@/hooks";
 import { validateLeadForm } from "@/utils/formValidators";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {

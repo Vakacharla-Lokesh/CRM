@@ -16,3 +16,4 @@ export { useCommentData } from './useCommentData.ts';
 export { useAttachmentData } from './useAttachmentData.ts';
 export { useDashboardStats } from './useDashboardStats.ts';
 export { useAnalyticsData } from './useAnalyticsData.ts';
+export { useAppContext } from './useAppContext.ts';
