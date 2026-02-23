@@ -51,4 +51,7 @@ export type {
   SignupFormErrors,
   LoginFormData,
   LoginFormErrors,
+  PasswordStrength,
 } from "./formValidators";
+
+export { getPasswordStrength } from "./formValidators";

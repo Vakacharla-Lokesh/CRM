@@ -1,16 +1,13 @@
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAppContext } from "../context";
-import { validateSignupForm } from "../utils/formValidators";
+import {
+  getPasswordStrength,
+  validateSignupForm,
+} from "../utils/formValidators";
 import type { SignupFormData, SignupFormErrors } from "../utils/formValidators";
 
 type FormErrors = SignupFormErrors;
-
-interface PasswordStrength {
-  level: number;
-  text: string;
-  color: string;
-}
 
 function SignupPage() {
   const navigate = useNavigate();
@@ -27,28 +24,6 @@ function SignupPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const getPasswordStrength = (password: string): PasswordStrength => {
-    if (!password) return { level: 0, text: "", color: "bg-gray-300" };
-
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (password.length >= 12) strength++;
-    if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^a-zA-Z0-9]/.test(password)) strength++;
-
-    const levels = [
-      { level: 0, text: "", color: "bg-gray-300" },
-      { level: 1, text: "Weak", color: "bg-red-500" },
-      { level: 2, text: "Fair", color: "bg-orange-500" },
-      { level: 3, text: "Good", color: "bg-yellow-500" },
-      { level: 4, text: "Strong", color: "bg-blue-500" },
-      { level: 5, text: "Very Strong", color: "bg-green-500" },
-    ];
-
-    return levels[Math.min(strength, 5)];
-  };
 
   const validateForm = () => {
     const newErrors = validateSignupForm(formData);

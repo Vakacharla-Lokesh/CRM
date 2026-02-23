@@ -1,5 +1,3 @@
-// client/src/hooks/useLeadData.ts
-
 import { useState, useCallback, useEffect } from "react";
 import leadService from "../services/leadService";
 import type { Lead } from "../types";
@@ -175,7 +173,7 @@ export function useLeadData() {
   const createLead = useCallback(
     async (leadData: Partial<Lead>) => {
       const newLead = await leadService.createLead(leadData);
-      await fetchLeads(); // re-fetch from start after mutation
+      await fetchLeads();
       return newLead;
     },
     [fetchLeads],
@@ -213,8 +211,8 @@ export function useLeadData() {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeads();
-    // eslint_disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

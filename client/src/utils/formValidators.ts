@@ -1,9 +1,3 @@
-/**
- * Form validator functions — pure, stateless, and reusable.
- * Each function accepts form data (and optional context) and returns an errors object.
- * Components are responsible for calling setErrors() with the returned object.
- */
-
 import type {
   OrganizationFormData,
   FormErrors as OrgFormErrors,
@@ -21,7 +15,14 @@ import type {
   FormErrors as LeadFormErrors,
 } from "@/types/form-interfaces/lead.form.interfaces";
 
-// ─── Settings ────────────────────────────────────────────────────────────────
+// Constants for validation
+const URL_REGEX =
+  /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!/-]))?$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const MOBILE_REGEX = /^[1-9]\d{9}$/;
+const TENANTED_EMAIL_REGEX = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
+// Settings
 
 export interface SettingsFormData {
   firstName: string;
@@ -39,157 +40,20 @@ export interface SettingsFormErrors {
   confirmPassword?: string;
 }
 
-// ─── Deal ─────────────────────────────────────────────────────────────────────
-
-export interface DealFormData {
-  dealName: string;
-  dealValue: string;
-  dealStatus: string;
-}
-
-// ─── Signup ───────────────────────────────────────────────────────────────────
-
-export interface SignupFormData {
-  tenantName: string;
-  firstName: string;
-  userEmail: string;
-  password: string;
-  confirmPassword: string;
-  agreeToTerms: boolean;
-}
-
-export interface SignupFormErrors {
-  tenantName?: string;
-  firstName?: string;
-  userEmail?: string;
-  password?: string;
-  confirmPassword?: string;
-  agreeToTerms?: string;
-  submit?: string;
-}
-
-// ─── Login ────────────────────────────────────────────────────────────────────
-
-export interface LoginFormData {
-  userEmail: string;
-  password: string;
-  rememberMe: boolean;
-}
-
-export interface LoginFormErrors {
-  userEmail?: string;
-  password?: string;
-  submit?: string;
-}
-
-// ─── New Org (used inside Lead form) ─────────────────────────────────────────
-
-interface NewOrgData {
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize: number;
-  organizationIndustry: string;
-}
-
-// ─── Validators ──────────────────────────────────────────────────────────────
-
-const URL_REGEX =
-  /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!/-]))?$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MOBILE_REGEX = /^[1-9]\d{9}$/;
-const TENANTED_EMAIL_REGEX = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
-
-export function validateOrganizationForm(formData: OrganizationFormData): OrgFormErrors {
-  const errors: OrgFormErrors = {};
-
-  if (!formData.organizationName.trim()) {
-    errors.organizationName = "Organization name is required";
-  }
-
-  if (!formData.organizationWebsite.trim()) {
-    errors.organizationWebsite = "Website is required";
-  } else if (!URL_REGEX.test(formData.organizationWebsite)) {
-    errors.organizationWebsite = "Please provide a valid website URL";
-  }
-
-  if (formData.organizationSize < 1 || formData.organizationSize > 10_000_000) {
-    errors.organizationSize = "Organization size must be between 1 and 10,000,000";
-  }
-
-  if (!formData.organizationIndustry) {
-    errors.organizationIndustry = "Industry is required";
-  }
-
-  return errors;
-}
-
-export function validateUserForm(
-  formData: UserFormData,
-  context: { isExistingUser: boolean; isSuperAdmin: boolean },
-): UserFormErrors {
-  const errors: UserFormErrors = {};
-  const { isExistingUser, isSuperAdmin } = context;
-
-  if (!formData.firstName.trim()) {
-    errors.firstName = "First name is required";
-  }
-
-  if (!formData.userEmail.trim()) {
-    errors.userEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.userEmail)) {
-    errors.userEmail = "Invalid email format";
-  }
-
-  if (!isExistingUser && !formData.password.trim()) {
-    errors.password = "Password is required for new users";
-  } else if (formData.password && formData.password.length < 6) {
-    errors.password = "Password must be at least 6 characters";
-  }
-
-  if (isSuperAdmin && !formData.tenantId) {
-    errors.tenantId = "Tenant selection is required";
-  }
-
-  if (
-    formData.mobile &&
-    !MOBILE_REGEX.test(formData.mobile.replace(/[^0-9]/g, ""))
-  ) {
-    errors.mobile = "Invalid mobile number format";
-  }
-
-  return errors;
-}
-
-export function validateTenantForm(formData: TenantFormData): TenantFormErrors {
-  const errors: TenantFormErrors = {};
-
-  if (!formData.tenantName.trim()) {
-    errors.tenantName = "Tenant name is required";
-  }
-
-  if (!formData.email.trim()) {
-    errors.email = "Email is required";
-  } else if (!TENANTED_EMAIL_REGEX.test(formData.email)) {
-    errors.email = "Please provide a valid email address";
-  }
-
-  if (!formData.mobile.trim()) {
-    errors.mobile = "Mobile number is required";
-  } else if (!MOBILE_REGEX.test(formData.mobile.replace(/[^0-9]/g, ""))) {
-    errors.mobile = "Please provide a valid 10-digit mobile number";
-  }
-
-  return errors;
-}
-
-export function validateSettingsForm(formData: SettingsFormData): SettingsFormErrors {
+export function validateSettingsForm(
+  formData: SettingsFormData,
+): SettingsFormErrors {
   const errors: SettingsFormErrors = {};
 
   if (!formData.firstName.trim()) {
     errors.firstName = "First name is required";
   }
 
-  if (formData.newPassword || formData.oldPassword || formData.confirmPassword) {
+  if (
+    formData.newPassword ||
+    formData.oldPassword ||
+    formData.confirmPassword
+  ) {
     if (!formData.oldPassword) {
       errors.oldPassword = "Current password is required to change password";
     }
@@ -210,47 +74,17 @@ export function validateSettingsForm(formData: SettingsFormData): SettingsFormEr
   return errors;
 }
 
-export function validateLeadForm(
-  formData: LeadFormData,
-  organizationMode: "select" | "create",
-  newOrgData: NewOrgData,
-): LeadFormErrors {
-  const errors: LeadFormErrors = {};
+// Deal
 
-  if (!formData.leadFirstName.trim()) {
-    errors.leadFirstName = "First name is required";
-  }
-
-  if (!formData.leadEmail.trim()) {
-    errors.leadEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.leadEmail)) {
-    errors.leadEmail = "Invalid email format";
-  }
-
-  if (organizationMode === "create") {
-    if (!newOrgData.organizationName.trim()) {
-      errors.organizationName = "Organization name is required";
-    }
-
-    if (!newOrgData.organizationWebsite.trim()) {
-      errors.organizationWebsite = "Website is required";
-    } else if (!URL_REGEX.test(newOrgData.organizationWebsite)) {
-      errors.organizationWebsite = "Please provide a valid website URL";
-    }
-
-    if (newOrgData.organizationSize < 1 || newOrgData.organizationSize > 10_000_000) {
-      errors.organizationSize = "Organization size must be between 1 and 10,000,000";
-    }
-
-    if (!newOrgData.organizationIndustry) {
-      errors.organizationIndustry = "Industry is required";
-    }
-  }
-
-  return errors;
+export interface DealFormData {
+  dealName: string;
+  dealValue: string;
+  dealStatus: string;
 }
 
-export function validateDealForm(formData: DealFormData): Record<string, string> {
+export function validateDealForm(
+  formData: DealFormData,
+): Record<string, string> {
   const errors: Record<string, string> = {};
 
   if (!formData.dealName.trim()) {
@@ -267,6 +101,27 @@ export function validateDealForm(formData: DealFormData): Record<string, string>
   }
 
   return errors;
+}
+
+// Signup
+
+export interface SignupFormData {
+  tenantName: string;
+  firstName: string;
+  userEmail: string;
+  password: string;
+  confirmPassword: string;
+  agreeToTerms: boolean;
+}
+
+export interface SignupFormErrors {
+  tenantName?: string;
+  firstName?: string;
+  userEmail?: string;
+  password?: string;
+  confirmPassword?: string;
+  agreeToTerms?: string;
+  submit?: string;
 }
 
 export function validateSignupForm(formData: SignupFormData): SignupFormErrors {
@@ -305,6 +160,48 @@ export function validateSignupForm(formData: SignupFormData): SignupFormErrors {
   return errors;
 }
 
+export interface PasswordStrength {
+  level: number;
+  text: string;
+  color: string;
+}
+
+export const getPasswordStrength = (password: string): PasswordStrength => {
+  if (!password) return { level: 0, text: "", color: "bg-gray-300" };
+
+  let strength = 0;
+  if (password.length >= 8) strength++;
+  if (password.length >= 12) strength++;
+  if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+  if (/[0-9]/.test(password)) strength++;
+  if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+  const levels = [
+    { level: 0, text: "", color: "bg-gray-300" },
+    { level: 1, text: "Weak", color: "bg-red-500" },
+    { level: 2, text: "Fair", color: "bg-orange-500" },
+    { level: 3, text: "Good", color: "bg-yellow-500" },
+    { level: 4, text: "Strong", color: "bg-blue-500" },
+    { level: 5, text: "Very Strong", color: "bg-green-500" },
+  ];
+
+  return levels[Math.min(strength, 5)];
+};
+
+// Login
+
+export interface LoginFormData {
+  userEmail: string;
+  password: string;
+  rememberMe: boolean;
+}
+
+export interface LoginFormErrors {
+  userEmail?: string;
+  password?: string;
+  submit?: string;
+}
+
 export function validateLoginForm(formData: LoginFormData): LoginFormErrors {
   const errors: LoginFormErrors = {};
 
@@ -318,6 +215,149 @@ export function validateLoginForm(formData: LoginFormData): LoginFormErrors {
     errors.password = "Password is required";
   } else if (formData.password.length < 6) {
     errors.password = "Password must be at least 6 characters";
+  }
+
+  return errors;
+}
+
+// New Org (used inside Lead form)
+
+interface NewOrgData {
+  organizationName: string;
+  organizationWebsite: string;
+  organizationSize: number;
+  organizationIndustry: string;
+}
+
+// Organization
+export function validateOrganizationForm(
+  formData: OrganizationFormData,
+): OrgFormErrors {
+  const errors: OrgFormErrors = {};
+
+  if (!formData.organizationName.trim()) {
+    errors.organizationName = "Organization name is required";
+  }
+
+  if (!formData.organizationWebsite.trim()) {
+    errors.organizationWebsite = "Website is required";
+  } else if (!URL_REGEX.test(formData.organizationWebsite)) {
+    errors.organizationWebsite = "Please provide a valid website URL";
+  }
+
+  if (formData.organizationSize < 1 || formData.organizationSize > 10_000_000) {
+    errors.organizationSize =
+      "Organization size must be between 1 and 10,000,000";
+  }
+
+  if (!formData.organizationIndustry) {
+    errors.organizationIndustry = "Industry is required";
+  }
+
+  return errors;
+}
+
+// User
+export function validateUserForm(
+  formData: UserFormData,
+  context: { isExistingUser: boolean; isSuperAdmin: boolean },
+): UserFormErrors {
+  const errors: UserFormErrors = {};
+  const { isExistingUser, isSuperAdmin } = context;
+
+  if (!formData.firstName.trim()) {
+    errors.firstName = "First name is required";
+  }
+
+  if (!formData.userEmail.trim()) {
+    errors.userEmail = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.userEmail)) {
+    errors.userEmail = "Invalid email format";
+  }
+
+  if (!isExistingUser && !formData.password.trim()) {
+    errors.password = "Password is required for new users";
+  } else if (formData.password && formData.password.length < 6) {
+    errors.password = "Password must be at least 6 characters";
+  }
+
+  if (isSuperAdmin && !formData.tenantId) {
+    errors.tenantId = "Tenant selection is required";
+  }
+
+  if (
+    formData.mobile &&
+    !MOBILE_REGEX.test(formData.mobile.replace(/[^0-9]/g, ""))
+  ) {
+    errors.mobile = "Invalid mobile number format";
+  }
+
+  return errors;
+}
+
+// Tenant
+export function validateTenantForm(formData: TenantFormData): TenantFormErrors {
+  const errors: TenantFormErrors = {};
+
+  if (!formData.tenantName.trim()) {
+    errors.tenantName = "Tenant name is required";
+  }
+
+  if (!formData.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!TENANTED_EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Please provide a valid email address";
+  }
+
+  if (!formData.mobile.trim()) {
+    errors.mobile = "Mobile number is required";
+  } else if (!MOBILE_REGEX.test(formData.mobile.replace(/[^0-9]/g, ""))) {
+    errors.mobile = "Please provide a valid 10-digit mobile number";
+  }
+
+  return errors;
+}
+
+// Lead
+export function validateLeadForm(
+  formData: LeadFormData,
+  organizationMode: "select" | "create",
+  newOrgData: NewOrgData,
+): LeadFormErrors {
+  const errors: LeadFormErrors = {};
+
+  if (!formData.leadFirstName.trim()) {
+    errors.leadFirstName = "First name is required";
+  }
+
+  if (!formData.leadEmail.trim()) {
+    errors.leadEmail = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.leadEmail)) {
+    errors.leadEmail = "Invalid email format";
+  }
+
+  if (organizationMode === "create") {
+    if (!newOrgData.organizationName.trim()) {
+      errors.organizationName = "Organization name is required";
+    }
+
+    if (!newOrgData.organizationWebsite.trim()) {
+      errors.organizationWebsite = "Website is required";
+    } else if (!URL_REGEX.test(newOrgData.organizationWebsite)) {
+      errors.organizationWebsite = "Please provide a valid website URL";
+    }
+
+    if (
+      newOrgData.organizationSize < 1 ||
+      newOrgData.organizationSize > 10_000_000
+    ) {
+      errors.organizationSize =
+        "Organization size must be between 1 and 10,000,000";
+    }
+
+    if (!newOrgData.organizationIndustry) {
+      errors.organizationIndustry = "Industry is required";
+    }
   }
 
   return errors;
