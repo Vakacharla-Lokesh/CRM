@@ -24,9 +24,17 @@ const useTenantData = () => {
     dateTo: "",
   });
 
-  const { updateItem } = useIndexedDB<Tenant & { id: string }>("tenants");
+  const { updateItem, getAll } = useIndexedDB<Tenant & { id: string }>("tenants");
 
   const fetchTenants = useCallback(async () => {
+    if (!navigator.onLine) {
+      const cached = await getAll();
+      setTenants(cached);
+      setNextCursor(null);
+      setHasNextPage(false);
+      return cached;
+    }
+
     const page = await tenantService.getAllTenants({ limit: 20 });
     setTenants(page.tenants);
     setNextCursor(page.nextCursor);
@@ -41,7 +49,7 @@ const useTenantData = () => {
     }
 
     return page.tenants;
-  }, [updateItem]);
+  }, [updateItem, getAll]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;

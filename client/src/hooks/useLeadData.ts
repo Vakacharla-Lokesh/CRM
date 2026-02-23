@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import leadService from "../services/leadService";
 import type { Lead } from "../types";
+import { useIndexedDB } from "./useIndexedDB";
 
 interface LeadFilters {
   search?: string;
@@ -36,6 +37,8 @@ export function useLeadData() {
   // Cursor state
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
+
+  const { updateItem, getAll } = useIndexedDB<Lead & { id: string }>("leads");
 
   const calculateStatistics = useCallback((data: Lead[]) => {
     const byStatus: Record<string, number> = {};
@@ -106,18 +109,36 @@ export function useLeadData() {
     setHasNextPage(false);
 
     try {
+      if (!navigator.onLine) {
+        const cached = await getAll();
+        setLeads(cached);
+        applyFilters(cached, filters);
+        calculateStatistics(cached);
+        setLoading(false);
+        return;
+      }
+
       const page = await leadService.getAllLeads({ limit: PAGE_LIMIT });
       setLeads(page.leads);
       applyFilters(page.leads, filters);
       calculateStatistics(page.leads);
       setNextCursor(page.nextCursor);
       setHasNextPage(page.hasNextPage);
+
+      for (const lead of page.leads) {
+        try {
+          await updateItem(lead._id, { ...lead, id: lead._id });
+        } catch (e) {
+          console.warn("Failed to cache lead in IndexedDB:", e);
+        }
+      }
+
       setLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err : new Error("Failed to fetch leads"));
       setLoading(false);
     }
-  }, [filters, applyFilters, calculateStatistics]);
+  }, [filters, applyFilters, calculateStatistics, getAll, updateItem]);
 
   // Load next page and append
   const loadMore = useCallback(async () => {
