@@ -8,6 +8,7 @@ import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTenantData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { useNavigate } from "react-router-dom";
 
 const TenantsPage = () => {
   const {
@@ -23,6 +24,7 @@ const TenantsPage = () => {
     deleteTenant,
     refresh,
   } = useTenantData();
+  const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
@@ -69,7 +71,7 @@ const TenantsPage = () => {
 
     try {
       await deleteTenant(tenantToDelete);
-      refresh(); // Refresh the tenant data after deletion
+      refresh();
       setTenantToDelete(null);
     } catch (error) {
       console.error("Error deleting tenant:", error);
@@ -79,8 +81,7 @@ const TenantsPage = () => {
   };
 
   const viewUsersOfTenant = (id: string) => {
-    // Navigate to the users page for the selected tenant
-    window.location.href = `/tenants/${id}`;
+    navigate(`/tenants/${id}`);
   };
 
   return (

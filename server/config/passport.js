@@ -1,5 +1,3 @@
-// server/config/passport.js
-
 import { config } from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -7,7 +5,6 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables from server/.env
 config({ path: path.resolve(__dirname, "../.env") });
 
 import passport from "passport";
@@ -15,24 +12,21 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import userModel from "../models/userModel.js";
 
-// ─── Local Strategy (used during login) ───────────────────────────────────────
-// Validates email + password credentials
+// Local Strategy (used during login)
 passport.use(
   new LocalStrategy(
     {
-      usernameField: "userEmail", // matches your request body field
+      usernameField: "userEmail",
       passwordField: "password",
     },
     async (userEmail, password, done) => {
       try {
-        // Find user by email and explicitly select password (it's select: false in schema)
         const user = await userModel.findOne({ userEmail }).select("+password");
 
         if (!user) {
           return done(null, false, { message: "Invalid credentials" });
         }
 
-        // Use the comparePassword method defined on your userModel
         const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
