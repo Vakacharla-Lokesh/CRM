@@ -1,2 +1,2 @@
-export { FormField } from "./formField";
-export { FormSelect } from "./formSelect";
+export { FormField } from "@/components/modals/form-fields/formField";
+export { FormSelect } from "@/components/modals/form-fields/formSelect";

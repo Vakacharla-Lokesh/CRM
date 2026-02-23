@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { LeadModal } from "@/components/modals";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 // other imports
 import { exportLeads } from "@/services/exportService";

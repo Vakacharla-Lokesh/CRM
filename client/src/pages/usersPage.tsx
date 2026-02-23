@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useUserData } from "@/hooks";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { useParams } from "react-router-dom";
 import UserStatistics from "@/components/users/userStatistics";
 

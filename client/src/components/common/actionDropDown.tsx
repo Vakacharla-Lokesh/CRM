@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
-import { useOffline } from "@/context/offlineContext";
+import { useOffline } from "@/context/useOffline";
 
 interface ActionDropdownProps {
   id: string;

@@ -9,7 +9,7 @@ import EditLeadTab from "@/components/leads/tabs/editLeadTab";
 import CommentsTab from "@/components/leads/tabs/commentsTab";
 import CallsTab from "@/components/leads/tabs/callsTab";
 import AttachmentsTab from "@/components/leads/tabs/attachmentsTab";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 function LeadDetailsPage() {
   const { id } = useParams<{ id: string }>();

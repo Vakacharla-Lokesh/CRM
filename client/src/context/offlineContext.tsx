@@ -1,10 +1,6 @@
-/* eslint_disable react-refresh/only-export-components */
-import {
-  createContext,
-  useContext,
-  type ReactNode,
-} from "react";
+import { type ReactNode } from "react";
 import { useOfflineManager } from "../hooks/useOfflineManager";
+import { OfflineContext } from "./useOffline";
 
 interface OfflineRequest {
   id: string;
@@ -16,7 +12,14 @@ interface OfflineRequest {
   retries: number;
   maxRetries: number;
   idempotencyKey: string;
-  entityType: "leads" | "deals" | "comments" | "calls" | "attachments" | "organizations" | "users";
+  entityType:
+    | "leads"
+    | "deals"
+    | "comments"
+    | "calls"
+    | "attachments"
+    | "organizations"
+    | "users";
   operationType: "create" | "update" | "delete";
 }
 
@@ -33,7 +36,7 @@ interface SyncResult {
   errors: Array<{ entityType: string; error: string }>;
 }
 
-interface OfflineContextType {
+export interface OfflineContextType {
   queue: OfflineRequest[];
   isSyncing: boolean;
   isOnline: boolean;
@@ -56,8 +59,6 @@ interface OfflineContextType {
   toggleOfflineMode: (enabled: boolean) => void;
 }
 
-const OfflineContext = createContext<OfflineContextType | null>(null);
-
 export const OfflineProvider = ({ children }: { children: ReactNode }) => {
   const offlineManager = useOfflineManager();
 
@@ -66,12 +67,4 @@ export const OfflineProvider = ({ children }: { children: ReactNode }) => {
       {children}
     </OfflineContext.Provider>
   );
-};
-
-export const useOffline = () => {
-  const context = useContext(OfflineContext);
-  if (!context) {
-    throw new Error("useOffline must be used within an OfflineProvider");
-  }
-  return context;
 };

@@ -5,7 +5,7 @@ function StatCard({ icon, label, value, change, trend }: StatCardProps) {
   const isPositive = trend === "up";
 
   return (
-    <div className="rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
+    <div className="bg-background rounded-xl shadow-md p-6 border border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between mb-4">
         <div className="text-gray-700 dark:text-gray-300">{icon}</div>
         <span
