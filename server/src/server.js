@@ -9,7 +9,6 @@ import passport from "../config/passport.js";
 
 // Routes
 import authRoutes from "../routes/authRoutes.js";
-
 import leadRoutes from "../routes/leadRoutes.js";
 import userRoutes from "../routes/userRoutes.js";
 import tenantRoutes from "../routes/tenantRoutes.js";
@@ -21,6 +20,7 @@ import attachmentRoutes from "../routes/attachmentRoutes.js";
 import analyticsRoutes from "../routes/analyticsRoutes.js";
 import bulkRoutes from "../routes/bulkRoutes.js";
 
+// error handler middlewares
 import { errorHandler, notFound } from "../middlewares/errorHandler.js";
 
 import "../db/initDb.js";
@@ -54,16 +54,18 @@ app.use(
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
-// passprt.js implementation for authentication
+// passport.js implementation for authentication
 app.use(passport.initialize());
 
 // rate limiter package for express
 app.use(limiter);
 
+// health check 
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
+// route handlers
 app.use("/api/auth", authRoutes);
 app.use("/api/leads", leadRoutes);
 app.use("/api/users", userRoutes);
@@ -76,6 +78,7 @@ app.use("/api/attachments", attachmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/bulk", bulkRoutes);
 
+// unknown route handler
 app.use(notFound);
 
 // error handler middleware

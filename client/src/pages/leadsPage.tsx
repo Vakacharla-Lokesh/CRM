@@ -1,4 +1,9 @@
+// hooks and basic imports
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { useLeadData, useDebounce } from "@/hooks";
+
+// component imports
 import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/leads/leadColumns";
 import type { CreateLeadDTO, Lead } from "@/types";
@@ -13,10 +18,12 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { LeadModal } from "@/components/modals";
-import { useLeadData } from "@/hooks";
-import { exportLeads } from "@/services/exportService";
-import { useNavigate } from "react-router";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
+
+// other imports
+import { exportLeads } from "@/services/exportService";
+import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
+import LeadStatistics from "@/components/leads/leadStatistics";
 
 const LeadsPage = () => {
   const {
@@ -29,6 +36,9 @@ const LeadsPage = () => {
     deleteLead,
     updateFilter,
     resetFilters,
+    searchLeads,
+    isSearchMode,
+    searchLoading,
   } = useLeadData();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,6 +47,9 @@ const LeadsPage = () => {
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
+
+  const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const debouncedSearch = useDebounce(searchInput, 400);
 
   const navigate = useNavigate();
 
@@ -92,6 +105,18 @@ const LeadsPage = () => {
     setSelectedLeadIds([]);
   };
 
+  useEffect(() => {
+    searchLeads(debouncedSearch, filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (isSearchMode && debouncedSearch) {
+      searchLeads(debouncedSearch, filters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.status, filters.source]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -122,73 +147,22 @@ const LeadsPage = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Leads
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {filteredLeads.length}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">New</p>
-          <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-            {filteredLeads.filter((lead) => lead.leadStatus === "New").length}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Follow-Up</p>
-          <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400 mt-1">
-            {
-              filteredLeads.filter((lead) => lead.leadStatus === "Follow-Up")
-                .length
-            }
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Converted</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {
-              filteredLeads.filter((lead) => lead.leadStatus === "Converted")
-                .length
-            }
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">Dead</p>
-          <p className="text-2xl font-bold text-red-600 dark:text-red-400 mt-1">
-            {filteredLeads.filter((lead) => lead.leadStatus === "Dead").length}
-          </p>
-        </div>
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700 col-span-1">
-          <p>Conversion Rate</p>
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-            {filteredLeads.length > 0
-              ? Math.round(
-                  (filteredLeads.filter(
-                    (lead) => lead.leadStatus === "Converted",
-                  ).length /
-                    filteredLeads.length) *
-                    100,
-                )
-              : 0}
-            %
-          </p>
-        </div>
-      </div>
+      <LeadStatistics filteredLeads={filteredLeads} />
 
       {/* Filters */}
       <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="space-y-2 col-span-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              {searchLoading ? (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              )}
               <Input
                 placeholder="Search leads..."
-                value={filters.search}
-                onChange={(e) => updateFilter("search", e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
             </div>
@@ -227,14 +201,14 @@ const LeadsPage = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All sources</SelectItem>
-                  <SelectItem value="API">API</SelectItem>
-                  <SelectItem value="Website">Website</SelectItem>
-                  <SelectItem value="Phone">Phone</SelectItem>
-                  <SelectItem value="Facebook Ads">Facebook Ads</SelectItem>
-                  <SelectItem value="Google Ads">Google Ads</SelectItem>
-                  <SelectItem value="LinkedIn">LinkedIn</SelectItem>
-                  <SelectItem value="Referral">Referral</SelectItem>
-                  <SelectItem value="Other">Other</SelectItem>
+                  {LEAD_SOURCES.map((source) => (
+                    <SelectItem
+                      key={source.value}
+                      value={source.value}
+                    >
+                      {source.value}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

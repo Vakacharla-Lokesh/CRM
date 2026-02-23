@@ -226,7 +226,10 @@ export const updateLeadStatus = async (req, res, next) => {
     // Fetch updated lead with new score
     const updatedLead = await leadModel.findById(req.params.id);
 
-    res.json({ message: "Lead status updated successfully", lead: updatedLead });
+    res.json({
+      message: "Lead status updated successfully",
+      lead: updatedLead,
+    });
   } catch (err) {
     next(err);
   }
@@ -310,6 +313,37 @@ export const convertLeadToDeal = async (req, res, next) => {
       deal,
       lead,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const searchLeads = async (req, res, next) => {
+  try {
+    const filter = req.tenantFilter || {};
+    const { q, status, source, limit = 50 } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query 'q' is required" });
+    }
+
+    const searchRegex = new RegExp(q.trim(), "i");
+
+    filter.$or = [
+      { leadFirstName: searchRegex },
+      { leadLastName: searchRegex },
+      { leadEmail: searchRegex },
+    ];
+
+    if (status) filter.leadStatus = status;
+    if (source) filter.leadSource = source;
+
+    const leads = await leadModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(Math.min(parseInt(limit), 25));
+
+    res.json({ count: leads.length, leads });
   } catch (err) {
     next(err);
   }

@@ -103,7 +103,7 @@ export const useOrganizationData = () => {
   const fetchOrganizations = useCallback(async () => {
     return executeAsync(async () => {
       if (!navigator.onLine) {
-        const cached = await getAll() as Organization[];
+        const cached = (await getAll()) as unknown as Organization[];
         setOrganizations(cached);
         setFilteredOrganizations(cached);
         calculateStatistics(cached);
@@ -289,6 +289,7 @@ export const useOrganizationData = () => {
   );
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     applyFilters();
   }, [applyFilters]);
 

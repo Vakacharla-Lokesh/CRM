@@ -39,7 +39,7 @@ export const useFetch = <T = unknown>(
   const fetchData = useCallback(
     async (
       fetchUrl: string = url,
-      fetchOptions: Partial<FetchOptions<T>> = {},
+      fetchOptions: Pick<FetchOptions<T>, keyof FetchOptions<T>> = {},
     ): Promise<T | undefined> => {
       if (cache && method === "GET") {
         const cached = cacheRef.current.get(fetchUrl);

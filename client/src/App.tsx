@@ -6,10 +6,14 @@ import {
   Navigate,
 } from "react-router-dom";
 import { Layout } from "./components/layout";
+
+// Context and hooks
 import { AppProvider } from "./context";
 import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
+import { ThemeProvider } from "./components/common/theme-provider";
 
+// Pages
 import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
 import DashboardPage from "./pages/dashboardPage";
@@ -19,8 +23,10 @@ import OrganizationsPage from "./pages/organizationsPage";
 import DealsPage from "./pages/dealsPage";
 import TenantsPage from "./pages/tenantsPage";
 
-import "./app.css";
-import { ThemeProvider } from "./components/common/theme-provider";
+// Styles
+import "./App.css";
+
+// other imports
 import LeadDetailsPage from "./pages/leadDetailsPage";
 import LandingPage from "./pages/landingPage";
 import OrganizationLeadsPage from "./pages/organizationLeadsPage";

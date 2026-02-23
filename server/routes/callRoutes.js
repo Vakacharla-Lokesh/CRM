@@ -14,8 +14,11 @@ import {
   createCallSchema,
   updateCallSchema,
 } from "../validators/callsValidator.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Routes
 router.get(

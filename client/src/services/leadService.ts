@@ -89,6 +89,31 @@ const leadService = {
   getLeadActivity: async (leadId: string): Promise<LeadActivity[]> => {
     return apiClient.get<LeadActivity[]>(`/leads/${leadId}/activity`);
   },
+
+  searchLeads: async (params: {
+    q: string;
+    status?: string;
+    source?: string;
+    limit?: number;
+  }): Promise<CursorLeadPage> => {
+    const queryParams: Record<string, unknown> = {
+      q: params.q,
+      limit: params.limit ?? 50,
+    };
+    if (params.status) queryParams.status = params.status;
+    if (params.source) queryParams.source = params.source;
+
+    const response = await apiClient.get<{
+      count: number;
+      leads: Lead[];
+    }>("/leads/search", queryParams);
+
+    return {
+      leads: response.leads,
+      nextCursor: null,
+      hasNextPage: false,
+    };
+  },
 };
 
 export default leadService;

@@ -11,6 +11,7 @@ import {
   updateLeadStatus,
   convertLeadToDeal,
   updateLeadScoreManually,
+  searchLeads,
 } from "../controllers/leadController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -21,8 +22,11 @@ import {
   updateLeadStatusSchema,
   updateLeadScoreSchema,
 } from "../validators/leadsValidator.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Routes
 router.get(
@@ -31,6 +35,14 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   getAllLeads,
+);
+
+router.get(
+  "/search",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  searchLeads,
 );
 
 router.get(

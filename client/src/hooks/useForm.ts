@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useCallback, type SyntheticEvent } from "react";
 
 type FormErrors<T> = Partial<Record<keyof T | "submit", string>>;

@@ -13,8 +13,11 @@ import {
   createTenantSchema,
   updateTenantSchema,
 } from "../validators/tenantsValidator.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Routes - Only super_admin can manage tenants
 router.get("/", authenticate, authorize("super_admin"), getAllTenants);

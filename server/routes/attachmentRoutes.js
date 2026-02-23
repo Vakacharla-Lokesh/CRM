@@ -11,8 +11,11 @@ import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
 import { createAttachmentSchema } from "../validators/attachmentsValidator.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Routes
 router.get(

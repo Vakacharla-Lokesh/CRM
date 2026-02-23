@@ -53,4 +53,11 @@ leadsSchema.index({ userId: 1, createdAt: -1 });
 leadsSchema.index({ tenantId: 1 });
 leadsSchema.index({ organizationId: 1 });
 
+// search index
+leadsSchema.index({
+  leadFirstName: "text",
+  leadLastName: "text",
+  leadEmail: "text",
+});
+
 export default model("Leads", leadsSchema);

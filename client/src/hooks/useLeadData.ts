@@ -40,6 +40,9 @@ export function useLeadData() {
 
   const { updateItem, getAll } = useIndexedDB<Lead & { id: string }>("leads");
 
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+
   const calculateStatistics = useCallback((data: Lead[]) => {
     const byStatus: Record<string, number> = {};
     const bySource: Record<string, number> = {};
@@ -174,6 +177,35 @@ export function useLeadData() {
     calculateStatistics,
   ]);
 
+  const searchLeads = useCallback(
+    async (query: string, currentFilters: LeadFilters) => {
+      if (!query || query.trim() === "") {
+        // Exit search mode — restore paginated list
+        setIsSearchMode(false);
+        applyFilters(leads, currentFilters);
+        return;
+      }
+
+      setIsSearchMode(true);
+      setSearchLoading(true);
+
+      try {
+        const result = await leadService.searchLeads({
+          q: query.trim(),
+          status: currentFilters.status || undefined,
+          source: currentFilters.source || undefined,
+        });
+        setFilteredLeads(result.leads);
+        calculateStatistics(result.leads);
+      } catch (err) {
+        setError(err instanceof Error ? err : new Error("Search failed"));
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [leads, applyFilters, calculateStatistics],
+  );
+
   const updateFilter = useCallback(
     (key: keyof LeadFilters, value: string) => {
       setFilters((prev) => {
@@ -232,9 +264,8 @@ export function useLeadData() {
   }, []);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLeads();
-  }, []);
+  }, [fetchLeads]);
 
   return {
     leads,
@@ -253,5 +284,8 @@ export function useLeadData() {
     updateLead,
     deleteLead,
     fetchLeadById,
+    searchLeads,
+    isSearchMode,
+    searchLoading,
   };
 }
