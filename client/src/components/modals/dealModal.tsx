@@ -25,7 +25,7 @@ interface DealModalProps {
   isOpen: boolean;
   deal: Deal | null;
   onClose: () => void;
-  onSave: (dealData: Partial<Deal>) => Promise<void>;
+  onSave: (dealData: Pick<Deal, keyof Deal>) => Promise<void>;
 }
 
 type DealStatus =
@@ -88,11 +88,12 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const dealData = {
+      const dealData: Pick<Deal, keyof Deal> = {
+        ...deal,
         dealName: formData.dealName.trim(),
         dealValue: parseFloat(formData.dealValue),
         dealStatus: formData.dealStatus as DealStatus,
-      };
+      } as Pick<Deal, keyof Deal>;
 
       await onSave(dealData);
       onClose();

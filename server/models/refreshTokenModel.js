@@ -13,15 +13,6 @@ const refreshTokenSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-    tenantId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Tenant",
-      required: true,
-    },
-    role: {
-      type: String,
-      required: true,
-    },
     expiresAt: {
       type: Date,
       required: true,
@@ -38,6 +29,8 @@ const refreshTokenSchema = new mongoose.Schema(
 refreshTokenSchema.statics.hashToken = function (rawToken) {
   return crypto.createHash("sha256").update(rawToken).digest("hex");
 };
+
+refreshTokenSchema.index({userId: 1});
 
 const RefreshToken = mongoose.model("RefreshToken", refreshTokenSchema);
 export default RefreshToken;

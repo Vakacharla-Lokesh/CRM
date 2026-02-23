@@ -88,7 +88,7 @@ export const useUserData = () => {
   const fetchUsers = useCallback(async () => {
     return executeAsync(async () => {
       if (!navigator.onLine) {
-        const cached = await getAll() as User[];
+        const cached = (await getAll()) as unknown as User[];
         setUsers(cached);
         setFilteredUsers(cached);
         return cached;

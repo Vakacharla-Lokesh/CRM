@@ -27,8 +27,11 @@ import {
   passwordResetSchema,
   updateProfileSchema,
 } from "../validators/userValidators.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Public routes
 router.post(

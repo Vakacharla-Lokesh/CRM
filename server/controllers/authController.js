@@ -29,8 +29,6 @@ async function generateAndStoreRefreshToken(payload) {
   await RefreshToken.create({
     tokenHash,
     userId: payload._id ?? payload.userId,
-    tenantId: payload.tenantId,
-    role: payload.role,
     expiresAt,
   });
 
@@ -172,14 +170,13 @@ export const refreshToken = async (req, res, next) => {
     storedToken.revoked = true;
     await storedToken.save();
 
-    const userPayload = {
-      _id: storedToken.userId,
-      role: storedToken.role,
-      tenantId: storedToken.tenantId,
-    };
+    const user = await userModel.findById(storedToken.userId).lean();
+    if (!user) {
+      return res.status(401).json({ message: "User not found" });
+    }
 
-    const newAccessToken = generateAccessToken(userPayload);
-    const newRefreshToken = await generateAndStoreRefreshToken(userPayload);
+    const newAccessToken = generateAccessToken(user);
+    const newRefreshToken = await generateAndStoreRefreshToken(user);
 
     res.json({
       message: "Token refreshed successfully",

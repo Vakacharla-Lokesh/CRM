@@ -11,8 +11,11 @@ import {
 } from "../controllers/bulkController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Bulk leads operations
 router.post(

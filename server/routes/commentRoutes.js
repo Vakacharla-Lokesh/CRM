@@ -14,8 +14,11 @@ import {
   createCommentSchema,
   updateCommentSchema,
 } from "../validators/commentsValidator.js";
+import passport from "../config/passport.js";
 
 const router = Router();
+
+router.use(passport.authenticate("jwt", { session: false }));
 
 // Routes
 router.get(
