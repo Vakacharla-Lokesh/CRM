@@ -3,7 +3,7 @@ import { columns } from "../components/deals/dealColumns";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import {
   Select,
   SelectContent,

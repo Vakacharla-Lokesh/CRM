@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Trash2 } from "lucide-react";
 import { useCommentData } from "@/hooks";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 interface CommentsTabProps {
   leadId: string;

@@ -12,7 +12,7 @@ import { AppRouter } from "./router/router";
 import { AppProvider } from "./context";
 import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
-import { ThemeProvider } from "./components/common/theme-provider";
+import { ThemeProvider } from "./components/common/themeProvider";
 
 // Public pages
 import LoginPage from "./pages/loginPage";

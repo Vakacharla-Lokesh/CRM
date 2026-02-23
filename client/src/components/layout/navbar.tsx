@@ -2,7 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/hooks/";
-import { ModeToggle } from "../common/themeToggle";
+import { ThemeControls } from "../common/themeToggle";
 import { SettingsModal } from "../modals";
 
 function Navbar({
@@ -69,13 +69,7 @@ function Navbar({
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">
-          <ModeToggle />
-
-          {/* <MonitoringToggleButton
-            isOpen={isRightPanelOpen}
-            onToggle={onToggleRightPanel}
-          /> */}
-
+          <ThemeControls />
           <div>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
@@ -103,12 +97,12 @@ function Navbar({
                   {user?.userEmail || "guest@example.com"}
                 </p>
               </div>
-              <button
-                onClick={() => console.log('Navigate to profile')}
+              {/* <button
+                onClick={() => console.log("Navigate to profile")}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
               >
                 Profile
-              </button>
+              </button> */}
               <button
                 onClick={handleSettingsClick}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"

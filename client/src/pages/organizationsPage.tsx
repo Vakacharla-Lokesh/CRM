@@ -11,7 +11,7 @@ import { Download, Search } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { OrganizationModal } from "@/components/modals";
 import { useDebounce, useOrganizationData } from "@/hooks";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import {
   Select,
   SelectContent,

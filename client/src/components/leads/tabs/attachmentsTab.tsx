@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, Download, Upload, File } from "lucide-react";
 import { useAttachmentData } from "@/hooks";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 interface AttachmentsTabProps {
   leadId: string;

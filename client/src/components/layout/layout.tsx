@@ -1,7 +1,6 @@
 import { useState } from "react";
 import Navbar from "./navbar";
 import Sidebar from "./sidebar";
-import RightPanel from "./rightpanel";
 import type { LayoutProps } from "@/types/interfaces/layout/layout.interfaces";
 
 function Layout({ children }: LayoutProps) {
@@ -40,8 +39,6 @@ function Layout({ children }: LayoutProps) {
         >
           <div className="p-6">{children}</div>
         </main>
-
-        <RightPanel isOpen={isRightPanelOpen} />
       </div>
     </div>
   );

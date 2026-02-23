@@ -1,6 +1,6 @@
-import type { UserStatistics } from "@/types";
+import type { UserStatistics as UserStatisticsType } from "@/types";
 
-const UserStatistics = ({ statistics }: { statistics: UserStatistics }) => {
+const UserStatistics = ({ statistics }: { statistics: UserStatisticsType }) => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

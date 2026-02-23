@@ -13,7 +13,7 @@ import {
 import { Trash2, Phone } from "lucide-react";
 import { useCallData } from "@/hooks";
 import { type CallType, type CallStatus, CALL_STATUSES } from "@/types";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { capitalize } from "@/utils";
 
 interface CallsTabProps {

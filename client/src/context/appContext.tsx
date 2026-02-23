@@ -1,4 +1,3 @@
-/* eslint_disable react-refresh/only-export-components */
 import {
   createContext,
   useState,

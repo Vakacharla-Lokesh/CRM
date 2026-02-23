@@ -7,7 +7,7 @@ import { TenantModal } from "@/components/modals";
 import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useTenantData } from "@/hooks";
-import { ConfirmDialog } from "@/components/common/confirm-dialog";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { useNavigate } from "react-router-dom";
 
 const TenantsPage = () => {
