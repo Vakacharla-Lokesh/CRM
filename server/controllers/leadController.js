@@ -321,7 +321,7 @@ export const convertLeadToDeal = async (req, res, next) => {
 export const searchLeads = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const { q, status, source, limit = 50 } = req.query;
+    const { q, status, source, limit = 25 } = req.query;
 
     if (!q || q.trim() === "") {
       return res.status(400).json({ message: "Search query 'q' is required" });

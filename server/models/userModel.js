@@ -27,8 +27,6 @@ const userSchema = new Schema(
       required: true,
     },
     password: { type: String, select: false },
-    department: { type: String },
-    position: { type: String },
   },
   { timestamps: true },
 );
@@ -47,5 +45,12 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 // Indexes
 userSchema.index({ tenantId: 1 });
+
+// search index
+userSchema.index({
+  firstName: "text",
+  lastName: "text",
+  userEmail: "text",
+});
 
 export default model("Users", userSchema);

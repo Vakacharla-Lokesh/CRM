@@ -78,9 +78,11 @@ const organizationService = {
   },
 
   searchOrganizations: async (query: string): Promise<Organization[]> => {
-    return apiClient.get<Organization[]>(
-      `/organizations/search?q=${encodeURIComponent(query)}`,
-    );
+    const response = await apiClient.get<{
+      count: number;
+      organizations: Organization[];
+    }>(`/organizations/search?q=${encodeURIComponent(query)}`);
+    return response.organizations;
   },
 
   getOrganizationStats: async (): Promise<OrganizationStats> => {
@@ -96,12 +98,6 @@ const organizationService = {
   getOrganizationsBySource: async (source: string): Promise<Organization[]> => {
     return apiClient.get<Organization[]>(
       `/organizations?source=${encodeURIComponent(source)}`,
-    );
-  },
-
-  getOrganizationsByStage: async (stage: string): Promise<Organization[]> => {
-    return apiClient.get<Organization[]>(
-      `/organizations?stage=${encodeURIComponent(stage)}`,
     );
   },
 

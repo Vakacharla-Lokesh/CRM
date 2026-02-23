@@ -10,7 +10,7 @@ import { Button } from "../components/ui/button";
 import { Download, Search } from "lucide-react";
 import { Input } from "../components/ui/input";
 import { OrganizationModal } from "@/components/modals";
-import { useOrganizationData } from "@/hooks";
+import { useDebounce, useOrganizationData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import {
   Select,
@@ -36,6 +36,7 @@ const OrganizationsPage = () => {
     updateFilter,
     deleteOrganization,
     resetFilters,
+    searchOrganizations,
   } = useOrganizationData();
 
   const [selectedOrganization, setSelectedOrganization] =
@@ -49,6 +50,9 @@ const OrganizationsPage = () => {
     string | null
   >(null);
   const navigate = useNavigate();
+
+  const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const debouncedSearch = useDebounce(searchInput, 400);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -128,6 +132,11 @@ const OrganizationsPage = () => {
     setSelectedOrganizationIds([]);
   };
 
+  useEffect(() => {
+    searchOrganizations(debouncedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -177,8 +186,8 @@ const OrganizationsPage = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Search organizations..."
-                value={filters.search}
-                onChange={(e) => updateFilter("search", e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
             </div>

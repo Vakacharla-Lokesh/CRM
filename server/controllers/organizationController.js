@@ -192,3 +192,31 @@ export const getOrganizationsByUser = async (req, res, next) => {
     next(err);
   }
 };
+
+export const searchOrganizations = async (req, res, next) => {
+  try {
+    const filter = req.tenantFilter || {};
+    const { q, status, source, limit = 25 } = req.query;
+
+    if (!q || q.trim() === "") {
+      return res.status(400).json({ message: "Search query 'q' is required" });
+    }
+
+    const searchRegex = new RegExp(q.trim(), "i");
+
+    filter.$or = [
+      { organizationName: searchRegex },
+      { organizationWebsite: searchRegex },
+      { organizationIndustry: searchRegex },
+    ];
+
+    const organizations = await organizationModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(Math.min(parseInt(limit), 25));
+
+    res.json({ count: organizations.length, organizations });
+  } catch (err) {
+    next(err);
+  }
+};

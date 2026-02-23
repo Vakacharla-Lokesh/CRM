@@ -22,4 +22,10 @@ const tenantSchema = new Schema(
   { timestamps: true },
 );
 
+// search index
+tenantSchema.index({
+  tenantName: "text",
+  email: "text",
+});
+
 export default model("Tenants", tenantSchema);
