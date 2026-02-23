@@ -27,6 +27,9 @@ const useDealData = () => {
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchResults, setSearchResults] = useState<Deal[]>([]);
   const [filters, setFilters] = useState<DealFilters>({
     status: "",
     stage: "",
@@ -145,7 +148,7 @@ const useDealData = () => {
     return { total, byStatus, byStage, totalValue, avgValue, forecastValue };
   }, [deals]);
 
-  const filteredDeals = useMemo(() => {
+  const filteredDealsFromFilters = useMemo(() => {
     return deals.filter((deal) => {
       if (filters.status && deal.dealStatus !== filters.status) return false;
       if (filters.stage && deal.dealStatus !== filters.stage) return false;
@@ -179,6 +182,31 @@ const useDealData = () => {
       return true;
     });
   }, [deals, filters]);
+
+  const filteredDeals = isSearchMode ? searchResults : filteredDealsFromFilters;
+
+  const searchDeals = useCallback(
+    async (query: string) => {
+      if (!query || query.trim() === "") {
+        setIsSearchMode(false);
+        setSearchResults([]);
+        return;
+      }
+
+      setIsSearchMode(true);
+      setSearchLoading(true);
+
+      try {
+        const results = await dealService.searchDeals(query.trim());
+        setSearchResults(results);
+      } catch (err) {
+        console.error("Deal search failed:", err);
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    [],
+  );
 
   const updateFilter = useCallback(
     <K extends keyof DealFilters>(key: K, value: DealFilters[K]) => {
@@ -275,6 +303,9 @@ const useDealData = () => {
     hasNextPage,
     loadingMore,
     loadMore,
+    searchDeals,
+    isSearchMode,
+    searchLoading,
   };
 };
 

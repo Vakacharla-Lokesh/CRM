@@ -71,9 +71,11 @@ const dealService = {
   },
 
   searchDeals: async (query: string): Promise<Deal[]> => {
-    return apiClient.get<Deal[]>(
-      `/deals/search?q=${encodeURIComponent(query)}`,
-    );
+    const response = await apiClient.get<{
+      count: number;
+      deals: Deal[];
+    }>(`/deals/search?q=${encodeURIComponent(query)}`);
+    return response.deals;
   },
 
   getDealStats: async (): Promise<DealStats> => {

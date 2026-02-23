@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDealData } from "@/hooks";
+import { useDealData, useDebounce } from "@/hooks";
 import { DealModal } from "@/components/modals";
 import {
   type Deal,
@@ -19,7 +19,7 @@ import {
   type DealStatus,
   dealStatuses,
 } from "@/types";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DealStatistics from "@/components/deals/dealStatistics";
 
 const DealsPage = () => {
@@ -33,7 +33,17 @@ const DealsPage = () => {
     clearFilters,
     updateDeal,
     deleteDeal,
+    searchDeals,
+    searchLoading,
   } = useDealData();
+
+  const [searchInput, setSearchInput] = useState("");
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    searchDeals(debouncedSearch);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
@@ -107,10 +117,13 @@ const DealsPage = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 placeholder="Search deals..."
-                value={filters.search}
-                onChange={(e) => updateFilter("search", e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
+              {searchLoading && (
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              )}
             </div>
           </div>
           <Select
@@ -140,9 +153,9 @@ const DealsPage = () => {
           
           <Button
             variant="outline"
-            onClick={clearFilters}
+            onClick={() => { clearFilters(); setSearchInput(""); }}
             disabled={
-              !filters.search &&
+              !searchInput &&
               !filters.stage &&
               !filters.dateFrom &&
               !filters.dateTo &&
