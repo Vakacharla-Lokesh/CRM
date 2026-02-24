@@ -24,11 +24,14 @@ import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/interfaces/form-interfaces"
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
 import { useAppContext } from "@/hooks";
 import { validateLeadForm } from "@/utils/formValidators";
+import { useOffline } from "@/context/useOffline";
+import { toast } from "sonner";
 
 function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { organizations, fetchOrganizations } = useOrganizationData();
 
   const { user } = useAppContext();
+  const { isOnline, addToQueue } = useOffline();
 
   const [formData, setFormData] = useState<LeadFormData>({
     leadFirstName: "",
@@ -116,6 +119,43 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     setIsSubmitting(true);
     setSubmitError(null);
 
+    // --- Offline path ---
+    if (!isOnline) {
+      if (organizationMode === "create") {
+        setSubmitError(
+          "Creating a new organization requires an internet connection. Please select an existing organization or try again when online.",
+        );
+        setIsSubmitting(false);
+        return;
+      }
+
+      const leadData: CreateLeadDTO = {
+        leadFirstName: formData.leadFirstName,
+        leadLastName: formData.leadLastName || undefined,
+        leadEmail: formData.leadEmail,
+        leadSource: formData.leadSource,
+        leadStatus: formData.leadStatus,
+        organizationId: formData.organizationId || undefined,
+        tenantId: user?.tenantId || "tenant-1",
+      };
+
+      addToQueue(
+        "/api/leads",
+        "POST",
+        leadData,
+        undefined,
+        3,
+        "leads",
+        "create",
+      );
+
+      toast.info("You're offline. Lead has been queued and will sync automatically when your connection is restored.");
+      onClose();
+      setIsSubmitting(false);
+      return;
+    }
+
+    // --- Online path ---
     try {
       let organizationId = formData.organizationId;
 

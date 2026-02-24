@@ -24,6 +24,8 @@ import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
 import { useAppContext } from "@/hooks";
 import { validateOrganizationForm } from "@/utils/formValidators";
+import { useOffline } from "@/context/useOffline";
+import { toast } from "sonner";
 
 function OrganizationModal({
   isOpen,
@@ -44,6 +46,7 @@ function OrganizationModal({
   const industryOptions = mapToSelectOptions(ORGANIZATION_INDUSTRIES);
 
   const { user } = useAppContext();
+  const { isOnline, addToQueue } = useOffline();
 
   useEffect(() => {
     if (organization) {
@@ -82,6 +85,52 @@ function OrganizationModal({
 
     setIsSubmitting(true);
 
+    // --- Offline path ---
+    if (!isOnline) {
+      if (organization && onUpdate) {
+        // Update needs to go through bulk/update endpoint with id in payload
+        const updateData = {
+          id: organization._id,
+          organizationName: formData.organizationName,
+          organizationWebsite: formData.organizationWebsite,
+          organizationSize: formData.organizationSize,
+          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+        };
+        addToQueue(
+          "/api/organizations",
+          "PUT",
+          updateData,
+          undefined,
+          3,
+          "organizations",
+          "update",
+        );
+        toast.info("You're offline. Organization update has been queued and will sync when your connection is restored.");
+      } else {
+        const createData: CreateOrganizationDTO = {
+          organizationName: formData.organizationName,
+          organizationWebsite: formData.organizationWebsite,
+          organizationSize: formData.organizationSize,
+          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+          tenantId: user?.tenantId || "tenant-1",
+        };
+        addToQueue(
+          "/api/organizations",
+          "POST",
+          createData,
+          undefined,
+          3,
+          "organizations",
+          "create",
+        );
+        toast.info("You're offline. Organization has been queued and will sync automatically when your connection is restored.");
+      }
+      onClose();
+      setIsSubmitting(false);
+      return;
+    }
+
+    // --- Online path ---
     try {
       if (organization && onUpdate) {
         const updateData: UpdateOrganizationDTO = {
