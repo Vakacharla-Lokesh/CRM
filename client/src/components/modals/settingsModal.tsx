@@ -198,7 +198,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <div className="flex h-130">
           {/* Sidebar */}
-          <aside className="w-48 shrink-0 border-r border-gray-200 dark:border-gray-700 bg-sidebar-primary-foreground dark:bg-sidebar-primary-foreground flex flex-col pt-6 pb-4">
+          <aside className="w-48 shrink-0 border-r border-gray-200 dark:border-gray-700 flex flex-col pt-6 pb-4">
             <p className="px-4 mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
               Settings
             </p>
@@ -210,8 +210,8 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
                   onClick={() => setActiveTab(item.id)}
                   className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full text-left ${
                     activeTab === item.id
-                      ? "bg-secondary dark:bg-secondary text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-700"
-                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+                      ? "text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-700"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-secondary dark:hover:bg-secondary-foreground"
                   }`}
                 >
                   {item.icon}
