@@ -1,3 +1,5 @@
+// UPDATED FILE: client/src/services/authService.ts
+
 import { apiClient } from "./api";
 import type { LoginCredentials, SignupData, AuthResponse } from "../types";
 
@@ -34,19 +36,33 @@ const authService = {
       { refreshToken },
     );
   },
+  
+  requestPasswordResetOTP: async (
+    email: string,
+  ): Promise<{ message: string; expiresIn: number }> => {
+    return apiClient.post<{ message: string; expiresIn: number }>(
+      "/auth/forgot-password",
+      { email },
+    );
+  },
 
-  requestPasswordReset: async (email: string): Promise<{ message: string }> => {
-    return apiClient.post<{ message: string }>("/auth/password-reset-request", {
-      email,
-    });
+  verifyPasswordResetOTP: async (
+    email: string,
+    otp: string,
+  ): Promise<{ message: string; resetToken: string; expiresIn: number }> => {
+    return apiClient.post<{
+      message: string;
+      resetToken: string;
+      expiresIn: number;
+    }>("/auth/verify-otp", { email, otp });
   },
 
   resetPassword: async (
-    token: string,
+    resetToken: string,
     newPassword: string,
   ): Promise<{ message: string }> => {
-    return apiClient.post<{ message: string }>("/auth/password-reset", {
-      token,
+    return apiClient.post<{ message: string }>("/auth/reset-password", {
+      resetToken,
       newPassword,
     });
   },

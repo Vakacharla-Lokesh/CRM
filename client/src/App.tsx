@@ -17,6 +17,7 @@ import { ThemeProvider } from "./components/common/themeProvider";
 import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
 import LandingPage from "./pages/landingPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 
 // Styles
 import "./App.css";
@@ -67,6 +68,10 @@ function AppRoutes() {
               />
             )
           }
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
         />
 
         {/* Authenticated routes – delegated to AppRouter */}

@@ -6,10 +6,18 @@ import {
   refreshToken,
   getProfile,
   checkToken,
+  requestPasswordResetOTP,
+  verifyPasswordResetOTP,
+  resetPassword,
 } from "../controllers/authController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { loginSchema, registerSchema } from "../validators/authValidator.js";
+import {
+  forgotPasswordSchema,
+  resetPasswordSchema,
+  verifyOTPSchema,
+} from "../validators/otpValidator.js";
 
 const router = Router();
 
@@ -19,5 +27,13 @@ router.post("/logout", logout);
 router.post("/refresh", refreshToken);
 router.get("/profile", authenticate, getProfile);
 router.get("/status", checkToken);
+
+router.post(
+  "/forgot-password",
+  validate(forgotPasswordSchema),
+  requestPasswordResetOTP,
+);
+router.post("/verify-otp", validate(verifyOTPSchema), verifyPasswordResetOTP);
+router.post("/reset-password", validate(resetPasswordSchema), resetPassword);
 
 export default router;

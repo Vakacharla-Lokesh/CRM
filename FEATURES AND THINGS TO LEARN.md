@@ -58,7 +58,7 @@ admin can assign leads
 
 caching? using upstash?
 
-otp validation for password reset or forgot password
+>>>otp validation for password reset or forgot password
 
 test all features
 
