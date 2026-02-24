@@ -154,8 +154,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       setIsSubmitting(false);
       return;
     }
-
-    // --- Online path ---
+    
     try {
       let organizationId = formData.organizationId;
 

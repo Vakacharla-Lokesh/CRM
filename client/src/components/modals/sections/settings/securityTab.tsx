@@ -77,7 +77,7 @@ function SecurityTab({
                 })
               }
               placeholder="Enter current password"
-              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-accent dark:text-primary-accent pr-10 ${
                 securityErrors.oldPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"
@@ -89,7 +89,7 @@ function SecurityTab({
               onClick={() => setShowOldPassword(!showOldPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
             >
-              {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showOldPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
           </div>
           {securityErrors.oldPassword && (
@@ -117,7 +117,7 @@ function SecurityTab({
                 })
               }
               placeholder="Enter new password"
-              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-accent dark:text-primary-accent pr-10 ${
                 securityErrors.newPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"
@@ -129,7 +129,7 @@ function SecurityTab({
               onClick={() => setShowNewPassword(!showNewPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
             >
-              {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showNewPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
           </div>
           {securityErrors.newPassword && (
@@ -157,7 +157,7 @@ function SecurityTab({
                 })
               }
               placeholder="Confirm new password"
-              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-accent dark:text-primary-accent pr-10 ${
                 securityErrors.confirmPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"
@@ -169,7 +169,7 @@ function SecurityTab({
               onClick={() => setShowConfirmPassword(!showConfirmPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400"
             >
-              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              {showConfirmPassword ? <Eye size={18} /> : <EyeOff size={18} />}
             </button>
           </div>
           {securityErrors.confirmPassword && (
