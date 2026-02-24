@@ -5,6 +5,11 @@ import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
 import RefreshToken from "../models/refreshTokenModel.js";
 
+import OTP from "../models/otpModel.js";
+import emailController from "./emailController.js";
+
+const OTP_EXPIRY_MINUTES = 5;
+const RESET_TOKEN_EXPIRY_MINUTES = 15;
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 function generateAccessToken(payload) {
@@ -220,5 +225,144 @@ export const checkToken = (req, res) => {
     return res.json({ valid: true });
   } catch {
     return res.json({ valid: false });
+  }
+};
+
+export const requestPasswordResetOTP = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await userModel.findOne({ userEmail: email });
+    if (!user) {
+      return res.json({
+        message: "If an account exists, an OTP has been sent to your email",
+        expiresIn: OTP_EXPIRY_MINUTES * 60,
+      });
+    }
+
+    await OTP.deleteMany({ email });
+
+    const otp = OTP.generateOTP();
+    const otpHash = await OTP.hashOTP(otp);
+
+    await OTP.create({
+      email,
+      otpHash,
+      attempts: 0,
+      verified: false,
+    });
+
+    try {
+      await emailController.sendOTPEmail(email, otp);
+    } catch (emailError) {
+      console.error("Email sending failed:", emailError);
+      await OTP.deleteOne({ email });
+      return res.status(500).json({
+        message: "Failed to send OTP. Please try again.",
+      });
+    }
+
+    res.json({
+      message: "OTP has been sent to your email",
+      expiresIn: OTP_EXPIRY_MINUTES * 60,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const verifyPasswordResetOTP = async (req, res, next) => {
+  try {
+    const { email, otp } = req.body;
+
+    const otpRecord = await OTP.findOne({ email, verified: false });
+    if (!otpRecord) {
+      return res.status(400).json({
+        message: "Invalid or expired OTP. Please request a new one.",
+      });
+    }
+
+    if (otpRecord.attempts >= otpRecord.maxAttempts) {
+      await OTP.deleteOne({ _id: otpRecord._id });
+      return res.status(429).json({
+        message: "Too many failed attempts. Please request a new OTP.",
+      });
+    }
+
+    const isValid = await otpRecord.verifyOTP(otp);
+    if (!isValid) {
+      otpRecord.attempts += 1;
+      await otpRecord.save();
+
+      const attemptsLeft = otpRecord.maxAttempts - otpRecord.attempts;
+      return res.status(400).json({
+        message: `Invalid OTP. ${attemptsLeft} attempts remaining.`,
+      });
+    }
+
+    otpRecord.verified = true;
+    await otpRecord.save();
+
+    const resetToken = jwt.sign(
+      {
+        email,
+        type: "password-reset",
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: `${RESET_TOKEN_EXPIRY_MINUTES}m` },
+    );
+
+    res.json({
+      message: "OTP verified successfully",
+      resetToken,
+      expiresIn: RESET_TOKEN_EXPIRY_MINUTES * 60,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { resetToken, newPassword } = req.body;
+
+    let decoded;
+    try {
+      decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    } catch (err) {
+      return res.status(400).json({
+        message: "Invalid or expired reset token. Please request a new OTP.",
+      });
+    }
+
+    if (decoded.type !== "password-reset") {
+      return res.status(400).json({
+        message: "Invalid reset token.",
+      });
+    }
+
+    const user = await userModel.findOne({ userEmail: decoded.email });
+    if (!user) {
+      return res.status(404).json({
+        message: "User not found.",
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await OTP.deleteOne({ email: decoded.email });
+
+    try {
+      await emailController.sendPasswordResetConfirmation(decoded.email);
+    } catch (emailError) {
+      console.warn("Failed to send confirmation email:", emailError);
+    }
+
+    res.json({
+      message: "Password has been reset successfully. You can now log in.",
+    });
+  } catch (err) {
+    next(err);
   }
 };
