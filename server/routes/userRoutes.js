@@ -17,7 +17,7 @@ import {
   getUserPermissions,
 } from "../controllers/userController.js";
 import { validate } from "../middlewares/validate.js";
-import { authenticate } from "../middlewares/auth.js";
+import { authenticate, checkActive } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
 import {
   createUserSchema,
@@ -46,6 +46,7 @@ router.get("/me", authenticate, getCurrentUser);
 router.get(
   "/search",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   injectTenantFilter,
   searchUsers,
@@ -54,6 +55,7 @@ router.get(
 router.get(
   "/stats",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   injectTenantFilter,
   getUserStats,
@@ -63,6 +65,7 @@ router.get(
 router.get(
   "/",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   injectTenantFilter,
   getAllUsers,
@@ -71,6 +74,7 @@ router.get(
 router.post(
   "/",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   validate(createUserSchema),
   createUser,
@@ -80,6 +84,7 @@ router.post(
 router.get(
   "/tenant/:tenantId",
   authenticate,
+  checkActive,
   authorize("super_admin"),
   getUsersByTenant,
 );
@@ -88,6 +93,7 @@ router.get(
 router.get(
   "/:id",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   getUserById,
 );
@@ -95,6 +101,7 @@ router.get(
 router.put(
   "/:id",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   validate(updateUserSchema),
   updateUser,
@@ -103,6 +110,7 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
+  checkActive,
   authorize("admin", "super_admin"),
   deleteUser,
 );
@@ -110,6 +118,7 @@ router.delete(
 router.patch(
   "/:id/role",
   authenticate,
+  checkActive,
   authorize("super_admin"),
   validate(updateRoleSchema),
   updateUserRole,
@@ -118,6 +127,7 @@ router.patch(
 router.put(
   "/:id/password",
   authenticate,
+  checkActive,
   validate(updatePasswordSchema),
   updatePassword,
 );
@@ -125,6 +135,7 @@ router.put(
 router.patch(
   "/:id/profile",
   authenticate,
+  checkActive,
   validate(updateProfileSchema),
   updateProfile,
 );

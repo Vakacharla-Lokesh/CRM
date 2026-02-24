@@ -18,6 +18,7 @@ const tenantSchema = new Schema(
       required: true,
       match: [/^[1-9]\d{9}$/, "Please provide valid mobile number"],
     },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

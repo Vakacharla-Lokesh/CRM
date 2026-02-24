@@ -22,7 +22,7 @@ add comments properly
 
 idempotency check when bulk uploading (modify models in mongodb)
 
-soft delete for users and tenants
+>>>soft delete for users and tenants
 
 isactive for users field in users model in mongodb
 
