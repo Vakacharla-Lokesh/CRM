@@ -23,6 +23,7 @@ import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/orga
 import { useNavigate } from "react-router-dom";
 import { exportOrganizations } from "@/services/exportService";
 import { toast } from "sonner";
+import { useOffline } from "@/context/useOffline";
 
 const OrganizationsPage = () => {
   const {
@@ -51,6 +52,7 @@ const OrganizationsPage = () => {
     string | null
   >(null);
   const navigate = useNavigate();
+  const { isOnline } = useOffline();
 
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
@@ -58,7 +60,6 @@ const OrganizationsPage = () => {
   // Fetch organizations on mount
   useEffect(() => {
     fetchOrganizations();
-    // eslint_disable-next-line react-hooks/exhaustive-deps
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -158,7 +159,7 @@ const OrganizationsPage = () => {
           <Button
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
             onClick={handleExport}
-            disabled={selectedOrganizationIds.length === 0}
+            disabled={selectedOrganizationIds.length === 0 || !isOnline}
           >
             <Download className="w-4 h-4" />
             Export

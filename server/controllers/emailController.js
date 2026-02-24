@@ -121,13 +121,84 @@ const emailTemplates = {
     to: email,
     subject: "Password Reset Successful",
     text: "Your password has been successfully reset.",
-    html: `<p>Your password has been successfully reset.</p>`,
+    html: `
+      <div style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+          <tr>
+            <td align="center">
+
+              <!-- Card Container -->
+              <table width="600" cellpadding="0" cellspacing="0" 
+                style="background:#ffffff;border-radius:12px;overflow:hidden;
+                      box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+
+                <!-- Header -->
+                <tr>
+                  <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                            padding:30px;text-align:center;color:#ffffff;">
+                    <h1 style="margin:0;font-size:24px;font-weight:600;">
+                      Campaign Flux
+                    </h1>
+                    <p style="margin:8px 0 0;font-size:14px;opacity:0.9;">
+                      Password Reset Confirmation
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding:40px 30px;">
+                    <h2 style="margin-top:0;color:#111827;font-size:20px;">
+                      Your password has been successfully reset!
+                    </h2>
+
+                    <p style="color:#4b5563;font-size:14px;line-height:1.6;">
+                      Your account password for <strong>Campaign Flux</strong> has been updated.
+                      You can now log in with your new password.
+                    </p>
+
+                    <div style="margin:30px 0;text-align:center;">
+                      <a href="https://your-app-login-url.com" 
+                        style="
+                          display:inline-block;
+                          padding:12px 24px;
+                          background:#6366f1;
+                          color:#ffffff;
+                          text-decoration:none;
+                          border-radius:8px;
+                          font-weight:600;
+                        ">
+                        Login Now
+                      </a>
+                    </div>
+
+                    <p style="color:#9ca3af;font-size:12px;line-height:1.6;text-align:center;">
+                      If you did not perform this action, please contact support immediately.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#f9fafb;padding:20px;text-align:center;">
+                    <p style="margin:0;font-size:12px;color:#9ca3af;">
+                      © ${new Date().getFullYear()} Campaign Flux. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+      `,
   }),
 
   adminMail: (tenant, randomPassword) => ({
     from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
-    to: tenant.email,
-    subject: "Your Admin Account Credentials",
+    to: tenant.userEmail,
+    subject: "Your Admin Account Credentials have been created",
     html: `
       <div style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
         <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
@@ -156,7 +227,7 @@ const emailTemplates = {
                       Your tenant has been created. Here are your admin credentials:
                     </p>
                     <div style="margin:20px 0;padding:20px;background:#eef2ff;border-radius:10px;text-align:center;">
-                      <p><strong>Email:</strong> ${tenant.email}</p>
+                      <p><strong>Email:</strong> ${tenant.userEmail}</p>
                       <p><strong>Password:</strong> ${randomPassword}</p>
                     </div>
                     <p style="color:#6b7280;font-size:13px;text-align:center;">

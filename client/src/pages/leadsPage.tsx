@@ -26,6 +26,8 @@ import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 import LeadStatistics from "@/components/leads/leadStatistics";
 import { toast } from "sonner";
 
+import { useOffline } from "@/context/useOffline";
+
 const LeadsPage = () => {
   const {
     filteredLeads,
@@ -53,6 +55,8 @@ const LeadsPage = () => {
   const debouncedSearch = useDebounce(searchInput, 400);
 
   const navigate = useNavigate();
+
+  const { isOnline } = useOffline();
 
   // Fetch leads on mount
   useEffect(() => {
@@ -139,7 +143,7 @@ const LeadsPage = () => {
           <Button
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
             onClick={handleExport}
-            disabled={selectedLeadIds.length === 0}
+            disabled={selectedLeadIds.length === 0 || !isOnline}
           >
             <Download className="w-4 h-4" />
             Export

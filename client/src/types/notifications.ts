@@ -1,0 +1,65 @@
+// ─── Notification Event Types ───────────────────────────────────────────────
+
+export type NotificationEventType =
+  // Lead events
+  | "lead_created"
+  | "lead_updated"
+  | "lead_deleted"
+  | "lead_converted"
+  // Deal events
+  | "deal_created"
+  | "deal_updated"
+  | "deal_deleted"
+  | "deal_won"
+  | "deal_lost"
+  // Organization events
+  | "organization_created"
+  | "organization_updated"
+  // User & team events
+  | "user_added"
+  | "user_updated"
+  // Activity events
+  | "call_logged"
+  | "comment_added"
+  | "attachment_uploaded"
+  // Sync / offline events
+  | "sync_completed"
+  | "sync_failed"
+  | "offline_queued";
+
+// ─── Notification Model ──────────────────────────────────────────────────────
+
+export interface AppNotification {
+  id: string;
+  type: NotificationEventType;
+  title: string;
+  message: string;
+  timestamp: Date;
+  read: boolean;
+  entityId?: string;
+  entityType?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ─── notifyEvent Payload ─────────────────────────────────────────────────────
+
+export interface NotifyEventPayload {
+  type: NotificationEventType;
+  title: string;
+  message: string;
+  entityId?: string;
+  entityType?: string;
+  metadata?: Record<string, unknown>;
+}
+
+// ─── Context Shape ───────────────────────────────────────────────────────────
+
+export interface NotificationContextType {
+  notifications: AppNotification[];
+  unreadCount: number;
+  notifyEvent: (payload: NotifyEventPayload) => void;
+  markAsRead: (id: string) => void;
+  markAllAsRead: () => void;
+  removeNotification: (id: string) => void;
+  clearNotifications: () => void;
+}

@@ -3,6 +3,7 @@ import { useState } from "react";
 import type { NavbarProps } from "@/types/interfaces/layout/navbar.interfaces";
 import { useAppContext } from "@/hooks/";
 import { ThemeControls } from "../common/themeToggle";
+import { NotificationPanel } from "../common/notificationPanel";
 import { SettingsModal } from "../modals";
 
 function Navbar({
@@ -70,6 +71,7 @@ function Navbar({
 
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeControls />
+          <NotificationPanel />
           <div>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}

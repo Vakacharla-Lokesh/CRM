@@ -11,6 +11,7 @@ import { AppRouter } from "./router/router";
 import { AppProvider } from "./context";
 import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
+import { NotificationProvider } from "./context/notificationContext";
 import { ThemeProvider } from "./components/common/themeProvider";
 
 // Public pages
@@ -105,10 +106,12 @@ function App() {
   return (
     <AppProvider>
       <OfflineProvider>
-        <ThemeProvider>
-          <Toaster />
-          <AppRoutes />
-        </ThemeProvider>
+        <NotificationProvider>
+          <ThemeProvider>
+            <Toaster />
+            <AppRoutes />
+          </ThemeProvider>
+        </NotificationProvider>
       </OfflineProvider>
     </AppProvider>
   );
