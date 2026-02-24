@@ -70,7 +70,7 @@ super admin should have more features
 
 web socket implementation in server
 
-notifications panel
+>>>notifications panel
 
 >>> navbar for login pages
 

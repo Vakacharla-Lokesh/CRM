@@ -163,6 +163,9 @@ const OrganizationsPage = () => {
           >
             <Download className="w-4 h-4" />
             Export
+            {selectedOrganizationIds.length > 0
+              ? ` (${selectedOrganizationIds.length})`
+              : ""}
           </Button>
           <Button
             onClick={handleAddOrganization}

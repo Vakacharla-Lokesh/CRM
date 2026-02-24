@@ -8,7 +8,6 @@ import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
 import { Eye, EyeOff } from "lucide-react";
-import LandingNavbar from "@/components/layout/landingNavbar";
 
 type FormErrors = LoginFormErrors;
 
@@ -68,7 +67,6 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-background">
-      <LandingNavbar />
       {/* LEFT COLUMN - Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 py-12">
         <div className="max-w-md w-full mx-auto space-y-8">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { ThemeControls } from "../common/themeToggle";
 import { Github } from "lucide-react";
@@ -11,7 +11,7 @@ function LandingNavbar() {
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 16);
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 

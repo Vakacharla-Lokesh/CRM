@@ -1,5 +1,4 @@
 import { Lock } from "lucide-react";
-import React from "react";
 
 function RightPanel() {
   return (
