@@ -8,8 +8,8 @@
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["./src/*"]
-    }
-  },
-  "forceConsistentCasingInFileNames": true
+      "@/*": ["src_temp/*"]
+    },
+    "forceConsistentCasingInFileNames": true
+  }
 }

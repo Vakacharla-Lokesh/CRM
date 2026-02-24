@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -24,25 +23,6 @@ import "./App.css";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    const saved = localStorage.getItem("darkMode");
-    if (saved !== null) {
-      return JSON.parse(saved);
-    }
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
-  });
-
-  useEffect(() => {
-    const htmlElement = document.documentElement;
-    if (isDarkMode) {
-      htmlElement.classList.add("dark");
-    } else {
-      htmlElement.classList.remove("dark");
-    }
-    localStorage.setItem("darkMode", JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
-  const toggleDarkMode = () => setIsDarkMode((prev: boolean) => !prev);
 
   if (loading) {
     return (
@@ -94,10 +74,7 @@ function AppRoutes() {
           <Route
             path="/*"
             element={
-              <Layout
-                isDarkMode={isDarkMode}
-                onToggleDarkMode={toggleDarkMode}
-              >
+              <Layout>
                 <AppRouter />
               </Layout>
             }
@@ -122,10 +99,7 @@ function App() {
   return (
     <AppProvider>
       <OfflineProvider>
-        <ThemeProvider
-          defaultTheme="dark"
-          storageKey="vite-ui-theme"
-        >
+        <ThemeProvider>
           <AppRoutes />
         </ThemeProvider>
       </OfflineProvider>
