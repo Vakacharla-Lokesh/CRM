@@ -55,13 +55,11 @@ export const getTenantById = async (req, res, next) => {
 // Create a new tenant
 export const createTenant = async (req, res, next) => {
   const session = await mongoose.startSession();
-  session.startTransaction();
 
   try {
+    session.startTransaction();
     const tenant = await tenantModel.create([req.body], { session });
-
     const randomPassword = crypto.randomBytes(6).toString("hex");
-
     const adminUser = await userModel.create(
       [
         {
@@ -76,18 +74,24 @@ export const createTenant = async (req, res, next) => {
     );
 
     await session.commitTransaction();
-    session.endSession();
 
-    await emailController.sendAdminMail(adminUser[0], randomPassword);
+    try {
+      await emailController.sendAdminMail(adminUser[0], randomPassword);
+    } catch (emailErr) {
+      console.error("Failed to send admin welcome email:", emailErr.message);
+    }
 
     res.status(201).json({
       message: "Tenant and admin created successfully",
       tenant: tenant[0],
     });
   } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
+    if (session.inTransaction()) {
+      await session.abortTransaction();
+    }
     next(err);
+  } finally {
+    session.endSession();
   }
 };
 

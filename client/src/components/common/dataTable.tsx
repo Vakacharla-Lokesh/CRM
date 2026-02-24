@@ -55,6 +55,17 @@ export function DataTable<TData, TValue>({
 
   const useCursorPagination = onLoadMore !== undefined;
 
+  React.useEffect(() => {
+    if (onSelectionChange) {
+      const selectedRows = table
+        .getRowModel()
+        .rows.filter((row) => rowSelection[row.id])
+        .map((row) => row.original);
+      onSelectionChange(selectedRows);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rowSelection]);
+
   const table = useReactTable({
     data,
     columns,
@@ -71,20 +82,9 @@ export function DataTable<TData, TValue>({
     onColumnVisibilityChange: setColumnVisibility,
 
     onRowSelectionChange: (updater) => {
-      setRowSelection((prev) => {
-        const next = typeof updater === "function" ? updater(prev) : updater;
-
-        if (onSelectionChange) {
-          const selectedRows = table
-            .getRowModel()
-            .rows.filter((row) => next[row.id])
-            .map((row) => row.original);
-
-          onSelectionChange(selectedRows);
-        }
-
-        return next;
-      });
+      setRowSelection((prev) =>
+        typeof updater === "function" ? updater(prev) : updater,
+      );
     },
 
     state: {
