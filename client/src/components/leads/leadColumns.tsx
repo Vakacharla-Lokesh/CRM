@@ -81,6 +81,21 @@ export const columns = ({
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const email = row.getValue("leadEmail") as string | undefined;
+      return email ? (
+        <a
+          href={`mailto:${email}?subject=Regarding%20Campaign%20Flux&body=Hi%20there,%0D%0A`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {email}
+        </a>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
+    },
   },
   {
     accessorKey: "leadScore",

@@ -12,6 +12,7 @@ import type {
 import InfoTab from "@/components/modals/sections/settings/infoTab";
 import EditTab from "./sections/settings/editTab";
 import SecurityTab from "./sections/settings/securityTab";
+import { toast } from "sonner";
 
 type Tab = "profile" | "edit" | "security";
 
@@ -117,6 +118,7 @@ function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
       });
       updateUser(updatedUser);
       setProfileSuccess("Profile updated successfully!");
+      toast.success("Profile updated successfully!");
       setTimeout(() => setProfileSuccess(null), 3000);
     } catch (error: unknown) {
       setProfileSubmitError(

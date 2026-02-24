@@ -8,7 +8,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import type { CreateLeadDTO, CreateOrganizationDTO, OrganizationIndustry } from "@/types";
+import type {
+  CreateLeadDTO,
+  CreateOrganizationDTO,
+  OrganizationIndustry,
+} from "@/types";
 import type {
   FormErrors,
   LeadFormData,
@@ -20,7 +24,10 @@ import { FormField, FormSelect } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
 import { OrganizationSection } from "./sections";
 
-import { LEAD_SOURCES, LEAD_STATUSES } from "@/types/interfaces/form-interfaces";
+import {
+  LEAD_SOURCES,
+  LEAD_STATUSES,
+} from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
 import { useAppContext } from "@/hooks";
 import { validateLeadForm } from "@/utils/formValidators";
@@ -149,12 +156,14 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         "create",
       );
 
-      toast.info("You're offline. Lead has been queued and will sync automatically when your connection is restored.");
+      toast.info(
+        "You're offline. Lead has been queued and will sync automatically when your connection is restored.",
+      );
       onClose();
       setIsSubmitting(false);
       return;
     }
-    
+
     try {
       let organizationId = formData.organizationId;
 
@@ -163,7 +172,8 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           organizationName: newOrgData.organizationName,
           organizationWebsite: newOrgData.organizationWebsite,
           organizationSize: newOrgData.organizationSize,
-          organizationIndustry: newOrgData.organizationIndustry as OrganizationIndustry,
+          organizationIndustry:
+            newOrgData.organizationIndustry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
 
