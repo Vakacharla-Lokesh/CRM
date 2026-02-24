@@ -11,6 +11,7 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import userModel from "../models/userModel.js";
+import tenantModel from "../models/tenantModel.js";
 
 // Local Strategy (used during login)
 passport.use(
@@ -31,6 +32,18 @@ passport.use(
 
         if (!isMatch) {
           return done(null, false, { message: "Invalid credentials" });
+        }
+
+        if (!user.isActive) {
+          return done(null, false, { message: "Account is deactivated" });
+        }
+
+        const tenant = await tenantModel.findById(user.tenantId).lean();
+        
+        if (user.role !== "super_admin" && tenant && !tenant.isActive) {
+          return done(null, false, {
+            message: "Organization account is deactivated",
+          });
         }
 
         return done(null, user);

@@ -27,6 +27,7 @@ const userSchema = new Schema(
       required: true,
     },
     password: { type: String, select: false },
+    isActive: { type: Boolean, default: true },
   },
   { timestamps: true },
 );

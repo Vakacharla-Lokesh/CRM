@@ -1,3 +1,5 @@
+import mongoose from "mongoose";
+import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
 
 // Get all tenants
@@ -13,7 +15,7 @@ export const getAllTenants = async (req, res, next) => {
     }
 
     const tenants = await tenantModel
-      .find(filter)
+      .find({ ...filter, isActive: true })
       .sort({ _id: 1 })
       .limit(limit + 1);
 
@@ -86,15 +88,45 @@ export const updateTenant = async (req, res, next) => {
 
 // Delete tenant
 export const deleteTenant = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const tenant = await tenantModel.findByIdAndDelete(req.params.id);
+    const tenant = await tenantModel.findById(req.params.id).session(session);
 
     if (!tenant) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(404).json({ message: "Tenant not found" });
     }
 
-    res.json({ message: "Tenant deleted successfully" });
+    if (!tenant.isActive) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: "Tenant is already inactive" });
+    }
+
+    // Soft delete tenant
+    await tenantModel.findByIdAndUpdate(
+      req.params.id,
+      { isActive: false },
+      { session },
+    );
+
+    // Cascade: deactivate all users in this tenant
+    await userModel.updateMany(
+      { tenantId: req.params.id },
+      { isActive: false },
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({ message: "Tenant deactivated successfully" });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     next(err);
   }
 };

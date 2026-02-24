@@ -27,6 +27,7 @@ router.get("/:id", authenticate, authorize("super_admin"), getTenantById);
 router.post(
   "/",
   authenticate,
+  checkActive,
   authorize("super_admin"),
   validate(createTenantSchema),
   createTenant,
@@ -35,6 +36,7 @@ router.post(
 router.put(
   "/:id",
   authenticate,
+  checkActive,
   authorize("super_admin"),
   validate(updateTenantSchema),
   updateTenant,

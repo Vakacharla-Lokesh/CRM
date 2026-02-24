@@ -14,7 +14,7 @@ export const getAllUsers = async (req, res, next) => {
     }
 
     const users = await userModel
-      .find(filter)
+      .find({ ...filter, isActive: true })
       .sort({ _id: 1 })
       .limit(limit + 1);
 
@@ -117,13 +117,19 @@ export const updateUser = async (req, res, next) => {
 // Delete user
 export const deleteUser = async (req, res, next) => {
   try {
-    const user = await userModel.findByIdAndDelete(req.params.id);
+    const user = await userModel.findById(req.params.id);
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res.json({ message: "User deleted successfully" });
+    if (!user.isActive) {
+      return res.status(400).json({ message: "User is already inactive" });
+    }
+
+    await userModel.findByIdAndUpdate(req.params.id, { isActive: false });
+
+    res.json({ message: "User deactivated successfully" });
   } catch (err) {
     next(err);
   }
@@ -132,7 +138,10 @@ export const deleteUser = async (req, res, next) => {
 // Get users by tenant
 export const getUsersByTenant = async (req, res, next) => {
   try {
-    const users = await userModel.find({ tenantId: req.params.tenantId });
+    const users = await userModel.find({
+      tenantId: req.params.tenantId,
+      isActive: true,
+    });
 
     res.json({
       count: users.length,
