@@ -21,6 +21,7 @@ import {
 } from "@/types";
 import { useState, useEffect } from "react";
 import DealStatistics from "@/components/deals/dealStatistics";
+import { toast } from "sonner";
 
 const DealsPage = () => {
   const {
@@ -71,7 +72,7 @@ const DealsPage = () => {
       setDealToDelete(null);
     } catch (error) {
       console.error("Error deleting deal:", error);
-      alert("Failed to delete deal. Please try again.");
+      toast.error("Failed to delete deal. Please try again.");
       setDealToDelete(null);
     }
   };
@@ -83,8 +84,10 @@ const DealsPage = () => {
       await updateDeal(selectedDeal._id, dealData);
       setIsModalOpen(false);
       setSelectedDeal(null);
+      toast.success("Deal updated successfully!");
     } catch (error) {
       console.error("Error updating deal:", error);
+      toast.error("Failed to update deal. Please try again.");
       throw error;
     }
   };
@@ -150,10 +153,13 @@ const DealsPage = () => {
               ))}
             </SelectContent>
           </Select>
-          
+
           <Button
             variant="outline"
-            onClick={() => { clearFilters(); setSearchInput(""); }}
+            onClick={() => {
+              clearFilters();
+              setSearchInput("");
+            }}
             disabled={
               !searchInput &&
               !filters.stage &&

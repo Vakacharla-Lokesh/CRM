@@ -17,10 +17,11 @@ import { ThemeProvider } from "./components/common/themeProvider";
 import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
 import LandingPage from "./pages/landingPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ForgotPasswordPage from "./pages/forgotPasswordPage";
 
 // Styles
 import "./App.css";
+import { Toaster } from "./components/ui/sonner";
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
@@ -105,6 +106,7 @@ function App() {
     <AppProvider>
       <OfflineProvider>
         <ThemeProvider>
+          <Toaster />
           <AppRoutes />
         </ThemeProvider>
       </OfflineProvider>

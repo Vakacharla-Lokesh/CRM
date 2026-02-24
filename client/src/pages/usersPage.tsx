@@ -17,6 +17,7 @@ import { useUserData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { useParams } from "react-router-dom";
 import UserStatistics from "@/components/users/userStatistics";
+import { toast } from "sonner";
 
 const UsersPage = () => {
   const { id } = useParams();
@@ -66,6 +67,7 @@ const UsersPage = () => {
     }
     setIsModalOpen(false);
     setSelectedUser(null);
+    toast.success("User saved successfully!");
   };
 
   const handleEditUser = (id: string) => {
@@ -87,9 +89,10 @@ const UsersPage = () => {
     try {
       await deleteUser(userToDelete);
       setUserToDelete(null);
+      toast.success("User deleted successfully!");
     } catch (error) {
       console.error("Error deleting user:", error);
-      alert("Failed to delete user. Please try again.");
+      toast.error("Failed to delete user. Please try again.");
       setUserToDelete(null);
     }
   };

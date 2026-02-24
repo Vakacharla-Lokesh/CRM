@@ -24,6 +24,7 @@ import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 import LeadStatistics from "@/components/leads/leadStatistics";
+import { toast } from "sonner";
 
 const LeadsPage = () => {
   const {
@@ -79,8 +80,10 @@ const LeadsPage = () => {
         await deleteLead(leadToDelete);
         setDeleteDialogOpen(false);
         setLeadToDelete(null);
+        toast.success("Lead deleted successfully!");
       } catch (error) {
         console.error("Error deleting lead:", error);
+        toast.error("Failed to delete lead. Please try again.");
       }
     }
   };
@@ -89,8 +92,12 @@ const LeadsPage = () => {
     try {
       await createLead(leadData);
       setIsModalOpen(false);
+      toast.success("Lead created successfully!");
     } catch (error) {
       console.error("Error creating lead:", error);
+      toast.error(
+        "Failed to create lead. Please check the details and try again.",
+      );
       throw error;
     }
   };

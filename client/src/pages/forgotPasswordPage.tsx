@@ -1,20 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Loader2,
-  AlertCircle,
-  CheckCircle,
-  ArrowLeft,
-  Mail,
-  Lock,
-} from "lucide-react";
-import OTPInput from "@/components/auth/OTPInput";
+import { AlertCircle, CheckCircle, ArrowLeft } from "lucide-react";
 import authService from "@/services/authService";
 import RightPanel from "@/components/auth/rightPanel";
+import EmailInput from "@/components/auth/emailInput";
+import OTPVerification from "@/components/auth/otpVerification";
+import PasswordReset from "@/components/auth/passwordReset";
 
 type Step = "email" | "otp" | "reset" | "success";
 
@@ -46,12 +39,6 @@ function ForgotPasswordPage() {
 
     return () => clearInterval(interval);
   }, [otpExpiry]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
 
   const validateEmail = (email: string): boolean => {
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -86,7 +73,6 @@ function ForgotPasswordPage() {
     try {
       await authService.requestPasswordResetOTP(email);
       setSuccess("OTP sent to your email address");
-      // For demo: set a fixed expiry time (5 minutes)
       setOtpExpiry(300);
       setTimer(300);
       setStep("otp");
@@ -248,206 +234,37 @@ function ForgotPasswordPage() {
 
           {/* STEP 1: Email Input */}
           {step === "email" && (
-            <form
-              onSubmit={handleRequestOTP}
-              className="space-y-6"
-            >
-              <div className="space-y-2">
-                <Label
-                  htmlFor="email"
-                  className="text-sm font-semibold"
-                >
-                  Email Address
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    type="email"
-                    id="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    disabled={loading}
-                    className="h-11 pl-10 rounded-lg border border-input bg-card hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
-                  />
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading || !email}
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Sending OTP...
-                  </>
-                ) : (
-                  "Send OTP"
-                )}
-              </Button>
-
-              <p className="text-center text-muted-foreground text-sm">
-                Remember your password?{" "}
-                <button
-                  type="button"
-                  onClick={() => navigate("/login")}
-                  className="text-primary font-semibold hover:text-primary/80 transition-colors"
-                >
-                  Sign in here
-                </button>
-              </p>
-            </form>
+            <EmailInput
+              handleRequestOTP={handleRequestOTP}
+              email={email}
+              setEmail={setEmail}
+              loading={loading}
+            />
           )}
 
           {/* STEP 2: OTP Verification */}
           {step === "otp" && (
-            <form
-              onSubmit={handleVerifyOTP}
-              className="space-y-6"
-            >
-              <div className="space-y-4">
-                <div>
-                  <Label className="text-sm font-semibold">
-                    Enter 6-Digit OTP
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1 mb-4">
-                    Sent to <strong>{email}</strong>
-                  </p>
-                </div>
-
-                <OTPInput
-                  value={otp}
-                  onChange={setOtp}
-                  disabled={loading}
-                />
-
-                <div className="text-center">
-                  {otpExpiry > 0 ? (
-                    <p className="text-sm text-amber-600 dark:text-amber-400 font-medium">
-                      Expires in:{" "}
-                      <span className="font-bold">{formatTime(timer)}</span>
-                    </p>
-                  ) : (
-                    <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                      OTP has expired
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading || otp.length !== 6 || otpExpiry <= 0}
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Verifying...
-                  </>
-                ) : (
-                  "Verify OTP"
-                )}
-              </Button>
-            </form>
+            <OTPVerification
+              email={email}
+              otp={otp}
+              setOtp={setOtp}
+              handleVerifyOTP={handleVerifyOTP}
+              loading={loading}
+              timer={timer}
+              otpExpiry={otpExpiry}
+            />
           )}
 
           {/* STEP 3: Password Reset */}
           {step === "reset" && (
-            <form
-              onSubmit={handleResetPassword}
-              className="space-y-6"
-            >
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="newPassword"
-                    className="text-sm font-semibold"
-                  >
-                    New Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type="password"
-                      id="newPassword"
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="Enter new password"
-                      disabled={loading}
-                      className="h-11 pl-10 rounded-lg border border-input bg-card hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label
-                    htmlFor="confirmPassword"
-                    className="text-sm font-semibold"
-                  >
-                    Confirm Password
-                  </Label>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                    <Input
-                      type="password"
-                      id="confirmPassword"
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="Confirm password"
-                      disabled={loading}
-                      className="h-11 pl-10 rounded-lg border border-input bg-card hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Password Requirements */}
-              <div className="text-sm bg-secondary/20 dark:bg-secondary/10 p-4 rounded-lg border border-secondary">
-                <p className="font-semibold text-foreground mb-3">
-                  Password Requirements:
-                </p>
-                <ul className="space-y-2 text-xs text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-1">✓</span>
-                    <span>Minimum 8 characters</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-1">✓</span>
-                    <span>At least one uppercase letter (A-Z)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-1">✓</span>
-                    <span>At least one lowercase letter (a-z)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-1">✓</span>
-                    <span>At least one number (0-9)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-primary mt-1">✓</span>
-                    <span>At least one special character (@$!%*?&)</span>
-                  </li>
-                </ul>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading || !newPassword || !confirmPassword}
-                className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Resetting...
-                  </>
-                ) : (
-                  "Reset Password"
-                )}
-              </Button>
-            </form>
+            <PasswordReset
+              newPassword={newPassword}
+              confirmPassword={confirmPassword}
+              setNewPassword={setNewPassword}
+              setConfirmPassword={setConfirmPassword}
+              handleResetPassword={handleResetPassword}
+              loading={loading}
+            />
           )}
 
           {/* STEP 4: Success State */}

@@ -114,6 +114,16 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
              hover:bg-accent/80
              transition-colors cursor-pointer group"
         onClick={() => fileInputRef.current?.click()}
+        onKeyDown={(event) => {
+          if (
+            event.target === event.currentTarget &&
+            (event.key === "Enter" || event.key === " ")
+          ) {
+            event.preventDefault();
+            fileInputRef.current?.click();
+          }
+        }}
+        tabIndex={0}
         onDragOver={(e) => e.preventDefault()}
         onDrop={(e) => {
           e.preventDefault();

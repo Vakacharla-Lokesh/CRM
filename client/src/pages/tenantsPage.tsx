@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useTenantData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const TenantsPage = () => {
   const {
@@ -40,8 +41,10 @@ const TenantsPage = () => {
       }
       setIsModalOpen(false);
       setSelectedTenant(null);
+      toast.success("Tenant saved successfully!");
     } catch (error) {
       console.error("Error saving tenant:", error);
+      toast.error("Failed to save tenant. Please try again.");
       throw error;
     }
   };
@@ -58,6 +61,7 @@ const TenantsPage = () => {
       setIsModalOpen(true);
     } else {
       console.error("Tenant not found for editing:", id);
+      toast.error("Tenant not found for editing.");
     }
   };
 
@@ -73,9 +77,10 @@ const TenantsPage = () => {
       await deleteTenant(tenantToDelete);
       refresh();
       setTenantToDelete(null);
+      toast.success("Tenant deleted successfully!");
     } catch (error) {
       console.error("Error deleting tenant:", error);
-      alert("Failed to delete tenant. Please try again.");
+      toast.error("Failed to delete tenant. Please try again.");
       setTenantToDelete(null);
     }
   };

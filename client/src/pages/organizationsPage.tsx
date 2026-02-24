@@ -22,6 +22,7 @@ import {
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import { useNavigate } from "react-router-dom";
 import { exportOrganizations } from "@/services/exportService";
+import { toast } from "sonner";
 
 const OrganizationsPage = () => {
   const {
@@ -77,8 +78,10 @@ const OrganizationsPage = () => {
       await createOrganization(organizationData);
       await fetchOrganizations();
       handleCloseModal();
+      toast.success("Organization created successfully!");
     } catch (error) {
       console.error("Error saving organization:", error);
+      toast.error("Failed to create organization. Please try again.");
       throw error;
     }
   };
@@ -91,8 +94,10 @@ const OrganizationsPage = () => {
       await updateOrganization(id, organizationData);
       await fetchOrganizations();
       handleCloseModal();
+      toast.success("Organization updated successfully!");
     } catch (error) {
       console.error("Error updating organization:", error);
+      toast.error("Failed to update organization. Please try again.");
       throw error;
     }
   };
@@ -117,9 +122,10 @@ const OrganizationsPage = () => {
       await deleteOrganization(organizationToDelete);
       await fetchOrganizations();
       setOrganizationToDelete(null);
+      toast.success("Organization deleted successfully!");
     } catch (error) {
       console.error("Error deleting organization:", error);
-      alert("Failed to delete organization. Please try again.");
+      toast.error("Failed to delete organization. Please try again.");
       setOrganizationToDelete(null);
     }
   };
