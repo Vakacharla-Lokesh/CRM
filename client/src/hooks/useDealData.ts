@@ -267,7 +267,7 @@ const useDealData = () => {
   }, []);
 
   const bulkUpdateDeals = useCallback(
-    async (dealIds: string[], updateData: Pick<UpdateDealDTO, keyof UpdateDealDTO>) => {
+    async (dealIds: string[], updateData: UpdateDealDTO) => {
       const result = await dealService.bulkUpdateDeals(dealIds, updateData);
       await execute(fetchDeals);
       return result;

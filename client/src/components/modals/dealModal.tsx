@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { dealStatuses, type Deal } from "@/types/deals";
+import { dealStatuses, type Deal, type UpdateDealDTO, type DealStatus } from "@/types/deals";
 import { validateDealForm } from "@/utils/formValidators";
 import type { DealFormData } from "@/utils/formValidators";
 
@@ -25,16 +25,8 @@ interface DealModalProps {
   isOpen: boolean;
   deal: Deal | null;
   onClose: () => void;
-  onSave: (dealData: Pick<Deal, keyof Deal>) => Promise<void>;
+  onSave: (dealData: UpdateDealDTO) => Promise<void>;
 }
-
-type DealStatus =
-  | "Prospecting"
-  | "Qualification"
-  | "Negotiation"
-  | "Ready to close"
-  | "Won"
-  | "Lost";
 
 const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   const [formData, setFormData] = useState<DealFormData>({
@@ -51,9 +43,7 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
       setFormData({
         dealName: deal.dealName || "",
         dealValue: deal.dealValue?.toString() || "",
-        dealStatus:
-          (deal as unknown as { dealStatus?: DealStatus }).dealStatus ||
-          "Prospecting",
+        dealStatus: deal.dealStatus || "Prospecting",
       });
     }
   }, [deal]);
@@ -88,12 +78,11 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
     setIsSubmitting(true);
 
     try {
-      const dealData: Pick<Deal, keyof Deal> = {
-        ...deal,
+      const dealData: UpdateDealDTO = {
         dealName: formData.dealName.trim(),
         dealValue: parseFloat(formData.dealValue),
         dealStatus: formData.dealStatus as DealStatus,
-      } as Pick<Deal, keyof Deal>;
+      };
 
       await onSave(dealData);
       onClose();

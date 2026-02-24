@@ -37,14 +37,9 @@ export interface CreateDealDTO {
   dealStatus?: DealStatus;
 }
 
-export interface UpdateDealDTO {
-  dealName?: string;
-  dealValue?: number;
-  dealStatus?: DealStatus;
-  leadId?: string;
-  organizationId?: string;
-  userId?: string;
-}
+export type UpdateDealDTO = Partial<
+  Pick<Deal, "dealName" | "dealValue" | "dealStatus">
+>;
 
 export interface DealListResponse {
   deals: Deal[];

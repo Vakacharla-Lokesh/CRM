@@ -1,22 +1,19 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
-import { Eye, EyeOff } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { User, Pencil, Shield } from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { useAppContext } from "@/hooks";
-import { FormField } from "./form-fields";
-import { ModalFooter, ErrorAlert } from "./shared";
 import { userService } from "@/services";
 import { validateSettingsForm } from "@/utils/formValidators";
 import type {
   SettingsFormData,
   SettingsFormErrors,
 } from "@/utils/formValidators";
+
+import InfoTab from "@/components/modals/sections/settings/infoTab";
+import EditTab from "./sections/settings/editTab";
+import SecurityTab from "./sections/settings/securityTab";
+
+type Tab = "profile" | "edit" | "security";
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -25,285 +22,244 @@ interface SettingsModalProps {
 
 function SettingsModal({ isOpen, onClose }: SettingsModalProps) {
   const { user, updateUser } = useAppContext();
+  const [activeTab, setActiveTab] = useState<Tab>("profile");
 
-  const [formData, setFormData] = useState<SettingsFormData>({
+  // Profile/Edit state
+  const [profileData, setProfileData] = useState({
     firstName: "",
     lastName: "",
+  });
+  const [profileErrors, setProfileErrors] = useState<
+    Pick<SettingsFormErrors, "firstName" | "lastName">
+  >({});
+  const [profileSubmitError, setProfileSubmitError] = useState<string | null>(
+    null,
+  );
+  const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
+  const [isProfileSubmitting, setIsProfileSubmitting] = useState(false);
+
+  // Security state
+  const [securityData, setSecurityData] = useState({
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
   });
-  const [errors, setErrors] = useState<SettingsFormErrors>({});
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [securityErrors, setSecurityErrors] = useState<
+    Pick<SettingsFormErrors, "oldPassword" | "newPassword" | "confirmPassword">
+  >({});
+  const [securitySubmitError, setSecuritySubmitError] = useState<string | null>(
+    null,
+  );
+  const [securitySuccess, setSecuritySuccess] = useState<string | null>(null);
+  const [isSecuritySubmitting, setIsSecuritySubmitting] = useState(false);
 
   useEffect(() => {
     if (user && isOpen) {
-      setFormData({
+      setProfileData({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
+      });
+      resetAll();
+    }
+  }, [user, isOpen]);
+
+  const resetAll = () => {
+    setProfileErrors({});
+    setProfileSubmitError(null);
+    setProfileSuccess(null);
+    setSecurityData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+    setSecurityErrors({});
+    setSecuritySubmitError(null);
+    setSecuritySuccess(null);
+  };
+
+  const handleClose = () => {
+    if (!isProfileSubmitting && !isSecuritySubmitting) onClose();
+  };
+
+  // --- Profile submit ---
+  const handleProfileSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const formDataForValidation: SettingsFormData = {
+      ...profileData,
+      oldPassword: "",
+      newPassword: "",
+      confirmPassword: "",
+    };
+    const allErrors = validateSettingsForm(formDataForValidation);
+    const relevant: Pick<SettingsFormErrors, "firstName" | "lastName"> = {};
+    if (allErrors.firstName) relevant.firstName = allErrors.firstName;
+    if (allErrors.lastName) relevant.lastName = allErrors.lastName;
+
+    setProfileErrors(relevant);
+    if (Object.keys(relevant).length > 0) return;
+
+    setIsProfileSubmitting(true);
+    setProfileSubmitError(null);
+    setProfileSuccess(null);
+
+    try {
+      const profileChanged =
+        profileData.firstName !== user.firstName ||
+        profileData.lastName !== user.lastName;
+
+      if (!profileChanged) {
+        setProfileSuccess("No changes to save.");
+        setIsProfileSubmitting(false);
+        return;
+      }
+
+      const updatedUser = await userService.updateProfile(user._id, {
+        firstName: profileData.firstName,
+        lastName: profileData.lastName,
+      });
+      updateUser(updatedUser);
+      setProfileSuccess("Profile updated successfully!");
+      setTimeout(() => setProfileSuccess(null), 3000);
+    } catch (error: unknown) {
+      setProfileSubmitError(
+        error instanceof Error ? error.message : "Failed to update profile.",
+      );
+    } finally {
+      setIsProfileSubmitting(false);
+    }
+  };
+
+  const handleSecuritySubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+
+    const formDataForValidation: SettingsFormData = {
+      firstName: user.firstName || "",
+      lastName: user.lastName || "",
+      ...securityData,
+    };
+    const allErrors = validateSettingsForm(formDataForValidation);
+    const relevant: Pick<
+      SettingsFormErrors,
+      "oldPassword" | "newPassword" | "confirmPassword"
+    > = {};
+    if (allErrors.oldPassword) relevant.oldPassword = allErrors.oldPassword;
+    if (allErrors.newPassword) relevant.newPassword = allErrors.newPassword;
+    if (allErrors.confirmPassword)
+      relevant.confirmPassword = allErrors.confirmPassword;
+
+    setSecurityErrors(relevant);
+    if (Object.keys(relevant).length > 0) return;
+
+    if (!securityData.newPassword) {
+      setSecuritySubmitError("Please enter a new password.");
+      return;
+    }
+
+    setIsSecuritySubmitting(true);
+    setSecuritySubmitError(null);
+    setSecuritySuccess(null);
+
+    try {
+      await userService.updatePassword(user._id, {
+        oldPassword: securityData.oldPassword,
+        newPassword: securityData.newPassword,
+      });
+      setSecurityData({
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
       });
-      setErrors({});
-      setSubmitError(null);
-      setSuccessMessage(null);
-    }
-  }, [user, isOpen]);
-
-  const validateForm = (): boolean => {
-    const newErrors = validateSettingsForm(formData);
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    if (!validateForm() || !user) return;
-
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setSuccessMessage(null);
-
-    try {
-      const profileUpdated =
-        formData.firstName !== user.firstName ||
-        formData.lastName !== user.lastName;
-
-      if (profileUpdated) {
-        const updatedUser = await userService.updateProfile(user._id, {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-        });
-        updateUser(updatedUser);
-      }
-
-      if (formData.newPassword) {
-        await userService.updatePassword(user._id, {
-          oldPassword: formData.oldPassword,
-          newPassword: formData.newPassword,
-        });
-      }
-
-      if (!profileUpdated && !formData.newPassword) {
-        setSuccessMessage("No changes to save");
-      } else {
-        setSuccessMessage("Settings updated successfully");
-        // Close after 1 second
-        setTimeout(() => {
-          onClose();
-        }, 1000);
-      }
-      setIsSubmitting(false);
+      setSecuritySuccess("Password updated successfully!");
+      setTimeout(() => setSecuritySuccess(null), 3000);
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        setSubmitError(error.message || "Failed to update settings");
-      } else {
-        setSubmitError("Failed to update settings");
-      }
-      setIsSubmitting(false);
+      setSecuritySubmitError(
+        error instanceof Error ? error.message : "Failed to update password.",
+      );
+    } finally {
+      setIsSecuritySubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    if (!isSubmitting) {
-      onClose();
-    }
-  };
+  const initials = user
+    ? `${user.firstName?.[0] ?? ""}${user.lastName?.[0] ?? ""}`.toUpperCase()
+    : "?";
+
+  const navItems: { id: Tab; label: string; icon: React.ReactNode }[] = [
+    { id: "profile", label: "Profile", icon: <User size={16} /> },
+    { id: "edit", label: "Edit Profile", icon: <Pencil size={16} /> },
+    { id: "security", label: "Security", icon: <Shield size={16} /> },
+  ];
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={handleClose}
     >
-      <DialogContent className="sm:max-w-125">
-        <DialogHeader>
-          <DialogTitle>Settings</DialogTitle>
-          <DialogDescription>
-            Update your profile information and password
-          </DialogDescription>
-        </DialogHeader>
-
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-4"
-        >
-          {submitError && <ErrorAlert message={submitError} />}
-          {successMessage && (
-            <div className="p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md">
-              <p className="text-sm text-green-600 dark:text-green-400">
-                {successMessage}
-              </p>
-            </div>
-          )}
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Profile Information
-            </h3>
-
-            <FormField
-              id="firstName"
-              label="First Name"
-              value={formData.firstName}
-              onChange={(value) =>
-                setFormData({ ...formData, firstName: value })
-              }
-              placeholder="Enter first name"
-              required
-              error={errors.firstName}
-              disabled={isSubmitting}
-            />
-
-            <FormField
-              id="lastName"
-              label="Last Name"
-              value={formData.lastName}
-              onChange={(value) =>
-                setFormData({ ...formData, lastName: value })
-              }
-              placeholder="Enter last name"
-              error={errors.lastName}
-              disabled={isSubmitting}
-            />
-          </div>
-
-          <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-              Change Password
-            </h3>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Leave blank to keep current password
+      <DialogContent className="p-0 gap-0 sm:max-w-2xl overflow-hidden">
+        <DialogTitle className="sr-only">Settings</DialogTitle>
+        <div className="flex h-130">
+          {/* Sidebar */}
+          <aside className="w-48 shrink-0 border-r border-gray-200 dark:border-gray-700 bg-sidebar-primary-foreground dark:bg-sidebar-primary-foreground flex flex-col pt-6 pb-4">
+            <p className="px-4 mb-3 text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Settings
             </p>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="oldPassword"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-              >
-                Current Password
-              </label>
-              <div className="relative">
-                <input
-                  id="oldPassword"
-                  type={showOldPassword ? "text" : "password"}
-                  value={formData.oldPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, oldPassword: e.target.value })
-                  }
-                  placeholder="Enter current password"
-                  className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white ${
-                    errors.oldPassword
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                  disabled={isSubmitting}
-                />
+            <nav className="flex flex-col gap-1 px-2">
+              {navItems.map((item) => (
                 <button
+                  key={item.id}
                   type="button"
-                  onClick={() => setShowOldPassword(!showOldPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  {showOldPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                </button>
-              </div>
-              {errors.oldPassword && (
-                <p className="text-sm text-red-500">{errors.oldPassword}</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <label
-                htmlFor="newPassword"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-              >
-                New Password
-              </label>
-              <div className="relative">
-                <input
-                  id="newPassword"
-                  type={showNewPassword ? "text" : "password"}
-                  value={formData.newPassword}
-                  onChange={(e) =>
-                    setFormData({ ...formData, newPassword: e.target.value })
-                  }
-                  placeholder="Enter new password"
-                  className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white ${
-                    errors.newPassword
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-md text-sm font-medium transition-colors w-full text-left ${
+                    activeTab === item.id
+                      ? "bg-secondary dark:bg-secondary text-gray-900 dark:text-white shadow-sm border border-gray-200 dark:border-gray-700"
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                   }`}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
                 >
-                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {item.icon}
+                  {item.label}
                 </button>
-              </div>
-              {errors.newPassword && (
-                <p className="text-sm text-red-500">{errors.newPassword}</p>
-              )}
-            </div>
+              ))}
+            </nav>
+          </aside>
 
-            <div className="space-y-2">
-              <label
-                htmlFor="confirmPassword"
-                className="block text-sm font-semibold text-gray-700 dark:text-gray-300"
-              >
-                Confirm New Password
-              </label>
-              <div className="relative">
-                <input
-                  id="confirmPassword"
-                  type={showConfirmPassword ? "text" : "password"}
-                  value={formData.confirmPassword}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      confirmPassword: e.target.value,
-                    })
-                  }
-                  placeholder="Confirm new password"
-                  className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white ${
-                    errors.confirmPassword
-                      ? "border-red-500"
-                      : "border-gray-300 dark:border-gray-600"
-                  }`}
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-                >
-                  {showConfirmPassword ? (
-                    <EyeOff size={18} />
-                  ) : (
-                    <Eye size={18} />
-                  )}
-                </button>
-              </div>
-              {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword}</p>
-              )}
-            </div>
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-6">
+            {/* PROFILE TAB */}
+            {activeTab === "profile" && (
+              <InfoTab
+                user={user!}
+                initials={initials}
+              />
+            )}
+
+            {/* EDIT PROFILE TAB */}
+            {activeTab === "edit" && (
+              <EditTab
+                profileData={profileData}
+                setProfileData={setProfileData}
+                profileErrors={profileErrors}
+                isProfileSubmitting={isProfileSubmitting}
+                handleProfileSubmit={handleProfileSubmit}
+                profileSubmitError={profileSubmitError}
+                profileSuccess={profileSuccess}
+                handleClose={handleClose}
+              />
+            )}
+
+            {/* SECURITY TAB */}
+            {activeTab === "security" && (
+              <SecurityTab
+                securityData={securityData}
+                setSecurityData={setSecurityData}
+                securityErrors={securityErrors}
+                isSecuritySubmitting={isSecuritySubmitting}
+                handleSecuritySubmit={handleSecuritySubmit}
+                securitySubmitError={securitySubmitError}
+                securitySuccess={securitySuccess}
+                handleClose={handleClose}
+              />
+            )}
           </div>
-
-          <ModalFooter
-            onCancel={handleClose}
-            isSubmitting={isSubmitting}
-            submitLabel="Save Changes"
-          />
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
