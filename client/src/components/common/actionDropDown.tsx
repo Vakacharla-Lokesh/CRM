@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Eye, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { Eye, Mail, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { useOffline } from "@/context/useOffline";
 
 interface ActionDropdownProps {
@@ -30,8 +30,18 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
 }) => {
   const { isOnline } = useOffline();
 
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(id);
+  const handleSendEmail = () => {
+    const subject = `${type} Details`;
+    const body = `Here are the details:
+
+${type} ID: ${id}
+`;
+
+    const mailtoLink = `mailto:?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`;
+
+    window.location.href = mailtoLink;
   };
 
   return (
@@ -52,7 +62,13 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem onClick={handleCopy}>Copy {type} ID</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleSendEmail}
+          className="flex items-center gap-2"
+        >
+          <Mail className="w-4 h-4" />
+          Send {type} via Email
+        </DropdownMenuItem>
 
         {onViewUsers && (
           <DropdownMenuItem

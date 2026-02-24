@@ -24,7 +24,7 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {user?.userEmail}
           </p>
-          <span className="inline-block mt-1 text-xs bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300 rounded px-2 py-0.5 font-medium capitalize">
+          <span className="inline-block mt-1 text-xs text-blue-700 dark:text-blue-300 rounded px-2 py-0.5 font-medium capitalize">
             {user?.role?.replace("_", " ")}
           </span>
         </div>
@@ -40,7 +40,7 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
         ].map((field) => (
           <div
             key={field.label}
-            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 px-4 py-3"
+            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-secondary dark:bg-secondary-foreground px-4 py-3"
           >
             <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">
               {field.label}

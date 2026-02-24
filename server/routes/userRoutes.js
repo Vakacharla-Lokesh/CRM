@@ -74,7 +74,6 @@ router.get(
 router.post(
   "/",
   authenticate,
-  checkActive,
   authorize("admin", "super_admin"),
   validate(createUserSchema),
   createUser,
@@ -84,7 +83,6 @@ router.post(
 router.get(
   "/tenant/:tenantId",
   authenticate,
-  checkActive,
   authorize("super_admin"),
   getUsersByTenant,
 );
@@ -101,7 +99,6 @@ router.get(
 router.put(
   "/:id",
   authenticate,
-  checkActive,
   authorize("admin", "super_admin"),
   validate(updateUserSchema),
   updateUser,
@@ -110,7 +107,6 @@ router.put(
 router.delete(
   "/:id",
   authenticate,
-  checkActive,
   authorize("admin", "super_admin"),
   deleteUser,
 );
@@ -118,7 +114,6 @@ router.delete(
 router.patch(
   "/:id/role",
   authenticate,
-  checkActive,
   authorize("super_admin"),
   validate(updateRoleSchema),
   updateUserRole,
@@ -127,7 +122,6 @@ router.patch(
 router.put(
   "/:id/password",
   authenticate,
-  checkActive,
   validate(updatePasswordSchema),
   updatePassword,
 );
@@ -135,7 +129,6 @@ router.put(
 router.patch(
   "/:id/profile",
   authenticate,
-  checkActive,
   validate(updateProfileSchema),
   updateProfile,
 );

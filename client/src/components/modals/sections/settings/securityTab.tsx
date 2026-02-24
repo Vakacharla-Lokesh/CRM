@@ -77,7 +77,7 @@ function SecurityTab({
                 })
               }
               placeholder="Enter current password"
-              className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
                 securityErrors.oldPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"
@@ -117,7 +117,7 @@ function SecurityTab({
                 })
               }
               placeholder="Enter new password"
-              className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
                 securityErrors.newPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"
@@ -157,7 +157,7 @@ function SecurityTab({
                 })
               }
               placeholder="Confirm new password"
-              className={`w-full px-3 py-2 border rounded-md dark:bg-gray-800 dark:text-white pr-10 ${
+              className={`w-full px-3 py-2 border rounded-md bg-secondary dark:bg-secondary-foreground text-primary dark:text-primary-foreground pr-10 ${
                 securityErrors.confirmPassword
                   ? "border-red-500"
                   : "border-gray-300 dark:border-gray-600"

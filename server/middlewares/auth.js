@@ -25,7 +25,6 @@ export const authenticate = (req, res, next) => {
 
 export const checkActive = async (req, res, next) => {
   try {
-    // super_admin is platform-level, skip tenant check
     const user = await userModel.findById(req.user.userId).lean();
 
     if (!user || !user.isActive) {
@@ -34,7 +33,6 @@ export const checkActive = async (req, res, next) => {
       });
     }
 
-    // Only check tenant for non-super_admin
     if (req.user.role !== "super_admin" && req.user.tenantId) {
       const tenant = await tenantModel.findById(req.user.tenantId).lean();
 

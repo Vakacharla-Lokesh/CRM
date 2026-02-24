@@ -7,7 +7,7 @@ import {
   deleteTenant,
 } from "../controllers/tenantController.js";
 import { validate } from "../middlewares/validate.js";
-import { authenticate } from "../middlewares/auth.js";
+import { authenticate, checkActive } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
 import {
   createTenantSchema,

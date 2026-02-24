@@ -44,7 +44,7 @@ exponential fallback with jitter to add rate limiter
 
 >>>search feature implement (backend)
 
-fix dashboard stats
+fix dashboard stats? need? (currently using promise.all)
 
 >>>edit deal validation error
 
@@ -64,7 +64,7 @@ test all features
 
 better login page
 
-mail to instead of copy id in action drop downs
+>>>mail to instead of copy id in action drop downs
 
 super admin should have more features
 
