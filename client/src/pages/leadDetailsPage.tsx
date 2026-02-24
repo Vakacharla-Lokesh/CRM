@@ -10,6 +10,7 @@ import CommentsTab from "@/components/leads/tabs/commentsTab";
 import CallsTab from "@/components/leads/tabs/callsTab";
 import AttachmentsTab from "@/components/leads/tabs/attachmentsTab";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
+import { toast } from "sonner";
 
 function LeadDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -68,14 +69,14 @@ function LeadDetailsPage() {
 
       setLead(response.lead);
 
-      alert("Lead successfully converted to deal!");
+      toast.success("Lead converted to deal successfully!");
 
       navigate("/deals");
       setIsConverting(false);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to convert lead to deal";
-      alert(message);
+      toast.error(message);
       console.error("Error converting lead to deal:", err);
       setIsConverting(false);
     }

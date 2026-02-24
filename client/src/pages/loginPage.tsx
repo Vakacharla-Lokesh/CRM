@@ -7,8 +7,8 @@ import type { LoginFormData, LoginFormErrors } from "../utils/formValidators";
 import { Input } from "../components/ui/input";
 import { Label } from "../components/ui/label";
 import { Button } from "../components/ui/button";
-import { Checkbox } from "../components/ui/checkbox";
 import { Eye, EyeOff } from "lucide-react";
+import LandingNavbar from "@/components/layout/landingNavbar";
 
 type FormErrors = LoginFormErrors;
 
@@ -27,7 +27,6 @@ function LoginPage() {
     handleChange,
     handleBlur,
     handleSubmit: onSubmit,
-    setFieldValue,
   } = useForm<LoginFormData>(
     {
       userEmail: "",
@@ -69,6 +68,7 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-stretch bg-background">
+      <LandingNavbar />
       {/* LEFT COLUMN - Form */}
       <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 py-12">
         <div className="max-w-md w-full mx-auto space-y-8">
@@ -171,17 +171,6 @@ function LoginPage() {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center gap-2 cursor-pointer group">
-                <Checkbox
-                  checked={values.rememberMe}
-                  onCheckedChange={(checked) =>
-                    setFieldValue("rememberMe", checked)
-                  }
-                />
-                <span className="text-sm text-muted-foreground font-medium group-hover:text-foreground transition-colors">
-                  Remember me
-                </span>
-              </label>
               <button
                 type="button"
                 onClick={() => navigate("/forgot-password")}
@@ -208,22 +197,11 @@ function LoginPage() {
               )}
             </Button>
           </form>
-
-          {/* Sign Up Link */}
-          <p className="text-center text-muted-foreground text-sm">
-            Don't have an account?{" "}
-            <button
-              onClick={() => navigate("/signup")}
-              className="text-primary font-semibold hover:text-primary/80 transition-colors"
-            >
-              Sign Up
-            </button>
-          </p>
         </div>
       </div>
 
       {/* RIGHT COLUMN - Illustration Background */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary via-primary/80 to-primary/60 items-center justify-center relative overflow-hidden">
+      <div className="hidden lg:flex flex-1 bg-linear-to-br from-primary via-primary/80 to-primary/60 items-center justify-center relative overflow-hidden">
         {/* Animated Background Shapes */}
         <div className="absolute inset-0 opacity-20">
           <div className="absolute top-20 right-20 w-72 h-72 bg-white rounded-full blur-3xl" />

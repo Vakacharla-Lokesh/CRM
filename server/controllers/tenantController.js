@@ -1,6 +1,8 @@
+import crypto from "crypto";
 import mongoose from "mongoose";
 import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
+import emailController from "./emailController.js";
 
 // Get all tenants
 export const getAllTenants = async (req, res, next) => {
@@ -52,14 +54,39 @@ export const getTenantById = async (req, res, next) => {
 
 // Create a new tenant
 export const createTenant = async (req, res, next) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const tenant = await tenantModel.create(req.body);
+    const tenant = await tenantModel.create([req.body], { session });
+
+    const randomPassword = crypto.randomBytes(6).toString("hex");
+
+    const adminUser = await userModel.create(
+      [
+        {
+          firstName: "admin",
+          userEmail: tenant[0].email,
+          password: randomPassword,
+          tenantId: tenant[0]._id,
+          role: "admin",
+        },
+      ],
+      { session },
+    );
+
+    await session.commitTransaction();
+    session.endSession();
+
+    await emailController.sendAdminMail(adminUser[0], randomPassword);
 
     res.status(201).json({
-      message: "Tenant created successfully",
-      tenant,
+      message: "Tenant and admin created successfully",
+      tenant: tenant[0],
     });
   } catch (err) {
+    await session.abortTransaction();
+    session.endSession();
     next(err);
   }
 };

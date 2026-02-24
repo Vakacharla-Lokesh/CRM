@@ -8,10 +8,8 @@ const PORT = process.env.MAILTRAP_PORT;
 const USER = process.env.MAILTRAP_USER;
 const PASS = process.env.MAILTRAP_PASS;
 
-const FROM_EMAIL =
-  process.env.MAILTRAP_FROM_EMAIL || "hello@demomailtrap.co";
-const FROM_NAME =
-  process.env.MAILTRAP_FROM_NAME || "Your App";
+const FROM_EMAIL = process.env.MAILTRAP_FROM_EMAIL || "hello@demomailtrap.co";
+const FROM_NAME = process.env.MAILTRAP_FROM_NAME || "Your App";
 
 if (!HOST || !PORT || !USER || !PASS) {
   console.warn("Mailtrap SMTP credentials are missing in .env");
@@ -33,15 +31,86 @@ const emailTemplates = {
     to: email,
     subject: "Your Password Reset OTP",
     html: `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-        <h2>Password Reset Request</h2>
-        <p>We received a request to reset your password. Use the OTP below to proceed.</p>
-        <div style="background-color: #f5f5f5; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0;">
-          <p style="font-size: 32px; font-weight: bold; letter-spacing: 4px; color: #333; margin: 0;">
-            ${otp}
-          </p>
-        </div>
-        <p style="color: #666;">This OTP will expire in ${expiryMinutes} minutes.</p>
+      <div style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+          <tr>
+            <td align="center">
+              
+              <!-- Card Container -->
+              <table width="600" cellpadding="0" cellspacing="0" 
+                style="background:#ffffff;border-radius:12px;overflow:hidden;
+                      box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+                
+                <!-- Header -->
+                <tr>
+                  <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                            padding:30px;text-align:center;color:#ffffff;">
+                    <h1 style="margin:0;font-size:24px;font-weight:600;">
+                      Campaign Flux
+                    </h1>
+                    <p style="margin:8px 0 0;font-size:14px;opacity:0.9;">
+                      Secure Password Reset
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Body -->
+                <tr>
+                  <td style="padding:40px 30px;">
+                    <h2 style="margin-top:0;color:#111827;font-size:20px;">
+                      Password Reset Request
+                    </h2>
+
+                    <p style="color:#4b5563;font-size:14px;line-height:1.6;">
+                      We received a request to reset your password for your 
+                      <strong>Campaign Flux</strong> account.
+                      Use the OTP below to continue.
+                    </p>
+
+                    <!-- OTP Box -->
+                    <div style="margin:30px 0;text-align:center;">
+                      <div style="
+                        display:inline-block;
+                        padding:18px 32px;
+                        font-size:32px;
+                        font-weight:700;
+                        letter-spacing:6px;
+                        background:#eef2ff;
+                        color:#4f46e5;
+                        border-radius:10px;
+                        border:1px solid #c7d2fe;
+                      ">
+                        ${otp}
+                      </div>
+                    </div>
+
+                    <p style="color:#6b7280;font-size:13px;text-align:center;">
+                      This OTP will expire in 
+                      <strong>${expiryMinutes} minutes</strong>.
+                    </p>
+
+                    <hr style="border:none;border-top:1px solid #e5e7eb;margin:30px 0;">
+
+                    <p style="color:#9ca3af;font-size:12px;line-height:1.6;">
+                      If you did not request a password reset, you can safely ignore this email.
+                      Your account remains secure.
+                    </p>
+                  </td>
+                </tr>
+
+                <!-- Footer -->
+                <tr>
+                  <td style="background:#f9fafb;padding:20px;text-align:center;">
+                    <p style="margin:0;font-size:12px;color:#9ca3af;">
+                      © ${new Date().getFullYear()} Campaign Flux. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+        </table>
       </div>
     `,
     text: `Your password reset OTP is: ${otp}. It expires in ${expiryMinutes} minutes.`,
@@ -54,6 +123,61 @@ const emailTemplates = {
     text: "Your password has been successfully reset.",
     html: `<p>Your password has been successfully reset.</p>`,
   }),
+
+  adminMail: (tenant, randomPassword) => ({
+    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    to: tenant.email,
+    subject: "Your Admin Account Credentials",
+    html: `
+      <div style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
+        <table width="100%" cellpadding="0" cellspacing="0" style="padding:40px 0;">
+          <tr>
+            <td align="center">
+              <table width="600" cellpadding="0" cellspacing="0" 
+                style="background:#ffffff;border-radius:12px;overflow:hidden;
+                       box-shadow:0 8px 30px rgba(0,0,0,0.08);">
+                <tr>
+                  <td style="background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                             padding:30px;text-align:center;color:#ffffff;">
+                    <h1 style="margin:0;font-size:24px;font-weight:600;">
+                      Campaign Flux
+                    </h1>
+                    <p style="margin:8px 0 0;font-size:14px;opacity:0.9;">
+                      Admin Account Credentials
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:40px 30px;">
+                    <h2 style="margin-top:0;color:#111827;font-size:20px;">
+                      Welcome to Campaign Flux!
+                    </h2>
+                    <p style="color:#4b5563;font-size:14px;line-height:1.6;">
+                      Your tenant has been created. Here are your admin credentials:
+                    </p>
+                    <div style="margin:20px 0;padding:20px;background:#eef2ff;border-radius:10px;text-align:center;">
+                      <p><strong>Email:</strong> ${tenant.email}</p>
+                      <p><strong>Password:</strong> ${randomPassword}</p>
+                    </div>
+                    <p style="color:#6b7280;font-size:13px;text-align:center;">
+                      Please change your password after logging in.
+                    </p>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="background:#f9fafb;padding:20px;text-align:center;">
+                    <p style="margin:0;font-size:12px;color:#9ca3af;">
+                      © ${new Date().getFullYear()} Campaign Flux. All rights reserved.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>
+      </div>
+    `,
+  }),
 };
 
 const emailController = {
@@ -63,8 +187,13 @@ const emailController = {
   },
 
   sendPasswordResetConfirmation: async (email) => {
-    const mailOptions =
-      emailTemplates.passwordResetConfirmation(email);
+    const mailOptions = emailTemplates.passwordResetConfirmation(email);
+    return await transport.sendMail(mailOptions);
+  },
+
+  sendAdminMail: async (tenant, randomPassword) => {
+    const mailOptions = emailTemplates.adminMail(tenant, randomPassword);
+
     return await transport.sendMail(mailOptions);
   },
 
