@@ -92,19 +92,13 @@ function Navbar({
             </button>
 
             <div
-              className={`absolute right-5 w-48 mt-2 bg-white dark:bg-[#1e1b18] rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
+              className={`absolute right-5 w-48 mt-2 bg-primary-foreground dark:bg-primary-foreground rounded-lg shadow-lg invisible border border-accent group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
             >
               <div className="p-4 border-b border-gray-200 dark:border-gray-600">
                 <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                   {user?.userEmail || "guest@example.com"}
                 </p>
               </div>
-              {/* <button
-                onClick={() => console.log("Navigate to profile")}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-              >
-                Profile
-              </button> */}
               <button
                 onClick={handleSettingsClick}
                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"

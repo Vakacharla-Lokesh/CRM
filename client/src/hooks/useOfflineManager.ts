@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { API_BASE_URL, getToken } from "../services/api/core";
 
 interface OfflineRequest {
   id: string;
@@ -233,9 +234,9 @@ export const useOfflineManager = () => {
         try {
           const payload = requests.map((req) => req.body);
 
-          const bulkEndpoint = `/api/bulk/${entityType}/${operationType}`;
+          const bulkEndpoint = `${API_BASE_URL}/bulk/${entityType}/${operationType}`;
 
-          const token = localStorage.getItem("auth_token");
+          const token = getToken();
 
           const response = await fetch(bulkEndpoint, {
             method: "POST",
@@ -268,6 +269,8 @@ export const useOfflineManager = () => {
             if (req.retries < req.maxRetries) {
               retryRequest(req.id);
             } else {
+              // Max retries exhausted — remove from queue to stop spamming
+              removeFromQueue(req.id);
               result.failed += 1;
               result.errors.push({
                 entityType,

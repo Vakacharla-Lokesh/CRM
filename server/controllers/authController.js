@@ -42,14 +42,13 @@ async function generateAndStoreRefreshToken(payload) {
 
 function formatUser(user) {
   return {
-    user_id: user._id,
+    _id: user._id,
     firstName: user.firstName,
     lastName: user.lastName,
     userEmail: user.userEmail,
-    user_name: `${user.firstName} ${user.lastName || ""}`.trim(),
     mobile: user.mobile,
     role: user.role,
-    tenant_id: user.tenantId,
+    tenantId: user.tenantId,
   };
 }
 
