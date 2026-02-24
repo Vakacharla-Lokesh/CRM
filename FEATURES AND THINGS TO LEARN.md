@@ -44,3 +44,29 @@ exponential fallback with jitter to add rate limiter
 
 >>>search feature implement (backend)
 
+fix dashboard stats
+
+edit deal validation error
+
+super admin more features
+
+admin can assign leads
+
+fix settings modal to look better
+
+fix vercel deployment issues
+
+connect render to vercel
+
+caching? using upstash?
+
+otp validation for password reset or forgot password
+
+test all features
+
+better login page
+
+mail to instead of copy id in action drop downs
+
+super admin should have more features
+

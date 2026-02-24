@@ -421,7 +421,7 @@
   --spacing: 0.25rem;
 }
 
-[data-theme="tech"] .dark {
+[data-theme="tech"].dark {
   --background: oklch(0.2077 0.0398 265.7549);
   --foreground: oklch(0.9299 0.0334 272.7879);
   --card: oklch(0.2573 0.0861 281.2883);
@@ -483,3 +483,4 @@
     2px 8px 10px -1px hsl(255 86% 66% / 0.2);
   --shadow-2xl: 2px 2px 4px 0px hsl(255 86% 66% / 0.5);
 }
+

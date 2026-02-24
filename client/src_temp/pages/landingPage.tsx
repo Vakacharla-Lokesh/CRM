@@ -2,88 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  Github,
-  Users,
-  Building2,
-  DollarSign,
-  BarChart3,
-  Phone,
-  MessageSquare,
-  ShieldCheck,
-  Zap,
-  Globe,
-  ChevronRight,
-} from "lucide-react";
+import { ArrowRight, Github, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-
-const features = [
-  {
-    icon: Users,
-    title: "Lead Management",
-    description:
-      "Track and qualify leads through your sales funnel with rich profiles, scoring, and status tracking.",
-  },
-  {
-    icon: DollarSign,
-    title: "Deal Pipeline",
-    description:
-      "Move deals from prospecting to close with stage-based tracking and deal value management.",
-  },
-  {
-    icon: Building2,
-    title: "Organization Tracking",
-    description:
-      "Maintain detailed company profiles with industry, size, website, and linked leads.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Multi-Tenant & RBAC",
-    description:
-      "Isolated workspaces per tenant with role-based access — user, admin, and super admin.",
-  },
-  {
-    icon: Phone,
-    title: "Call Logs",
-    description:
-      "Log incoming and outgoing calls with status, duration, and notes for complete history.",
-  },
-  {
-    icon: MessageSquare,
-    title: "Comments & Activity",
-    description:
-      "Attach comments to leads and keep a full audit trail of every customer interaction.",
-  },
-  {
-    icon: BarChart3,
-    title: "Analytics Dashboard",
-    description:
-      "Real-time metrics on leads, deals, conversion rates, and campaign performance.",
-  },
-  {
-    icon: Zap,
-    title: "Bulk Operations",
-    description:
-      "Create or update hundreds of leads, deals, and organizations in a single transactional request.",
-  },
-  {
-    icon: Globe,
-    title: "Offline Support",
-    description:
-      "Queue actions when offline and auto-sync when your connection is restored.",
-  },
-];
-
-const stats = [
-  { label: "Entities Managed", value: "Leads & Deals" },
-  { label: "Access Control", value: "Role-Based" },
-  { label: "Architecture", value: "Multi-Tenant" },
-  { label: "Data Ops", value: "Bulk + Transactional" },
-];
+import { features, stats } from "@/types/constants/landingPage";
+import { ThemeControls } from "@/components/common/themeToggle";
 
 export default function LandingPage() {
   const navigate = useNavigate();
@@ -134,6 +59,7 @@ export default function LandingPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-3">
+            <ThemeControls />
             <a
               href="https://github.com/Vakacharla-Lokesh/CRM"
               target="_blank"
