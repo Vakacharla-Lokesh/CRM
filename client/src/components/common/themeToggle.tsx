@@ -61,6 +61,9 @@ export function ThemeControls() {
           <DropdownMenuItem onClick={() => setPalette("tech")}>
             Tech
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setPalette("meta")}>
+            Meta
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -1,7 +1,7 @@
 import { createContext, useEffect, useState } from "react";
 
 type Mode = "dark" | "light" | "system";
-type Palette = "default" | "claude" | "tech";
+type Palette = "default" | "claude" | "tech" | "meta";
 
 type ThemeProviderState = {
   mode: Mode;

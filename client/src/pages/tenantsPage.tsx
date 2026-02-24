@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useTenantData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { useNavigate } from "react-router-dom";
+import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
 
 const TenantsPage = () => {
@@ -26,6 +27,8 @@ const TenantsPage = () => {
     refresh,
   } = useTenantData();
   const navigate = useNavigate();
+
+  const { isOnline } = useOffline();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
@@ -103,6 +106,7 @@ const TenantsPage = () => {
         <Button
           onClick={handleOpenModal}
           className="gap-2"
+          disabled={!isOnline}
         >
           <Plus className="h-4 w-4" />
           Add Tenant

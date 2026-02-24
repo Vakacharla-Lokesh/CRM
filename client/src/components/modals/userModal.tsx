@@ -20,11 +20,14 @@ import type {
 } from "@/types/interfaces/form-interfaces";
 import { useParams } from "react-router-dom";
 import { validateUserForm } from "@/utils/formValidators";
+import { useOffline } from "@/context/useOffline";
+import { toast } from "sonner";
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
   const isSuperAdmin = currentUser?.role === "super_admin";
   const { id } = useParams();
+  const { isOnline, addToQueue } = useOffline();
 
   const [formData, setFormData] = useState<UserFormData>({
     firstName: "",
@@ -82,6 +85,42 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
     setIsSubmitting(true);
 
+    // --- Offline path ---
+    if (!isOnline) {
+      if (user) {
+        // User updates require the server to process auth changes — skip queueing
+        toast.error("Updating a user requires an internet connection. Please try again when online.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const userData: CreateUserDTO = {
+        firstName: formData.firstName,
+        lastName: formData.lastName || undefined,
+        userEmail: formData.userEmail,
+        password: formData.password,
+        mobile: formData.mobile || undefined,
+        role: formData.role,
+        tenantId: formData.tenantId,
+      };
+
+      addToQueue(
+        "/api/users",
+        "POST",
+        userData,
+        undefined,
+        3,
+        "users",
+        "create",
+      );
+
+      toast.info("You're offline. User has been queued and will sync automatically when your connection is restored.");
+      onClose();
+      setIsSubmitting(false);
+      return;
+    }
+
+    // --- Online path ---
     try {
       const userData: CreateUserDTO = {
         firstName: formData.firstName,
