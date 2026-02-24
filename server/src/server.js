@@ -26,6 +26,9 @@ import { errorHandler, notFound } from "../middlewares/errorHandler.js";
 import "../db/initDb.js";
 import { limiter } from "../utils/rateLimit.js";
 
+import { config } from "dotenv";
+config();
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -44,7 +47,7 @@ app.use(morgan("dev"));
 // Cors package to handle request from frontend
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: process.env.CORS_ORIGIN,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   }),
@@ -60,7 +63,7 @@ app.use(passport.initialize());
 // rate limiter package for express
 app.use(limiter);
 
-// health check 
+// health check
 app.get("/health", (req, res) => {
   res.json({ status: "OK", timestamp: new Date().toISOString() });
 });

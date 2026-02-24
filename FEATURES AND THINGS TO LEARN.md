@@ -46,17 +46,15 @@ exponential fallback with jitter to add rate limiter
 
 fix dashboard stats
 
-edit deal validation error
-
-super admin more features
+>>>edit deal validation error
 
 admin can assign leads
 
-fix settings modal to look better
+>>>fix settings modal to look better
 
-fix vercel deployment issues
+>>>fix vercel deployment issues
 
-connect render to vercel
+>>>connect render to vercel
 
 caching? using upstash?
 
@@ -69,4 +67,6 @@ better login page
 mail to instead of copy id in action drop downs
 
 super admin should have more features
+
+web socket implementation in server
 

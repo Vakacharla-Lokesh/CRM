@@ -1,5 +1,5 @@
 import { apiClient } from "./api";
-import type { Deal } from "../types";
+import type { Deal, UpdateDealDTO } from "../types";
 
 interface DealStats {
   total: number;
@@ -58,7 +58,7 @@ const dealService = {
     return response.deal;
   },
 
-  updateDeal: async (id: string, updates: Partial<Deal>): Promise<Deal> => {
+  updateDeal: async (id: string, updates: UpdateDealDTO): Promise<Deal> => {
     const response = await apiClient.put<{
       message: string;
       deal: Deal;
@@ -96,7 +96,7 @@ const dealService = {
 
   bulkUpdateDeals: async (
     dealIds: string[],
-    updates: Partial<Deal>,
+    updates: UpdateDealDTO,
   ): Promise<{ message: string; updated: number }> => {
     return apiClient.post<{ message: string; updated: number }>(
       "/deals/bulk-update",
