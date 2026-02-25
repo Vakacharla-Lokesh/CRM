@@ -92,22 +92,37 @@ function Navbar({
             </button>
 
             <div
-              className={`absolute right-5 w-48 mt-2 bg-primary-foreground dark:bg-primary-foreground rounded-lg shadow-lg invisible border border-accent group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10 ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
+              className={`absolute right-5 w-48 mt-2 
+    bg-popover text-popover-foreground
+    rounded-lg shadow-lg border border-border
+    invisible opacity-0
+    group-hover:opacity-100 group-hover:visible
+    transition-all duration-200 z-10
+    ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
             >
-              <div className="p-4 border-b border-gray-200 dark:border-gray-600">
-                <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+              <div className="p-4 border-b border-border">
+                <p className="text-sm font-medium truncate">
                   {user?.userEmail || "guest@example.com"}
                 </p>
               </div>
+
               <button
                 onClick={handleSettingsClick}
-                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+                className="w-full text-left px-4 py-2 text-sm
+                    hover:bg-accent hover:text-accent-foreground
+                    transition-colors"
               >
                 Settings
               </button>
+
               <button
                 onClick={handleLogout}
-                className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-b-lg transition-colors border-t border-gray-200 dark:border-gray-600"
+                className="w-full text-left px-4 py-2 text-sm
+                  text-destructive
+                  hover:bg-destructive/10
+                  border-t border-border
+                  rounded-b-lg
+                  transition-colors"
               >
                 Logout
               </button>

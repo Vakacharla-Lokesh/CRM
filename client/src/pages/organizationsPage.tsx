@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "../components/ui/button";
 import { toast } from "sonner";
+import OrganizationStatistics from "@/components/organizations/organizationStatistics";
 
 // other imports
 import type {
@@ -33,11 +34,15 @@ import { exportOrganizations } from "@/services/exportService";
 import { useOffline } from "@/context/useOffline";
 import { useOfflineManager } from "@/hooks/useOfflineManager";
 
+// notification imports
+import { useNotifications } from "@/hooks";
+
 const OrganizationsPage = () => {
   const {
     filteredOrganizations,
     statistics,
     loading,
+    loadingMore,
     error,
     filters,
     fetchOrganizations,
@@ -47,6 +52,8 @@ const OrganizationsPage = () => {
     deleteOrganization,
     resetFilters,
     searchOrganizations,
+    hasNextPage,
+    loadMore,
   } = useOrganizationData();
 
   const [selectedOrganization, setSelectedOrganization] =
@@ -55,24 +62,35 @@ const OrganizationsPage = () => {
     string[]
   >([]);
 
+  // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [organizationToDelete, setOrganizationToDelete] = useState<
     string | null
   >(null);
 
+  // search state
+  const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  // navigation
   const navigate = useNavigate();
+
+  // offline handling
   const { isOnline } = useOffline();
   const { queue } = useOfflineManager();
 
-  const [searchInput, setSearchInput] = useState(filters.search ?? "");
-  const debouncedSearch = useDebounce(searchInput, 400);
+  // notifications
+  const { notifyEvent } = useNotifications();
 
   // Fetch organizations on mount
   useEffect(() => {
     fetchOrganizations();
   }, [fetchOrganizations]);
 
+  // add organization modal handler
   const handleAddOrganization = () => {
     setIsModalOpen(true);
   };
@@ -82,6 +100,7 @@ const OrganizationsPage = () => {
     setSelectedOrganization(null);
   };
 
+  // save organization handler for both create and update
   const handleSaveOrganization = async (
     organizationData: CreateOrganizationDTO,
   ) => {
@@ -89,6 +108,13 @@ const OrganizationsPage = () => {
       await createOrganization(organizationData);
       handleCloseModal();
       toast.success("Organization created successfully!");
+      notifyEvent({
+        type: "organization_created",
+        title: "Organization Created",
+        message: `Organization "${organizationData.organizationName}" has been created.`,
+        entityId: "", // you can pass the new organization's ID here if available
+        entityType: "organization",
+      });
     } catch (error) {
       if (error instanceof Error && error.message === "OFFLINE_QUEUED") {
         handleCloseModal();
@@ -103,15 +129,22 @@ const OrganizationsPage = () => {
     }
   };
 
+  // update organization
   const handleUpdateOrganization = async (
     id: string,
     organizationData: UpdateOrganizationDTO,
   ) => {
     try {
       await updateOrganization(id, organizationData);
-      await fetchOrganizations();
       handleCloseModal();
       toast.success("Organization updated successfully!");
+      notifyEvent({
+        type: "organization_updated",
+        title: "Organization Updated",
+        message: `Organization "${organizationData.organizationName}" has been updated.`,
+        entityId: id,
+        entityType: "organization",
+      });
     } catch (error) {
       console.error("Error updating organization:", error);
       toast.error("Failed to update organization. Please try again.");
@@ -119,6 +152,7 @@ const OrganizationsPage = () => {
     }
   };
 
+  // edit and delete handlers
   const handleEditOrganization = (id: string) => {
     const org = filteredOrganizations.find((o) => o._id === id);
     if (org) {
@@ -139,26 +173,38 @@ const OrganizationsPage = () => {
       await deleteOrganization(organizationToDelete);
       setOrganizationToDelete(null);
       toast.success("Organization deleted successfully!");
+      notifyEvent({
+        type: "organization_deleted",
+        title: "Organization Deleted",
+        message: `An organization has been deleted.`,
+        entityId: organizationToDelete,
+        entityType: "organization",
+      });
     } catch (error) {
       console.error("Error deleting organization:", error);
       toast.error("Failed to delete organization. Please try again.");
       setOrganizationToDelete(null);
     }
   };
+
+  // view leads
   const handleViewLeads = (id: string) => {
     navigate(`/organizations/${id}/leads`);
   };
 
+  // export handler
   const handleExport = async () => {
     await exportOrganizations(selectedOrganizationIds);
     setSelectedOrganizationIds([]);
   };
 
+  // handle search and filters
   useEffect(() => {
     searchOrganizations(debouncedSearch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
+  // Listen for sync completion events
   useEffect(() => {
     const handleSync = (event: CustomEvent) => {
       const result = event.detail;
@@ -232,16 +278,7 @@ const OrganizationsPage = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Organizations
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {statistics.total}
-          </p>
-        </div>
-      </div>
+      <OrganizationStatistics statistics={statistics} />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -335,6 +372,9 @@ const OrganizationsPage = () => {
           onSelectionChange={(rows) =>
             setSelectedOrganizationIds(rows.map((r) => r._id))
           }
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
         ></DataTable>
       )}
 

@@ -1,9 +1,12 @@
+// hooks and basic imports
 import { useState, useEffect } from "react";
-import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/users/userColumns";
-import type { CreateUserDTO, User } from "@/types";
-import { Button } from "../components/ui/button";
-import { Download, Search } from "lucide-react";
+import { useUserData } from "@/hooks";
+import { useParams } from "react-router-dom";
+
+// components imports
+import { DataTable } from "@/components/common/dataTable";
+import { columns } from "@/components/users/userColumns";
+import { Button } from "@/components/ui/button";
 import { UserModal } from "@/components/modals";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,18 +16,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useUserData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
-import { useParams } from "react-router-dom";
 import UserStatistics from "@/components/users/userStatistics";
 import { toast } from "sonner";
 
+// other imports
+import type { CreateUserDTO, User } from "@/types";
+import { Download, Search } from "lucide-react";
+
+// notification imports
+import { useNotifications } from "@/hooks";
+
 const UsersPage = () => {
-  const { id } = useParams();
   const {
     filteredUsers,
     statistics,
     loading,
+    loadingMore,
     error,
     filters,
     updateFilter,
@@ -34,13 +42,27 @@ const UsersPage = () => {
     updateUser,
     deleteUser,
     fetchUserByTenant,
+    hasNextPage,
+    loadMore,
   } = useUserData();
 
+  // get tenant id from url params if present to fetch users of that tenant, otherwise fetch all users
+  const { id } = useParams();
+
+  // selected user for edit and delete
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<string | null>(null);
 
+  // delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // notifications
+  const { notifyEvent } = useNotifications();
+
+  // fetch users on component mount and when tenant id changes
   useEffect(() => {
     if (id) {
       fetchUserByTenant(id);
@@ -49,21 +71,40 @@ const UsersPage = () => {
     }
   }, [fetchUserByTenant, fetchUsers, id]);
 
+  // handle add user
   const handleAddUser = () => {
     setSelectedUser(null);
     setIsModalOpen(true);
   };
 
+  // handle close modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedUser(null);
   };
 
+  // handle save user for both create and update
   const handleSaveUser = async (userData: CreateUserDTO) => {
     if (selectedUser) {
       await updateUser(selectedUser._id, userData);
+      toast.success("User updated successfully!");
+      notifyEvent({
+        type: "user_updated",
+        title: "User Updated",
+        message: `User ${userData.firstName} has been updated successfully.`,
+        entityId: selectedUser._id,
+        entityType: "user",
+      });
     } else {
       await createUser(userData);
+      toast.success("User created successfully!");
+      notifyEvent({
+        type: "user_created",
+        title: "User Created",
+        message: `User ${userData.firstName} has been created successfully.`,
+        entityId: "", // You can set this to the new user's ID if your API returns it on creation
+        entityType: "user",
+      });
     }
     setIsModalOpen(false);
     setSelectedUser(null);
@@ -78,6 +119,7 @@ const UsersPage = () => {
     }
   };
 
+  // handle delete user
   const handleDeleteUser = (id: string) => {
     setUserToDelete(id);
     setDeleteDialogOpen(true);
@@ -90,6 +132,13 @@ const UsersPage = () => {
       await deleteUser(userToDelete);
       setUserToDelete(null);
       toast.success("User deleted successfully!");
+      notifyEvent({
+        type: "user_deleted",
+        title: "User Deleted",
+        message: `A user has been deleted successfully.`,
+        entityId: userToDelete,
+        entityType: "user",
+      });
     } catch (error) {
       console.error("Error deleting user:", error);
       toast.error("Failed to delete user. Please try again.");
@@ -217,6 +266,9 @@ const UsersPage = () => {
           data={filteredUsers}
           name="Users"
           searchColumn="userEmail"
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
         />
       )}
 

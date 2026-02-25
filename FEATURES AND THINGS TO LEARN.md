@@ -78,7 +78,7 @@ web socket implementation in server
 
 >>> when tenant is created a new admin is automatically created and mail is sent to admin with password
 
-fix comments in all files in front end
+>>>fix comments in all files in front end
 
 worker thread in frontend for exports
 
@@ -92,3 +92,4 @@ documentation
 
 local stack download
 
+export using fastcsv and send from backend

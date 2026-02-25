@@ -26,6 +26,8 @@ import {
 
 import { Button } from "../ui/button";
 
+const DEFAULT_PAGE_SIZE = 20;
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -35,6 +37,7 @@ interface DataTableProps<TData, TValue> {
   hasNextPage?: boolean;
   onLoadMore?: () => void;
   loadingMore?: boolean;
+  pageSize?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -44,6 +47,7 @@ export function DataTable<TData, TValue>({
   hasNextPage,
   onLoadMore,
   loadingMore,
+  pageSize = DEFAULT_PAGE_SIZE,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -53,7 +57,48 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
+  // When true, we've triggered a server fetch and are waiting for new data
+  // so we can automatically advance to the next page.
+  const [pendingAdvance, setPendingAdvance] = React.useState(false);
+  const prevDataLengthRef = React.useRef(data.length);
+
   const useCursorPagination = onLoadMore !== undefined;
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    initialState: {
+      pagination: { pageSize },
+    },
+    onSortingChange: setSorting,
+    getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
+    onColumnVisibilityChange: setColumnVisibility,
+    onRowSelectionChange: (updater) => {
+      setRowSelection((prev) =>
+        typeof updater === "function" ? updater(prev) : updater,
+      );
+    },
+    state: {
+      sorting,
+      columnFilters,
+      columnVisibility,
+      rowSelection,
+    },
+  });
+
+  // After a server fetch completes (data grew) and we were waiting to advance,
+  // move to the next page now.
+  React.useEffect(() => {
+    if (pendingAdvance && data.length > prevDataLengthRef.current) {
+      table.nextPage();
+      setPendingAdvance(false);
+    }
+    prevDataLengthRef.current = data.length;
+  }, [data.length, pendingAdvance, table]);
 
   React.useEffect(() => {
     if (onSelectionChange) {
@@ -66,34 +111,27 @@ export function DataTable<TData, TValue>({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowSelection]);
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
+  const handleNext = () => {
+    if (table.getCanNextPage()) {
+      // Already have the next page's data loaded — just navigate.
+      table.nextPage();
+    } else if (useCursorPagination && hasNextPage) {
+      // Need to fetch the next page from the server first.
+      setPendingAdvance(true);
+      onLoadMore!();
+    }
+  };
 
-    ...(useCursorPagination
-      ? {}
-      : { getPaginationRowModel: getPaginationRowModel() }),
+  const isNextDisabled =
+    !table.getCanNextPage() &&
+    !(useCursorPagination && hasNextPage) ||
+    loadingMore ||
+    pendingAdvance;
 
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-
-    onRowSelectionChange: (updater) => {
-      setRowSelection((prev) =>
-        typeof updater === "function" ? updater(prev) : updater,
-      );
-    },
-
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  });
+  const { pageIndex, pageSize: currentPageSize } = table.getState().pagination;
+  const totalLoaded = table.getFilteredRowModel().rows.length;
+  const firstRow = totalLoaded === 0 ? 0 : pageIndex * currentPageSize + 1;
+  const lastRow = Math.min((pageIndex + 1) * currentPageSize, totalLoaded);
 
   return (
     <div>
@@ -152,40 +190,31 @@ export function DataTable<TData, TValue>({
         <div className="flex items-center justify-end space-x-2 py-4 mx-4">
           <div className="text-muted-foreground flex-1 text-sm">
             {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
+            {totalLoaded} row(s) selected.
+            {totalLoaded > 0 && (
+              <span className="ml-2">
+                Showing {firstRow}–{lastRow}
+                {useCursorPagination && hasNextPage ? "+" : ` of ${totalLoaded}`}
+              </span>
+            )}
           </div>
 
-          {useCursorPagination ? (
-            hasNextPage && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onLoadMore}
-                disabled={loadingMore}
-              >
-                {loadingMore ? "Loading..." : "Load More"}
-              </Button>
-            )
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.previousPage()}
-                disabled={!table.getCanPreviousPage()}
-              >
-                Previous
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => table.nextPage()}
-                disabled={!table.getCanNextPage()}
-              >
-                Next
-              </Button>
-            </>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage() || loadingMore || pendingAdvance}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleNext}
+            disabled={isNextDisabled}
+          >
+            {loadingMore || pendingAdvance ? "Loading..." : "Next"}
+          </Button>
         </div>
       </div>
     </div>

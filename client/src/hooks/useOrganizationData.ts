@@ -9,8 +9,6 @@ import { organizationService } from "@/services";
 import { useIndexedDB } from "./useIndexedDB";
 import type { Organization } from "@/types";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 interface OrganizationFilters {
   industry: string;
   search: string;
@@ -32,20 +30,15 @@ const EMPTY_FILTERS: OrganizationFilters = {
   dateTo: "",
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export const useOrganizationData = () => {
   const queryClient = useQueryClient();
   const { updateItem, deleteItem, getAll } = useIndexedDB<
     Organization & { id: string }
   >("organizations");
 
-  // Local UI state
   const [filters, setFilters] = useState<OrganizationFilters>(EMPTY_FILTERS);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // ─── Main paginated query ──────────────────────────────────────────────────
 
   const {
     data,
@@ -58,7 +51,6 @@ export const useOrganizationData = () => {
   } = useInfiniteQuery({
     queryKey: ["organizations"],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
-      // Offline fallback — serve IndexedDB cache
       if (!navigator.onLine) {
         const cached = await getAll();
         return {
@@ -73,7 +65,6 @@ export const useOrganizationData = () => {
         limit: PAGE_LIMIT,
       });
 
-      // Write-through to IndexedDB after every successful page
       for (const org of page.organizations) {
         try {
           await updateItem(org._id, { ...org, id: org._id });
@@ -89,23 +80,17 @@ export const useOrganizationData = () => {
       lastPage.hasNextPage ? lastPage.nextCursor : undefined,
   });
 
-  // ─── Search query ──────────────────────────────────────────────────────────
-  // organizationService.searchOrganizations returns Organization[] directly.
-
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ["organizations", "search", searchQuery],
     queryFn: () => organizationService.searchOrganizations(searchQuery.trim()),
     enabled: isSearchMode && searchQuery.trim().length > 0,
   });
 
-  // ─── Derived state ─────────────────────────────────────────────────────────
-
   const allOrganizations: Organization[] = useMemo(
     () => data?.pages.flatMap((page) => page.organizations) ?? [],
     [data],
   );
 
-  // Statistics — computed from all loaded organizations (not filtered).
   const statistics: OrganizationStatistics = useMemo(() => {
     const byIndustry: Record<string, number> = {};
 
@@ -119,7 +104,6 @@ export const useOrganizationData = () => {
     return { total: allOrganizations.length, byIndustry };
   }, [allOrganizations]);
 
-  // Client-side filtering — in search mode use search results directly.
   const filteredOrganizations: Organization[] = useMemo(() => {
     if (isSearchMode) return searchResults;
 
@@ -155,13 +139,10 @@ export const useOrganizationData = () => {
     });
   }, [allOrganizations, filters, isSearchMode, searchResults]);
 
-  // totalPages — preserved from original hook (used by some components).
   const totalPages = useMemo(
     () => Math.ceil(filteredOrganizations.length / PAGE_LIMIT),
     [filteredOrganizations],
   );
-
-  // ─── Mutations ─────────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
     mutationFn: (organizationData: Partial<Organization>) =>
@@ -193,7 +174,6 @@ export const useOrganizationData = () => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => organizationService.deleteOrganization(id),
     onSuccess: (_, id) => {
-      // deleteItem preserves the IndexedDB sync that the original hook had
       deleteItem(id).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
@@ -216,17 +196,11 @@ export const useOrganizationData = () => {
     mutationFn: (ids: string[]) =>
       organizationService.bulkDeleteOrganizations(ids),
     onSuccess: (_, ids) => {
-      // Clean up IndexedDB for each deleted org
       ids.forEach((id) => deleteItem(id).catch(() => {}));
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
   });
 
-  // ─── Stable callbacks ──────────────────────────────────────────────────────
-
-  // fetchOrganizations is called explicitly by organizationsPage (on mount)
-  // and by leadModal (when it opens). Both share the same cache — TanStack
-  // deduplicates the request so only one network call fires.
   const fetchOrganizations = useCallback(() => {
     refetch();
   }, [refetch]);
@@ -298,9 +272,6 @@ export const useOrganizationData = () => {
     setIsSearchMode(false);
     setSearchQuery("");
   }, []);
-
-  // ─── Return ────────────────────────────────────────────────────────────────
-  // Shape is IDENTICAL to the old hook — no component changes required.
 
   return {
     // Data

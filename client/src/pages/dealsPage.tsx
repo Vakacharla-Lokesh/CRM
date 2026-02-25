@@ -1,7 +1,11 @@
+// hooks and basic imports
+import { useState, useEffect } from "react";
+import { useDealData, useDebounce } from "@/hooks";
+
+// components imports
 import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/deals/dealColumns";
 import { Button } from "@/components/ui/button";
-import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import {
@@ -11,7 +15,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useDealData, useDebounce } from "@/hooks";
 import { DealModal } from "@/components/modals";
 import {
   type Deal,
@@ -19,15 +22,21 @@ import {
   type DealStatus,
   dealStatuses,
 } from "@/types";
-import { useState, useEffect } from "react";
 import DealStatistics from "@/components/deals/dealStatistics";
 import { toast } from "sonner";
+
+// other imports
+import { Search } from "lucide-react";
+
+// notification imports
+import { useNotifications } from "@/hooks";
 
 const DealsPage = () => {
   const {
     filteredDeals,
     statistics,
     loading,
+    loadingMore,
     error,
     filters,
     updateFilter,
@@ -36,21 +45,34 @@ const DealsPage = () => {
     deleteDeal,
     searchDeals,
     searchLoading,
+    hasNextPage,
+    loadMore,
   } = useDealData();
 
+  // search state
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 400);
 
+  // modal usestate
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // selected deal for edit
+  const [dealToDelete, setDealToDelete] = useState<string | null>(null);
+  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
+
+  // delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // notifications
+  const { notifyEvent } = useNotifications();
+
+  // search handlers
   useEffect(() => {
     searchDeals(debouncedSearch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch]);
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [dealToDelete, setDealToDelete] = useState<string | null>(null);
-
+  // edit and delete handlers
   const handleEdit = (id: string) => {
     const deal = filteredDeals.find((d) => d._id === id);
     if (deal) {
@@ -70,6 +92,14 @@ const DealsPage = () => {
     try {
       await deleteDeal(dealToDelete);
       setDealToDelete(null);
+      toast.success("Deal deleted successfully!");
+      notifyEvent({
+        type: "deal_deleted",
+        title: "Deal Deleted",
+        message: `A deal has been deleted.`,
+        entityId: dealToDelete,
+        entityType: "deal",
+      });
     } catch (error) {
       console.error("Error deleting deal:", error);
       toast.error("Failed to delete deal. Please try again.");
@@ -77,6 +107,7 @@ const DealsPage = () => {
     }
   };
 
+  // save handler for deal modal
   const handleSave = async (dealData: UpdateDealDTO) => {
     if (!selectedDeal) return;
 
@@ -85,6 +116,13 @@ const DealsPage = () => {
       setIsModalOpen(false);
       setSelectedDeal(null);
       toast.success("Deal updated successfully!");
+      notifyEvent({
+        type: "deal_updated",
+        title: "Deal Updated",
+        message: `The deal "${dealData.dealName}" has been updated.`,
+        entityId: selectedDeal._id,
+        entityType: "deal",
+      });
     } catch (error) {
       console.error("Error updating deal:", error);
       toast.error("Failed to update deal. Please try again.");
@@ -92,6 +130,7 @@ const DealsPage = () => {
     }
   };
 
+  // close modal handler
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedDeal(null);
@@ -205,6 +244,9 @@ const DealsPage = () => {
           data={filteredDeals}
           name="Deals"
           searchColumn="dealName"
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
         ></DataTable>
       )}
 
