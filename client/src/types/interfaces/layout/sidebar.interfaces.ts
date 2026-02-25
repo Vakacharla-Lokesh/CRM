@@ -39,19 +39,19 @@ export const navItems: NavItem[] = [
     to: "/leads",
     label: "Leads",
     icon: Users,
-    roles: ["user", "admin", "super_admin"],
+    roles: ["user", "admin"],
   },
   {
     to: "/organizations",
     label: "Organizations",
     icon: Building2,
-    roles: ["user", "admin", "super_admin"],
+    roles: ["user", "admin"],
   },
   {
     to: "/deals",
     label: "Deals",
     icon: DollarSign,
-    roles: ["user", "admin", "super_admin"],
+    roles: ["user", "admin"],
   },
   {
     to: "/users",

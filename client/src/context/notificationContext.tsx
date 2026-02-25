@@ -1,42 +1,19 @@
 import { useState, useCallback, type ReactNode } from "react";
-import { NotificationContext } from "./useNotification";
+import { NotificationContext } from "./useNotificationContext";
 import type {
   AppNotification,
   NotifyEventPayload,
 } from "@/types/notifications";
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
-
 function generateId(): string {
   return `notif_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-// ─── Provider ─────────────────────────────────────────────────────────────────
-
 const MAX_NOTIFICATIONS = 100;
 
-/**
- * Wrap your app (or authenticated subtree) with NotificationProvider.
- *
- * Then call `notifyEvent` anywhere to fire a notification:
- * @example
- * const { notifyEvent } = useNotifications();
- * notifyEvent({
- *   type: "lead_created",
- *   title: "New Lead",
- *   message: "John Doe was added as a lead.",
- *   entityId: lead._id,
- *   entityType: "leads",
- * });
- */
-export function NotificationProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
 
-  // Add a new notification
   const notifyEvent = useCallback((payload: NotifyEventPayload) => {
     const notification: AppNotification = {
       id: generateId(),
@@ -51,7 +28,6 @@ export function NotificationProvider({
     };
 
     setNotifications((prev) => {
-      // Prepend newest first; cap to MAX_NOTIFICATIONS
       const updated = [notification, ...prev];
       return updated.slice(0, MAX_NOTIFICATIONS);
     });

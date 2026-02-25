@@ -19,14 +19,19 @@ import {
 } from "../components/ui/select";
 import { LeadModal } from "@/components/modals";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
+import LeadStatistics from "@/components/leads/leadStatistics";
+import { toast } from "sonner";
 
 // other imports
 import { exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
-import LeadStatistics from "@/components/leads/leadStatistics";
-import { toast } from "sonner";
 
+// offline handling imports
 import { useOffline } from "@/context/useOffline";
+import { useOfflineManager } from "@/hooks/useOfflineManager";
+
+// notification imports
+import { useNotifications } from "@/hooks";
 
 const LeadsPage = () => {
   const {
@@ -54,25 +59,33 @@ const LeadsPage = () => {
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
 
+  // navigation
   const navigate = useNavigate();
 
+  // offline handling
   const { isOnline } = useOffline();
+  const { queue } = useOfflineManager();
+
+  // notifications
+  const { notifyEvent } = useNotifications();
 
   // Fetch leads on mount
   useEffect(() => {
     fetchLeads();
-    // eslint_disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchLeads]);
 
+  // add lead modal handlers
   const handleAddLead = () => {
     setSelectedLead(null);
     setIsModalOpen(true);
   };
 
+  // handle edit lead
   const handleEditLead = (id: string) => {
     navigate(`/leads/${id}`);
   };
 
+  // handle delete lead
   const handleDeleteLead = (id: string) => {
     setLeadToDelete(id);
     setDeleteDialogOpen(true);
@@ -85,6 +98,13 @@ const LeadsPage = () => {
         setDeleteDialogOpen(false);
         setLeadToDelete(null);
         toast.success("Lead deleted successfully!");
+        notifyEvent({
+          type: "lead_deleted",
+          title: "Lead Deleted",
+          message: `A lead was deleted.`,
+          entityId: leadToDelete,
+          entityType: "lead",
+        });
       } catch (error) {
         console.error("Error deleting lead:", error);
         toast.error("Failed to delete lead. Please try again.");
@@ -92,30 +112,47 @@ const LeadsPage = () => {
     }
   };
 
+  // handle save lead (for both create and update)
   const handleSaveLead = async (leadData: CreateLeadDTO) => {
     try {
       await createLead(leadData);
       setIsModalOpen(false);
       toast.success("Lead created successfully!");
+      notifyEvent({
+        type: "lead_created",
+        title: "New Lead Created",
+        message: `Lead "${leadData.leadFirstName}" was created.`,
+        entityId: "",
+        entityType: "lead",
+      });
     } catch (error) {
+      if (error instanceof Error && error.message === "OFFLINE_QUEUED") {
+        setIsModalOpen(false);
+        toast.info("Lead queued for sync when online", {
+          description: "Your changes will be saved when connection is restored",
+        });
+        return;
+      }
       console.error("Error creating lead:", error);
       toast.error(
         "Failed to create lead. Please check the details and try again.",
       );
-      throw error;
     }
   };
 
+  // handle close modal
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setSelectedLead(null);
   };
 
+  // handle export
   const handleExport = async () => {
     await exportLeads(selectedLeadIds);
     setSelectedLeadIds([]);
   };
 
+  // handle search and filters
   useEffect(() => {
     searchLeads(debouncedSearch, filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -128,6 +165,34 @@ const LeadsPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.status, filters.source]);
 
+  // Listen for sync completion events
+  useEffect(() => {
+    const handleSync = (event: CustomEvent) => {
+      const result = event.detail;
+
+      if (result.succeeded > 0) {
+        toast.success(`Synced ${result.succeeded} operations`, {
+          description: "Your offline changes have been saved",
+        });
+
+        // Refresh leads after sync
+        fetchLeads();
+      }
+
+      if (result.failed > 0) {
+        toast.error(`Failed to sync ${result.failed} operations`, {
+          description: "Some changes couldn't be saved. Please try again.",
+        });
+      }
+    };
+
+    window.addEventListener("offlineSync", handleSync as EventListener);
+
+    return () => {
+      window.removeEventListener("offlineSync", handleSync as EventListener);
+    };
+  }, [fetchLeads]);
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -136,8 +201,22 @@ const LeadsPage = () => {
             Leads
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage leads and their status
+            Manage and track your leads
           </p>
+
+          {!isOnline && (
+            <div className="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+              <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
+              <span className="text-sm text-amber-700 dark:text-amber-300 font-medium">
+                Offline Mode
+              </span>
+              {queue.length > 0 && (
+                <span className="px-2 py-0.5 bg-amber-500 text-white text-xs rounded-full">
+                  {queue.length} queued
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex flex-row gap-4">
           <Button

@@ -7,8 +7,7 @@ import {
 import leadService from "../services/leadService";
 import type { Lead } from "../types";
 import { useIndexedDB } from "./useIndexedDB";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useOfflineMutation } from "./useOfllineMutation";
 
 interface LeadFilters {
   search?: string;
@@ -27,20 +26,13 @@ interface LeadStatistics {
 
 const PAGE_LIMIT = 20;
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export function useLeadData() {
   const queryClient = useQueryClient();
   const { updateItem, getAll } = useIndexedDB<Lead & { id: string }>("leads");
 
-  // Local UI state — filters and search mode live here, not in TanStack cache
   const [filters, setFilters] = useState<LeadFilters>({});
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // ─── Main paginated query ──────────────────────────────────────────────────
-  // useInfiniteQuery manages cursor-based pagination — each page is stored
-  // as a separate entry in the cache under the same query key.
 
   const {
     data,
@@ -53,7 +45,6 @@ export function useLeadData() {
   } = useInfiniteQuery({
     queryKey: ["leads"],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
-      // Offline fallback: serve IndexedDB cache instead of hitting network
       if (!navigator.onLine) {
         const cached = await getAll();
         return {
@@ -68,7 +59,6 @@ export function useLeadData() {
         limit: PAGE_LIMIT,
       });
 
-      // Write-through to IndexedDB after every successful network fetch
       for (const lead of page.leads) {
         try {
           await updateItem(lead._id, { ...lead, id: lead._id });
@@ -84,10 +74,6 @@ export function useLeadData() {
       lastPage.hasNextPage ? lastPage.nextCursor : undefined,
   });
 
-  // ─── Search query ──────────────────────────────────────────────────────────
-  // Only fires when isSearchMode is true and searchQuery is non-empty.
-  // Separate query key so it never pollutes the main leads cache.
-
   const { data: searchData, isLoading: searchLoading } = useInfiniteQuery({
     queryKey: ["leads", "search", searchQuery, filters.status, filters.source],
     queryFn: async () => {
@@ -99,21 +85,15 @@ export function useLeadData() {
       return result;
     },
     initialPageParam: null as string | null,
-    getNextPageParam: () => undefined, // search results are not paginated
+    getNextPageParam: () => undefined,
     enabled: isSearchMode && searchQuery.trim().length > 0,
   });
-
-  // ─── Derived state ─────────────────────────────────────────────────────────
-  // Flatten all pages from infinite query into a single array.
-  // This replaces the old manual setLeads() after each fetch.
 
   const allLeads: Lead[] = useMemo(
     () => data?.pages.flatMap((page) => page.leads) ?? [],
     [data],
   );
 
-  // Apply client-side filters to the flattened leads list.
-  // In search mode, use search results directly (no additional filtering).
   const filteredLeads: Lead[] = useMemo(() => {
     if (isSearchMode) {
       return searchData?.pages.flatMap((p) => p.leads) ?? [];
@@ -143,7 +123,6 @@ export function useLeadData() {
     return result;
   }, [allLeads, filters, isSearchMode, searchData]);
 
-  // Statistics always computed from the currently visible leads list.
   const statistics: LeadStatistics = useMemo(() => {
     const byStatus: Record<string, number> = {};
     const bySource: Record<string, number> = {};
@@ -169,9 +148,8 @@ export function useLeadData() {
     };
   }, [filteredLeads]);
 
-  // ─── Mutations ────────────────────────────────────────────────────────────
-
-  const createMutation = useMutation({
+  const createMutation = useOfflineMutation({
+    mutationKey: ["leads", "create"],
     mutationFn: (leadData: Partial<Lead>) => leadService.createLead(leadData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
@@ -192,8 +170,6 @@ export function useLeadData() {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
     },
   });
-
-  // ─── Stable callbacks ─────────────────────────────────────────────────────
 
   const fetchLeads = useCallback(() => {
     refetch();
@@ -247,7 +223,6 @@ export function useLeadData() {
         setSearchQuery("");
         return;
       }
-      // Sync any filter context passed in
       if (currentFilters) {
         setFilters((prev) => ({ ...prev, ...currentFilters }));
       }
@@ -256,9 +231,6 @@ export function useLeadData() {
     },
     [],
   );
-
-  // ─── Return ───────────────────────────────────────────────────────────────
-  // Shape is IDENTICAL to the old hook — no component changes required.
 
   return {
     leads: allLeads,
