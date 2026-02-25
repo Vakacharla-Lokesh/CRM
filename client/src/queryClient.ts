@@ -1,21 +1,41 @@
 import { QueryClient } from "@tanstack/react-query";
 
+// Configure TanStack Query with offline support
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      // Data considered fresh for 5 minutes — avoids redundant refetches
-      staleTime: 1000 * 60 * 5,
-      // Cache retained for 10 minutes after component unmounts
-      gcTime: 1000 * 60 * 10,
-      // Retry failed requests once with exponential backoff
-      retry: 1,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30_000),
-      // Do NOT auto-retry when offline — our IndexedDB offline queue handles that
+      // Retry failed queries
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+
+      // Stale time configuration
+      staleTime: 5 * 60 * 1000, // 5 minutes
+
+      // Network mode - online queries won't run when offline
       networkMode: "online",
+
+      // Refetch configuration
+      refetchOnWindowFocus: true,
+      refetchOnReconnect: true,
     },
+
     mutations: {
-      // Same rationale: offline mutations are captured by useOfflineManager
+      // Retry failed mutations
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+
+      // Network mode - mutations will be paused when offline
       networkMode: "online",
+
+      // Global mutation error handler
+      onError: (error: any) => {
+        console.error("Mutation error:", error);
+      },
     },
   },
 });
+
+// Helper to check if device is online
+export const isOnline = () => {
+  return navigator.onLine;
+};
