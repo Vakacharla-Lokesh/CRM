@@ -35,16 +35,55 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(true);
 
+  // Decode JWT payload without verifying signature (expiry check only).
+  const isTokenExpiredOrNearExpiry = (tkn: string, bufferSeconds = 60): boolean => {
+    try {
+      const parts = tkn.split(".");
+      if (parts.length !== 3) return true;
+      const payload = JSON.parse(atob(parts[1]));
+      if (!payload.exp) return false;
+      return payload.exp <= Math.floor(Date.now() / 1000) + bufferSeconds;
+    } catch {
+      return true;
+    }
+  };
+
   useEffect(() => {
     const initAuth = async () => {
       try {
         const storedToken = getFromLocalStorage<string>("auth_token");
         const storedUser = getFromLocalStorage<User>("user_data");
+        const storedRefreshToken = getFromLocalStorage<string>("refresh_token");
 
         if (storedToken && storedUser) {
-          setToken(storedToken);
-          setUser(storedUser);
-          setIsAuthenticated(true);
+          // Proactively refresh if the access token is expired or within the
+          // 60-second buffer window — avoids all initial queries hitting 401.
+          if (isTokenExpiredOrNearExpiry(storedToken) && storedRefreshToken) {
+            try {
+              const response = await authService.refreshToken(storedRefreshToken);
+              const { token: newToken, refreshToken: newRefreshToken } = response;
+
+              setToken(newToken);
+              setUser(storedUser);
+              setIsAuthenticated(true);
+
+              saveToLocalStorage("auth_token", newToken);
+              if (newRefreshToken) {
+                saveToLocalStorage("refresh_token", newRefreshToken);
+              }
+            } catch {
+              // Refresh token is also invalid — clear stale auth so the user
+              // is shown the login page instead of a broken authenticated state.
+              removeFromLocalStorage("auth_token");
+              removeFromLocalStorage("user_data");
+              removeFromLocalStorage("refresh_token");
+            }
+          } else {
+            // Token is still valid — restore session directly.
+            setToken(storedToken);
+            setUser(storedUser);
+            setIsAuthenticated(true);
+          }
         }
         setLoading(false);
       } catch (error) {

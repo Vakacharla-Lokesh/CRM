@@ -106,6 +106,6 @@ export function isUser(obj: any): obj is User {
     obj &&
     typeof obj._id === "string" &&
     typeof obj.userEmail === "string" &&
-    typeof obj.userRole === "string"
+    typeof obj.role === "string"
   );
 }

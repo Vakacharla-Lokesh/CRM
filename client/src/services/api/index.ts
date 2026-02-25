@@ -18,6 +18,7 @@ import { analyticsAPI } from "./analytics.api";
 import { callsAPI } from "./calls.api";
 import { commentsAPI } from "./comments.api";
 import { attachmentsAPI } from "./attachments.api";
+import { exportAPI } from "./export.api";
 
 export {
   authAPI,
@@ -31,6 +32,7 @@ export {
   callsAPI,
   commentsAPI,
   attachmentsAPI,
+  exportAPI,
 };
 
 export const API = {
@@ -45,6 +47,7 @@ export const API = {
   bulk: bulkAPI,
   search: searchAPI,
   analytics: analyticsAPI,
+  export: exportAPI,
 };
 
 export default API;
