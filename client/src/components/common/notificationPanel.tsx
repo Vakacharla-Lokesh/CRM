@@ -26,60 +26,66 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNotifications } from "@/context/useNotificationContext";
 import { useOffline } from "@/context/useOffline";
-import type { AppNotification, NotificationEventType } from "@/types/notifications";
+import type {
+  AppNotification,
+  NotificationEventType,
+} from "@/types/notifications";
 import { cn } from "@/lib/utils";
-
-// ─── Icon Map ─────────────────────────────────────────────────────────────────
 
 const NOTIFICATION_ICONS: Record<
   NotificationEventType,
   { icon: React.ElementType; color: string }
 > = {
-  lead_created:       { icon: UserPlus,      color: "text-emerald-500" },
-  lead_updated:       { icon: UserCog,       color: "text-blue-500"    },
-  lead_deleted:       { icon: UserX,         color: "text-red-500"     },
-  lead_converted:     { icon: ArrowUpRight,  color: "text-purple-500"  },
-  deal_created:       { icon: Briefcase,     color: "text-emerald-500" },
-  deal_updated:       { icon: Briefcase,     color: "text-blue-500"    },
-  deal_deleted:       { icon: Briefcase,     color: "text-red-500"     },
-  deal_won:           { icon: Trophy,        color: "text-yellow-500"  },
-  deal_lost:          { icon: ThumbsDown,    color: "text-red-500"     },
-  organization_created: { icon: Building2,  color: "text-emerald-500" },
-  organization_updated: { icon: Building2,  color: "text-blue-500"    },
-  user_added:         { icon: UserPlus,      color: "text-emerald-500" },
-  user_updated:       { icon: UserCog,       color: "text-blue-500"    },
-  call_logged:        { icon: Phone,         color: "text-blue-500"    },
-  comment_added:      { icon: MessageSquare, color: "text-indigo-500"  },
-  attachment_uploaded:{ icon: Paperclip,     color: "text-gray-500"    },
-  sync_completed:     { icon: CheckCircle2,  color: "text-emerald-500" },
-  sync_failed:        { icon: AlertCircle,   color: "text-red-500"     },
-  offline_queued:     { icon: CloudOff,      color: "text-orange-500"  },
+  // lead events
+  lead_created: { icon: UserPlus, color: "text-emerald-500" },
+  lead_updated: { icon: UserCog, color: "text-blue-500" },
+  lead_deleted: { icon: UserX, color: "text-red-500" },
+  lead_converted: { icon: ArrowUpRight, color: "text-purple-500" },
+  // deal events
+  deal_created: { icon: Briefcase, color: "text-emerald-500" },
+  deal_updated: { icon: Briefcase, color: "text-blue-500" },
+  deal_deleted: { icon: Briefcase, color: "text-red-500" },
+  deal_won: { icon: Trophy, color: "text-yellow-500" },
+  deal_lost: { icon: ThumbsDown, color: "text-red-500" },
+  // organization events
+  organization_created: { icon: Building2, color: "text-emerald-500" },
+  organization_updated: { icon: Building2, color: "text-blue-500" },
+  organization_deleted: { icon: Building2, color: "text-red-500" },
+  // user events
+  user_created: { icon: UserPlus, color: "text-emerald-500" },
+  user_added: { icon: UserPlus, color: "text-emerald-500" },
+  user_updated: { icon: UserCog, color: "text-blue-500" },
+  user_deleted: { icon: UserX, color: "text-red-500" },
+  // tenant events
+  tenant_created: { icon: Building2, color: "text-emerald-500" },
+  tenant_updated: { icon: Building2, color: "text-blue-500" },
+  tenant_deleted: { icon: Building2, color: "text-red-500" },
+  // activity events
+  call_logged: { icon: Phone, color: "text-blue-500" },
+  comment_added: { icon: MessageSquare, color: "text-indigo-500" },
+  attachment_uploaded: { icon: Paperclip, color: "text-gray-500" },
+  // sync/offline events
+  sync_completed: { icon: CheckCircle2, color: "text-emerald-500" },
+  sync_failed: { icon: AlertCircle, color: "text-red-500" },
+  offline_queued: { icon: CloudOff, color: "text-orange-500" },
 };
-
-// ─── Timestamp formatter ──────────────────────────────────────────────────────
 
 function formatTime(date: Date): string {
   const now = new Date();
   const diff = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-  if (diff < 60)        return "just now";
-  if (diff < 3600)      return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400)     return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 604800)    return `${Math.floor(diff / 86400)}d ago`;
+  if (diff < 60) return "just now";
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`;
   return date.toLocaleDateString();
 }
 
 // ─── Offline Queue Status Card ────────────────────────────────────────────────
 
 function OfflineQueueStatus() {
-  const {
-    queue,
-    isSyncing,
-    isOnline,
-    lastSyncTime,
-    syncQueue,
-    getStats,
-  } = useOffline();
+  const { queue, isSyncing, isOnline, lastSyncTime, syncQueue, getStats } =
+    useOffline();
 
   const stats = getStats();
 
@@ -92,16 +98,16 @@ function OfflineQueueStatus() {
   const statusColor = !isOnline
     ? "text-orange-500"
     : stats.pending > 0
-    ? "text-yellow-500"
-    : "text-emerald-500";
+      ? "text-yellow-500"
+      : "text-emerald-500";
 
   const statusLabel = !isOnline
     ? "Offline"
     : isSyncing
-    ? "Syncing…"
-    : stats.pending > 0
-    ? "Pending sync"
-    : "All synced";
+      ? "Syncing…"
+      : stats.pending > 0
+        ? "Pending sync"
+        : "All synced";
 
   return (
     <div className="px-3 py-2.5 bg-muted/50 rounded-lg mx-2 mb-1">
@@ -125,9 +131,7 @@ function OfflineQueueStatus() {
             disabled={isSyncing}
             className="flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 disabled:opacity-50 transition-colors"
           >
-            <RefreshCw
-              className={cn("w-3 h-3", isSyncing && "animate-spin")}
-            />
+            <RefreshCw className={cn("w-3 h-3", isSyncing && "animate-spin")} />
             Sync now
           </button>
         )}
@@ -170,11 +174,10 @@ function NotificationRow({
   onRead: (id: string) => void;
   onRemove: (id: string) => void;
 }) {
-  const { icon: Icon, color } =
-    NOTIFICATION_ICONS[notification.type] ?? {
-      icon: Bell,
-      color: "text-gray-500",
-    };
+  const { icon: Icon, color } = NOTIFICATION_ICONS[notification.type] ?? {
+    icon: Bell,
+    color: "text-gray-500",
+  };
 
   return (
     <div

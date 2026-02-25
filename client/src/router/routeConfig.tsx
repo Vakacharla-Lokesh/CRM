@@ -7,8 +7,15 @@ import LeadsPage from "../pages/leadsPage";
 import OrganizationsPage from "../pages/organizationsPage";
 import DealsPage from "../pages/dealsPage";
 import TenantsPage from "../pages/tenantsPage";
-import OrganizationLeadsPage from "../pages/organizationLeadsPage";
-import LeadDetailsPage from "../pages/leadDetailsPage";
+
+// lazy loading components
+import { lazy } from "react";
+
+// const LazyLoadedComponent = lazy(() => import("../components/common/lazyLoadedComponent"));
+const OrganizationLeadsPage = lazy(
+  () => import("../pages/organizationLeadsPage"),
+);
+const LeadDetailsPage = lazy(() => import("../pages/leadDetailsPage"));
 
 export interface RouteConfig {
   path: string;
