@@ -64,3 +64,19 @@ export const updateLeadScoreSchema = z
     leadScore: z.number().min(0).max(100),
   })
   .strict();
+
+export const convertLeadSchema = z
+  .object({
+    dealValue: z.number().min(0).max(1_000_000).optional(),
+    dealStatus: z
+      .enum([
+        "Prospecting",
+        "Qualification",
+        "Negotiation",
+        "Ready to close",
+        "Won",
+        "Lost",
+      ])
+      .optional(),
+  })
+  .strict();

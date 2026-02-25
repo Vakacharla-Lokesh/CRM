@@ -221,13 +221,6 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     throw new AppError("Lead has already been converted to a deal", 400);
   }
 
-  if (!lead.organizationId) {
-    throw new AppError(
-      "Lead must have an organization to convert to deal",
-      400,
-    );
-  }
-
   const dealModel = (await import("../models/dealModel.js")).default;
 
   const dealData = {

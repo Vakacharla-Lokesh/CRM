@@ -26,3 +26,15 @@ export const loginSchema = z
   .refine((data) => data.userEmail || data.mobile, {
     message: "Either email or mobile is required",
   });
+
+export const logoutSchema = z
+  .object({
+    refreshToken: z.string().min(1).optional(),
+  })
+  .strict();
+
+export const refreshTokenSchema = z
+  .object({
+    refreshToken: z.string().min(1, "Refresh token is required"),
+  })
+  .strict();
