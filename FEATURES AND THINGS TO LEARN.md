@@ -89,11 +89,11 @@ sqs
 
 >>> DONE api validations 
 
-worker thread in frontend for exports
+>>> DONE worker thread in frontend for exports
 
-export using fastcsv and send from backend
+>>> DONE export using fastcsv and send from backend
 
-import csv for leads, deals, organizations
+>>> DONE import csv for leads, deals, organizations
 
 passport js fix by removing own auth middleware
 

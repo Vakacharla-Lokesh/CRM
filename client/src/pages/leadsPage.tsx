@@ -60,6 +60,7 @@ const LeadsPage = () => {
   // selected lead for edit and bulk selection
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
 
   // delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -167,6 +168,7 @@ const LeadsPage = () => {
   const handleExport = async () => {
     await exportLeads(selectedLeadIds);
     setSelectedLeadIds([]);
+    setSelectionResetKey((k) => k + 1);
   };
 
   // handle search and filters
@@ -377,6 +379,7 @@ const LeadsPage = () => {
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}
+          resetSelectionTrigger={selectionResetKey}
         />
       )}
 

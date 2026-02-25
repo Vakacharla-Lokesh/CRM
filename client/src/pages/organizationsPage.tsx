@@ -69,6 +69,7 @@ const OrganizationsPage = () => {
   const [selectedOrganizationIds, setSelectedOrganizationIds] = useState<
     string[]
   >([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
 
   // modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -204,6 +205,7 @@ const OrganizationsPage = () => {
   const handleExport = async () => {
     await exportOrganizations(selectedOrganizationIds);
     setSelectedOrganizationIds([]);
+    setSelectionResetKey((k) => k + 1);
   };
 
   // handle search and filters
@@ -385,6 +387,7 @@ const OrganizationsPage = () => {
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}
+          resetSelectionTrigger={selectionResetKey}
         ></DataTable>
       )}
 

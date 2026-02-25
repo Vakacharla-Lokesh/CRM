@@ -22,7 +22,7 @@ import { toast } from "sonner";
 
 // other imports
 import type { CreateUserDTO, User } from "@/types";
-import { Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
 
 // notification imports
 import { useNotifications } from "@/hooks";
@@ -158,13 +158,6 @@ const UsersPage = () => {
           </p>
         </div>
         <div className="flex flex-row gap-4">
-          <Button
-            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
-            disabled={true}
-          >
-            <Download className="w-4 h-4" />
-            Export
-          </Button>
           <Button
             onClick={handleAddUser}
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
