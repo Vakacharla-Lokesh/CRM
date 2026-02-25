@@ -1,126 +1,123 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Attachment, CreateAttachmentDTO } from "../types";
 import { attachmentsAPI } from "../services";
 
 export const useAttachmentData = (leadId: string) => {
-  const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const queryClient = useQueryClient();
+  const queryKey = ["attachments", "lead", leadId];
 
-  const fetchAttachments = useCallback(async () => {
-    if (!leadId) return;
+  // ─── Main query ──────────────────────────────────────────────────────
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: () => attachmentsAPI.getByLead(leadId),
+    enabled: !!leadId,
+    staleTime: 30_000,
+    select: (res) => res.attachments,
+  });
 
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await attachmentsAPI.getByLead(leadId);
-      setAttachments(response.attachments);
-      setLoading(false);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load attachments";
-      setError(message);
-      console.error("Error fetching attachments:", err);
-      setLoading(false);
-    }
-  }, [leadId]);
+  const attachments: Attachment[] = data ?? [];
+  const error = queryError instanceof Error ? queryError.message : null;
 
-  const uploadAttachment = useCallback(
-    async (file: File) => {
-      try {
-        setUploading(true);
-        setError(null);
+  // ─── Upload ──────────────────────────────────────────────────────────
+  // NOTE: No useMutation for the File→base64 conversion step — that's
+  // pure client work. The mutation only fires the API call itself.
+  const uploadMutation = useMutation({
+    mutationFn: async (file: File) => {
+      const maxSize = 10 * 1024 * 1024; // 10 MB
+      if (file.size > maxSize) {
+        throw new Error("File size must be less than 10MB");
+      }
 
-        const maxSize = 10 * 1024 * 1024;
-        if (file.size > maxSize) {
-          throw new Error("File size must be less than 10MB");
-        }
-
-        const fileData = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = reader.result as string;
-            const base64 = result.split(",")[1];
-            resolve(base64);
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-
-        const data: CreateAttachmentDTO = {
-          leadId,
-          fileName: file.name,
-          fileSize: file.size,
-          fileType: file.type,
-          fileData,
+      // Convert File to base64 before sending
+      const fileData = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result.split(",")[1]); // strip data URL prefix
         };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
 
-        const newAttachment = await attachmentsAPI.create(data);
-        setAttachments((prev) => [newAttachment, ...prev]);
-        setUploading(false);
-        return newAttachment;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to upload attachment";
-        setError(message);
-        console.error("Error uploading attachment:", err);
-        setUploading(false);
-        throw err;
-      }
+      const payload: CreateAttachmentDTO = {
+        leadId,
+        fileName: file.name,
+        fileSize: file.size,
+        fileType: file.type,
+        fileData,
+      };
+
+      return attachmentsAPI.create(payload);
     },
-    [leadId],
-  );
-
-  const downloadAttachment = useCallback(
-    async (attachment: Attachment) => {
-      try {
-        setError(null);
-        const blob = await attachmentsAPI.download(attachment._id);
-        
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.href = url;
-        link.download = attachment.fileName;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to download attachment";
-        setError(message);
-        console.error("Error downloading attachment:", err);
-        throw err;
-      }
+    onSuccess: (newAttachment) => {
+      // Prepend to cache — newest attachment appears first
+      queryClient.setQueryData<Attachment[]>(queryKey, (prev = []) => [
+        newAttachment,
+        ...prev,
+      ]);
     },
-    [],
-  );
+    onError: (err) => {
+      console.error("Error uploading attachment:", err);
+    },
+  });
 
-  const deleteAttachment = useCallback(async (id: string) => {
-    try {
-      setError(null);
-      await attachmentsAPI.delete(id);
-      setAttachments((prev) =>
-        prev.filter((attachment) => attachment._id !== id),
+  // isPending from the mutation IS our uploading flag — no separate useState needed
+  const uploading = uploadMutation.isPending;
+
+  // ─── Delete ──────────────────────────────────────────────────────────
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => attachmentsAPI.delete(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<Attachment[]>(queryKey, (prev = []) =>
+        prev.filter((a) => a._id !== id),
       );
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete attachment";
-      setError(message);
+    },
+    onError: (err) => {
       console.error("Error deleting attachment:", err);
+    },
+  });
+
+  // ─── Download (pure client-side, no server state change) ─────────────
+  const downloadAttachment = useCallback(async (attachment: Attachment) => {
+    try {
+      const blob = await attachmentsAPI.download(attachment._id);
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = attachment.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Error downloading attachment:", err);
       throw err;
     }
   }, []);
 
+  // ─── Convenience wrappers (preserve old API surface) ─────────────────
+  const uploadAttachment = useCallback(
+    (file: File) => uploadMutation.mutateAsync(file),
+    [uploadMutation],
+  );
+
+  const deleteAttachment = useCallback(
+    (id: string) => deleteMutation.mutateAsync(id),
+    [deleteMutation],
+  );
+
   const refresh = useCallback(() => {
-    fetchAttachments();
-  }, [fetchAttachments]);
+    queryClient.invalidateQueries({ queryKey });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryClient, leadId]);
 
-  useEffect(() => {
-    fetchAttachments();
-  }, [fetchAttachments]);
-
+  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     attachments,
     loading,

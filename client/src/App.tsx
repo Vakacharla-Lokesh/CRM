@@ -24,6 +24,11 @@ import ForgotPasswordPage from "./pages/forgotPasswordPage";
 import "./App.css";
 import { Toaster } from "./components/ui/sonner";
 
+// tanstack query
+import { queryClient } from "./queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+
 function AppRoutes() {
   const { isAuthenticated, loading } = useAppContext();
 
@@ -98,22 +103,30 @@ function AppRoutes() {
           />
         )}
       </Routes>
+      
+      {/* TanStack Query DevTools — only visible in development, tree-shaken in production */}
+      <ReactQueryDevtools
+        initialIsOpen={false}
+        buttonPosition="bottom-left"
+      />
     </Router>
   );
 }
 
 function App() {
   return (
-    <AppProvider>
-      <OfflineProvider>
-        <NotificationProvider>
-          <ThemeProvider>
-            <Toaster />
-            <AppRoutes />
-          </ThemeProvider>
-        </NotificationProvider>
-      </OfflineProvider>
-    </AppProvider>
+    <QueryClientProvider client={queryClient}>
+      <AppProvider>
+        <OfflineProvider>
+          <NotificationProvider>
+            <ThemeProvider>
+              <Toaster />
+              <AppRoutes />
+            </ThemeProvider>
+          </NotificationProvider>
+        </OfflineProvider>
+      </AppProvider>
+    </QueryClientProvider>
   );
 }
 

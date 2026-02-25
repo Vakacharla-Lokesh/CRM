@@ -1,92 +1,95 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Comment, CreateCommentDTO, UpdateCommentDTO } from "../types";
 import { commentsAPI } from "../services";
 
 export const useCommentData = (leadId: string) => {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const queryKey = ["comments", "lead", leadId];
 
-  const fetchComments = useCallback(async () => {
-    if (!leadId) return;
+  // ─── Main query ──────────────────────────────────────────────────────
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey,
+    queryFn: () => commentsAPI.getByLead(leadId),
+    enabled: !!leadId,
+    staleTime: 30_000,
+    select: (res) => res.comments,
+  });
 
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await commentsAPI.getByLead(leadId);
-      setComments(response.comments);
-      setLoading(false);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to load comments";
-      setError(message);
-      console.error("Error fetching comments:", err);
-      setLoading(false);
-    }
-  }, [leadId]);
+  const comments: Comment[] = data ?? [];
+  const error = queryError instanceof Error ? queryError.message : null;
 
-  const createComment = useCallback(
-    async (data: Omit<CreateCommentDTO, "leadId">) => {
-      try {
-        setError(null);
-        const newComment = await commentsAPI.create({ ...data, leadId });
-        setComments((prev) => [newComment, ...prev]);
-        return newComment;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to create comment";
-        setError(message);
-        console.error("Error creating comment:", err);
-        throw err;
-      }
+  // ─── Create ──────────────────────────────────────────────────────────
+  const createMutation = useMutation({
+    mutationFn: (commentData: Omit<CreateCommentDTO, "leadId">) =>
+      commentsAPI.create({ ...commentData, leadId }),
+    onSuccess: (newComment) => {
+      // Prepend to cache — newest comments appear at top
+      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) => [
+        newComment,
+        ...prev,
+      ]);
     },
-    [leadId],
+    onError: (err) => {
+      console.error("Error creating comment:", err);
+    },
+  });
+
+  // ─── Update ──────────────────────────────────────────────────────────
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateCommentDTO }) =>
+      commentsAPI.update(id, data),
+    onSuccess: (updatedComment) => {
+      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) =>
+        prev.map((c) => (c._id === updatedComment._id ? updatedComment : c)),
+      );
+    },
+    onError: (err) => {
+      console.error("Error updating comment:", err);
+    },
+  });
+
+  // ─── Delete ──────────────────────────────────────────────────────────
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => commentsAPI.delete(id),
+    onSuccess: (_, id) => {
+      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) =>
+        prev.filter((c) => c._id !== id),
+      );
+    },
+    onError: (err) => {
+      console.error("Error deleting comment:", err);
+    },
+  });
+
+  // ─── Convenience wrappers (preserve old API surface) ─────────────────
+  const createComment = useCallback(
+    (data: Omit<CreateCommentDTO, "leadId">) =>
+      createMutation.mutateAsync(data),
+    [createMutation],
   );
 
   const updateComment = useCallback(
-    async (id: string, data: UpdateCommentDTO) => {
-      try {
-        setError(null);
-        const updatedComment = await commentsAPI.update(id, data);
-        setComments((prev) =>
-          prev.map((comment) =>
-            comment._id === id ? updatedComment : comment,
-          ),
-        );
-        return updatedComment;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Failed to update comment";
-        setError(message);
-        console.error("Error updating comment:", err);
-        throw err;
-      }
-    },
-    [],
+    (id: string, data: UpdateCommentDTO) =>
+      updateMutation.mutateAsync({ id, data }),
+    [updateMutation],
   );
 
-  const deleteComment = useCallback(async (id: string) => {
-    try {
-      setError(null);
-      await commentsAPI.delete(id);
-      setComments((prev) => prev.filter((comment) => comment._id !== id));
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Failed to delete comment";
-      setError(message);
-      console.error("Error deleting comment:", err);
-      throw err;
-    }
-  }, []);
+  const deleteComment = useCallback(
+    (id: string) => deleteMutation.mutateAsync(id),
+    [deleteMutation],
+  );
 
   const refresh = useCallback(() => {
-    fetchComments();
-  }, [fetchComments]);
+    queryClient.invalidateQueries({ queryKey });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryClient, leadId]);
 
-  useEffect(() => {
-    fetchComments();
-  }, [fetchComments]);
-
+  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     comments,
     loading,
