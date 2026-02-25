@@ -38,6 +38,7 @@ interface DataTableProps<TData, TValue> {
   onLoadMore?: () => void;
   loadingMore?: boolean;
   pageSize?: number;
+  resetSelectionTrigger?: number;
 }
 
 export function DataTable<TData, TValue>({
@@ -48,6 +49,7 @@ export function DataTable<TData, TValue>({
   onLoadMore,
   loadingMore,
   pageSize = DEFAULT_PAGE_SIZE,
+  resetSelectionTrigger,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -96,6 +98,12 @@ export function DataTable<TData, TValue>({
     }
     prevDataLengthRef.current = data.length;
   }, [data.length, pendingAdvance, table]);
+
+  React.useEffect(() => {
+    if (resetSelectionTrigger === undefined) return;
+    setRowSelection({});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetSelectionTrigger]);
 
   React.useEffect(() => {
     if (onSelectionChange) {

@@ -4,12 +4,34 @@ export const API_BASE_URL =
 export class APIError extends Error {
   statusCode: number;
   data: unknown;
+  isRetryable: boolean;
+  timestamp: Date;
 
-  constructor(statusCode: number, data: unknown, message: string) {
+  constructor(
+    statusCode: number,
+    data: unknown,
+    message: string,
+    isRetryable: boolean = false,
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.data = data;
     this.name = "APIError";
+    this.isRetryable = isRetryable;
+    this.timestamp = new Date();
+
+    Object.setPrototypeOf(this, APIError.prototype);
+  }
+
+  toJSON() {
+    return {
+      name: this.name,
+      statusCode: this.statusCode,
+      message: this.message,
+      isRetryable: this.isRetryable,
+      timestamp: this.timestamp.toISOString(),
+      data: this.data,
+    };
   }
 }
 
@@ -30,7 +52,6 @@ export function setToken(token: string): void {
 export function clearToken(): void {
   localStorage.removeItem("auth_token");
 }
-
 
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -123,10 +144,48 @@ async function withSilentRefresh<T>(
       isRefreshing = false;
     }
 
-    // Refresh succeeded — notify all queued requests and retry the original.
-    // Any error from the retry propagates naturally without triggering logout.
     processQueue(null, newToken);
     return doRequest(newToken);
+  }
+}
+
+function enrichErrorWithRetryInfo(error: unknown): APIError {
+  if (error instanceof APIError) {
+    if (
+      (error.statusCode >= 500 && error.statusCode < 600) ||
+      error.statusCode === 429
+    ) {
+      return new APIError(
+        error.statusCode,
+        error.data,
+        error.message,
+        true, // isRetryable
+      );
+    }
+  }
+
+  if (error instanceof Error) {
+    // Network errors are retryable
+    if (
+      error.message.includes("fetch") ||
+      error.message.includes("network") ||
+      error.message.includes("Failed to fetch")
+    ) {
+      return new APIError(0, {}, error.message, true);
+    }
+  }
+
+  return error instanceof APIError ? error : new APIError(0, {}, String(error));
+}
+
+export async function wrapWithErrorInterceptor<T>(
+  apiCall: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await apiCall();
+  } catch (error) {
+    const enrichedError = enrichErrorWithRetryInfo(error);
+    throw enrichedError;
   }
 }
 
@@ -156,11 +215,12 @@ export async function get<T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Request failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
@@ -182,11 +242,12 @@ export async function post<T>(endpoint: string, data?: unknown): Promise<T> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Request failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
@@ -208,11 +269,12 @@ export async function put<T>(endpoint: string, data?: unknown): Promise<T> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Request failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
@@ -233,11 +295,12 @@ export async function delete_<T>(endpoint: string): Promise<T> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Request failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
@@ -259,11 +322,12 @@ export async function patch<T>(endpoint: string, data?: unknown): Promise<T> {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Request failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
@@ -289,11 +353,12 @@ export async function upload<T>(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new APIError(
+      const apiError = new APIError(
         response.status,
         errorData,
         errorData.message || "Upload failed",
       );
+      throw enrichErrorWithRetryInfo(apiError);
     }
     return response.json() as Promise<T>;
   });
