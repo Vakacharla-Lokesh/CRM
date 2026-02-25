@@ -37,6 +37,7 @@ const LeadsPage = () => {
   const {
     filteredLeads,
     loading,
+    loadingMore,
     error,
     filters,
     fetchLeads,
@@ -47,15 +48,22 @@ const LeadsPage = () => {
     searchLeads,
     isSearchMode,
     searchLoading,
+    hasNextPage,
+    loadMore,
   } = useLeadData();
 
+  // modal usestate
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // selected lead for edit and bulk selection
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
 
+  // delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [leadToDelete, setLeadToDelete] = useState<string | null>(null);
 
+  // search state
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
 
@@ -353,6 +361,9 @@ const LeadsPage = () => {
           onSelectionChange={(rows) =>
             setSelectedLeadIds(rows.map((r) => r._id))
           }
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
         />
       )}
 

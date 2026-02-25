@@ -1,10 +1,10 @@
+// hooks and basic imports
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+
+// components imports
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { leadService } from "@/services";
-import type { Lead } from "@/types";
 import EditLeadTab from "@/components/leads/tabs/editLeadTab";
 import CommentsTab from "@/components/leads/tabs/commentsTab";
 import CallsTab from "@/components/leads/tabs/callsTab";
@@ -12,16 +12,43 @@ import AttachmentsTab from "@/components/leads/tabs/attachmentsTab";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { toast } from "sonner";
 
+// other imports
+import { ArrowLeft, ArrowRight } from "lucide-react";
+import { leadService } from "@/services";
+import type { Lead } from "@/types";
+
+// notification imports
+import { useNotifications } from "@/hooks";
+
+// tab definitions
+const tabs = [
+  { value: "edit", label: "Edit Lead" },
+  { value: "comments", label: "Comments" },
+  { value: "calls", label: "Calls" },
+  { value: "attachments", label: "Attachments" },
+] as const;
+
 function LeadDetailsPage() {
+  // param handlers
   const { id } = useParams<{ id: string }>();
+
+  // navigation handler
   const navigate = useNavigate();
+
+  // local state
   const [lead, setLead] = useState<Lead | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("edit");
   const [isConverting, setIsConverting] = useState(false);
+
+  // convert to deal dialog state
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
 
+  // notifications
+  const { notifyEvent } = useNotifications();
+
+  // fetch lead details on component mount
   useEffect(() => {
     const fetchLead = async () => {
       if (!id) {
@@ -46,6 +73,7 @@ function LeadDetailsPage() {
     fetchLead();
   }, [id]);
 
+  // handlers
   const handleGoBack = () => {
     navigate("/leads");
   };
@@ -69,9 +97,16 @@ function LeadDetailsPage() {
 
       setLead(response.lead);
 
-      toast.success("Lead converted to deal successfully!");
-
       navigate("/deals");
+
+      toast.success("Lead converted to deal successfully!");
+      notifyEvent({
+        type: "lead_converted",
+        title: "Lead Converted",
+        message: `Lead ${lead.leadFirstName} ${lead.leadLastName || ""} has been converted to a deal successfully.`,
+        entityId: lead._id,
+        entityType: "lead",
+      });
       setIsConverting(false);
     } catch (err) {
       const message =
@@ -172,57 +207,21 @@ function LeadDetailsPage() {
           className="w-full"
         >
           <TabsList className="w-full justify-start border-b border-border rounded-lg p-0 h-12">
-            <TabsTrigger
-              value="edit"
-              className="rounded-lg border-b-2 border-transparent 
-               text-muted-foreground
-               hover:text-primary
-               hover:border-primary/40
-               data-[state=active]:border-primary 
-               data-[state=active]:text-primary
-               px-6 h-full transition-colors"
-            >
-              Edit Lead
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="comments"
-              className="rounded-lg border-b-2 border-transparent 
-               text-muted-foreground
-               hover:text-primary
-               hover:border-primary/40
-               data-[state=active]:border-primary 
-               data-[state=active]:text-primary
-               px-6 h-full transition-colors"
-            >
-              Comments
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="calls"
-              className="rounded-lg border-b-2 border-transparent 
-               text-muted-foreground
-               hover:text-primary
-               hover:border-primary/40
-               data-[state=active]:border-primary 
-               data-[state=active]:text-primary
-               px-6 h-full transition-colors"
-            >
-              Calls
-            </TabsTrigger>
-
-            <TabsTrigger
-              value="attachments"
-              className="rounded-lg border-b-2 border-transparent 
-               text-muted-foreground
-               hover:text-primary
-               hover:border-primary/40
-               data-[state=active]:border-primary 
-               data-[state=active]:text-primary
-               px-6 h-full transition-colors"
-            >
-              Attachments
-            </TabsTrigger>
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                className="rounded-lg border-b-2 border-transparent 
+                            text-muted-foreground
+                            hover:text-primary
+                            hover:border-primary/40
+                            data-[state=active]:border-primary 
+                            data-[state=active]:text-primary
+                            px-6 h-full transition-colors"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
           </TabsList>
 
           {/* Tab Contents */}

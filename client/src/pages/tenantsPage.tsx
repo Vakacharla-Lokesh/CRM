@@ -1,22 +1,32 @@
+// hooks and basic imports
 import { useState } from "react";
-import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/tenants/tenantColumns";
-import type { Tenant, CreateTenantDto } from "@/types/tenant";
+import { useTenantData } from "@/hooks";
+import { useOffline } from "@/context/useOffline";
+import { useNavigate } from "react-router-dom";
+
+// component imports
+import { DataTable } from "@/components/common/dataTable";
+import { columns } from "@/components/tenants/tenantColumns";
 import { Button } from "@/components/ui/button";
 import { TenantModal } from "@/components/modals";
-import { Plus, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { useTenantData } from "@/hooks";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
-import { useNavigate } from "react-router-dom";
-import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
+import TenantStatistics from "@/components/tenants/tenantStatistics";
+
+// other imports
+import type { Tenant, CreateTenantDto } from "@/types/tenant";
+import { Plus, Search } from "lucide-react";
+
+// notification imports
+import { useNotifications } from "@/hooks";
 
 const TenantsPage = () => {
   const {
     filteredTenants,
     statistics,
     loading,
+    loadingMore,
     error,
     filters,
     updateFilter,
@@ -25,26 +35,55 @@ const TenantsPage = () => {
     updateTenant,
     deleteTenant,
     refresh,
+    hasNextPage,
+    loadMore,
   } = useTenantData();
+
+  // navigation handler
   const navigate = useNavigate();
 
+  // offline status
   const { isOnline } = useOffline();
 
+  // modal usestate
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // selected tenant for edit and delete
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tenantToDelete, setTenantToDelete] = useState<string | null>(null);
 
+  // delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // notifications
+  const { notifyEvent } = useNotifications();
+
+  // handle save tenant for both create and update
   const handleSaveTenant = async (tenantData: CreateTenantDto) => {
     try {
       if (selectedTenant) {
         await updateTenant(selectedTenant._id, tenantData);
+        toast.success("Tenant updated successfully!");
+        notifyEvent({
+          type: "tenant_updated",
+          title: "Tenant Updated",
+          message: `Tenant ${tenantData.tenantName} has been updated successfully.`,
+          entityId: selectedTenant._id,
+          entityType: "tenant",
+        });
       } else {
         await createTenant(tenantData);
+        setIsModalOpen(false);
+        setSelectedTenant(null);
+        toast.success("Tenant created successfully!");
+        notifyEvent({
+          type: "tenant_created",
+          title: "Tenant Created",
+          message: `Tenant ${tenantData.tenantName} has been created successfully.`,
+          entityId: "",
+          entityType: "tenant",
+        });
       }
-      setIsModalOpen(false);
-      setSelectedTenant(null);
-      toast.success("Tenant saved successfully!");
     } catch (error) {
       console.error("Error saving tenant:", error);
       toast.error("Failed to save tenant. Please try again.");
@@ -52,11 +91,13 @@ const TenantsPage = () => {
     }
   };
 
+  // handle open modal for create tenant
   const handleOpenModal = () => {
     setSelectedTenant(null);
     setIsModalOpen(true);
   };
 
+  // handle edit tenant and delete tenant
   const handleEditTenant = (id: string) => {
     const tenant = filteredTenants.find((t) => t._id === id);
     if (tenant) {
@@ -81,6 +122,13 @@ const TenantsPage = () => {
       refresh();
       setTenantToDelete(null);
       toast.success("Tenant deleted successfully!");
+      notifyEvent({
+        type: "tenant_deleted",
+        title: "Tenant Deleted",
+        message: `A tenant has been deleted successfully.`,
+        entityId: tenantToDelete,
+        entityType: "tenant",
+      });
     } catch (error) {
       console.error("Error deleting tenant:", error);
       toast.error("Failed to delete tenant. Please try again.");
@@ -88,6 +136,7 @@ const TenantsPage = () => {
     }
   };
 
+  // navigate to tenant details page to view users of tenant
   const viewUsersOfTenant = (id: string) => {
     navigate(`/tenants/${id}`);
   };
@@ -114,16 +163,7 @@ const TenantsPage = () => {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            Total Tenants
-          </p>
-          <p className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-            {statistics.total}
-          </p>
-        </div>
-      </div>
+      <TenantStatistics statistics={statistics} />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -186,6 +226,9 @@ const TenantsPage = () => {
           data={filteredTenants}
           name="Tenants"
           searchColumn="tenantName"
+          hasNextPage={hasNextPage}
+          onLoadMore={loadMore}
+          loadingMore={loadingMore}
         ></DataTable>
       )}
 

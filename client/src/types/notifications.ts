@@ -1,5 +1,3 @@
-// ─── Notification Event Types ───────────────────────────────────────────────
-
 export type NotificationEventType =
   // Lead events
   | "lead_created"
@@ -15,9 +13,12 @@ export type NotificationEventType =
   // Organization events
   | "organization_created"
   | "organization_updated"
+  | "organization_deleted"
   // User & team events
   | "user_added"
+  | "user_created"
   | "user_updated"
+  | "user_deleted"
   // Activity events
   | "call_logged"
   | "comment_added"
@@ -25,10 +26,12 @@ export type NotificationEventType =
   // Sync / offline events
   | "sync_completed"
   | "sync_failed"
-  | "offline_queued";
-
-// ─── Notification Model ──────────────────────────────────────────────────────
-
+  | "offline_queued"
+  // tenant events
+  | "tenant_created"
+  | "tenant_updated"
+  | "tenant_deleted";
+  
 export interface AppNotification {
   id: string;
   type: NotificationEventType;
@@ -41,8 +44,6 @@ export interface AppNotification {
   metadata?: Record<string, unknown>;
 }
 
-// ─── notifyEvent Payload ─────────────────────────────────────────────────────
-
 export interface NotifyEventPayload {
   type: NotificationEventType;
   title: string;
@@ -51,8 +52,6 @@ export interface NotifyEventPayload {
   entityType?: string;
   metadata?: Record<string, unknown>;
 }
-
-// ─── Context Shape ───────────────────────────────────────────────────────────
 
 export interface NotificationContextType {
   notifications: AppNotification[];
