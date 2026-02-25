@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useLeadData, useDebounce } from "@/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsAPI } from "@/services";
 
 // component imports
 import { DataTable } from "../components/common/dataTable";
@@ -76,6 +78,13 @@ const LeadsPage = () => {
 
   // notifications
   const { notifyEvent } = useNotifications();
+
+  // Analytics stats (all-time, from server aggregation)
+  const leadStatsQuery = useQuery({
+    queryKey: ["analytics", "leadStatusBreakdown"],
+    queryFn: () => analyticsAPI.leadStatusBreakdown(),
+    staleTime: 1000 * 60 * 5,
+  });
 
   // Fetch leads on mount
   useEffect(() => {
@@ -245,7 +254,11 @@ const LeadsPage = () => {
         </div>
       </div>
 
-      <LeadStatistics filteredLeads={filteredLeads} />
+      <LeadStatistics
+        breakdown={leadStatsQuery.data?.breakdown ?? []}
+        total={leadStatsQuery.data?.total ?? 0}
+        isLoading={leadStatsQuery.isLoading}
+      />
 
       {/* Filters */}
       <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">

@@ -279,17 +279,16 @@ export const getLeadTrends = async (req, res, next) => {
 export const getLeadStatusBreakdown = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
-    const days = parseInt(req.query.days ?? "30");
+    const days = req.query.days !== undefined ? parseInt(req.query.days) : null;
 
-    const startDate = new Date();
-    startDate.setDate(startDate.getDate() - days);
+    const matchFilter =
+      days !== null
+        ? { ...filter, createdAt: { $gte: new Date(Date.now() - days * 864e5) } }
+        : { ...filter };
 
     const breakdown = await leadModel.aggregate([
       {
-        $match: {
-          ...filter,
-          createdAt: { $gte: startDate },
-        },
+        $match: matchFilter,
       },
       {
         $group: {

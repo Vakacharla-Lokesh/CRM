@@ -1,6 +1,8 @@
 // hooks and basic imports
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsAPI } from "@/services";
 
 // components imports
 import { DataTable } from "../components/common/dataTable";
@@ -40,7 +42,6 @@ import { useNotifications } from "@/hooks";
 const OrganizationsPage = () => {
   const {
     filteredOrganizations,
-    statistics,
     loading,
     loadingMore,
     error,
@@ -55,6 +56,13 @@ const OrganizationsPage = () => {
     hasNextPage,
     loadMore,
   } = useOrganizationData();
+
+  // Analytics stats (all-time, from server aggregation)
+  const orgStatsQuery = useQuery({
+    queryKey: ["analytics", "organizationStats"],
+    queryFn: () => analyticsAPI.organizationStats(),
+    staleTime: 1000 * 60 * 5,
+  });
 
   const [selectedOrganization, setSelectedOrganization] =
     useState<Organization | null>(null);
@@ -277,8 +285,10 @@ const OrganizationsPage = () => {
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <OrganizationStatistics statistics={statistics} />
+      <OrganizationStatistics
+        stats={orgStatsQuery.data?.stats ?? []}
+        isLoading={orgStatsQuery.isLoading}
+      />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

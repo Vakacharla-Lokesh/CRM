@@ -1,6 +1,8 @@
 // hooks and basic imports
 import { useState, useEffect } from "react";
 import { useDealData, useDebounce } from "@/hooks";
+import { useQuery } from "@tanstack/react-query";
+import { analyticsAPI } from "@/services";
 
 // components imports
 import { DataTable } from "../components/common/dataTable";
@@ -34,7 +36,6 @@ import { useNotifications } from "@/hooks";
 const DealsPage = () => {
   const {
     filteredDeals,
-    statistics,
     loading,
     loadingMore,
     error,
@@ -48,6 +49,13 @@ const DealsPage = () => {
     hasNextPage,
     loadMore,
   } = useDealData();
+
+  // Analytics stats (all-time, from server aggregation)
+  const dealStatsQuery = useQuery({
+    queryKey: ["analytics", "dealPipeline"],
+    queryFn: () => analyticsAPI.dealPipeline(),
+    staleTime: 1000 * 60 * 5,
+  });
 
   // search state
   const [searchInput, setSearchInput] = useState("");
@@ -149,7 +157,11 @@ const DealsPage = () => {
         </div>
       </div>
 
-      <DealStatistics statistics={statistics} />
+      <DealStatistics
+        pipeline={dealStatsQuery.data?.pipeline ?? []}
+        summary={dealStatsQuery.data?.summary ?? { totalPipelineValue: 0, totalDeals: 0, avgDealValue: 0 }}
+        isLoading={dealStatsQuery.isLoading}
+      />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

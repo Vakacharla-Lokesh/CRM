@@ -2,6 +2,9 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAppContext } from "@/hooks";
 import { routeConfig } from "./routeConfig";
 import type { RouteConfig } from "./routeConfig";
+import { PageLoadingFallback } from "@/components/common/suspenseFallback";
+
+import { Suspense } from "react";
 
 interface ProtectedRouteProps {
   config: RouteConfig;
@@ -29,37 +32,39 @@ function ProtectedRoute({ config }: ProtectedRouteProps) {
 
 export function AppRouter() {
   return (
-    <Routes>
-      {/* Default redirect */}
-      <Route
-        path="/"
-        element={
-          <Navigate
-            to="/dashboard"
-            replace
-          />
-        }
-      />
-
-      {/* Permission-based routes */}
-      {routeConfig.map((route) => (
+    <Suspense fallback={<PageLoadingFallback />}>
+      <Routes>
+        {/* Default redirect */}
         <Route
-          key={route.path}
-          path={route.path}
-          element={<ProtectedRoute config={route} />}
+          path="/"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
         />
-      ))}
 
-      {/* Catch-all */}
-      <Route
-        path="*"
-        element={
-          <Navigate
-            to="/dashboard"
-            replace
+        {/* Permission-based routes */}
+        {routeConfig.map((route) => (
+          <Route
+            key={route.path}
+            path={route.path}
+            element={<ProtectedRoute config={route} />}
           />
-        }
-      />
-    </Routes>
+        ))}
+
+        {/* Catch-all */}
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/dashboard"
+              replace
+            />
+          }
+        />
+      </Routes>
+    </Suspense>
   );
 }
