@@ -112,10 +112,9 @@ async function withSilentRefresh<T>(
 
     isRefreshing = true;
 
+    let newToken: string;
     try {
-      const newToken = await attemptTokenRefresh();
-      processQueue(null, newToken);
-      return await doRequest(newToken);
+      newToken = await attemptTokenRefresh();
     } catch (refreshError) {
       processQueue(refreshError, null);
       window.dispatchEvent(new Event("auth:logout"));
@@ -123,6 +122,11 @@ async function withSilentRefresh<T>(
     } finally {
       isRefreshing = false;
     }
+
+    // Refresh succeeded — notify all queued requests and retry the original.
+    // Any error from the retry propagates naturally without triggering logout.
+    processQueue(null, newToken);
+    return doRequest(newToken);
   }
 }
 
