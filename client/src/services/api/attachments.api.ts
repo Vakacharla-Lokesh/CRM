@@ -3,9 +3,6 @@ import type { Attachment, CreateAttachmentDTO } from "../../types";
 import { API_BASE_URL, getToken } from "./core";
 
 export const attachmentsAPI = {
-  /**
-   * Get all attachments
-   */
   list: async (params?: { page?: number; limit?: number }) => {
     const response = await get<{ count: number; attachments: Attachment[] }>(
       "/attachments",
@@ -19,9 +16,6 @@ export const attachmentsAPI = {
     };
   },
 
-  /**
-   * Get a specific attachment by ID
-   */
   get: async (id: string) => {
     const response = await get<{ attachment: Attachment }>(
       `/attachments/${id}`,
@@ -29,9 +23,6 @@ export const attachmentsAPI = {
     return response.attachment;
   },
 
-  /**
-   * Get all attachments for a specific lead
-   */
   getByLead: async (leadId: string) => {
     const response = await get<{ count: number; attachments: Attachment[] }>(
       `/attachments/lead/${leadId}`,
@@ -42,9 +33,6 @@ export const attachmentsAPI = {
     };
   },
 
-  /**
-   * Create a new attachment
-   */
   create: async (data: CreateAttachmentDTO) => {
     const response = await post<{ message: string; attachment: Attachment }>(
       "/attachments",
@@ -53,15 +41,8 @@ export const attachmentsAPI = {
     return response.attachment;
   },
 
-  /**
-   * Delete an attachment
-   */
   delete: (id: string) => delete_<{ message: string }>(`/attachments/${id}`),
 
-  /**
-   * Download an attachment
-   * Returns a Blob that can be used to create a download link
-   */
   download: async (id: string): Promise<Blob> => {
     const token = getToken();
     const headers: Record<string, string> = {};

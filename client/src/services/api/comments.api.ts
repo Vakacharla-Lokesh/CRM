@@ -2,9 +2,6 @@ import { get, post, put, delete_ } from "./core";
 import type { Comment, CreateCommentDTO, UpdateCommentDTO } from "../../types";
 
 export const commentsAPI = {
-  /**
-   * Get all comments
-   */
   list: async (params?: { page?: number; limit?: number }) => {
     const response = await get<{ count: number; comments: Comment[] }>(
       "/comments",
@@ -18,17 +15,11 @@ export const commentsAPI = {
     };
   },
 
-  /**
-   * Get a specific comment by ID
-   */
   get: async (id: string) => {
     const response = await get<{ comment: Comment }>(`/comments/${id}`);
     return response.comment;
   },
 
-  /**
-   * Get all comments for a specific lead
-   */
   getByLead: async (leadId: string) => {
     const response = await get<{ count: number; comments: Comment[] }>(
       `/comments/lead/${leadId}`,
@@ -39,9 +30,6 @@ export const commentsAPI = {
     };
   },
 
-  /**
-   * Create a new comment
-   */
   create: async (data: CreateCommentDTO) => {
     const response = await post<{ message: string; comment: Comment }>(
       "/comments",
@@ -50,9 +38,6 @@ export const commentsAPI = {
     return response.comment;
   },
 
-  /**
-   * Update an existing comment
-   */
   update: async (id: string, data: UpdateCommentDTO) => {
     const response = await put<{ message: string; comment: Comment }>(
       `/comments/${id}`,
@@ -61,8 +46,5 @@ export const commentsAPI = {
     return response.comment;
   },
 
-  /**
-   * Delete a comment
-   */
   delete: (id: string) => delete_<{ message: string }>(`/comments/${id}`),
 };

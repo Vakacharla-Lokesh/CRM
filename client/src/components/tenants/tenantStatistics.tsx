@@ -1,4 +1,4 @@
-function TenantStatistics({ statistics }: { statistics: { total: number,  } }) {
+function TenantStatistics({ statistics }: { statistics: { total: number } }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

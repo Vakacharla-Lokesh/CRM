@@ -3,8 +3,6 @@ import mongoose from "mongoose";
 import { config } from "dotenv";
 config();
 
-// console.log("testing:", process.env);
-
 const db = mongoose
   .connect(process.env.DB_URI)
   .then(() => console.log("Connected to MongoDB"))

@@ -38,17 +38,30 @@ export function FormSelect({
 }: FormSelectProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-sm font-semibold">
+      <Label
+        htmlFor={id}
+        className="text-sm font-semibold"
+      >
         {label}
         {required && <span className="text-red-500"> *</span>}
       </Label>
-      <Select value={value} onValueChange={onChange} disabled={disabled}>
-        <SelectTrigger id={id} className={error ? "border-red-500" : ""}>
+      <Select
+        value={value}
+        onValueChange={onChange}
+        disabled={disabled}
+      >
+        <SelectTrigger
+          id={id}
+          className={error ? "border-red-500" : ""}
+        >
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+            >
               {option.label}
             </SelectItem>
           ))}

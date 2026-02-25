@@ -18,12 +18,10 @@ export function OTPInput({
 }: OTPInputProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Initialize refs array
   useEffect(() => {
     inputRefs.current = inputRefs.current.slice(0, length);
   }, [length]);
 
-  // Auto-focus first input on mount
   useEffect(() => {
     if (inputRefs.current[0]) {
       inputRefs.current[0].focus();
@@ -31,17 +29,14 @@ export function OTPInput({
   }, []);
 
   const handleChange = (index: number, newValue: string) => {
-    // Only allow digits
     const digit = newValue.replace(/[^\d]/g, "");
 
-    // Update the OTP value at the current index
     const otpArray = value.split("");
     otpArray[index] = digit;
     const newOTP = otpArray.join("").slice(0, length);
 
     onChange(newOTP);
 
-    // Auto-focus next input if digit was entered
     if (digit && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -51,20 +46,16 @@ export function OTPInput({
     e: React.KeyboardEvent<HTMLInputElement>,
     index: number,
   ) => {
-    // Backspace: move to previous input
     if (e.key === "Backspace") {
       if (!value[index] && index > 0) {
         inputRefs.current[index - 1]?.focus();
       } else {
-        // Clear current input
         const otpArray = value.split("");
         otpArray[index] = "";
         onChange(otpArray.join(""));
       }
       e.preventDefault();
-    }
-    // Arrow keys: navigate between inputs
-    else if (e.key === "ArrowLeft" && index > 0) {
+    } else if (e.key === "ArrowLeft" && index > 0) {
       inputRefs.current[index - 1]?.focus();
     } else if (e.key === "ArrowRight" && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
@@ -77,7 +68,6 @@ export function OTPInput({
     const newOTP = pastedData.slice(0, length);
     onChange(newOTP);
 
-    // Auto-focus to next empty input or last input
     const nextIndex = Math.min(newOTP.length, length - 1);
     setTimeout(() => {
       inputRefs.current[nextIndex]?.focus();

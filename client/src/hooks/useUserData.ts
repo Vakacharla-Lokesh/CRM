@@ -23,23 +23,19 @@ export const useUserData = () => {
   const queryClient = useQueryClient();
   const { updateItem, deleteItem, getAll } = useIndexedDB("users");
 
-  // ─── Pagination state ───────────────────────────────────────────────
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
-  // ─── Tenant-scoped mode ─────────────────────────────────────────────
   const [tenantId, setTenantId] = useState<string | null>(null);
 
-  // ─── Filters ────────────────────────────────────────────────────────
   const [filters, setFilters] = useState<UserFilters>({
     role: "",
     status: "",
     search: "",
   });
 
-  // ─── Main query ─────────────────────────────────────────────────────
   const {
     data: queryData,
     isLoading: loading,
@@ -47,7 +43,6 @@ export const useUserData = () => {
   } = useQuery({
     queryKey: ["users", { tenantId }],
     queryFn: async () => {
-      // Offline fallback
       if (!navigator.onLine) {
         const cached = (await getAll()) as unknown as User[];
         return { users: cached, nextCursor: null, hasNextPage: false };
@@ -64,7 +59,6 @@ export const useUserData = () => {
     staleTime: 30_000,
   });
 
-  // Sync query result into allUsers + IndexedDB
   useEffect(() => {
     if (!queryData) return;
     const { users, nextCursor: cursor, hasNextPage: more } = queryData;
@@ -73,7 +67,6 @@ export const useUserData = () => {
     setNextCursor(cursor ?? null);
     setHasNextPage(more ?? false);
 
-    // Mirror to IndexedDB
     users.forEach((user) => {
       updateItem(user._id, { ...user, id: user._id });
     });
@@ -81,7 +74,6 @@ export const useUserData = () => {
 
   const error = queryError instanceof Error ? queryError : null;
 
-  // ─── Statistics ─────────────────────────────────────────────────────
   const statistics = useMemo((): UserStatistics => {
     const stats: UserStatistics = {
       total: allUsers.length,
@@ -102,7 +94,6 @@ export const useUserData = () => {
     return stats;
   }, [allUsers]);
 
-  // ─── Filtered users ─────────────────────────────────────────────────
   const filteredUsers = useMemo(() => {
     let filtered = [...allUsers];
 
@@ -131,7 +122,6 @@ export const useUserData = () => {
     return filtered;
   }, [allUsers, filters]);
 
-  // ─── Load more (pagination) ──────────────────────────────────────────
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;
     setLoadingMore(true);
@@ -153,7 +143,6 @@ export const useUserData = () => {
     }
   }, [hasNextPage, loadingMore, nextCursor, updateItem]);
 
-  // ─── Fetch helpers ───────────────────────────────────────────────────
   const fetchUsers = useCallback(() => {
     setTenantId(null);
     setAllUsers([]);
@@ -175,7 +164,6 @@ export const useUserData = () => {
     return userService.getCurrentUser();
   }, []);
 
-  // ─── Mutations ───────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (userData: Partial<User>) => userService.createUser(userData),
     onSuccess: async (newUser) => {
@@ -218,7 +206,6 @@ export const useUserData = () => {
     },
   });
 
-  // ─── Convenience wrappers (preserve old API surface) ─────────────────
   const createUser = useCallback(
     (userData: Partial<User>) => createMutation.mutateAsync(userData),
     [createMutation],
@@ -256,7 +243,6 @@ export const useUserData = () => {
     [updateRoleMutation],
   );
 
-  // ─── Filter helpers ───────────────────────────────────────────────────
   const updateFilter = useCallback((key: keyof UserFilters, value: unknown) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
   }, []);
@@ -265,7 +251,6 @@ export const useUserData = () => {
     setFilters({ role: "", status: "", search: "" });
   }, []);
 
-  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     // Data
     users: allUsers,

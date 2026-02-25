@@ -12,7 +12,6 @@ import { leadsAPI } from "./leads.api";
 import { organizationsAPI } from "./organizations.api";
 import { usersAPI } from "./users.api";
 import { dealsAPI } from "./deals.api";
-import { campaignsAPI } from "./campaigns.api";
 import { bulkAPI } from "./bulk.api";
 import { searchAPI } from "./search.api";
 import { analyticsAPI } from "./analytics.api";
@@ -26,7 +25,6 @@ export {
   organizationsAPI,
   usersAPI,
   dealsAPI,
-  campaignsAPI,
   bulkAPI,
   searchAPI,
   analyticsAPI,
@@ -44,7 +42,6 @@ export const API = {
   attachments: attachmentsAPI,
   users: usersAPI,
   deals: dealsAPI,
-  campaigns: campaignsAPI,
   bulk: bulkAPI,
   search: searchAPI,
   analytics: analyticsAPI,

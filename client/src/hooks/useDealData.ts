@@ -9,8 +9,6 @@ import dealService from "@/services/dealService";
 import { useIndexedDB } from "./useIndexedDB";
 import type { Deal, DealStatus, CreateDealDTO, UpdateDealDTO } from "@/types";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export interface DealFilters {
   status: DealStatus | "";
   stage: DealStatus | "";
@@ -42,18 +40,13 @@ const EMPTY_FILTERS: DealFilters = {
   maxValue: null,
 };
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export const useDealData = () => {
   const queryClient = useQueryClient();
   const { updateItem, getAll } = useIndexedDB<Deal & { id: string }>("deals");
 
-  // Local UI state — filters and search live here, not in TanStack cache
   const [filters, setFilters] = useState<DealFilters>(EMPTY_FILTERS);
   const [isSearchMode, setIsSearchMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  // ─── Main paginated query ──────────────────────────────────────────────────
 
   const {
     data,
@@ -66,7 +59,6 @@ export const useDealData = () => {
   } = useInfiniteQuery({
     queryKey: ["deals"],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
-      // Offline fallback — serve IndexedDB cache
       if (!navigator.onLine) {
         const cached = await getAll();
         return {
@@ -81,7 +73,6 @@ export const useDealData = () => {
         limit: PAGE_LIMIT,
       });
 
-      // Write-through to IndexedDB after every successful page
       for (const deal of page.deals) {
         try {
           await updateItem(deal._id, { ...deal, id: deal._id });
@@ -97,25 +88,17 @@ export const useDealData = () => {
       lastPage.hasNextPage ? lastPage.nextCursor : undefined,
   });
 
-  // ─── Search query ──────────────────────────────────────────────────────────
-  // dealService.searchDeals returns Deal[] directly (not paginated).
-  // Separate query key so it never conflicts with the main deals cache.
-
   const { data: searchResults = [], isLoading: searchLoading } = useQuery({
     queryKey: ["deals", "search", searchQuery],
     queryFn: () => dealService.searchDeals(searchQuery.trim()),
     enabled: isSearchMode && searchQuery.trim().length > 0,
   });
 
-  // ─── Derived state ─────────────────────────────────────────────────────────
-
   const allDeals: Deal[] = useMemo(
     () => data?.pages.flatMap((page) => page.deals) ?? [],
     [data],
   );
 
-  // Statistics — computed from all loaded deals (not filtered).
-  // Preserves the pre-seeded byStatus keys from the original hook exactly.
   const statistics: DealStatistics = useMemo(() => {
     const total = allDeals.length;
 
@@ -168,7 +151,6 @@ export const useDealData = () => {
     return { total, byStatus, byStage, totalValue, avgValue, forecastValue };
   }, [allDeals]);
 
-  // Client-side filtering — in search mode use search results directly.
   const filteredDeals: Deal[] = useMemo(() => {
     if (isSearchMode) return searchResults;
 
@@ -204,8 +186,6 @@ export const useDealData = () => {
       return true;
     });
   }, [allDeals, filters, isSearchMode, searchResults]);
-
-  // ─── Mutations ────────────────────────────────────────────────────────────
 
   const createMutation = useMutation({
     mutationFn: (dealData: CreateDealDTO) => dealService.createDeal(dealData),
@@ -253,8 +233,6 @@ export const useDealData = () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
     },
   });
-
-  // ─── Stable callbacks ─────────────────────────────────────────────────────
 
   const refresh = useCallback(() => {
     refetch();
@@ -323,9 +301,6 @@ export const useDealData = () => {
     setIsSearchMode(false);
     setSearchQuery("");
   }, []);
-
-  // ─── Return ───────────────────────────────────────────────────────────────
-  // Shape is IDENTICAL to the old hook — no component changes required.
 
   return {
     deals: allDeals,

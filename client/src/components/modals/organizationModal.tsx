@@ -94,7 +94,8 @@ function OrganizationModal({
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+          organizationIndustry:
+            formData.organizationIndustry as OrganizationIndustry,
         };
         addToQueue(
           "/api/organizations",
@@ -105,13 +106,16 @@ function OrganizationModal({
           "organizations",
           "update",
         );
-        toast.info("You're offline. Organization update has been queued and will sync when your connection is restored.");
+        toast.info(
+          "You're offline. Organization update has been queued and will sync when your connection is restored.",
+        );
       } else {
         const createData: CreateOrganizationDTO = {
           organizationName: formData.organizationName,
           organizationWebsite: formData.organizationWebsite,
           organizationSize: formData.organizationSize,
-          organizationIndustry: formData.organizationIndustry as OrganizationIndustry,
+          organizationIndustry:
+            formData.organizationIndustry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
         addToQueue(
@@ -123,7 +127,9 @@ function OrganizationModal({
           "organizations",
           "create",
         );
-        toast.info("You're offline. Organization has been queued and will sync automatically when your connection is restored.");
+        toast.info(
+          "You're offline. Organization has been queued and will sync automatically when your connection is restored.",
+        );
       }
       onClose();
       setIsSubmitting(false);

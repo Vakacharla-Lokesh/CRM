@@ -30,7 +30,10 @@ export function FormField({
 }: FormFieldProps) {
   return (
     <div className="space-y-2">
-      <Label htmlFor={id} className="text-sm font-semibold">
+      <Label
+        htmlFor={id}
+        className="text-sm font-semibold"
+      >
         {label}
         {required && <span className="text-red-500"> *</span>}
       </Label>

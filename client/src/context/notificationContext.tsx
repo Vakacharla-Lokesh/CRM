@@ -9,7 +9,7 @@ function generateId(): string {
   return `notif_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 }
 
-const MAX_NOTIFICATIONS = 100;
+const MAX_NOTIFICATIONS = 10;
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);

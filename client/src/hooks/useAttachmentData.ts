@@ -7,7 +7,6 @@ export const useAttachmentData = (leadId: string) => {
   const queryClient = useQueryClient();
   const queryKey = ["attachments", "lead", leadId];
 
-  // ─── Main query ──────────────────────────────────────────────────────
   const {
     data,
     isLoading: loading,
@@ -23,9 +22,6 @@ export const useAttachmentData = (leadId: string) => {
   const attachments: Attachment[] = data ?? [];
   const error = queryError instanceof Error ? queryError.message : null;
 
-  // ─── Upload ──────────────────────────────────────────────────────────
-  // NOTE: No useMutation for the File→base64 conversion step — that's
-  // pure client work. The mutation only fires the API call itself.
   const uploadMutation = useMutation({
     mutationFn: async (file: File) => {
       const maxSize = 10 * 1024 * 1024; // 10 MB
@@ -33,12 +29,11 @@ export const useAttachmentData = (leadId: string) => {
         throw new Error("File size must be less than 10MB");
       }
 
-      // Convert File to base64 before sending
       const fileData = await new Promise<string>((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = () => {
           const result = reader.result as string;
-          resolve(result.split(",")[1]); // strip data URL prefix
+          resolve(result.split(",")[1]);
         };
         reader.onerror = reject;
         reader.readAsDataURL(file);
@@ -55,7 +50,6 @@ export const useAttachmentData = (leadId: string) => {
       return attachmentsAPI.create(payload);
     },
     onSuccess: (newAttachment) => {
-      // Prepend to cache — newest attachment appears first
       queryClient.setQueryData<Attachment[]>(queryKey, (prev = []) => [
         newAttachment,
         ...prev,
@@ -66,10 +60,8 @@ export const useAttachmentData = (leadId: string) => {
     },
   });
 
-  // isPending from the mutation IS our uploading flag — no separate useState needed
   const uploading = uploadMutation.isPending;
 
-  // ─── Delete ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (id: string) => attachmentsAPI.delete(id),
     onSuccess: (_, id) => {
@@ -82,7 +74,6 @@ export const useAttachmentData = (leadId: string) => {
     },
   });
 
-  // ─── Download (pure client-side, no server state change) ─────────────
   const downloadAttachment = useCallback(async (attachment: Attachment) => {
     try {
       const blob = await attachmentsAPI.download(attachment._id);
@@ -101,7 +92,6 @@ export const useAttachmentData = (leadId: string) => {
     }
   }, []);
 
-  // ─── Convenience wrappers (preserve old API surface) ─────────────────
   const uploadAttachment = useCallback(
     (file: File) => uploadMutation.mutateAsync(file),
     [uploadMutation],
@@ -117,7 +107,6 @@ export const useAttachmentData = (leadId: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryClient, leadId]);
 
-  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     attachments,
     loading,

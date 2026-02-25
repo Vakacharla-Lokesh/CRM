@@ -85,11 +85,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
     setIsSubmitting(true);
 
-    // --- Offline path ---
     if (!isOnline) {
       if (user) {
-        // User updates require the server to process auth changes — skip queueing
-        toast.error("Updating a user requires an internet connection. Please try again when online.");
+        toast.error(
+          "Updating a user requires an internet connection. Please try again when online.",
+        );
         setIsSubmitting(false);
         return;
       }
@@ -114,13 +114,14 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         "create",
       );
 
-      toast.info("You're offline. User has been queued and will sync automatically when your connection is restored.");
+      toast.info(
+        "You're offline. User has been queued and will sync automatically when your connection is restored.",
+      );
       onClose();
       setIsSubmitting(false);
       return;
     }
 
-    // --- Online path ---
     try {
       const userData: CreateUserDTO = {
         firstName: formData.firstName,

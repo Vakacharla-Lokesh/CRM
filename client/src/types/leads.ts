@@ -1,4 +1,3 @@
-/** Matches the backend enum exactly */
 export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
 
 export type LeadSource =
@@ -71,8 +70,6 @@ export interface LeadFilter {
   organizationId?: string;
   search?: string;
 }
-
-// Helpers
 
 export function isLead(obj: unknown): obj is Lead {
   return (

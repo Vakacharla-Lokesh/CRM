@@ -15,7 +15,7 @@ export interface CursorLeadListResponse {
   hasNextPage: boolean;
 }
 
-export interface OffsetLeadListResponse extends LeadListResponse {}
+export type OffsetLeadListResponse = LeadListResponse;
 
 export interface LeadListParams {
   page?: number;

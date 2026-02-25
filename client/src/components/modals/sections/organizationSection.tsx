@@ -8,7 +8,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { Organization } from "@/types";
+import {
+  industryMap,
+  type Organization,
+  type OrganizationIndustry,
+} from "@/types";
 
 interface OrganizationFormData {
   organizationName: string;
@@ -29,7 +33,10 @@ interface OrganizationSectionProps {
   selectedOrgId: string;
   onOrgSelect: (orgId: string) => void;
   newOrgData: OrganizationFormData;
-  onNewOrgChange: (field: keyof OrganizationFormData, value: string | number) => void;
+  onNewOrgChange: (
+    field: keyof OrganizationFormData,
+    value: string | number,
+  ) => void;
   errors: FormErrors;
   onModeChange?: (mode: "select" | "create") => void;
 }
@@ -71,7 +78,10 @@ export function OrganizationSection({
   return (
     <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
       <div className="space-y-2">
-        <Label htmlFor="organization" className="text-sm font-semibold">
+        <Label
+          htmlFor="organization"
+          className="text-sm font-semibold"
+        >
           Organization
         </Label>
         <Select
@@ -89,7 +99,10 @@ export function OrganizationSection({
               </div>
             </SelectItem>
             {organizations.map((org) => (
-              <SelectItem key={org._id} value={org._id}>
+              <SelectItem
+                key={org._id}
+                value={org._id}
+              >
                 <div className="flex flex-col">
                   <span>{org.organizationName}</span>
                   <span className="text-xs text-gray-500">
@@ -139,7 +152,10 @@ export function OrganizationSection({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="organizationName" className="text-sm font-semibold">
+            <Label
+              htmlFor="organizationName"
+              className="text-sm font-semibold"
+            >
               Organization Name <span className="text-red-500">*</span>
             </Label>
             <Input
@@ -184,7 +200,10 @@ export function OrganizationSection({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="organizationSize" className="text-sm font-semibold">
+              <Label
+                htmlFor="organizationSize"
+                className="text-sm font-semibold"
+              >
                 Organization Size <span className="text-red-500">*</span>
               </Label>
               <Input
@@ -233,30 +252,21 @@ export function OrganizationSection({
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Software">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span>Software</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="Textile">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-purple-500"></div>
-                      <span>Textile</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="Foods">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span>Foods</span>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="Others">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                      <span>Others</span>
-                    </div>
-                  </SelectItem>
+                  {(Object.keys(industryMap) as OrganizationIndustry[]).map(
+                    (industry) => (
+                      <SelectItem
+                        key={industry}
+                        value={industry}
+                      >
+                        <div className="flex items-center gap-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${industryMap[industry]}`}
+                          />
+                          <span>{industry}</span>
+                        </div>
+                      </SelectItem>
+                    ),
+                  )}
                 </SelectContent>
               </Select>
               {errors.organizationIndustry && (

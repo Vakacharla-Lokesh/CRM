@@ -112,7 +112,11 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   const signup = useCallback(async (userData: SignupData) => {
     try {
       const response = await authService.signup(userData);
-      const { user: newUser, token: authToken, refreshToken: refreshTokenValue } = response;
+      const {
+        user: newUser,
+        token: authToken,
+        refreshToken: refreshTokenValue,
+      } = response;
 
       setUser(newUser);
       setToken(authToken);

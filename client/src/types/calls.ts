@@ -1,4 +1,3 @@
-// Call Types
 export type CallType = "incoming" | "outgoing";
 
 export const CALL_TYPE_LABELS: Record<CallType, string> = {

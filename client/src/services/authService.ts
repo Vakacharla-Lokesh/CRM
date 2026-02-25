@@ -1,5 +1,3 @@
-// UPDATED FILE: client/src/services/authService.ts
-
 import { apiClient } from "./api";
 import type { LoginCredentials, SignupData, AuthResponse } from "../types";
 
@@ -36,7 +34,7 @@ const authService = {
       { refreshToken },
     );
   },
-  
+
   requestPasswordResetOTP: async (
     email: string,
   ): Promise<{ message: string; expiresIn: number }> => {

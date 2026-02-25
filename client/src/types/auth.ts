@@ -1,8 +1,4 @@
-/**
- * Auth Types
- */
-
-import type { User } from './user';
+import type { User } from "./user";
 
 export interface AuthUser extends User {
   token: string;
@@ -14,7 +10,6 @@ export interface LoginRequest {
   password: string;
 }
 
-// Alias for backward compatibility
 export type LoginCredentials = LoginRequest;
 
 export interface LoginResponse {
@@ -31,10 +26,8 @@ export interface RegisterRequest {
   tenantName: string;
 }
 
-// Alias for RegisterRequest
 export type SignupData = RegisterRequest;
 
-// Generic auth response type
 export interface AuthResponse {
   user: User;
   token: string;

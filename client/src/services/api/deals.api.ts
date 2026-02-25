@@ -14,7 +14,10 @@ export const dealsAPI = {
     organizationId?: string;
     ownerId?: string;
   }) => {
-    const response = await get<{ count: number; deals: Deal[] }>("/deals", params);
+    const response = await get<{ count: number; deals: Deal[] }>(
+      "/deals",
+      params,
+    );
     return {
       deals: response.deals,
       total: response.count,
@@ -29,12 +32,18 @@ export const dealsAPI = {
   },
 
   create: async (data: CreateDealDTO) => {
-    const response = await post<{ message: string; deal: Deal }>("/deals", data);
+    const response = await post<{ message: string; deal: Deal }>(
+      "/deals",
+      data,
+    );
     return response.deal;
   },
 
   update: async (id: string, data: UpdateDealDTO) => {
-    const response = await put<{ message: string; deal: Deal }>(`/deals/${id}`, data);
+    const response = await put<{ message: string; deal: Deal }>(
+      `/deals/${id}`,
+      data,
+    );
     return response.deal;
   },
 
