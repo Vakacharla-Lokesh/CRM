@@ -1,350 +1,280 @@
 import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import asyncCatch from "../utils/asyncCatch.js";
+import AppError from "../utils/AppError.js";
 
-export const getAllLeads = async (req, res, next) => {
-  try {
-    const filter = req.tenantFilter || {};
+export const getAllLeads = asyncCatch(async (req, res) => {
+  const filter = req.tenantFilter || {};
 
-    const limit = parseInt(req.query.limit) || 20;
-    const cursor = req.query.cursor;
+  const limit = parseInt(req.query.limit) || 20;
+  const cursor = req.query.cursor;
 
-    if (cursor) {
-      const lastId = Buffer.from(cursor, "base64").toString("utf8");
-      filter._id = { $gt: lastId };
-    }
-
-    const leads = await leadModel
-      .find(filter)
-      .sort({ _id: 1 })
-      .limit(limit + 1);
-
-    const hasNextPage = leads.length > limit;
-    if (hasNextPage) leads.pop();
-
-    const nextCursor =
-      hasNextPage && leads.length > 0
-        ? Buffer.from(leads[leads.length - 1]._id.toString()).toString("base64")
-        : null;
-
-    res.json({
-      count: leads.length,
-      leads,
-      nextCursor,
-      hasNextPage,
-    });
-  } catch (err) {
-    next(err);
+  if (cursor) {
+    const lastId = Buffer.from(cursor, "base64").toString("utf8");
+    filter._id = { $gt: lastId };
   }
-};
 
-export const getLeadById = async (req, res, next) => {
-  try {
-    const lead = await leadModel.findById(req.params.id);
+  const leads = await leadModel
+    .find(filter)
+    .sort({ _id: 1 })
+    .limit(limit + 1);
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  const hasNextPage = leads.length > limit;
+  if (hasNextPage) leads.pop();
 
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot access this lead",
-      });
-    }
+  const nextCursor =
+    hasNextPage && leads.length > 0
+      ? Buffer.from(leads[leads.length - 1]._id.toString()).toString("base64")
+      : null;
 
-    res.json({ lead });
-  } catch (err) {
-    next(err);
+  res.json({
+    count: leads.length,
+    leads,
+    nextCursor,
+    hasNextPage,
+  });
+});
+
+export const getLeadById = asyncCatch(async (req, res) => {
+  const lead = await leadModel.findById(req.params.id);
+
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot access this lead", 403);
   }
-};
 
-export const createLead = async (req, res, next) => {
-  try {
-    const leadData = {
-      ...req.body,
-      userId: req.user.userId,
-    };
+  res.json({ lead });
+});
 
-    if (req.user.role !== "super_admin") {
-      leadData.tenantId = req.user.tenantId;
-    }
+export const createLead = asyncCatch(async (req, res) => {
+  const leadData = {
+    ...req.body,
+    userId: req.user.userId,
+  };
 
-    const lead = await leadModel.create(leadData);
-
-    // Calculate and update lead score
-    await updateLeadScore(lead._id);
-
-    // Fetch updated lead with score
-    const updatedLead = await leadModel.findById(lead._id);
-
-    res.status(201).json({
-      message: "Lead created successfully",
-      lead: updatedLead,
-    });
-  } catch (err) {
-    next(err);
+  if (req.user.role !== "super_admin") {
+    leadData.tenantId = req.user.tenantId;
   }
-};
 
-export const updateLead = async (req, res, next) => {
-  try {
-    const lead = await leadModel.findById(req.params.id);
+  const lead = await leadModel.create(leadData);
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  // Calculate and update lead score
+  await updateLeadScore(lead._id);
 
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId.toString()
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this lead",
-      });
-    }
+  // Fetch updated lead with score
+  const updatedLead = await leadModel.findById(lead._id);
 
-    const updatedLead = await leadModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true },
+  res.status(201).json({
+    message: "Lead created successfully",
+    lead: updatedLead,
+  });
+});
+
+export const updateLead = asyncCatch(async (req, res) => {
+  const lead = await leadModel.findById(req.params.id);
+
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot update this lead", 403);
+  }
+
+  const updatedLead = await leadModel.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true },
+  );
+
+  // Recalculate lead score after update
+  await updateLeadScore(req.params.id);
+
+  // Fetch updated lead with new score
+  const leadWithScore = await leadModel.findById(req.params.id);
+
+  res.json({
+    message: "Lead updated successfully",
+    lead: leadWithScore,
+  });
+});
+
+export const deleteLead = asyncCatch(async (req, res) => {
+  const lead = await leadModel.findById(req.params.id);
+
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot delete this lead", 403);
+  }
+
+  await leadModel.findByIdAndDelete(req.params.id);
+
+  res.json({ message: "Lead deleted successfully" });
+});
+
+export const getLeadsByTenant = asyncCatch(async (req, res) => {
+  if (req.user.role !== "super_admin") {
+    throw new AppError(
+      "Forbidden: You cannot access leads from other tenants",
+      403,
     );
-
-    // Recalculate lead score after update
-    await updateLeadScore(req.params.id);
-
-    // Fetch updated lead with new score
-    const leadWithScore = await leadModel.findById(req.params.id);
-
-    res.json({
-      message: "Lead updated successfully",
-      lead: leadWithScore,
-    });
-  } catch (err) {
-    next(err);
   }
-};
 
-export const deleteLead = async (req, res, next) => {
-  try {
-    const lead = await leadModel.findById(req.params.id);
+  const leads = await leadModel.find({ tenantId: req.params.tenantId });
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  res.json({ count: leads.length, leads });
+});
 
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot delete this lead",
-      });
-    }
+export const getLeadsByUser = asyncCatch(async (req, res) => {
+  const filter = { userId: req.params.userId };
 
-    await leadModel.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "Lead deleted successfully" });
-  } catch (err) {
-    next(err);
+  if (req.user.role !== "super_admin") {
+    filter.tenantId = req.user.tenantId;
   }
-};
 
-export const getLeadsByTenant = async (req, res, next) => {
-  try {
-    if (req.user.role !== "super_admin") {
-      return res.status(403).json({
-        message: "Forbidden: You cannot access leads from other tenants",
-      });
-    }
+  const leads = await leadModel.find(filter);
 
-    const leads = await leadModel.find({ tenantId: req.params.tenantId });
+  res.json({ count: leads.length, leads });
+});
 
-    res.json({ count: leads.length, leads });
-  } catch (err) {
-    next(err);
+export const getLeadsByOrganization = asyncCatch(async (req, res) => {
+  const filter = { organizationId: req.params.organizationId };
+
+  if (req.user.role !== "super_admin") {
+    filter.tenantId = req.user.tenantId;
   }
-};
 
-export const getLeadsByUser = async (req, res, next) => {
-  try {
-    const filter = { userId: req.params.userId };
+  const leads = await leadModel.find(filter);
 
-    if (req.user.role !== "super_admin") {
-      filter.tenantId = req.user.tenantId;
-    }
+  res.json({ count: leads.length, leads });
+});
 
-    const leads = await leadModel.find(filter);
+export const updateLeadStatus = asyncCatch(async (req, res) => {
+  const { leadStatus } = req.body;
+  const lead = await leadModel.findById(req.params.id);
 
-    res.json({ count: leads.length, leads });
-  } catch (err) {
-    next(err);
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot update this lead", 403);
   }
-};
 
-export const getLeadsByOrganization = async (req, res, next) => {
-  try {
-    const filter = { organizationId: req.params.organizationId };
+  lead.leadStatus = leadStatus;
+  await lead.save();
 
-    if (req.user.role !== "super_admin") {
-      filter.tenantId = req.user.tenantId;
-    }
+  // Recalculate lead score after status change
+  await updateLeadScore(req.params.id);
 
-    const leads = await leadModel.find(filter);
+  // Fetch updated lead with new score
+  const updatedLead = await leadModel.findById(req.params.id);
 
-    res.json({ count: leads.length, leads });
-  } catch (err) {
-    next(err);
+  res.json({
+    message: "Lead status updated successfully",
+    lead: updatedLead,
+  });
+});
+
+export const updateLeadScoreManually = asyncCatch(async (req, res) => {
+  const { leadScore } = req.body;
+  const lead = await leadModel.findById(req.params.id);
+
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot update this lead", 403);
   }
-};
 
-export const updateLeadStatus = async (req, res, next) => {
-  try {
-    const { leadStatus } = req.body;
-    const lead = await leadModel.findById(req.params.id);
+  lead.leadScore = leadScore;
+  await lead.save();
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  res.json({ message: "Lead score updated successfully", lead });
+});
 
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this lead",
-      });
-    }
+export const convertLeadToDeal = asyncCatch(async (req, res) => {
+  const lead = await leadModel.findById(req.params.id);
 
-    lead.leadStatus = leadStatus;
-    await lead.save();
+  if (!lead) throw new AppError("Lead not found", 404);
 
-    // Recalculate lead score after status change
-    await updateLeadScore(req.params.id);
-
-    // Fetch updated lead with new score
-    const updatedLead = await leadModel.findById(req.params.id);
-
-    res.json({
-      message: "Lead status updated successfully",
-      lead: updatedLead,
-    });
-  } catch (err) {
-    next(err);
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId?.toString() !== req.user.tenantId?.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot convert this lead", 403);
   }
-};
 
-export const updateLeadScoreManually = async (req, res, next) => {
-  try {
-    const { leadScore } = req.body;
-    const lead = await leadModel.findById(req.params.id);
-
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
-
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this lead",
-      });
-    }
-
-    lead.leadScore = leadScore;
-    await lead.save();
-
-    res.json({ message: "Lead score updated successfully", lead });
-  } catch (err) {
-    next(err);
+  if (lead.leadStatus === "Converted") {
+    throw new AppError("Lead has already been converted to a deal", 400);
   }
-};
 
-export const convertLeadToDeal = async (req, res, next) => {
-  try {
-    const lead = await leadModel.findById(req.params.id);
-
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
-
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId?.toString() !== req.user.tenantId?.toString()
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot convert this lead",
-      });
-    }
-
-    if (lead.leadStatus === "Converted") {
-      return res.status(400).json({
-        message: "Lead has already been converted to a deal",
-      });
-    }
-
-    if (!lead.organizationId) {
-      return res.status(400).json({
-        message: "Lead must have an organization to convert to deal",
-      });
-    }
-
-    const dealModel = (await import("../models/dealModel.js")).default;
-
-    const dealData = {
-      leadId: lead._id,
-      organizationId: lead.organizationId,
-      tenantId: lead.tenantId,
-      userId: lead.userId,
-      dealName: `${lead.leadFirstName} ${lead.leadLastName || ""}`.trim(),
-      dealValue: req.body.dealValue || 0,
-      dealStatus: req.body.dealStatus || "Prospecting",
-    };
-
-    const deal = await dealModel.create(dealData);
-
-    lead.leadStatus = "Converted";
-    await lead.save();
-
-    res.status(201).json({
-      message: "Lead converted to deal successfully",
-      deal,
-      lead,
-    });
-  } catch (err) {
-    next(err);
+  if (!lead.organizationId) {
+    throw new AppError(
+      "Lead must have an organization to convert to deal",
+      400,
+    );
   }
-};
 
-export const searchLeads = async (req, res, next) => {
-  try {
-    const filter = req.tenantFilter || {};
-    const { q, status, source, limit = 25 } = req.query;
+  const dealModel = (await import("../models/dealModel.js")).default;
 
-    if (!q || q.trim() === "") {
-      return res.status(400).json({ message: "Search query 'q' is required" });
-    }
+  const dealData = {
+    leadId: lead._id,
+    organizationId: lead.organizationId,
+    tenantId: lead.tenantId,
+    userId: lead.userId,
+    dealName: `${lead.leadFirstName} ${lead.leadLastName || ""}`.trim(),
+    dealValue: req.body.dealValue || 0,
+    dealStatus: req.body.dealStatus || "Prospecting",
+  };
 
-    const searchRegex = new RegExp(q.trim(), "i");
+  const deal = await dealModel.create(dealData);
 
-    filter.$or = [
-      { leadFirstName: searchRegex },
-      { leadLastName: searchRegex },
-      { leadEmail: searchRegex },
-    ];
+  lead.leadStatus = "Converted";
+  await lead.save();
 
-    if (status) filter.leadStatus = status;
-    if (source) filter.leadSource = source;
+  res.status(201).json({
+    message: "Lead converted to deal successfully",
+    deal,
+    lead,
+  });
+});
 
-    const leads = await leadModel
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .limit(Math.min(parseInt(limit), 25));
+export const searchLeads = asyncCatch(async (req, res) => {
+  const filter = req.tenantFilter || {};
+  const { q, status, source, limit = 25 } = req.query;
 
-    res.json({ count: leads.length, leads });
-  } catch (err) {
-    next(err);
+  if (!q || q.trim() === "") {
+    throw new AppError("Search query 'q' is required", 400);
   }
-};
+
+  const searchRegex = new RegExp(q.trim(), "i");
+
+  filter.$or = [
+    { leadFirstName: searchRegex },
+    { leadLastName: searchRegex },
+    { leadEmail: searchRegex },
+  ];
+
+  if (status) filter.leadStatus = status;
+  if (source) filter.leadSource = source;
+
+  const leads = await leadModel
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .limit(Math.min(parseInt(limit), 25));
+
+  res.json({ count: leads.length, leads });
+});

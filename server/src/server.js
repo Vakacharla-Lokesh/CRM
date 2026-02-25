@@ -19,6 +19,7 @@ import commentRoutes from "../routes/commentRoutes.js";
 import attachmentRoutes from "../routes/attachmentRoutes.js";
 import analyticsRoutes from "../routes/analyticsRoutes.js";
 import bulkRoutes from "../routes/bulkRoutes.js";
+import exportRoutes from "../routes/exportRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "../middlewares/errorHandler.js";
@@ -80,6 +81,7 @@ app.use("/api/comments", commentRoutes);
 app.use("/api/attachments", attachmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/bulk", bulkRoutes);
+app.use("/api/export", exportRoutes);
 
 // unknown route handler
 app.use(notFound);

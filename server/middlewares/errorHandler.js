@@ -1,6 +1,14 @@
 export const errorHandler = (err, req, res, next) => {
   console.error(err.stack);
 
+  // Operational errors created via AppError — send the exact message & status
+  if (err.isOperational) {
+    return res.status(err.statusCode).json({
+      status: err.status,
+      message: err.message,
+    });
+  }
+
   // Mongoose validation error
   if (err.name === "ValidationError") {
     return res.status(400).json({

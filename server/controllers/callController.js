@@ -1,163 +1,129 @@
 import callModel from "../models/callModel.js";
 import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import asyncCatch from "../utils/asyncCatch.js";
+import AppError from "../utils/AppError.js";
 
 // Get all calls
-export const getAllCalls = async (req, res, next) => {
-  try {
-    const calls = await callModel.find();
+export const getAllCalls = asyncCatch(async (req, res) => {
+  const calls = await callModel.find();
 
-    res.json({
-      count: calls.length,
-      calls,
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+  res.json({
+    count: calls.length,
+    calls,
+  });
+});
 
 // Get call by ID
-export const getCallById = async (req, res, next) => {
-  try {
-    const call = await callModel.findById(req.params.id);
+export const getCallById = asyncCatch(async (req, res) => {
+  const call = await callModel.findById(req.params.id);
 
-    if (!call) {
-      return res.status(404).json({ message: "Call not found" });
-    }
+  if (!call) throw new AppError("Call not found", 404);
 
-    res.json({ call });
-  } catch (err) {
-    next(err);
-  }
-};
+  res.json({ call });
+});
 
 // Create a new call
-export const createCall = async (req, res, next) => {
-  try {
-    // Verify lead exists and belongs to user's tenant
-    const lead = await leadModel.findById(req.body.leadId);
+export const createCall = asyncCatch(async (req, res) => {
+  // Verify lead exists and belongs to user's tenant
+  const lead = await leadModel.findById(req.body.leadId);
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  if (!lead) throw new AppError("Lead not found", 404);
 
-    // Check tenant access
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot add calls to leads from other tenants",
-      });
-    }
-
-    const call = await callModel.create(req.body);
-
-    // Update lead score after adding call
-    await updateLeadScore(req.body.leadId);
-
-    res.status(201).json({
-      message: "Call created successfully",
-      call,
-    });
-  } catch (err) {
-    next(err);
+  // Check tenant access
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError(
+      "Forbidden: You cannot add calls to leads from other tenants",
+      403,
+    );
   }
-};
+
+  const call = await callModel.create(req.body);
+
+  // Update lead score after adding call
+  await updateLeadScore(req.body.leadId);
+
+  res.status(201).json({
+    message: "Call created successfully",
+    call,
+  });
+});
 
 // Update call
-export const updateCall = async (req, res, next) => {
-  try {
-    const call = await callModel.findById(req.params.id);
+export const updateCall = asyncCatch(async (req, res) => {
+  const call = await callModel.findById(req.params.id);
 
-    if (!call) {
-      return res.status(404).json({ message: "Call not found" });
-    }
+  if (!call) throw new AppError("Call not found", 404);
 
-    // Verify lead tenant access
-    const lead = await leadModel.findById(call.leadId);
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this call",
-      });
-    }
-
-    const updatedCall = await callModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true },
-    );
-
-    res.json({
-      message: "Call updated successfully",
-      call: updatedCall,
-    });
-  } catch (err) {
-    next(err);
+  // Verify lead tenant access
+  const lead = await leadModel.findById(call.leadId);
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot update this call", 403);
   }
-};
+
+  const updatedCall = await callModel.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true },
+  );
+
+  res.json({
+    message: "Call updated successfully",
+    call: updatedCall,
+  });
+});
 
 // Delete call
-export const deleteCall = async (req, res, next) => {
-  try {
-    const call = await callModel.findById(req.params.id);
+export const deleteCall = asyncCatch(async (req, res) => {
+  const call = await callModel.findById(req.params.id);
 
-    if (!call) {
-      return res.status(404).json({ message: "Call not found" });
-    }
+  if (!call) throw new AppError("Call not found", 404);
 
-    // Verify lead tenant access
-    const lead = await leadModel.findById(call.leadId);
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot delete this call",
-      });
-    }
-
-    const leadId = call.leadId;
-    await callModel.findByIdAndDelete(req.params.id);
-
-    // Update lead score after deleting call
-    await updateLeadScore(leadId);
-
-    res.json({ message: "Call deleted successfully" });
-  } catch (err) {
-    next(err);
+  // Verify lead tenant access
+  const lead = await leadModel.findById(call.leadId);
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot delete this call", 403);
   }
-};
+
+  const leadId = call.leadId;
+  await callModel.findByIdAndDelete(req.params.id);
+
+  // Update lead score after deleting call
+  await updateLeadScore(leadId);
+
+  res.json({ message: "Call deleted successfully" });
+});
 
 // Get calls by lead
-export const getCallsByLead = async (req, res, next) => {
-  try {
-    // Verify lead tenant access
-    const lead = await leadModel.findById(req.params.leadId);
+export const getCallsByLead = asyncCatch(async (req, res) => {
+  // Verify lead tenant access
+  const lead = await leadModel.findById(req.params.leadId);
 
-    if (!lead) {
-      return res.status(404).json({ message: "Lead not found" });
-    }
+  if (!lead) throw new AppError("Lead not found", 404);
 
-    if (
-      req.user.role !== "super_admin" &&
-      lead.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot access calls from other tenants",
-      });
-    }
-
-    const calls = await callModel.find({ leadId: req.params.leadId });
-
-    res.json({
-      count: calls.length,
-      calls,
-    });
-  } catch (err) {
-    next(err);
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError(
+      "Forbidden: You cannot access calls from other tenants",
+      403,
+    );
   }
-};
+
+  const calls = await callModel.find({ leadId: req.params.leadId });
+
+  res.json({
+    count: calls.length,
+    calls,
+  });
+});
