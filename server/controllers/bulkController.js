@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import asyncCatch from "../utils/asyncCatch.js";
+import AppError from "../utils/AppError.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import commentModel from "../models/commentModel.js";
@@ -6,11 +8,11 @@ import callModel from "../models/callModel.js";
 import organizationModel from "../models/organizationModel.js";
 
 // Bulk create leads using MongoDB insertMany with transaction
-export const bulkCreateLeads = async (req, res, next) => {
+export const bulkCreateLeads = asyncCatch(async (req, res) => {
   const { leads } = req.body;
 
   if (!Array.isArray(leads) || leads.length === 0) {
-    return res.status(400).json({ message: "Invalid leads array" });
+    throw new AppError("Invalid leads array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -39,18 +41,18 @@ export const bulkCreateLeads = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk update leads using MongoDB bulkWrite with transaction
-export const bulkUpdateLeads = async (req, res, next) => {
+export const bulkUpdateLeads = asyncCatch(async (req, res) => {
   const { updates } = req.body;
 
   if (!Array.isArray(updates) || updates.length === 0) {
-    return res.status(400).json({ message: "Invalid updates array" });
+    throw new AppError("Invalid updates array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -83,18 +85,18 @@ export const bulkUpdateLeads = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk create deals using MongoDB insertMany with transaction
-export const bulkCreateDeals = async (req, res, next) => {
+export const bulkCreateDeals = asyncCatch(async (req, res) => {
   const { deals } = req.body;
 
   if (!Array.isArray(deals) || deals.length === 0) {
-    return res.status(400).json({ message: "Invalid deals array" });
+    throw new AppError("Invalid deals array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -123,18 +125,18 @@ export const bulkCreateDeals = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk update deals using MongoDB bulkWrite with transaction
-export const bulkUpdateDeals = async (req, res, next) => {
+export const bulkUpdateDeals = asyncCatch(async (req, res) => {
   const { updates } = req.body;
 
   if (!Array.isArray(updates) || updates.length === 0) {
-    return res.status(400).json({ message: "Invalid updates array" });
+    throw new AppError("Invalid updates array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -167,18 +169,18 @@ export const bulkUpdateDeals = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk create comments using MongoDB insertMany with transaction
-export const bulkCreateComments = async (req, res, next) => {
+export const bulkCreateComments = asyncCatch(async (req, res) => {
   const { comments } = req.body;
 
   if (!Array.isArray(comments) || comments.length === 0) {
-    return res.status(400).json({ message: "Invalid comments array" });
+    throw new AppError("Invalid comments array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -201,18 +203,18 @@ export const bulkCreateComments = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk create calls using MongoDB insertMany with transaction
-export const bulkCreateCalls = async (req, res, next) => {
+export const bulkCreateCalls = asyncCatch(async (req, res) => {
   const { calls } = req.body;
 
   if (!Array.isArray(calls) || calls.length === 0) {
-    return res.status(400).json({ message: "Invalid calls array" });
+    throw new AppError("Invalid calls array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -235,18 +237,18 @@ export const bulkCreateCalls = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk create organizations using MongoDB insertMany with transaction
-export const bulkCreateOrganizations = async (req, res, next) => {
+export const bulkCreateOrganizations = asyncCatch(async (req, res) => {
   const { organizations } = req.body;
 
   if (!Array.isArray(organizations) || organizations.length === 0) {
-    return res.status(400).json({ message: "Invalid organizations array" });
+    throw new AppError("Invalid organizations array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -275,18 +277,18 @@ export const bulkCreateOrganizations = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});
 
 // Bulk update organizations using MongoDB bulkWrite with transaction
-export const bulkUpdateOrganizations = async (req, res, next) => {
+export const bulkUpdateOrganizations = asyncCatch(async (req, res) => {
   const { updates } = req.body;
 
   if (!Array.isArray(updates) || updates.length === 0) {
-    return res.status(400).json({ message: "Invalid updates array" });
+    throw new AppError("Invalid updates array", 400);
   }
 
   const session = await mongoose.startSession();
@@ -319,8 +321,8 @@ export const bulkUpdateOrganizations = async (req, res, next) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    next(error);
+    throw error;
   } finally {
     session.endSession();
   }
-};
+});

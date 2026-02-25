@@ -80,7 +80,18 @@ web socket implementation in server
 
 >>>fix comments in all files in front end
 
+
+
+TODO
+25/02/2026 - NEW FEATURES LEFT TO ADD - 
+
+sqs
+
+api validations 
+
 worker thread in frontend for exports
+
+export using fastcsv and send from backend
 
 passport js fix by removing own auth middleware
 
@@ -90,6 +101,14 @@ zustand
 
 documentation
 
+profile photo upload to cloudinary/ local stack bucket
+
 local stack download
 
-export using fastcsv and send from backend
+bull mq
+
+local stack installation
+
+nginx and pm2? 
+
+web socket implementations to broadcast notifications

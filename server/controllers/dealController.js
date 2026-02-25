@@ -1,290 +1,233 @@
 import dealModel from "../models/dealModel.js";
+import asyncCatch from "../utils/asyncCatch.js";
+import AppError from "../utils/AppError.js";
 
 // Get all deals
-export const getAllDeals = async (req, res, next) => {
-  try {
-    const filter = req.tenantFilter || {};
-    const limit = parseInt(req.query.limit) || 20;
-    const cursor = req.query.cursor;
+export const getAllDeals = asyncCatch(async (req, res) => {
+  const filter = req.tenantFilter || {};
+  const limit = parseInt(req.query.limit) || 20;
+  const cursor = req.query.cursor;
 
-    if (cursor) {
-      const lastId = Buffer.from(cursor, "base64").toString("utf8");
-      filter._id = { $gt: lastId };
-    }
-
-    const deals = await dealModel
-      .find(filter)
-      .sort({ _id: 1 })
-      .limit(limit + 1);
-
-    const hasNextPage = deals.length > limit;
-    if (hasNextPage) deals.pop();
-
-    const nextCursor =
-      hasNextPage && deals.length > 0
-        ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
-        : null;
-
-    res.json({ count: deals.length, deals, nextCursor, hasNextPage });
-  } catch (err) {
-    next(err);
+  if (cursor) {
+    const lastId = Buffer.from(cursor, "base64").toString("utf8");
+    filter._id = { $gt: lastId };
   }
-};
+
+  const deals = await dealModel
+    .find(filter)
+    .sort({ _id: 1 })
+    .limit(limit + 1);
+
+  const hasNextPage = deals.length > limit;
+  if (hasNextPage) deals.pop();
+
+  const nextCursor =
+    hasNextPage && deals.length > 0
+      ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
+      : null;
+
+  res.json({ count: deals.length, deals, nextCursor, hasNextPage });
+});
 
 // Get deal by ID
-export const getDealById = async (req, res, next) => {
-  try {
-    const deal = await dealModel.findById(req.params.id);
+export const getDealById = asyncCatch(async (req, res) => {
+  const deal = await dealModel.findById(req.params.id);
 
-    if (!deal) {
-      return res.status(404).json({ message: "Deal not found" });
-    }
+  if (!deal) throw new AppError("Deal not found", 404);
 
-    // Check tenant access for non-super_admin
-    if (
-      req.user.role !== "super_admin" &&
-      deal.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot access this deal",
-      });
-    }
-
-    res.json({ deal });
-  } catch (err) {
-    next(err);
+  // Check tenant access for non-super_admin
+  if (
+    req.user.role !== "super_admin" &&
+    deal.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot access this deal", 403);
   }
-};
+
+  res.json({ deal });
+});
 
 // Create a new deal
-export const createDeal = async (req, res, next) => {
-  try {
-    // Ensure userId from authenticated user
-    const dealData = {
-      ...req.body,
-      userId: req.user.userId,
-    };
+export const createDeal = asyncCatch(async (req, res) => {
+  // Ensure userId from authenticated user
+  const dealData = {
+    ...req.body,
+    userId: req.user.userId,
+  };
 
-    // For non-super_admin, ensure tenantId matches
-    if (req.user.role !== "super_admin") {
-      dealData.tenantId = req.user.tenantId;
-    }
-
-    const deal = await dealModel.create(dealData);
-
-    res.status(201).json({
-      message: "Deal created successfully",
-      deal,
-    });
-  } catch (err) {
-    next(err);
+  // For non-super_admin, ensure tenantId matches
+  if (req.user.role !== "super_admin") {
+    dealData.tenantId = req.user.tenantId;
   }
-};
+
+  const deal = await dealModel.create(dealData);
+
+  res.status(201).json({
+    message: "Deal created successfully",
+    deal,
+  });
+});
 
 // Update deal
-export const updateDeal = async (req, res, next) => {
-  try {
-    const deal = await dealModel.findById(req.params.id);
+export const updateDeal = asyncCatch(async (req, res) => {
+  const deal = await dealModel.findById(req.params.id);
 
-    if (!deal) {
-      return res.status(404).json({ message: "Deal not found" });
-    }
+  if (!deal) throw new AppError("Deal not found", 404);
 
-    // Check tenant access for non-super_admin
-    if (
-      req.user.role !== "super_admin" &&
-      deal.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this deal",
-      });
-    }
-
-    // Update deal
-    const updatedDeal = await dealModel.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true, runValidators: true },
-    );
-
-    res.json({
-      message: "Deal updated successfully",
-      deal: updatedDeal,
-    });
-  } catch (err) {
-    next(err);
+  // Check tenant access for non-super_admin
+  if (
+    req.user.role !== "super_admin" &&
+    deal.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot update this deal", 403);
   }
-};
+
+  // Update deal
+  const updatedDeal = await dealModel.findByIdAndUpdate(
+    req.params.id,
+    req.body,
+    { new: true, runValidators: true },
+  );
+
+  res.json({
+    message: "Deal updated successfully",
+    deal: updatedDeal,
+  });
+});
 
 // Delete deal
-export const deleteDeal = async (req, res, next) => {
-  try {
-    const deal = await dealModel.findById(req.params.id);
+export const deleteDeal = asyncCatch(async (req, res) => {
+  const deal = await dealModel.findById(req.params.id);
 
-    if (!deal) {
-      return res.status(404).json({ message: "Deal not found" });
-    }
+  if (!deal) throw new AppError("Deal not found", 404);
 
-    // Check tenant access for non-super_admin
-    if (
-      req.user.role !== "super_admin" &&
-      deal.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot delete this deal",
-      });
-    }
-
-    await dealModel.findByIdAndDelete(req.params.id);
-
-    res.json({ message: "Deal deleted successfully" });
-  } catch (err) {
-    next(err);
+  // Check tenant access for non-super_admin
+  if (
+    req.user.role !== "super_admin" &&
+    deal.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot delete this deal", 403);
   }
-};
+
+  await dealModel.findByIdAndDelete(req.params.id);
+
+  res.json({ message: "Deal deleted successfully" });
+});
 
 // Get deals by tenant
-export const getDealsByTenant = async (req, res, next) => {
-  try {
-    // Check tenant access
-    if (
-      req.user.role !== "super_admin" &&
-      req.params.tenantId !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot access deals from other tenants",
-      });
-    }
-
-    const deals = await dealModel.find({ tenantId: req.params.tenantId });
-
-    res.json({
-      count: deals.length,
-      deals,
-    });
-  } catch (err) {
-    next(err);
+export const getDealsByTenant = asyncCatch(async (req, res) => {
+  // Check tenant access
+  if (
+    req.user.role !== "super_admin" &&
+    req.params.tenantId !== req.user.tenantId
+  ) {
+    throw new AppError(
+      "Forbidden: You cannot access deals from other tenants",
+      403,
+    );
   }
-};
+
+  const deals = await dealModel.find({ tenantId: req.params.tenantId });
+
+  res.json({
+    count: deals.length,
+    deals,
+  });
+});
 
 // Get deals by user
-export const getDealsByUser = async (req, res, next) => {
-  try {
-    const filter = { userId: req.params.userId };
+export const getDealsByUser = asyncCatch(async (req, res) => {
+  const filter = { userId: req.params.userId };
 
-    // Add tenant filter for non-super_admin
-    if (req.user.role !== "super_admin") {
-      filter.tenantId = req.user.tenantId;
-    }
-
-    const deals = await dealModel.find(filter);
-
-    res.json({
-      count: deals.length,
-      deals,
-    });
-  } catch (err) {
-    next(err);
+  // Add tenant filter for non-super_admin
+  if (req.user.role !== "super_admin") {
+    filter.tenantId = req.user.tenantId;
   }
-};
+
+  const deals = await dealModel.find(filter);
+
+  res.json({
+    count: deals.length,
+    deals,
+  });
+});
 
 // Get deals by lead
-export const getDealsByLead = async (req, res, next) => {
-  try {
-    const filter = { leadId: req.params.leadId };
+export const getDealsByLead = asyncCatch(async (req, res) => {
+  const filter = { leadId: req.params.leadId };
 
-    // Add tenant filter for non-super_admin
-    if (req.user.role !== "super_admin") {
-      filter.tenantId = req.user.tenantId;
-    }
-
-    const deals = await dealModel.find(filter);
-
-    res.json({
-      count: deals.length,
-      deals,
-    });
-  } catch (err) {
-    next(err);
+  // Add tenant filter for non-super_admin
+  if (req.user.role !== "super_admin") {
+    filter.tenantId = req.user.tenantId;
   }
-};
+
+  const deals = await dealModel.find(filter);
+
+  res.json({
+    count: deals.length,
+    deals,
+  });
+});
 
 // Get deals by organization
-export const getDealsByOrganization = async (req, res, next) => {
-  try {
-    const filter = { organizationId: req.params.organizationId };
+export const getDealsByOrganization = asyncCatch(async (req, res) => {
+  const filter = { organizationId: req.params.organizationId };
 
-    // Add tenant filter for non-super_admin
-    if (req.user.role !== "super_admin") {
-      filter.tenantId = req.user.tenantId;
-    }
-
-    const deals = await dealModel.find(filter);
-
-    res.json({
-      count: deals.length,
-      deals,
-    });
-  } catch (err) {
-    next(err);
+  // Add tenant filter for non-super_admin
+  if (req.user.role !== "super_admin") {
+    filter.tenantId = req.user.tenantId;
   }
-};
+
+  const deals = await dealModel.find(filter);
+
+  res.json({
+    count: deals.length,
+    deals,
+  });
+});
 
 // Search deals
-export const searchDeals = async (req, res, next) => {
-  try {
-    const filter = req.tenantFilter || {};
-    const { q, limit = 25 } = req.query;
+export const searchDeals = asyncCatch(async (req, res) => {
+  const filter = req.tenantFilter || {};
+  const { q, limit = 25 } = req.query;
 
-    if (!q || q.trim() === "") {
-      return res.status(400).json({ message: "Search query 'q' is required" });
-    }
-
-    const searchRegex = new RegExp(q.trim(), "i");
-
-    filter.$or = [
-      { dealName: searchRegex },
-    ];
-
-    const deals = await dealModel
-      .find(filter)
-      .sort({ createdAt: -1 })
-      .limit(Math.min(parseInt(limit), 25));
-
-    res.json({ count: deals.length, deals });
-  } catch (err) {
-    next(err);
+  if (!q || q.trim() === "") {
+    throw new AppError("Search query 'q' is required", 400);
   }
-};
+
+  const searchRegex = new RegExp(q.trim(), "i");
+
+  filter.$or = [
+    { dealName: searchRegex },
+  ];
+
+  const deals = await dealModel
+    .find(filter)
+    .sort({ createdAt: -1 })
+    .limit(Math.min(parseInt(limit), 25));
+
+  res.json({ count: deals.length, deals });
+});
 
 // Update deal status
-export const updateDealStatus = async (req, res, next) => {
-  try {
-    const { dealStatus } = req.body;
-    const deal = await dealModel.findById(req.params.id);
+export const updateDealStatus = asyncCatch(async (req, res) => {
+  const { dealStatus } = req.body;
+  const deal = await dealModel.findById(req.params.id);
 
-    if (!deal) {
-      return res.status(404).json({ message: "Deal not found" });
-    }
+  if (!deal) throw new AppError("Deal not found", 404);
 
-    // Check tenant access for non-super_admin
-    if (
-      req.user.role !== "super_admin" &&
-      deal.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        message: "Forbidden: You cannot update this deal",
-      });
-    }
-
-    deal.dealStatus = dealStatus;
-    await deal.save();
-
-    res.json({
-      message: "Deal status updated successfully",
-      deal,
-    });
-  } catch (err) {
-    next(err);
+  // Check tenant access for non-super_admin
+  if (
+    req.user.role !== "super_admin" &&
+    deal.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError("Forbidden: You cannot update this deal", 403);
   }
-};
+
+  deal.dealStatus = dealStatus;
+  await deal.save();
+
+  res.json({
+    message: "Deal status updated successfully",
+    deal,
+  });
+});
