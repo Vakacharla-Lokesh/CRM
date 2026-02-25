@@ -1,330 +1,315 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import type { Organization } from "../types";
-import { organizationService } from "../services";
-import { useAsync } from "./useAsync";
+import { useState, useCallback, useMemo } from "react";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
+import { organizationService } from "@/services";
 import { useIndexedDB } from "./useIndexedDB";
+import type { Organization } from "@/types";
 
-interface Statistics {
-  total: number;
-  byIndustry: Record<string, number>;
-}
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-interface Filters {
+interface OrganizationFilters {
   industry: string;
   search: string;
   dateFrom: string;
   dateTo: string;
 }
 
+interface OrganizationStatistics {
+  total: number;
+  byIndustry: Record<string, number>;
+}
+
+const PAGE_LIMIT = 20;
+
+const EMPTY_FILTERS: OrganizationFilters = {
+  industry: "",
+  search: "",
+  dateFrom: "",
+  dateTo: "",
+};
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
 export const useOrganizationData = () => {
-  const [organizations, setOrganizations] = useState<Organization[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [filteredOrganizations, setFilteredOrganizations] = useState<
-    Organization[]
-  >([]);
+  const queryClient = useQueryClient();
+  const { updateItem, deleteItem, getAll } = useIndexedDB<
+    Organization & { id: string }
+  >("organizations");
+
+  // Local UI state
+  const [filters, setFilters] = useState<OrganizationFilters>(EMPTY_FILTERS);
   const [isSearchMode, setIsSearchMode] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [statistics, setStatistics] = useState<Statistics>({
-    total: 0,
-    byIndustry: {},
-  });
-  const [filters, setFilters] = useState<Filters>({
-    industry: "",
-    search: "",
-    dateFrom: "",
-    dateTo: "",
-  });
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // ─── Main paginated query ──────────────────────────────────────────────────
 
   const {
-    execute: executeAsync,
-    loading,
-    error,
-  } = useAsync<Organization | Organization[] | void>();
-  const { updateItem, deleteItem, getAll } = useIndexedDB("organizations");
+    data,
+    isLoading: loading,
+    isFetchingNextPage: loadingMore,
+    error: queryError,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["organizations"],
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
+      // Offline fallback — serve IndexedDB cache
+      if (!navigator.onLine) {
+        const cached = await getAll();
+        return {
+          organizations: cached as unknown as Organization[],
+          nextCursor: null,
+          hasNextPage: false,
+        };
+      }
 
-  const calculateStatistics = useCallback(
-    (organizationsData: Organization[]) => {
-      const stats: Statistics = {
-        total: organizationsData.length,
-        byIndustry: {},
-      };
-
-      organizationsData.forEach((org) => {
-        stats.byIndustry[org.organizationIndustry] =
-          (stats.byIndustry[org.organizationIndustry] ?? 0) + 1;
+      const page = await organizationService.getAllOrganizations({
+        cursor: pageParam ?? undefined,
+        limit: PAGE_LIMIT,
       });
 
-      setStatistics(stats);
+      // Write-through to IndexedDB after every successful page
+      for (const org of page.organizations) {
+        try {
+          await updateItem(org._id, { ...org, id: org._id });
+        } catch (e) {
+          console.warn("Failed to cache organization in IndexedDB:", e);
+        }
+      }
+
+      return page;
     },
-    [],
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.nextCursor : undefined,
+  });
+
+  // ─── Search query ──────────────────────────────────────────────────────────
+  // organizationService.searchOrganizations returns Organization[] directly.
+
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery({
+    queryKey: ["organizations", "search", searchQuery],
+    queryFn: () => organizationService.searchOrganizations(searchQuery.trim()),
+    enabled: isSearchMode && searchQuery.trim().length > 0,
+  });
+
+  // ─── Derived state ─────────────────────────────────────────────────────────
+
+  const allOrganizations: Organization[] = useMemo(
+    () => data?.pages.flatMap((page) => page.organizations) ?? [],
+    [data],
   );
 
-  const applyFilters = useCallback(() => {
-    let filtered = [...organizations];
+  // Statistics — computed from all loaded organizations (not filtered).
+  const statistics: OrganizationStatistics = useMemo(() => {
+    const byIndustry: Record<string, number> = {};
 
-    // Filter by industry
-    if (filters.industry) {
-      filtered = filtered.filter(
-        (org) =>
-          org.organizationIndustry.toLowerCase() ===
-          filters.industry.toLowerCase(),
-      );
-    }
+    allOrganizations.forEach((org) => {
+      if (org.organizationIndustry) {
+        byIndustry[org.organizationIndustry] =
+          (byIndustry[org.organizationIndustry] ?? 0) + 1;
+      }
+    });
 
-    // Filter by search
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (org) =>
+    return { total: allOrganizations.length, byIndustry };
+  }, [allOrganizations]);
+
+  // Client-side filtering — in search mode use search results directly.
+  const filteredOrganizations: Organization[] = useMemo(() => {
+    if (isSearchMode) return searchResults;
+
+    return allOrganizations.filter((org) => {
+      if (filters.industry) {
+        if (
+          org.organizationIndustry?.toLowerCase() !==
+          filters.industry.toLowerCase()
+        )
+          return false;
+      }
+
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        const matches =
           org.organizationName?.toLowerCase().includes(searchLower) ||
           org.organizationWebsite?.toLowerCase().includes(searchLower) ||
-          org.organizationIndustry?.toLowerCase().includes(searchLower),
-      );
-    }
-
-    // Filter by date range
-    if (filters.dateFrom) {
-      const fromTime = new Date(filters.dateFrom).getTime();
-      filtered = filtered.filter(
-        (org) => new Date(org.createdAt ?? "").getTime() >= fromTime,
-      );
-    }
-
-    if (filters.dateTo) {
-      const toTime = new Date(filters.dateTo).getTime();
-      filtered = filtered.filter(
-        (org) => new Date(org.createdAt ?? "").getTime() <= toTime,
-      );
-    }
-
-    setFilteredOrganizations(filtered);
-    calculateStatistics(filtered);
-  }, [organizations, filters, calculateStatistics]);
-
-  const fetchOrganizations = useCallback(async () => {
-    return executeAsync(async () => {
-      if (!navigator.onLine) {
-        const cached = (await getAll()) as unknown as Organization[];
-        setOrganizations(cached);
-        setFilteredOrganizations(cached);
-        calculateStatistics(cached);
-        return cached;
+          org.organizationIndustry?.toLowerCase().includes(searchLower);
+        if (!matches) return false;
       }
 
-      const page = await organizationService.getAllOrganizations({ limit: 20 });
-      setOrganizations(page.organizations);
-      setFilteredOrganizations(page.organizations);
-      calculateStatistics(page.organizations);
-      setNextCursor(page.nextCursor);
-      setHasNextPage(page.hasNextPage);
-
-      for (const org of page.organizations) {
-        try {
-          await updateItem(org._id, { ...org, id: org._id });
-        } catch (error) {
-          console.warn("Failed to persist organization to IndexedDB:", error);
-        }
+      if (filters.dateFrom) {
+        const fromTime = new Date(filters.dateFrom).getTime();
+        if (new Date(org.createdAt ?? "").getTime() < fromTime) return false;
       }
 
-      return page.organizations;
+      if (filters.dateTo) {
+        const toTime = new Date(filters.dateTo).getTime();
+        if (new Date(org.createdAt ?? "").getTime() > toTime) return false;
+      }
+
+      return true;
     });
-  }, [executeAsync, updateItem, calculateStatistics, getAll]);
+  }, [allOrganizations, filters, isSearchMode, searchResults]);
 
-  const loadMore = useCallback(async () => {
-    if (!hasNextPage || loadingMore || !nextCursor) return;
-    setLoadingMore(true);
-    try {
-      const page = await organizationService.getAllOrganizations({
-        cursor: nextCursor,
-        limit: 20,
-      });
-      setOrganizations((prev) => {
-        const combined = [...prev, ...page.organizations];
-        calculateStatistics(combined);
-        return combined;
-      });
-      setNextCursor(page.nextCursor);
-      setHasNextPage(page.hasNextPage);
-
-      for (const org of page.organizations) {
-        try {
-          await updateItem(org._id, { ...org, id: org._id });
-        } catch (error) {
-          console.warn("Failed to persist organization to IndexedDB:", error);
-        }
-      }
-      setLoadingMore(false);
-    } catch (error) {
-      console.error("Error loading more organizations:", error);
-      setLoadingMore(false);
-    }
-  }, [hasNextPage, loadingMore, nextCursor, updateItem, calculateStatistics]);
-
-  const fetchOrganizationById = useCallback(
-    async (id: string) => {
-      return executeAsync(async () => {
-        const organization = await organizationService.getOrganizationById(id);
-        return organization;
-      });
-    },
-    [executeAsync],
+  // totalPages — preserved from original hook (used by some components).
+  const totalPages = useMemo(
+    () => Math.ceil(filteredOrganizations.length / PAGE_LIMIT),
+    [filteredOrganizations],
   );
+
+  // ─── Mutations ─────────────────────────────────────────────────────────────
+
+  const createMutation = useMutation({
+    mutationFn: (organizationData: Partial<Organization>) =>
+      organizationService.createOrganization(organizationData),
+    onSuccess: (newOrg) => {
+      // Write-through on create
+      updateItem(newOrg._id, { ...newOrg, id: newOrg._id }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      id,
+      updates,
+    }: {
+      id: string;
+      updates: Partial<Organization>;
+    }) => organizationService.updateOrganization(id, updates),
+    onSuccess: (updatedOrg) => {
+      updateItem(updatedOrg._id, {
+        ...updatedOrg,
+        id: updatedOrg._id,
+      }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => organizationService.deleteOrganization(id),
+    onSuccess: (_, id) => {
+      // deleteItem preserves the IndexedDB sync that the original hook had
+      deleteItem(id).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({
+      ids,
+      updates,
+    }: {
+      ids: string[];
+      updates: Partial<Organization>;
+    }) => organizationService.bulkUpdateOrganizations(ids, updates),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (ids: string[]) =>
+      organizationService.bulkDeleteOrganizations(ids),
+    onSuccess: (_, ids) => {
+      // Clean up IndexedDB for each deleted org
+      ids.forEach((id) => deleteItem(id).catch(() => {}));
+      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+  });
+
+  // ─── Stable callbacks ──────────────────────────────────────────────────────
+
+  // fetchOrganizations is called explicitly by organizationsPage (on mount)
+  // and by leadModal (when it opens). Both share the same cache — TanStack
+  // deduplicates the request so only one network call fires.
+  const fetchOrganizations = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !loadingMore) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, loadingMore, fetchNextPage]);
+
+  const fetchOrganizationById = useCallback(async (id: string) => {
+    return organizationService.getOrganizationById(id);
+  }, []);
 
   const createOrganization = useCallback(
     async (organizationData: Partial<Organization>) => {
-      return executeAsync(async () => {
-        const newOrganization =
-          await organizationService.createOrganization(organizationData);
-        setOrganizations((prev) => [...prev, newOrganization]);
-        try {
-          await updateItem(newOrganization._id, {
-            ...newOrganization,
-            id: newOrganization._id,
-          });
-        } catch (error) {
-          console.warn("Failed to persist organization to IndexedDB:", error);
-        }
-        await fetchOrganizations();
-        return newOrganization;
-      });
+      return createMutation.mutateAsync(organizationData);
     },
-    [executeAsync, updateItem, fetchOrganizations],
+    [createMutation],
   );
 
   const updateOrganization = useCallback(
     async (id: string, updates: Partial<Organization>) => {
-      return executeAsync(async () => {
-        const updated = await organizationService.updateOrganization(
-          id,
-          updates,
-        );
-        setOrganizations((prev) =>
-          prev.map((org) => (org._id === id ? updated : org)),
-        );
-        await updateItem(id, { ...updated, id: updated._id });
-        await fetchOrganizations();
-        return updated;
-      });
+      return updateMutation.mutateAsync({ id, updates });
     },
-    [executeAsync, updateItem, fetchOrganizations],
+    [updateMutation],
   );
 
   const deleteOrganization = useCallback(
     async (id: string) => {
-      return executeAsync(async () => {
-        await organizationService.deleteOrganization(id);
-        setOrganizations((prev) => prev.filter((org) => org._id !== id));
-        await deleteItem(id);
-        await fetchOrganizations();
-      });
+      return deleteMutation.mutateAsync(id);
     },
-    [executeAsync, deleteItem, fetchOrganizations],
+    [deleteMutation],
   );
-
-  const searchOrganizations = useCallback(
-    async (query: string) => {
-      if (!query || query.trim() === "") {
-        setIsSearchMode(false);
-        applyFilters();
-        return;
-      }
-
-      setIsSearchMode(true);
-      setSearchLoading(true);
-
-      try {
-        const results = await organizationService.searchOrganizations(query.trim());
-        setFilteredOrganizations(results);
-        calculateStatistics(results);
-      } catch (err) {
-        console.error("Organization search failed:", err);
-      } finally {
-        setSearchLoading(false);
-      }
-    },
-    [applyFilters, calculateStatistics],
-  );
-
-  const updateFilter = useCallback((key: keyof Filters, value: unknown) => {
-    setFilters((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  }, []);
-
-  const resetFilters = useCallback(() => {
-    setFilters({
-      industry: "",
-      search: "",
-      dateFrom: "",
-      dateTo: "",
-    });
-    setFilteredOrganizations(organizations);
-  }, [organizations]);
 
   const bulkUpdateOrganizations = useCallback(
     async (ids: string[], updates: Partial<Organization>) => {
-      return executeAsync(async () => {
-        await organizationService.bulkUpdateOrganizations(ids, updates);
-        const updatedOrganizations = ids
-          .map((id) => {
-            const org = organizations.find((o) => o._id === id);
-            return org ? { ...org, ...updates } : null;
-          })
-          .filter(Boolean) as Organization[];
-
-        setOrganizations((prev) =>
-          prev.map((org) =>
-            ids.includes(org._id) ? { ...org, ...updates } : org,
-          ),
-        );
-        for (const org of updatedOrganizations) {
-          await updateItem(org._id, { ...org, id: org._id });
-        }
-        await fetchOrganizations();
-      });
+      return bulkUpdateMutation.mutateAsync({ ids, updates });
     },
-    [executeAsync, updateItem, fetchOrganizations, organizations],
+    [bulkUpdateMutation],
   );
 
   const bulkDeleteOrganizations = useCallback(
     async (ids: string[]) => {
-      return executeAsync(async () => {
-        await organizationService.bulkDeleteOrganizations(ids);
-        setOrganizations((prev) =>
-          prev.filter((org) => !ids.includes(org._id)),
-        );
-        for (const id of ids) {
-          await deleteItem(id);
-        }
-        await fetchOrganizations();
-      });
+      return bulkDeleteMutation.mutateAsync(ids);
     },
-    [executeAsync, deleteItem, fetchOrganizations],
+    [bulkDeleteMutation],
   );
 
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    applyFilters();
-  }, [applyFilters]);
+  const searchOrganizations = useCallback(async (query: string) => {
+    if (!query || query.trim() === "") {
+      setIsSearchMode(false);
+      setSearchQuery("");
+      return;
+    }
+    setIsSearchMode(true);
+    setSearchQuery(query);
+  }, []);
 
-  // Derived data
-  const stats = useMemo(() => statistics, [statistics]);
-  const totalPages = useMemo(
-    () => Math.ceil(filteredOrganizations.length / 20),
-    [filteredOrganizations],
+  const updateFilter = useCallback(
+    (key: keyof OrganizationFilters, value: unknown) => {
+      setFilters((prev) => ({ ...prev, [key]: value }));
+    },
+    [],
   );
+
+  const resetFilters = useCallback(() => {
+    setFilters(EMPTY_FILTERS);
+    setIsSearchMode(false);
+    setSearchQuery("");
+  }, []);
+
+  // ─── Return ────────────────────────────────────────────────────────────────
+  // Shape is IDENTICAL to the old hook — no component changes required.
 
   return {
     // Data
-    organizations,
+    organizations: allOrganizations,
     filteredOrganizations,
-    statistics: stats,
+    statistics,
     filters,
     loading,
-    error,
+    error: queryError instanceof Error ? queryError : null,
     totalPages,
 
     // Methods
@@ -343,8 +328,9 @@ export const useOrganizationData = () => {
     updateFilter,
     resetFilters,
 
-    nextCursor,
-    hasNextPage,
+    // Pagination
+    nextCursor: data?.pages.at(-1)?.nextCursor ?? null,
+    hasNextPage: hasNextPage ?? false,
     loadingMore,
     loadMore,
   };

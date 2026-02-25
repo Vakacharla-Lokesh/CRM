@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useQueries, useQueryClient } from "@tanstack/react-query";
+import { useCallback } from "react";
 import { analyticsAPI } from "../services";
 import type {
   LeadTrendDay,
@@ -38,95 +39,84 @@ const defaultPipelineSummary: DealPipelineSummary = {
 };
 
 export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
-  const [leadTrends, setLeadTrends] = useState<LeadTrendDay[]>([]);
-  const [leadStatusBreakdown, setLeadStatusBreakdown] = useState<
-    LeadStatusEntry[]
-  >([]);
-  const [leadScoreDistribution, setLeadScoreDistribution] = useState<
-    ScoreBucket[]
-  >([]);
+  const queryClient = useQueryClient();
 
-  const [dealPipeline, setDealPipeline] = useState<DealPipelineStage[]>([]);
-  const [dealPipelineSummary, setDealPipelineSummary] =
-    useState<DealPipelineSummary>(defaultPipelineSummary);
-  const [dealPipelineMonthlyTrends, setDealPipelineMonthlyTrends] = useState<
-    DealPipelineMonthlyTrend[]
-  >([]);
-  const [dealTrends, setDealTrends] = useState<DealTrendDay[]>([]);
+  const results = useQueries({
+    queries: [
+      {
+        queryKey: ["analytics", "leadTrends", days],
+        queryFn: () => analyticsAPI.leadTrends({ days }),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "leadStatusBreakdown", days],
+        queryFn: () => analyticsAPI.leadStatusBreakdown({ days }),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "leadScoreDistribution"],
+        queryFn: () => analyticsAPI.leadScoreDistribution(),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "dealPipeline"],
+        queryFn: () => analyticsAPI.dealPipeline(),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "dealTrends", days],
+        queryFn: () => analyticsAPI.dealTrends({ days }),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "organizationStats"],
+        queryFn: () => analyticsAPI.organizationStats(),
+        staleTime: 1000 * 60 * 5,
+      },
+      {
+        queryKey: ["analytics", "topOrganizations"],
+        queryFn: () => analyticsAPI.topOrganizations({ limit: 10 }),
+        staleTime: 1000 * 60 * 5,
+      },
+    ],
+  });
 
-  const [organizationStats, setOrganizationStats] = useState<OrgIndustryStat[]>(
-    [],
-  );
-  const [topOrganizations, setTopOrganizations] = useState<TopOrganization[]>(
-    [],
-  );
+  const [
+    leadTrendsQ,
+    leadStatusQ,
+    leadScoreQ,
+    dealPipelineQ,
+    dealTrendsQ,
+    orgStatsQ,
+    topOrgsQ,
+  ] = results;
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const loading = results.some((q) => q.isLoading);
 
-  const fetchAnalyticsData = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const errorObj = results.find((q) => q.error);
+  const error = errorObj
+    ? errorObj.error instanceof Error
+      ? errorObj.error.message
+      : "Failed to fetch analytics data"
+    : null;
 
-      const [
-        trendsRes,
-        statusRes,
-        scoreRes,
-        pipelineRes,
-        dealTrendsRes,
-        orgStatsRes,
-        topOrgsRes,
-      ] = await Promise.all([
-        analyticsAPI.leadTrends({ days }),
-        analyticsAPI.leadStatusBreakdown({ days }),
-        analyticsAPI.leadScoreDistribution(),
-        analyticsAPI.dealPipeline(),
-        analyticsAPI.dealTrends({ days }),
-        analyticsAPI.organizationStats(),
-        analyticsAPI.topOrganizations({ limit: 10 }),
-      ]);
-
-      setLeadTrends(trendsRes.trends);
-      setLeadStatusBreakdown(statusRes.breakdown);
-      setLeadScoreDistribution(scoreRes.distribution);
-
-      setDealPipeline(pipelineRes.pipeline);
-      setDealPipelineSummary(pipelineRes.summary);
-      setDealPipelineMonthlyTrends(pipelineRes.trends);
-      setDealTrends(dealTrendsRes.trends);
-
-      setOrganizationStats(orgStatsRes.stats);
-      setTopOrganizations(topOrgsRes.organizations);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching analytics data:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch analytics data",
-      );
-      setLoading(false);
-    }
-  }, [days]);
+  // Destructure pipeline response (one endpoint, three fields)
+  const pipelineData = dealPipelineQ.data;
 
   const refreshData = useCallback(() => {
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchAnalyticsData();
-  }, [fetchAnalyticsData]);
+    queryClient.invalidateQueries({ queryKey: ["analytics"] });
+  }, [queryClient]);
 
   return {
-    leadTrends,
-    leadStatusBreakdown,
-    leadScoreDistribution,
-    dealPipeline,
-    dealPipelineSummary,
-    dealPipelineMonthlyTrends,
-    dealTrends,
-    organizationStats,
-    topOrganizations,
+    leadTrends: leadTrendsQ.data?.trends ?? [],
+    leadStatusBreakdown: leadStatusQ.data?.breakdown ?? [],
+    leadScoreDistribution: leadScoreQ.data?.distribution ?? [],
+    dealPipeline: pipelineData?.pipeline ?? [],
+    dealPipelineSummary: pipelineData?.summary ?? defaultPipelineSummary,
+    dealPipelineMonthlyTrends: pipelineData?.trends ?? [],
+    dealTrends: dealTrendsQ.data?.trends ?? [],
+    organizationStats: orgStatsQ.data?.stats ?? [],
+    topOrganizations: topOrgsQ.data?.organizations ?? [],
     loading,
     error,
     refreshData,

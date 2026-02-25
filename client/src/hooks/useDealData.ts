@@ -1,7 +1,15 @@
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { useAsync, useIndexedDB } from "@/hooks";
+import { useState, useCallback, useMemo } from "react";
+import {
+  useInfiniteQuery,
+  useQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import dealService from "@/services/dealService";
+import { useIndexedDB } from "./useIndexedDB";
 import type { Deal, DealStatus, CreateDealDTO, UpdateDealDTO } from "@/types";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 export interface DealFilters {
   status: DealStatus | "";
@@ -22,81 +30,94 @@ export interface DealStatistics {
   forecastValue: number;
 }
 
-const useDealData = () => {
-  const [deals, setDeals] = useState<Deal[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [isSearchMode, setIsSearchMode] = useState(false);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [searchResults, setSearchResults] = useState<Deal[]>([]);
-  const [filters, setFilters] = useState<DealFilters>({
-    status: "",
-    stage: "",
-    search: "",
-    dateFrom: "",
-    dateTo: "",
-    minValue: null,
-    maxValue: null,
-  });
+const PAGE_LIMIT = 20;
 
+const EMPTY_FILTERS: DealFilters = {
+  status: "",
+  stage: "",
+  search: "",
+  dateFrom: "",
+  dateTo: "",
+  minValue: null,
+  maxValue: null,
+};
+
+// ─── Hook ─────────────────────────────────────────────────────────────────────
+
+export const useDealData = () => {
+  const queryClient = useQueryClient();
   const { updateItem, getAll } = useIndexedDB<Deal & { id: string }>("deals");
 
-  const fetchDeals = useCallback(async () => {
-    if (!navigator.onLine) {
-      const cached = await getAll();
-      setDeals(cached);
-      setNextCursor(null);
-      setHasNextPage(false);
-      return cached;
-    }
+  // Local UI state — filters and search live here, not in TanStack cache
+  const [filters, setFilters] = useState<DealFilters>(EMPTY_FILTERS);
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
-    const page = await dealService.getAllDeals({ limit: 20 });
-    setDeals(page.deals);
-    setNextCursor(page.nextCursor);
-    setHasNextPage(page.hasNextPage);
+  // ─── Main paginated query ──────────────────────────────────────────────────
 
-    try {
-      for (const deal of page.deals) {
-        await updateItem(deal._id, { ...deal, id: deal._id });
+  const {
+    data,
+    isLoading: loading,
+    isFetchingNextPage: loadingMore,
+    error: queryError,
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["deals"],
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
+      // Offline fallback — serve IndexedDB cache
+      if (!navigator.onLine) {
+        const cached = await getAll();
+        return {
+          deals: cached as unknown as Deal[],
+          nextCursor: null,
+          hasNextPage: false,
+        };
       }
-    } catch (error) {
-      console.error("Error storing deals in IndexedDB:", error);
-    }
 
-    return page.deals;
-  }, [updateItem, getAll]);
-
-  const loadMore = useCallback(async () => {
-    if (!hasNextPage || loadingMore || !nextCursor) return;
-    setLoadingMore(true);
-    try {
       const page = await dealService.getAllDeals({
-        cursor: nextCursor,
-        limit: 20,
+        cursor: pageParam ?? undefined,
+        limit: PAGE_LIMIT,
       });
-      setDeals((prev) => [...prev, ...page.deals]);
-      setNextCursor(page.nextCursor);
-      setHasNextPage(page.hasNextPage);
 
+      // Write-through to IndexedDB after every successful page
       for (const deal of page.deals) {
-        await updateItem(deal._id, { ...deal, id: deal._id });
+        try {
+          await updateItem(deal._id, { ...deal, id: deal._id });
+        } catch (e) {
+          console.warn("Failed to cache deal in IndexedDB:", e);
+        }
       }
-      setLoadingMore(false);
-    } catch (error) {
-      console.error("Error loading more deals:", error);
-      setLoadingMore(false);
-    }
-  }, [hasNextPage, loadingMore, nextCursor, updateItem]);
 
-  const { execute, loading, error } = useAsync<Deal[]>();
+      return page;
+    },
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.nextCursor : undefined,
+  });
 
-  useEffect(() => {
-    execute(fetchDeals);
-  }, [execute, fetchDeals]);
+  // ─── Search query ──────────────────────────────────────────────────────────
+  // dealService.searchDeals returns Deal[] directly (not paginated).
+  // Separate query key so it never conflicts with the main deals cache.
 
+  const { data: searchResults = [], isLoading: searchLoading } = useQuery({
+    queryKey: ["deals", "search", searchQuery],
+    queryFn: () => dealService.searchDeals(searchQuery.trim()),
+    enabled: isSearchMode && searchQuery.trim().length > 0,
+  });
+
+  // ─── Derived state ─────────────────────────────────────────────────────────
+
+  const allDeals: Deal[] = useMemo(
+    () => data?.pages.flatMap((page) => page.deals) ?? [],
+    [data],
+  );
+
+  // Statistics — computed from all loaded deals (not filtered).
+  // Preserves the pre-seeded byStatus keys from the original hook exactly.
   const statistics: DealStatistics = useMemo(() => {
-    const total = deals.length;
+    const total = allDeals.length;
 
     const byStatus: Record<DealStatus, number> = {
       Prospecting: 0,
@@ -119,11 +140,10 @@ const useDealData = () => {
     let totalValue = 0;
     let forecastValue = 0;
 
-    deals.forEach((deal) => {
+    allDeals.forEach((deal) => {
       if (deal.dealStatus) {
         byStatus[deal.dealStatus] = (byStatus[deal.dealStatus] || 0) + 1;
 
-        // Map status to stage for byStage
         const stageKey = deal.dealStatus.toLowerCase().replace(/ /g, "_");
         if (stageKey === "won") {
           byStage.closed_won = (byStage.closed_won || 0) + 1;
@@ -135,9 +155,9 @@ const useDealData = () => {
           byStage[stageKey] = (byStage[stageKey] || 0) + 1;
         }
       }
+
       totalValue += deal.dealValue || 0;
 
-      // Calculate forecast value (only for deals not yet won or lost)
       if (deal.dealStatus !== "Won" && deal.dealStatus !== "Lost") {
         forecastValue += deal.dealValue || 0;
       }
@@ -146,19 +166,22 @@ const useDealData = () => {
     const avgValue = total > 0 ? totalValue / total : 0;
 
     return { total, byStatus, byStage, totalValue, avgValue, forecastValue };
-  }, [deals]);
+  }, [allDeals]);
 
-  const filteredDealsFromFilters = useMemo(() => {
-    return deals.filter((deal) => {
+  // Client-side filtering — in search mode use search results directly.
+  const filteredDeals: Deal[] = useMemo(() => {
+    if (isSearchMode) return searchResults;
+
+    return allDeals.filter((deal) => {
       if (filters.status && deal.dealStatus !== filters.status) return false;
       if (filters.stage && deal.dealStatus !== filters.stage) return false;
 
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
-        const matchesSearch =
+        const matches =
           deal.dealName?.toLowerCase().includes(searchLower) ||
           deal.organizationId?.toString().includes(searchLower);
-        if (!matchesSearch) return false;
+        if (!matches) return false;
       }
 
       const dealValue = deal.dealValue || 0;
@@ -169,9 +192,8 @@ const useDealData = () => {
 
       if (filters.dateFrom || filters.dateTo) {
         const dealDate = deal.createdAt ? new Date(deal.createdAt) : new Date();
-        if (filters.dateFrom) {
-          if (dealDate < new Date(filters.dateFrom)) return false;
-        }
+        if (filters.dateFrom && dealDate < new Date(filters.dateFrom))
+          return false;
         if (filters.dateTo) {
           const toDate = new Date(filters.dateTo);
           toDate.setHours(23, 59, 59, 999);
@@ -181,32 +203,113 @@ const useDealData = () => {
 
       return true;
     });
-  }, [deals, filters]);
+  }, [allDeals, filters, isSearchMode, searchResults]);
 
-  const filteredDeals = isSearchMode ? searchResults : filteredDealsFromFilters;
+  // ─── Mutations ────────────────────────────────────────────────────────────
 
-  const searchDeals = useCallback(
-    async (query: string) => {
-      if (!query || query.trim() === "") {
-        setIsSearchMode(false);
-        setSearchResults([]);
-        return;
-      }
-
-      setIsSearchMode(true);
-      setSearchLoading(true);
-
-      try {
-        const results = await dealService.searchDeals(query.trim());
-        setSearchResults(results);
-      } catch (err) {
-        console.error("Deal search failed:", err);
-      } finally {
-        setSearchLoading(false);
-      }
+  const createMutation = useMutation({
+    mutationFn: (dealData: CreateDealDTO) => dealService.createDeal(dealData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
     },
-    [],
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: ({
+      dealId,
+      dealData,
+    }: {
+      dealId: string;
+      dealData: UpdateDealDTO;
+    }) => dealService.updateDeal(dealId, dealData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (dealId: string) => dealService.deleteDeal(dealId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    },
+  });
+
+  const bulkUpdateMutation = useMutation({
+    mutationFn: ({
+      dealIds,
+      updateData,
+    }: {
+      dealIds: string[];
+      updateData: UpdateDealDTO;
+    }) => dealService.bulkUpdateDeals(dealIds, updateData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    },
+  });
+
+  const bulkDeleteMutation = useMutation({
+    mutationFn: (dealIds: string[]) => dealService.bulkDeleteDeals(dealIds),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["deals"] });
+    },
+  });
+
+  // ─── Stable callbacks ─────────────────────────────────────────────────────
+
+  const refresh = useCallback(() => {
+    refetch();
+  }, [refetch]);
+
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !loadingMore) {
+      fetchNextPage();
+    }
+  }, [hasNextPage, loadingMore, fetchNextPage]);
+
+  const createDeal = useCallback(
+    async (dealData: CreateDealDTO) => {
+      return createMutation.mutateAsync(dealData);
+    },
+    [createMutation],
   );
+
+  const updateDeal = useCallback(
+    async (dealId: string, dealData: UpdateDealDTO) => {
+      return updateMutation.mutateAsync({ dealId, dealData });
+    },
+    [updateMutation],
+  );
+
+  const deleteDeal = useCallback(
+    async (dealId: string) => {
+      return deleteMutation.mutateAsync(dealId);
+    },
+    [deleteMutation],
+  );
+
+  const bulkUpdateDeals = useCallback(
+    async (dealIds: string[], updateData: UpdateDealDTO) => {
+      return bulkUpdateMutation.mutateAsync({ dealIds, updateData });
+    },
+    [bulkUpdateMutation],
+  );
+
+  const bulkDeleteDeals = useCallback(
+    async (dealIds: string[]) => {
+      return bulkDeleteMutation.mutateAsync(dealIds);
+    },
+    [bulkDeleteMutation],
+  );
+
+  const searchDeals = useCallback(async (query: string) => {
+    if (!query || query.trim() === "") {
+      setIsSearchMode(false);
+      setSearchQuery("");
+      return;
+    }
+    setIsSearchMode(true);
+    setSearchQuery(query);
+  }, []);
 
   const updateFilter = useCallback(
     <K extends keyof DealFilters>(key: K, value: DealFilters[K]) => {
@@ -216,80 +319,20 @@ const useDealData = () => {
   );
 
   const clearFilters = useCallback(() => {
-    setFilters({
-      status: "",
-      stage: "",
-      search: "",
-      dateFrom: "",
-      dateTo: "",
-      minValue: null,
-      maxValue: null,
-    });
+    setFilters(EMPTY_FILTERS);
+    setIsSearchMode(false);
+    setSearchQuery("");
   }, []);
 
-  const createDeal = useCallback(
-    async (dealData: CreateDealDTO) => {
-      const newDeal = await dealService.createDeal(dealData);
-      setDeals((prev) => [...prev, newDeal]);
-
-      try {
-        await updateItem(newDeal._id, { ...newDeal, id: newDeal._id });
-      } catch (error) {
-        console.error("Error storing new deal in IndexedDB:", error);
-      }
-
-      return newDeal;
-    },
-    [updateItem],
-  );
-
-  const updateDeal = useCallback(
-    async (dealId: string, dealData: UpdateDealDTO) => {
-      const updatedDeal = await dealService.updateDeal(dealId, dealData);
-      setDeals((prev) =>
-        prev.map((deal) => (deal._id === dealId ? updatedDeal : deal)),
-      );
-
-      try {
-        await updateItem(dealId, { ...updatedDeal, id: updatedDeal._id });
-      } catch (error) {
-        console.error("Error updating deal in IndexedDB:", error);
-      }
-
-      return updatedDeal;
-    },
-    [updateItem],
-  );
-
-  const deleteDeal = useCallback(async (dealId: string) => {
-    await dealService.deleteDeal(dealId);
-    setDeals((prev) => prev.filter((deal) => deal._id !== dealId));
-  }, []);
-
-  const bulkUpdateDeals = useCallback(
-    async (dealIds: string[], updateData: UpdateDealDTO) => {
-      const result = await dealService.bulkUpdateDeals(dealIds, updateData);
-      await execute(fetchDeals);
-      return result;
-    },
-    [execute, fetchDeals],
-  );
-
-  const bulkDeleteDeals = useCallback(async (dealIds: string[]) => {
-    await dealService.bulkDeleteDeals(dealIds);
-    setDeals((prev) => prev.filter((deal) => !dealIds.includes(deal._id)));
-  }, []);
-
-  const refresh = useCallback(() => {
-    execute(fetchDeals);
-  }, [execute, fetchDeals]);
+  // ─── Return ───────────────────────────────────────────────────────────────
+  // Shape is IDENTICAL to the old hook — no component changes required.
 
   return {
-    deals,
+    deals: allDeals,
     filteredDeals,
     statistics,
     loading,
-    error,
+    error: queryError instanceof Error ? queryError : null,
     filters,
     updateFilter,
     clearFilters,
@@ -299,8 +342,8 @@ const useDealData = () => {
     bulkUpdateDeals,
     bulkDeleteDeals,
     refresh,
-    nextCursor,
-    hasNextPage,
+    nextCursor: data?.pages.at(-1)?.nextCursor ?? null,
+    hasNextPage: hasNextPage ?? false,
     loadingMore,
     loadMore,
     searchDeals,

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { analyticsAPI } from "../services";
 import type {
   DashboardStats,
@@ -15,6 +16,7 @@ interface UseDashboardStatsReturn {
   refreshStats: () => void;
 }
 
+// ─── Default values (used as placeholderData so UI renders immediately) ───────
 const defaultStats: DashboardStats = {
   totalLeads: 0,
   convertedLeads: 0,
@@ -42,44 +44,46 @@ const defaultPeriod: DashboardPeriod = {
 };
 
 export const useDashboardStats = (): UseDashboardStatsReturn => {
-  const [stats, setStats] = useState<DashboardStats>(defaultStats);
-  const [changes, setChanges] = useState<DashboardChanges>(defaultChanges);
-  const [period, setPeriod] = useState<DashboardPeriod>(defaultPeriod);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchDashboardStats = useCallback(async () => {
-    if (!navigator.onLine) {
-      setLoading(false);
-      return;
-    }
+  // ─── Main query ────────────────────────────────────────────────────────────
+  const {
+    data,
+    isLoading: loading,
+    error: queryError,
+  } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => analyticsAPI.dashboard(),
+    staleTime: 60_000, // KPIs are fine being 1 min stale
+    gcTime: 5 * 60 * 1000, // keep in cache for 5 mins after unmount
+    networkMode: "offlineFirst", // return cached data offline instead of erroring
+    placeholderData: {
+      // replaces the old useState(defaultStats) pattern —
+      stats: defaultStats, // dashboard renders with zeroes immediately,
+      changes: defaultChanges, // no blank flash while loading
+      period: defaultPeriod,
+    },
+  });
 
-    try {
-      setLoading(true);
-      setError(null);
+  // Unwrap with safe fallbacks (placeholderData covers initial render,
+  // but TypeScript doesn't know that, so we still need the ?? defaults)
+  const stats = data?.stats ?? defaultStats;
+  const changes = data?.changes ?? defaultChanges;
+  const period = data?.period ?? defaultPeriod;
+  const error = queryError instanceof Error ? queryError.message : null;
 
-      const response = await analyticsAPI.dashboard();
-
-      setStats(response.stats);
-      setChanges(response.changes);
-      setPeriod(response.period);
-      setLoading(false);
-    } catch (err) {
-      console.error("Error fetching dashboard stats:", err);
-      setError(
-        err instanceof Error ? err.message : "Failed to fetch dashboard stats",
-      );
-      setLoading(false);
-    }
-  }, []);
-
+  // ─── Refresh ───────────────────────────────────────────────────────────────
   const refreshStats = useCallback(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
+    queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
+  }, [queryClient]);
 
-  useEffect(() => {
-    fetchDashboardStats();
-  }, [fetchDashboardStats]);
-
-  return { stats, changes, period, loading, error, refreshStats };
+  // ─── Return (identical shape to old hook) ──────────────────────────────────
+  return {
+    stats,
+    changes,
+    period,
+    loading,
+    error,
+    refreshStats,
+  };
 };
