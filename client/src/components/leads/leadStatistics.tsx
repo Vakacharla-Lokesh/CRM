@@ -13,7 +13,11 @@ const STATUS_STYLES: Record<string, string> = {
   Dead: "text-red-600 dark:text-red-400",
 };
 
-const LeadStatistics = ({ breakdown, total, isLoading }: LeadStatisticsProps) => {
+const LeadStatistics = ({
+  breakdown,
+  total,
+  isLoading,
+}: LeadStatisticsProps) => {
   const getCount = (status: string) =>
     breakdown.find((b) => b.status === status)?.count ?? 0;
 
@@ -63,7 +67,9 @@ const LeadStatistics = ({ breakdown, total, isLoading }: LeadStatisticsProps) =>
       ))}
 
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-600 dark:text-gray-400">Conversion Rate</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Conversion Rate
+        </p>
         <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
           {conversionRate}%
         </p>

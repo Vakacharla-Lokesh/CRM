@@ -1,11 +1,8 @@
-export { useAsync } from "./useAsync.ts";
 export { useAuth } from "./useAuth.ts";
 export { useDebounce } from "./useDebounce.ts";
-export { useFetch } from "./useFetch.ts";
 export { useForm } from "./useForm.ts";
 export { useIndexedDB } from "./useIndexedDB.ts";
 
-// Temporarily during migration — swap back if needed
 export { useLeadData } from "./useLeadData";
 export { useUserData } from "./useUserData.ts";
 export { useOrganizationData } from "./useOrganizationData.ts";

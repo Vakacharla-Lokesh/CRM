@@ -5,7 +5,10 @@ interface OrganizationStatisticsProps {
   isLoading?: boolean;
 }
 
-function OrganizationStatistics({ stats, isLoading }: OrganizationStatisticsProps) {
+function OrganizationStatistics({
+  stats,
+  isLoading,
+}: OrganizationStatisticsProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -26,9 +29,7 @@ function OrganizationStatistics({ stats, isLoading }: OrganizationStatisticsProp
   const totalLeads = stats.reduce((s, i) => s + i.totalLeads, 0);
   const totalConverted = stats.reduce((s, i) => s + i.convertedLeads, 0);
   const overallConversionRate =
-    totalLeads > 0
-      ? ((totalConverted / totalLeads) * 100).toFixed(1)
-      : "0";
+    totalLeads > 0 ? ((totalConverted / totalLeads) * 100).toFixed(1) : "0";
   const industryCount = stats.length;
 
   return (
@@ -48,7 +49,9 @@ function OrganizationStatistics({ stats, isLoading }: OrganizationStatisticsProp
         </p>
       </div>
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <p className="text-sm text-gray-600 dark:text-gray-400">Conversion Rate</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">
+          Conversion Rate
+        </p>
         <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
           {overallConversionRate}%
         </p>

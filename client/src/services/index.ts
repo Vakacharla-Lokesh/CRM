@@ -18,7 +18,6 @@ export {
   organizationsAPI,
   usersAPI,
   dealsAPI,
-  campaignsAPI,
   bulkAPI,
   searchAPI,
   analyticsAPI,

@@ -22,8 +22,6 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MOBILE_REGEX = /^[1-9]\d{9}$/;
 const TENANTED_EMAIL_REGEX = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
-// Settings
-
 export interface SettingsFormData {
   firstName: string;
   lastName: string;

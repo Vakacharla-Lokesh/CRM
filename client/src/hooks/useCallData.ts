@@ -7,7 +7,6 @@ export const useCallData = (leadId: string) => {
   const queryClient = useQueryClient();
   const queryKey = ["calls", "lead", leadId];
 
-  // ─── Main query ──────────────────────────────────────────────────────
   const {
     data,
     isLoading: loading,
@@ -23,12 +22,10 @@ export const useCallData = (leadId: string) => {
   const calls: Call[] = data ?? [];
   const error = queryError instanceof Error ? queryError.message : null;
 
-  // ─── Create ──────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (callData: Omit<CreateCallDTO, "leadId">) =>
       callsAPI.create({ ...callData, leadId }),
     onSuccess: (newCall) => {
-      // Prepend optimistically to cache — no refetch needed
       queryClient.setQueryData<Call[]>(queryKey, (prev = []) => [
         newCall,
         ...prev,
@@ -39,7 +36,6 @@ export const useCallData = (leadId: string) => {
     },
   });
 
-  // ─── Update ──────────────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateCallDTO }) =>
       callsAPI.update(id, data),
@@ -53,7 +49,6 @@ export const useCallData = (leadId: string) => {
     },
   });
 
-  // ─── Delete ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (id: string) => callsAPI.delete(id),
     onSuccess: (_, id) => {
@@ -66,7 +61,6 @@ export const useCallData = (leadId: string) => {
     },
   });
 
-  // ─── Convenience wrappers (preserve old API surface) ─────────────────
   const createCall = useCallback(
     (data: Omit<CreateCallDTO, "leadId">) => createMutation.mutateAsync(data),
     [createMutation],
@@ -88,7 +82,6 @@ export const useCallData = (leadId: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryClient, leadId]);
 
-  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     calls,
     loading,

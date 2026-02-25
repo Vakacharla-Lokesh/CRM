@@ -7,7 +7,6 @@ export * from "./tenant";
 export * from "./calls";
 export * from "./comments";
 export * from "./attachments";
-export * from "./campaigns";
 export * from "./notifications";
 
 // API Types

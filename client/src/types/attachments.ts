@@ -1,4 +1,3 @@
-// Attachment Types
 export interface Attachment {
   _id: string;
   leadId: string;
@@ -14,7 +13,7 @@ export interface CreateAttachmentDTO {
   fileName: string;
   fileSize: number;
   fileType: string;
-  fileData: string; // base64 encoded file data
+  fileData: string;
 }
 
 export interface AttachmentListResponse {

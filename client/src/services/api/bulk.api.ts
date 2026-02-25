@@ -22,7 +22,7 @@ export const bulkAPI = {
   export: (entityType: string, params?: { format?: "csv" | "json" }) =>
     get(`/bulk/export/${entityType}`, params),
 
-  import: (entityType: string, file: File) => {
+  import: async (entityType: string, file: File) => {
     const formData = new FormData();
     formData.append("file", file);
 
@@ -69,11 +69,13 @@ export const bulkAPI = {
 
   // Bulk Organizations
   createOrganizations: <T>(organizations: unknown[]) =>
-    post<BulkCreateResponse<T>>("/bulk/organizations/create", { organizations }),
+    post<BulkCreateResponse<T>>("/bulk/organizations/create", {
+      organizations,
+    }),
 
-  updateOrganizations: <T>(updates: Array<{ id: string } & Record<string, unknown>>) =>
-    post<BulkUpdateResponse<T>>("/bulk/organizations/update", { updates }),
+  updateOrganizations: <T>(
+    updates: Array<{ id: string } & Record<string, unknown>>,
+  ) => post<BulkUpdateResponse<T>>("/bulk/organizations/update", { updates }),
 
-  // Legacy sync endpoint
   sync: () => post<{ synced: number; failed: number }>("/bulk/sync", {}),
 };

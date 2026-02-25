@@ -93,12 +93,12 @@ function Navbar({
 
             <div
               className={`absolute right-5 w-48 mt-2 
-    bg-popover text-popover-foreground
-    rounded-lg shadow-lg border border-border
-    invisible opacity-0
-    group-hover:opacity-100 group-hover:visible
-    transition-all duration-200 z-10
-    ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
+                          bg-popover text-popover-foreground
+                          rounded-lg shadow-lg border border-border
+                          invisible opacity-0
+                          group-hover:opacity-100 group-hover:visible
+                          transition-all duration-200 z-10
+                          ${isUserMenuOpen ? "opacity-100 visible" : ""}`}
             >
               <div className="p-4 border-b border-border">
                 <p className="text-sm font-medium truncate">

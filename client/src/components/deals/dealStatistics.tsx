@@ -10,7 +10,11 @@ interface DealStatisticsProps {
   isLoading?: boolean;
 }
 
-const DealStatistics = ({ pipeline, summary, isLoading }: DealStatisticsProps) => {
+const DealStatistics = ({
+  pipeline,
+  summary,
+  isLoading,
+}: DealStatisticsProps) => {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -27,7 +31,12 @@ const DealStatistics = ({ pipeline, summary, isLoading }: DealStatisticsProps) =
     );
   }
 
-  const OPEN_STAGES = ["Prospecting", "Qualification", "Negotiation", "Ready to close"];
+  const OPEN_STAGES = [
+    "Prospecting",
+    "Qualification",
+    "Negotiation",
+    "Ready to close",
+  ];
   const forecastValue = pipeline
     .filter((p) => OPEN_STAGES.includes(p.stage))
     .reduce((sum, p) => sum + p.totalValue, 0);

@@ -64,7 +64,7 @@ export function useOfflineMutation<
           mappedOperation,
         );
 
-        console.log(`📤 Mutation queued for offline sync (${idempotencyKey})`);
+        console.log(`Mutation queued for offline sync (${idempotencyKey})`);
 
         throw new Error("OFFLINE_QUEUED");
       }

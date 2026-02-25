@@ -57,8 +57,6 @@ export function DataTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
 
-  // When true, we've triggered a server fetch and are waiting for new data
-  // so we can automatically advance to the next page.
   const [pendingAdvance, setPendingAdvance] = React.useState(false);
   const prevDataLengthRef = React.useRef(data.length);
 
@@ -90,8 +88,6 @@ export function DataTable<TData, TValue>({
     },
   });
 
-  // After a server fetch completes (data grew) and we were waiting to advance,
-  // move to the next page now.
   React.useEffect(() => {
     if (pendingAdvance && data.length > prevDataLengthRef.current) {
       table.nextPage();
@@ -113,18 +109,15 @@ export function DataTable<TData, TValue>({
 
   const handleNext = () => {
     if (table.getCanNextPage()) {
-      // Already have the next page's data loaded — just navigate.
       table.nextPage();
     } else if (useCursorPagination && hasNextPage) {
-      // Need to fetch the next page from the server first.
       setPendingAdvance(true);
       onLoadMore!();
     }
   };
 
   const isNextDisabled =
-    !table.getCanNextPage() &&
-    !(useCursorPagination && hasNextPage) ||
+    (!table.getCanNextPage() && !(useCursorPagination && hasNextPage)) ||
     loadingMore ||
     pendingAdvance;
 
@@ -189,12 +182,14 @@ export function DataTable<TData, TValue>({
 
         <div className="flex items-center justify-end space-x-2 py-4 mx-4">
           <div className="text-muted-foreground flex-1 text-sm">
-            {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {totalLoaded} row(s) selected.
+            {table.getFilteredSelectedRowModel().rows.length} of {totalLoaded}{" "}
+            row(s) selected.
             {totalLoaded > 0 && (
               <span className="ml-2">
                 Showing {firstRow}–{lastRow}
-                {useCursorPagination && hasNextPage ? "+" : ` of ${totalLoaded}`}
+                {useCursorPagination && hasNextPage
+                  ? "+"
+                  : ` of ${totalLoaded}`}
               </span>
             )}
           </div>
@@ -203,7 +198,9 @@ export function DataTable<TData, TValue>({
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage() || loadingMore || pendingAdvance}
+            disabled={
+              !table.getCanPreviousPage() || loadingMore || pendingAdvance
+            }
           >
             Previous
           </Button>

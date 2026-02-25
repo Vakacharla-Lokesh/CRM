@@ -36,7 +36,10 @@ export function ConfirmDialog({
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog
+      open={open}
+      onOpenChange={onOpenChange}
+    >
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -44,7 +47,10 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelText}</AlertDialogCancel>
-          <AlertDialogAction onClick={handleConfirm} variant={variant}>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            variant={variant}
+          >
             {confirmText}
           </AlertDialogAction>
         </AlertDialogFooter>

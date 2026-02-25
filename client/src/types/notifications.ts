@@ -31,7 +31,7 @@ export type NotificationEventType =
   | "tenant_created"
   | "tenant_updated"
   | "tenant_deleted";
-  
+
 export interface AppNotification {
   id: string;
   type: NotificationEventType;

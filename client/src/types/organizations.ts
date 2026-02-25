@@ -1,5 +1,12 @@
 export type OrganizationIndustry = "Software" | "Textile" | "Foods" | "Others";
 
+export const industryMap: Record<OrganizationIndustry, string> = {
+  Software: "bg-blue-500",
+  Textile: "bg-purple-500",
+  Foods: "bg-green-500",
+  Others: "bg-gray-500",
+};
+
 export interface PointOfContact {
   _id?: string;
   name: string;

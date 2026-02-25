@@ -17,7 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { dealStatuses, type Deal, type UpdateDealDTO, type DealStatus } from "@/types/deals";
+import {
+  dealStatuses,
+  type Deal,
+  type UpdateDealDTO,
+  type DealStatus,
+} from "@/types/deals";
 import { validateDealForm } from "@/utils/formValidators";
 import type { DealFormData } from "@/utils/formValidators";
 

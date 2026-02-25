@@ -7,7 +7,6 @@ export const useCommentData = (leadId: string) => {
   const queryClient = useQueryClient();
   const queryKey = ["comments", "lead", leadId];
 
-  // ─── Main query ──────────────────────────────────────────────────────
   const {
     data,
     isLoading: loading,
@@ -23,12 +22,10 @@ export const useCommentData = (leadId: string) => {
   const comments: Comment[] = data ?? [];
   const error = queryError instanceof Error ? queryError.message : null;
 
-  // ─── Create ──────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (commentData: Omit<CreateCommentDTO, "leadId">) =>
       commentsAPI.create({ ...commentData, leadId }),
     onSuccess: (newComment) => {
-      // Prepend to cache — newest comments appear at top
       queryClient.setQueryData<Comment[]>(queryKey, (prev = []) => [
         newComment,
         ...prev,
@@ -39,7 +36,6 @@ export const useCommentData = (leadId: string) => {
     },
   });
 
-  // ─── Update ──────────────────────────────────────────────────────────
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: string; data: UpdateCommentDTO }) =>
       commentsAPI.update(id, data),
@@ -53,7 +49,6 @@ export const useCommentData = (leadId: string) => {
     },
   });
 
-  // ─── Delete ──────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (id: string) => commentsAPI.delete(id),
     onSuccess: (_, id) => {
@@ -66,7 +61,6 @@ export const useCommentData = (leadId: string) => {
     },
   });
 
-  // ─── Convenience wrappers (preserve old API surface) ─────────────────
   const createComment = useCallback(
     (data: Omit<CreateCommentDTO, "leadId">) =>
       createMutation.mutateAsync(data),
@@ -89,7 +83,6 @@ export const useCommentData = (leadId: string) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [queryClient, leadId]);
 
-  // ─── Return (identical shape to old hook) ─────────────────────────────
   return {
     comments,
     loading,

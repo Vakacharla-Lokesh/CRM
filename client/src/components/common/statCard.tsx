@@ -1,4 +1,4 @@
-import type { StatCardProps } from "@/types/interfaces/common/statCard.interfaces";
+import type { StatCardProps } from "@/types/interfaces/layout/statCard.interfaces";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
 function StatCard({ icon, label, value, change, trend }: StatCardProps) {

@@ -31,7 +31,6 @@ export function clearToken(): void {
   localStorage.removeItem("auth_token");
 }
 
-// ─── Silent Refresh Interceptor ──────────────────────────────────────────────
 
 let isRefreshing = false;
 let pendingQueue: Array<{
@@ -47,7 +46,6 @@ function processQueue(error: unknown, token: string | null) {
   pendingQueue = [];
 }
 
-// Endpoints that should NEVER trigger a silent refresh attempt
 const AUTH_ENDPOINTS = [
   "/auth/login",
   "/auth/register",

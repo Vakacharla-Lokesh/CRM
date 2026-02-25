@@ -32,7 +32,6 @@ export interface DashboardResponse {
   period: DashboardPeriod;
 }
 
-
 export interface LeadTrendStatusEntry {
   status: string;
   count: number;
@@ -49,7 +48,6 @@ export interface LeadTrendsResponse {
   days: number;
 }
 
-
 export interface LeadStatusEntry {
   status: string;
   count: number;
@@ -63,7 +61,6 @@ export interface LeadStatusBreakdownResponse {
   days: number;
 }
 
-
 export interface ScoreBucket {
   range: string; // "0-19" | "20-39" | "40-59" | "60-79" | "80-100"
   count: number;
@@ -73,7 +70,6 @@ export interface ScoreBucket {
 export interface LeadScoreDistributionResponse {
   distribution: ScoreBucket[];
 }
-
 
 export interface DealPipelineStage {
   stage: string;
@@ -102,7 +98,6 @@ export interface DealPipelineResponse {
   summary: DealPipelineSummary;
 }
 
-
 export interface DealTrendStatusEntry {
   status: string;
   count: number;
@@ -121,7 +116,6 @@ export interface DealTrendsResponse {
   days: number;
 }
 
-
 export interface OrgIndustryStat {
   industry: string;
   organizationCount: number;
@@ -135,7 +129,6 @@ export interface OrgIndustryStat {
 export interface OrganizationStatsResponse {
   stats: OrgIndustryStat[];
 }
-
 
 export interface TopOrganization {
   _id: string;
@@ -152,7 +145,6 @@ export interface TopOrganization {
 export interface TopOrganizationsResponse {
   organizations: TopOrganization[];
 }
-
 
 export const analyticsAPI = {
   /** GET /analytics/dashboard */

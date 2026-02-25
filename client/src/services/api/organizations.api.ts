@@ -10,7 +10,10 @@ import type {
 
 export const organizationsAPI = {
   list: async (params?: { page?: number; limit?: number; search?: string }) => {
-    const response = await get<{ count: number; organizations: Organization[] }>("/organizations", params);
+    const response = await get<{
+      count: number;
+      organizations: Organization[];
+    }>("/organizations", params);
     return {
       organizations: response.organizations,
       total: response.count,
@@ -20,17 +23,25 @@ export const organizationsAPI = {
   },
 
   get: async (id: string) => {
-    const response = await get<{ organization: Organization }>(`/organizations/${id}`);
+    const response = await get<{ organization: Organization }>(
+      `/organizations/${id}`,
+    );
     return response.organization;
   },
 
   create: async (data: CreateOrganizationDTO) => {
-    const response = await post<{ message: string; organization: Organization }>("/organizations", data);
+    const response = await post<{
+      message: string;
+      organization: Organization;
+    }>("/organizations", data);
     return response.organization;
   },
 
   update: async (id: string, data: UpdateOrganizationDTO) => {
-    const response = await put<{ message: string; organization: Organization }>(`/organizations/${id}`, data);
+    const response = await put<{ message: string; organization: Organization }>(
+      `/organizations/${id}`,
+      data,
+    );
     return response.organization;
   },
 

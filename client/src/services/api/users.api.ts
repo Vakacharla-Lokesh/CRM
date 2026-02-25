@@ -9,7 +9,10 @@ import type {
 
 export const usersAPI = {
   list: async (params?: { page?: number; limit?: number; role?: string }) => {
-    const response = await get<{ count: number; users: User[] }>("/users", params);
+    const response = await get<{ count: number; users: User[] }>(
+      "/users",
+      params,
+    );
     return {
       users: response.users,
       total: response.count,
@@ -24,12 +27,18 @@ export const usersAPI = {
   },
 
   create: async (data: CreateUserDTO) => {
-    const response = await post<{ message: string; user: User }>("/users", data);
+    const response = await post<{ message: string; user: User }>(
+      "/users",
+      data,
+    );
     return response.user;
   },
 
   update: async (id: string, data: UpdateUserDTO) => {
-    const response = await put<{ message: string; user: User }>(`/users/${id}`, data);
+    const response = await put<{ message: string; user: User }>(
+      `/users/${id}`,
+      data,
+    );
     return response.user;
   },
 
