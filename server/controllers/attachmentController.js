@@ -1,36 +1,98 @@
+import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
+import { randomUUID } from "crypto";
+
 import attachmentModel from "../models/attachmentModel.js";
 import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { s3 } from "../config/awsClient.js";
 
-// Get all attachments
+const S3_BUCKET = "crm-leads";
+const LOCALSTACK_ENDPOINT = "http://localhost:4566";
+
+const buildBaseS3Url = (key) => `${LOCALSTACK_ENDPOINT}/${S3_BUCKET}/${key}`;
+
+function toPublic(att) {
+  return {
+    _id: att._id,
+    leadId: att.leadId,
+    fileName: att.fileName,
+    fileSize: att.fileSize,
+    fileType: att.fileType,
+    s3Key: att.s3Key,
+    s3Url: att.s3Url,
+    createdAt: att.createdAt,
+    updatedAt: att.updatedAt,
+  };
+}
+
+// GET /attachments — list all (admin use)
 export const getAllAttachments = asyncCatch(async (req, res) => {
-  const attachments = await attachmentModel.find();
+  const attachments = await attachmentModel.find().select("-__v");
 
   res.json({
     count: attachments.length,
-    attachments,
+    attachments: attachments.map(toPublic),
   });
 });
 
-// Get attachment by ID
+// GET /attachments/:id
 export const getAttachmentById = asyncCatch(async (req, res) => {
   const attachment = await attachmentModel.findById(req.params.id);
 
   if (!attachment) throw new AppError("Attachment not found", 404);
 
-  res.json({ attachment });
+  res.json({ attachment: toPublic(attachment) });
 });
 
-// Create a new attachment
-export const createAttachment = asyncCatch(async (req, res) => {
-  // Verify lead exists and belongs to user's tenant
-  const lead = await leadModel.findById(req.body.leadId);
+// POST /attachments/presigned-url
+// Body: { leadId, fileName, fileType, fileSize }
+// Returns a pre-signed PUT URL so the client can upload directly to S3.
+export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
+  const { leadId, fileName, fileType, fileSize } = req.body;
 
+  const lead = await leadModel.findById(leadId);
   if (!lead) throw new AppError("Lead not found", 404);
 
-  // Check tenant access
+  if (
+    req.user.role !== "super_admin" &&
+    lead.tenantId.toString() !== req.user.tenantId
+  ) {
+    throw new AppError(
+      "Forbidden: You cannot upload attachments to leads from other tenants",
+      403,
+    );
+  }
+
+  const uuid = randomUUID();
+  const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+  const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
+
+  const command = new PutObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: s3Key,
+    ContentType: fileType,
+    ContentLength: fileSize,
+  });
+
+  // Presigned PUT URL valid for 5 minutes
+  const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
+  const s3Url = buildBaseS3Url(s3Key);
+
+  res.json({ presignedUrl, s3Key, s3Url });
+});
+
+// POST /attachments
+// Body: { leadId, fileName, fileType, fileSize, s3Key, s3Url }
+// Called AFTER the client has uploaded the file to S3 via presigned URL.
+export const createAttachment = asyncCatch(async (req, res) => {
+  const { leadId, fileName, fileType, fileSize, s3Key, s3Url } = req.body;
+
+  const lead = await leadModel.findById(leadId);
+  if (!lead) throw new AppError("Lead not found", 404);
+
   if (
     req.user.role !== "super_admin" &&
     lead.tenantId.toString() !== req.user.tenantId
@@ -41,38 +103,29 @@ export const createAttachment = asyncCatch(async (req, res) => {
     );
   }
 
-  // Convert base64 fileData to Buffer if needed
-  const attachmentData = { ...req.body };
-  if (typeof req.body.fileData === "string") {
-    attachmentData.fileData = Buffer.from(req.body.fileData, "base64");
-  }
+  const attachment = await attachmentModel.create({
+    leadId,
+    fileName,
+    fileType,
+    fileSize,
+    s3Key,
+    s3Url,
+  });
 
-  const attachment = await attachmentModel.create(attachmentData);
-
-  // Update lead score after adding attachment
-  await updateLeadScore(req.body.leadId);
+  await updateLeadScore(leadId);
 
   res.status(201).json({
     message: "Attachment created successfully",
-    attachment: {
-      _id: attachment._id,
-      leadId: attachment.leadId,
-      fileName: attachment.fileName,
-      fileSize: attachment.fileSize,
-      fileType: attachment.fileType,
-      createdAt: attachment.createdAt,
-      updatedAt: attachment.updatedAt,
-    },
+    attachment: toPublic(attachment),
   });
 });
 
-// Delete attachment
+// DELETE /attachments/:id — removes the DB record and the S3 object
 export const deleteAttachment = asyncCatch(async (req, res) => {
   const attachment = await attachmentModel.findById(req.params.id);
 
   if (!attachment) throw new AppError("Attachment not found", 404);
 
-  // Verify lead tenant access
   const lead = await leadModel.findById(attachment.leadId);
   if (
     req.user.role !== "super_admin" &&
@@ -81,18 +134,21 @@ export const deleteAttachment = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot delete this attachment", 403);
   }
 
+  // Remove the object from S3
+  await s3.send(
+    new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: attachment.s3Key }),
+  );
+
   const leadId = attachment.leadId;
   await attachmentModel.findByIdAndDelete(req.params.id);
 
-  // Update lead score after deleting attachment
   await updateLeadScore(leadId);
 
   res.json({ message: "Attachment deleted successfully" });
 });
 
-// Get attachments by lead
+// GET /attachments/lead/:leadId
 export const getAttachmentsByLead = asyncCatch(async (req, res) => {
-  // Verify lead tenant access
   const lead = await leadModel.findById(req.params.leadId);
 
   if (!lead) throw new AppError("Lead not found", 404);
@@ -111,30 +167,19 @@ export const getAttachmentsByLead = asyncCatch(async (req, res) => {
     leadId: req.params.leadId,
   });
 
-  // Return attachments without binary data for list view
-  const attachmentsList = attachments.map((att) => ({
-    _id: att._id,
-    leadId: att.leadId,
-    fileName: att.fileName,
-    fileSize: att.fileSize,
-    fileType: att.fileType,
-    createdAt: att.createdAt,
-    updatedAt: att.updatedAt,
-  }));
-
   res.json({
-    count: attachmentsList.length,
-    attachments: attachmentsList,
+    count: attachments.length,
+    attachments: attachments.map(toPublic),
   });
 });
 
-// Download attachment
+// GET /attachments/:id/download
+// Returns a fresh presigned GET URL (valid 5 min) the client uses directly.
 export const downloadAttachment = asyncCatch(async (req, res) => {
   const attachment = await attachmentModel.findById(req.params.id);
 
   if (!attachment) throw new AppError("Attachment not found", 404);
 
-  // Verify lead tenant access
   const lead = await leadModel.findById(attachment.leadId);
   if (
     req.user.role !== "super_admin" &&
@@ -143,11 +188,14 @@ export const downloadAttachment = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot download this attachment", 403);
   }
 
-  // Set appropriate headers for file download
-  res.setHeader(
-    "Content-Disposition",
-    `attachment; filename="${attachment.fileName}"`,
-  );
-  res.setHeader("Content-Type", attachment.fileType);
-  res.send(attachment.fileData);
+  const command = new GetObjectCommand({
+    Bucket: S3_BUCKET,
+    Key: attachment.s3Key,
+    ResponseContentDisposition: `attachment; filename="${attachment.fileName}"`,
+  });
+
+  // Presigned GET URL valid for 5 minutes
+  const url = await getSignedUrl(s3, command, { expiresIn: 300 });
+
+  res.json({ url, fileName: attachment.fileName });
 });

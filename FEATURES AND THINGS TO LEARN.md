@@ -105,7 +105,7 @@ documentation
 
 profile photo upload to cloudinary/ local stack bucket
 
-local stack download
+>>> DONE local stack download
 
 bull mq
 

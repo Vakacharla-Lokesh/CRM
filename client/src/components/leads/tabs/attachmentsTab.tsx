@@ -71,6 +71,8 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
     leadId: string;
     createdAt: string;
     updatedAt: string;
+    s3Key: string;
+    s3Url: string;
   }) => {
     try {
       await downloadAttachment(attachment);
