@@ -1,4 +1,4 @@
-import leadModel from "../models/leadModel.js";
+import leadModel from "../../models/leadModel.js";
 
 export const getLeadTrends = async (req, res, next) => {
   try {

@@ -103,7 +103,7 @@ function AppRoutes() {
           />
         )}
       </Routes>
-      
+
       {/* TanStack Query DevTools — only visible in development, tree-shaken in production */}
       <ReactQueryDevtools
         initialIsOpen={false}
@@ -120,7 +120,7 @@ function App() {
         <OfflineProvider>
           <NotificationProvider>
             <ThemeProvider>
-              <Toaster />
+              <Toaster position="top-center" />
               <AppRoutes />
             </ThemeProvider>
           </NotificationProvider>

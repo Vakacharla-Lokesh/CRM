@@ -1,3 +1,5 @@
+import organizationModel from "../../models/organizationModel.js";
+
 export const getOrganizationStats = async (req, res, next) => {
   try {
     const filter = req.tenantFilter || {};
