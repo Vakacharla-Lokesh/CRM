@@ -8,7 +8,8 @@ export const authorize = (...allowedRoles) => {
 
     if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
-        message: "Forbidden: You do not have permission to access this resource",
+        message:
+          "Forbidden: You do not have permission to access this resource",
       });
     }
 
@@ -17,7 +18,8 @@ export const authorize = (...allowedRoles) => {
 };
 
 export const validateTenantAccess = (req, res, next) => {
-  const tenantId = req.body.tenantId || req.params.tenantId || req.query.tenantId;
+  const tenantId =
+    req.body.tenantId || req.params.tenantId || req.query.tenantId;
   if (req.user.role === "super_admin") {
     return next();
   }
