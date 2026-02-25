@@ -35,63 +35,6 @@ interface SyncResult {
   errors: Array<{ entityType: string; error: string }>;
 }
 
-export interface QueuedMutation {
-  id: string;
-  mutationKey: string[];
-  variables: any;
-  timestamp: number;
-  retryCount: number;
-  status: "pending" | "syncing" | "success" | "error";
-  error?: string;
-}
-
-export const queueMutationForOffline = (
-  mutationKey: string[],
-  variables: any,
-): QueuedMutation => {
-  const mutation: QueuedMutation = {
-    id: `mutation-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    mutationKey,
-    variables,
-    timestamp: Date.now(),
-    retryCount: 0,
-    status: "pending",
-  };
-
-  const queue = getOfflineMutationQueue();
-  queue.push(mutation);
-  saveMutationQueue(queue);
-
-  return mutation;
-};
-
-const getOfflineMutationQueue = (): QueuedMutation[] => {
-  try {
-    const stored = localStorage.getItem("offline_mutation_queue");
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveMutationQueue = (queue: QueuedMutation[]) => {
-  try {
-    localStorage.setItem("offline_mutation_queue", JSON.stringify(queue));
-  } catch (error) {
-    console.error("Failed to save mutation queue:", error);
-  }
-};
-
-export const removeQueuedMutation = (mutationId: string) => {
-  const queue = getOfflineMutationQueue();
-  const filtered = queue.filter((m) => m.id !== mutationId);
-  saveMutationQueue(filtered);
-};
-
-export const getPendingMutationCount = (): number => {
-  return getOfflineMutationQueue().filter((m) => m.status === "pending").length;
-};
-
 export const useOfflineManager = () => {
   const [queue, setQueue] = useState<OfflineRequest[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -455,13 +398,8 @@ export const useOfflineManager = () => {
     getStats,
     toggleOfflineMode,
 
-    queueMutation: queueMutationForOffline,
-    removeMutation: removeQueuedMutation,
     get pendingMutationCount() {
-      return getPendingMutationCount();
-    },
-    get mutationQueue() {
-      return getOfflineMutationQueue();
+      return queue.length;
     },
   };
 };

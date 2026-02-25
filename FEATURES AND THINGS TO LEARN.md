@@ -77,3 +77,18 @@ web socket implementation in server
 >>> toast notifications in project
 
 >>> when tenant is created a new admin is automatically created and mail is sent to admin with password
+
+fix comments in all files in front end
+
+worker thread in frontend for exports
+
+passport js fix by removing own auth middleware
+
+multer for attachment uploads
+
+zustand
+
+documentation
+
+local stack download
+

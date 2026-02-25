@@ -6,4 +6,4 @@
  *   import { useNotifications } from "@/hooks";
  *   const { notifyEvent, notifications, unreadCount } = useNotifications();
  */
-export { useNotifications } from "@/context/useNotification";
+export { useNotifications } from "@/context";

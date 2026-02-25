@@ -24,7 +24,7 @@ import {
   Inbox,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNotifications } from "@/context/useNotification";
+import { useNotifications } from "@/context/useNotificationContext";
 import { useOffline } from "@/context/useOffline";
 import type { AppNotification, NotificationEventType } from "@/types/notifications";
 import { cn } from "@/lib/utils";

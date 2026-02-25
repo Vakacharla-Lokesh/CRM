@@ -25,22 +25,27 @@ export const routeConfig: RouteConfig[] = [
   {
     path: "/leads",
     element: <LeadsPage />,
+    allowedRoles: ["user", "admin"],
   },
   {
     path: "/leads/:id",
     element: <LeadDetailsPage />,
+    allowedRoles: ["user", "admin"],
   },
   {
     path: "/organizations",
     element: <OrganizationsPage />,
+    allowedRoles: ["user", "admin"],
   },
   {
     path: "/organizations/:id/leads",
     element: <OrganizationLeadsPage />,
+    allowedRoles: ["user", "admin"],
   },
   {
     path: "/deals",
     element: <DealsPage />,
+    allowedRoles: ["user", "admin"],
   },
   {
     path: "/users",

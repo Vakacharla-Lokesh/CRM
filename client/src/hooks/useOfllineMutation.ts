@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import { useOffline } from "@/context/";
-import { queueMutationForOffline } from "./useOfflineManager";
+import { useOfflineManager } from "./useOfflineManager";
 
 interface OfflineMutationOptions<
   TData,
@@ -14,9 +15,6 @@ interface OfflineMutationOptions<
   mutationKey: string[];
 }
 
-/**
- * Enhanced mutation hook with offline queue support
- */
 export function useOfflineMutation<
   TData = unknown,
   TError = unknown,
@@ -24,35 +22,66 @@ export function useOfflineMutation<
   TContext = unknown,
 >(options: OfflineMutationOptions<TData, TError, TVariables, TContext>) {
   const { isOnline } = useOffline();
+  const { addToQueue } = useOfflineManager();
 
   return useMutation<TData, TError, TVariables, TContext>({
     ...options,
     onMutate: async (variables, context) => {
-      // If offline, queue the mutation
       if (!isOnline) {
-        queueMutationForOffline(options.mutationKey, variables);
+        const [entityType, operationType] = options.mutationKey;
 
-        // Show user feedback
-        console.log("📤 Mutation queued for offline sync");
+        const entityTypeMap: Record<string, any> = {
+          leads: "leads",
+          deals: "deals",
+          comments: "comments",
+          calls: "calls",
+          attachments: "attachments",
+          organizations: "organizations",
+          users: "users",
+        };
+
+        const mappedEntityType = entityTypeMap[entityType] || "leads";
+
+        const operationMap: Record<string, any> = {
+          create: "create",
+          update: "update",
+          delete: "delete",
+        };
+
+        const mappedOperation = operationMap[operationType] || "create";
+
+        const idempotencyKey = addToQueue(
+          `/api/${entityType}`,
+          mappedOperation === "create"
+            ? "POST"
+            : mappedOperation === "update"
+              ? "PUT"
+              : "DELETE",
+          variables,
+          {},
+          3,
+          mappedEntityType,
+          mappedOperation,
+        );
+
+        console.log(`📤 Mutation queued for offline sync (${idempotencyKey})`);
+
+        throw new Error("OFFLINE_QUEUED");
       }
 
-      // Call original onMutate if exists and return its result
       if (options.onMutate) {
         return await options.onMutate(variables, context);
       }
 
-      // Return undefined as TContext when no onMutate provided
       return undefined as TContext;
     },
-    onError: (error, variables, context, meta) => {
-      // If offline, the mutation was already queued
-      if (!isOnline) {
-        console.log("⚠️ Mutation will retry when online");
+    onError: (error, variables, context) => {
+      if (error instanceof Error && error.message === "OFFLINE_QUEUED") {
+        return;
       }
 
-      // Call original onError if exists
       if (options.onError) {
-        options.onError(error, variables, context, meta);
+        options.onError(error, variables, context as TContext, {} as any);
       }
     },
   });
