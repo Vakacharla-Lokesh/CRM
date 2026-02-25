@@ -87,7 +87,7 @@ TODO
 
 sqs
 
-api validations 
+>>> DONE api validations 
 
 worker thread in frontend for exports
 

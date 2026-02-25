@@ -12,6 +12,17 @@ import {
 import { authenticate } from "../middlewares/auth.js";
 import { authorize } from "../middlewares/rbac.js";
 import passport from "../config/passport.js";
+import { validate } from "../middlewares/validate.js";
+import {
+  bulkCreateLeadsSchema,
+  bulkUpdateLeadsSchema,
+  bulkCreateDealsSchema,
+  bulkUpdateDealsSchema,
+  bulkCreateCommentsSchema,
+  bulkCreateCallsSchema,
+  bulkCreateOrganizationsSchema,
+  bulkUpdateOrganizationsSchema,
+} from "../validators/bulkValidator.js";
 
 const router = Router();
 
@@ -22,6 +33,7 @@ router.post(
   "/leads/create",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkCreateLeadsSchema),
   bulkCreateLeads,
 );
 
@@ -29,6 +41,7 @@ router.post(
   "/leads/update",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkUpdateLeadsSchema),
   bulkUpdateLeads,
 );
 
@@ -37,6 +50,7 @@ router.post(
   "/deals/create",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkCreateDealsSchema),
   bulkCreateDeals,
 );
 
@@ -44,6 +58,7 @@ router.post(
   "/deals/update",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkUpdateDealsSchema),
   bulkUpdateDeals,
 );
 
@@ -52,6 +67,7 @@ router.post(
   "/comments/create",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkCreateCommentsSchema),
   bulkCreateComments,
 );
 
@@ -60,6 +76,7 @@ router.post(
   "/calls/create",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkCreateCallsSchema),
   bulkCreateCalls,
 );
 
@@ -68,6 +85,7 @@ router.post(
   "/organizations/create",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkCreateOrganizationsSchema),
   bulkCreateOrganizations,
 );
 
@@ -75,6 +93,7 @@ router.post(
   "/organizations/update",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(bulkUpdateOrganizationsSchema),
   bulkUpdateOrganizations,
 );
 

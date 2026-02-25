@@ -7,7 +7,6 @@ const dealsSchema = new Schema(
     leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
     organizationId: {
       type: Schema.Types.ObjectId,
-      required: true,
       rel: "Organizations",
     },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },

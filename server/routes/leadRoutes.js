@@ -21,6 +21,7 @@ import {
   updateLeadSchema,
   updateLeadStatusSchema,
   updateLeadScoreSchema,
+  convertLeadSchema,
 } from "../validators/leadsValidator.js";
 import passport from "../config/passport.js";
 
@@ -116,6 +117,7 @@ router.post(
   "/:id/convert",
   authenticate,
   authorize("user", "admin", "super_admin"),
+  validate(convertLeadSchema),
   convertLeadToDeal,
 );
 

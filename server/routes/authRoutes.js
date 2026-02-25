@@ -12,7 +12,12 @@ import {
 } from "../controllers/authController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
-import { loginSchema, registerSchema } from "../validators/authValidator.js";
+import {
+  loginSchema,
+  registerSchema,
+  logoutSchema,
+  refreshTokenSchema,
+} from "../validators/authValidator.js";
 import {
   forgotPasswordSchema,
   resetPasswordSchema,
@@ -23,8 +28,8 @@ const router = Router();
 
 router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
-router.post("/logout", logout);
-router.post("/refresh", refreshToken);
+router.post("/logout", validate(logoutSchema), logout);
+router.post("/refresh", validate(refreshTokenSchema), refreshToken);
 router.get("/profile", authenticate, getProfile);
 router.get("/status", checkToken);
 
