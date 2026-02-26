@@ -2,7 +2,7 @@ import emailController from "../controllers/emailController.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
-import { s3Manager } from "./s3Manager.js";
+import { s3Manager } from "./aws/s3Manager.js";
 import { EXPORT_COLUMNS, transformDocToRow } from "../utils/exportToCSV.js";
 import mongoose from "mongoose";
 

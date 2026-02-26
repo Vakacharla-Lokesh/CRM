@@ -1,6 +1,6 @@
 import workflowModel from "../models/workflows/workflowModel.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
-import { queueManager } from "../services/queueManager.js";
+import { queueManager } from "../services/queue/queueManager.js";
 import asyncCatch from "../utils/asyncCatch.js";
 
 export const captureRequestContext = (req, res, next) => {
@@ -133,7 +133,7 @@ async function queueWorkflowExecution(
     };
 
     // Push to SQS queue
-    const messageId = await queueManager.sendMessage(message);
+    const messageId = await queueManager.enqueue("offlineWrites", message);
 
     // Update execution log with SQS message ID
     await workflowExecutionLogModel.findByIdAndUpdate(executionLog._id, {

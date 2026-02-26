@@ -10,7 +10,8 @@ function AnalyticsEmptyState({ onAddWidget }: AnalyticsEmptyStateProps) {
       <div
         className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6"
         style={{
-          backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)",
+          backgroundColor:
+            "color-mix(in srgb, var(--primary) 10%, transparent)",
         }}
       >
         <BarChart2
