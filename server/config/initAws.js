@@ -5,6 +5,7 @@ import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
 import { s3, sqs } from "./awsClient.js";
 
 const BUCKET = "crm-leads";
+const WORKFLOWS_BUCKET = "crm-workflows";
 const QUEUE = "crm-offline-writes";
 
 export let QUEUE_URL = null;
@@ -12,14 +13,23 @@ export let QUEUE_URL = null;
 export async function initAwsResources() {
   console.log("Initializing LocalStack resources...");
 
-  // ---------- S3 BUCKET ----------
+  // ---------- S3 BUCKETS ----------
   try {
     await s3.send(new HeadBucketCommand({ Bucket: BUCKET }));
-    console.log("S3 bucket already exists");
+    console.log("S3 bucket already exists:", BUCKET);
   } catch {
-    console.log("Creating S3 bucket...");
+    console.log("Creating S3 bucket:", BUCKET);
     await s3.send(new CreateBucketCommand({ Bucket: BUCKET }));
-    console.log("S3 bucket created");
+    console.log("S3 bucket created:", BUCKET);
+  }
+
+  try {
+    await s3.send(new HeadBucketCommand({ Bucket: WORKFLOWS_BUCKET }));
+    console.log("S3 bucket already exists:", WORKFLOWS_BUCKET);
+  } catch {
+    console.log("Creating S3 bucket:", WORKFLOWS_BUCKET);
+    await s3.send(new CreateBucketCommand({ Bucket: WORKFLOWS_BUCKET }));
+    console.log("S3 bucket created:", WORKFLOWS_BUCKET);
   }
 
   await s3.send(

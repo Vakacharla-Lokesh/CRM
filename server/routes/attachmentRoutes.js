@@ -53,18 +53,18 @@ router.post(
   createAttachment,
 );
 
-router.delete(
-  "/:id",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  deleteAttachment,
-);
-
 router.get(
   "/lead/:leadId",
   authenticate,
   authorize("user", "admin", "super_admin"),
   getAttachmentsByLead,
+);
+
+router.delete(
+  "/:id",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  deleteAttachment,
 );
 
 router.get(

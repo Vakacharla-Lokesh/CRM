@@ -10,13 +10,13 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   const cursor = req.query.cursor;
 
   if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
+    const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
+    filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
   }
 
   const leads = await leadModel
     .find(filter)
-    .sort({ _id: 1 })
+    .sort({ updatedAt: -1 })
     .limit(limit + 1);
 
   const hasNextPage = leads.length > limit;
@@ -24,7 +24,7 @@ export const getAllLeads = asyncCatch(async (req, res) => {
 
   const nextCursor =
     hasNextPage && leads.length > 0
-      ? Buffer.from(leads[leads.length - 1]._id.toString()).toString("base64")
+      ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString("base64")
       : null;
 
   res.json({
