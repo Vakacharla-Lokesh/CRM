@@ -8,6 +8,7 @@ export * from "./calls";
 export * from "./comments";
 export * from "./attachments";
 export * from "./notifications";
+export * from "./workflows";
 
 // API Types
 export interface ApiRequestOptions {

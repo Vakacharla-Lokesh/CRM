@@ -2,6 +2,7 @@ import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
@@ -24,7 +25,9 @@ export const getAllLeads = asyncCatch(async (req, res) => {
 
   const nextCursor =
     hasNextPage && leads.length > 0
-      ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString("base64")
+      ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString(
+          "base64",
+        )
       : null;
 
   res.json({
@@ -68,6 +71,8 @@ export const createLead = asyncCatch(async (req, res) => {
   // Fetch updated lead with score
   const updatedLead = await leadModel.findById(lead._id);
 
+  await fireWorkflowTrigger(req, "lead", "create", updatedLead._id, updatedLead.toObject());
+
   res.status(201).json({
     message: "Lead created successfully",
     lead: updatedLead,
@@ -98,6 +103,8 @@ export const updateLead = asyncCatch(async (req, res) => {
   // Fetch updated lead with new score
   const leadWithScore = await leadModel.findById(req.params.id);
 
+  await fireWorkflowTrigger(req, "lead", "update", leadWithScore._id, leadWithScore.toObject());
+
   res.json({
     message: "Lead updated successfully",
     lead: leadWithScore,
@@ -117,6 +124,8 @@ export const deleteLead = asyncCatch(async (req, res) => {
   }
 
   await leadModel.findByIdAndDelete(req.params.id);
+
+  await fireWorkflowTrigger(req, "lead", "delete", lead._id, lead.toObject());
 
   res.json({ message: "Lead deleted successfully" });
 });
@@ -180,6 +189,8 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
   // Fetch updated lead with new score
   const updatedLead = await leadModel.findById(req.params.id);
 
+  await fireWorkflowTrigger(req, "lead", "update", updatedLead._id, updatedLead.toObject());
+
   res.json({
     message: "Lead status updated successfully",
     lead: updatedLead,
@@ -237,6 +248,8 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
 
   lead.leadStatus = "Converted";
   await lead.save();
+
+  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
 
   res.status(201).json({
     message: "Lead converted to deal successfully",

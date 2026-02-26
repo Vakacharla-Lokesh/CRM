@@ -40,60 +40,55 @@ export const captureRequestContext = (req, res, next) => {
  *   processWorkflowTriggers  // ← Add this
  * );
  */
-export const processWorkflowTriggers = asyncCatch(async (req, res, next) => {
-  // Skip if no workflow context or not an authenticated request
-  if (!req.workflowContext || !req.user || !req.user.tenantId) {
-    return next();
-  }
-
-  const { entityType, entityId, action, newData } = req.workflowContext;
-
-  // Only process if entity was created/updated/deleted
-  if (!entityType || !action) {
-    return next();
-  }
+/**
+ * Fire workflow triggers from within a controller.
+ * Call this after a successful DB mutation, before res.json().
+ *
+ * @param {Object} req       - Express request (needs req.user.userId)
+ * @param {string} entityType - 'lead' | 'deal' | 'organization' | 'call' | 'comment'
+ * @param {string} action     - 'create' | 'update' | 'delete'
+ * @param {*}      entityId   - MongoDB ObjectId of the entity
+ * @param {Object} newData    - Plain entity document (call .toObject() if needed)
+ */
+export async function fireWorkflowTrigger(
+  req,
+  entityType,
+  action,
+  entityId,
+  newData,
+) {
+  if (!req.user?.userId) return;
 
   try {
-    // Find all active workflows for this tenant that match this action
     const matchingWorkflows = await workflowModel.find({
-      tenantId: req.user.tenantId,
+      createdBy: req.user.userId,
       isActive: true,
       "trigger.entity": entityType,
       "trigger.action": action,
     });
 
-    if (matchingWorkflows.length === 0) {
-      return next();
-    }
+    if (!matchingWorkflows.length) return;
 
-    // Filter workflows by trigger conditions
-    const triggeredWorkflows = matchingWorkflows.filter((workflow) => {
-      return evaluateTriggerConditions(workflow.trigger.conditions, newData);
-    });
+    const triggeredWorkflows = matchingWorkflows.filter((workflow) =>
+      evaluateTriggerConditions(workflow.trigger.conditions, newData),
+    );
 
-    if (triggeredWorkflows.length === 0) {
-      return next();
-    }
+    if (!triggeredWorkflows.length) return;
 
-    // Queue each triggered workflow
     for (const workflow of triggeredWorkflows) {
       await queueWorkflowExecution(
-        req.user.tenantId,
+        workflow.tenantId,
         workflow,
         entityType,
         entityId,
         newData,
       );
     }
-
-    // Continue to send response
-    next();
   } catch (error) {
-    // Log error but don't block the response
+    // Never re-throw – workflow failures must not affect the HTTP response
     console.error("Workflow trigger error:", error);
-    next();
   }
-});
+}
 
 /**
  * Evaluate trigger conditions against entity data
@@ -172,7 +167,7 @@ async function queueWorkflowExecution(
     // Prepare message for SQS
     const message = {
       executionLogId: executionLog._id.toString(),
-      tenantId: tenantId.toString(),
+      tenantId: tenantId ? tenantId.toString() : null,
       workflowId: workflow._id.toString(),
       workflow: {
         name: workflow.name,
@@ -180,7 +175,7 @@ async function queueWorkflowExecution(
       },
       entity: {
         type: entityType,
-        id: entityId.toString(),
+        id: entityId ? entityId.toString() : null,
         data: entityData,
       },
       retryCount: 0,
@@ -223,83 +218,7 @@ async function queueWorkflowExecution(
  *
  * router.post('/', authenticate, createLeadWithTriggers);
  */
-export function withWorkflowTriggers(entityType, action, controller) {
-  return asyncCatch(async (req, res, next) => {
-    // Capture context before
-    req.workflowContext = {
-      entityType,
-      action,
-      entityId: null,
-      newData: null,
-    };
-
-    // Store the original send function
-    const originalSend = res.send.bind(res);
-
-    // Intercept the response to capture created/updated entity
-    res.send = function (data) {
-      // Parse response data
-      try {
-        const parsed = typeof data === "string" ? JSON.parse(data) : data;
-
-        // Extract entity ID from response (adjust based on your response format)
-        if (parsed.lead) {
-          req.workflowContext.entityId = parsed.lead._id || parsed.lead.id;
-          req.workflowContext.newData = parsed.lead;
-        } else if (parsed.deal) {
-          req.workflowContext.entityId = parsed.deal._id || parsed.deal.id;
-          req.workflowContext.newData = parsed.deal;
-        } else if (parsed.organization) {
-          req.workflowContext.entityId =
-            parsed.organization._id || parsed.organization.id;
-          req.workflowContext.newData = parsed.organization;
-        }
-      } catch (e) {
-        // Silently fail on parse error
-      }
-
-      // Call original send
-      return originalSend(data);
-    };
-
-    // Call the controller
-    await controller(req, res, next);
-
-    // Process triggers after response is sent
-    await processWorkflowTriggers(req, res, next);
-  });
-}
-
-/**
- * Example: Using withWorkflowTriggers in a route
- *
- * import { withWorkflowTriggers } from '../middlewares/workflowTrigger.js';
- *
- * router.post(
- *   '/',
- *   authenticate,
- *   validate(leadsValidator.createLeadSchema),
- *   withWorkflowTriggers('lead', 'create', leadController.createLead),
- * );
- *
- * router.put(
- *   '/:id',
- *   authenticate,
- *   validateParams(z.object({ id: mongoIdSchema })),
- *   validate(leadsValidator.updateLeadSchema),
- *   withWorkflowTriggers('lead', 'update', leadController.updateLead),
- * );
- *
- * router.delete(
- *   '/:id',
- *   authenticate,
- *   validateParams(z.object({ id: mongoIdSchema })),
- *   withWorkflowTriggers('lead', 'delete', leadController.deleteLead),
- * );
- */
-
 export default {
   captureRequestContext,
-  processWorkflowTriggers,
-  withWorkflowTriggers,
+  fireWorkflowTrigger,
 };

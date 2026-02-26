@@ -1,4 +1,8 @@
-import { CreateBucketCommand, HeadBucketCommand, PutBucketCorsCommand } from "@aws-sdk/client-s3";
+import {
+  CreateBucketCommand,
+  HeadBucketCommand,
+  PutBucketCorsCommand,
+} from "@aws-sdk/client-s3";
 
 import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
 
@@ -7,8 +11,10 @@ import { s3, sqs } from "./awsClient.js";
 const BUCKET = "crm-leads";
 const WORKFLOWS_BUCKET = "crm-workflows";
 const QUEUE = "crm-offline-writes";
+const EXPORTQUEUE = "crm-export-data";
 
 export let QUEUE_URL = null;
+export let EXPORT_QUEUE_URL = null;
 
 export async function initAwsResources() {
   console.log("Initializing LocalStack resources...");
@@ -61,6 +67,22 @@ export async function initAwsResources() {
       new CreateQueueCommand({ QueueName: QUEUE }),
     );
     QUEUE_URL = created.QueueUrl;
+    console.log("SQS queue created");
+  }
+
+  // EXPORT QUEUE
+  try {
+    const existing = await sqs.send(
+      new GetQueueUrlCommand({ QueueName: EXPORTQUEUE }),
+    );
+    EXPORT_QUEUE_URL = existing.QueueUrl;
+    console.log("SQS queue already exists");
+  } catch {
+    console.log("Creating SQS queue...");
+    const created = await sqs.send(
+      new CreateQueueCommand({ QueueName: EXPORTQUEUE }),
+    );
+    EXPORT_QUEUE_URL = created.QueueUrl;
     console.log("SQS queue created");
   }
 

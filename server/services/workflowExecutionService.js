@@ -1,33 +1,13 @@
-import nodemailer from "nodemailer";
+import emailController from "../controllers/emailController.js";
 import { s3Manager } from "./s3Manager.js";
-import workflowExecutionLogModel from "../models/workflowExecutionLogModel.js";
+import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
 
-function initializeEmailTransporter() {
-  return nodemailer.createTransport({
-    host: process.env.SMTP_HOST || "smtp.gmail.com",
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: process.env.SMTP_SECURE === "true",
-    auth: {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASSWORD,
-    },
-  });
-}
-
 class WorkflowExecutionEngine {
-  constructor() {
-    this.emailTransporter = initializeEmailTransporter();
-  }
+  constructor() {}
 
-  /**
-   * Execute a workflow
-   *
-   * @param {Object} message - Message from SQS queue
-   * @returns {Promise<Object>} - Execution results
-   */
   async executeWorkflow(message) {
     const {
       executionLogId,
@@ -48,7 +28,6 @@ class WorkflowExecutionEngine {
         `\n▶ Starting workflow: ${workflow.name} (Execution: ${executionLogId})`,
       );
 
-      // Execute each action in sequence
       for (let i = 0; i < workflow.actions.length; i++) {
         const action = workflow.actions[i];
         console.log(
@@ -66,57 +45,42 @@ class WorkflowExecutionEngine {
             executedAt: new Date(),
           });
 
-          console.log(`    ✓ Success: ${result.message}`);
-        } catch (actionError) {
+          console.log(`    ✓ ${result.message}`);
+        } catch (error) {
+          console.error(`    ✗ Action failed:`, error.message);
+
           executionLog.results.push({
             actionIndex: i,
             actionType: action.type,
             status: "failed",
-            message: actionError.message,
-            error: actionError.message,
+            error: error.message,
             executedAt: new Date(),
           });
 
-          console.error(`    ✗ Failed: ${actionError.message}`);
-          // Continue to next action (don't stop workflow)
+          if (action.critical) {
+            throw error;
+          }
         }
       }
 
-      // Update execution log with success
       executionLog.status = "success";
-      await this.updateExecutionLog(executionLogId, executionLog);
-
       console.log(`✓ Workflow completed: ${workflow.name}\n`);
-      return { success: true, executionLogId, results: executionLog.results };
     } catch (error) {
-      console.error(`✗ Workflow failed: ${workflow.name}`, error);
+      executionLog.status = "failed";
+      executionLog.error = error.message;
+      console.error(`✗ Workflow failed: ${error.message}\n`);
 
-      // Determine if we should retry
       if (retryCount < maxRetries) {
+        console.log(`⟳ Scheduling retry ${retryCount + 1}/${maxRetries}...`);
         executionLog.status = "retry";
-        console.log(
-          `  ↻ Queuing for retry (${retryCount + 1}/${maxRetries})...`,
-        );
-      } else {
-        executionLog.status = "failed";
-        console.log(`  ✗ Max retries exceeded`);
       }
-
-      await this.updateExecutionLog(executionLogId, executionLog);
-
-      return {
-        success: false,
-        executionLogId,
-        error: error.message,
-        shouldRetry: retryCount < maxRetries,
-        results: executionLog.results,
-      };
     }
+
+    await this.updateExecutionLog(executionLogId, executionLog);
+
+    return executionLog;
   }
 
-  /**
-   * Execute a single action
-   */
   async executeAction(action, entity, tenantId) {
     switch (action.type) {
       case "send_email":
@@ -124,6 +88,9 @@ class WorkflowExecutionEngine {
 
       case "update_field":
         return await this.executeUpdateField(action, entity);
+
+      case "create_task":
+        return await this.executeCreateTask(action, entity, tenantId);
 
       case "webhook":
         return await this.executeWebhook(action, entity);
@@ -136,28 +103,17 @@ class WorkflowExecutionEngine {
     }
   }
 
-  /**
-   * Action: Send Email
-   */
   async executeSendEmail(action, entity) {
-    const { recipient, subject, body } = action;
+    const { subject, body, recipient } = action;
 
-    // Resolve recipient from entity data
     const resolvedRecipient = this.resolveTemplateValue(recipient, entity.data);
+    const resolvedSubject = this.resolveTemplateValue(subject, entity.data);
+    const resolvedBody = this.resolveTemplateValue(body, entity.data);
 
-    if (!resolvedRecipient || !resolvedRecipient.includes("@")) {
-      throw new Error(`Invalid recipient email: ${resolvedRecipient}`);
-    }
-
-    const emailSubject = this.resolveTemplateValue(subject, entity.data);
-    const emailBody = this.resolveTemplateValue(body, entity.data);
-
-    // Send email
-    await this.emailTransporter.sendMail({
-      from: process.env.SMTP_FROM || "noreply@campaignflux.com",
+    await emailController.sendEmail({
       to: resolvedRecipient,
-      subject: emailSubject,
-      html: emailBody,
+      subject: resolvedSubject,
+      html: resolvedBody,
     });
 
     return {
@@ -165,12 +121,8 @@ class WorkflowExecutionEngine {
     };
   }
 
-  /**
-   * Action: Update Field
-   */
   async executeUpdateField(action, entity) {
     const { targetField, value } = action;
-
     const Model = this.getModelForEntity(entity.type);
     const resolvedValue = this.resolveTemplateValue(value, entity.data);
 
@@ -189,9 +141,24 @@ class WorkflowExecutionEngine {
     };
   }
 
-  /**
-   * Action: Call Webhook
-   */
+  async executeCreateTask(action, entity, tenantId) {
+    const { title, description, assignee } = action;
+
+    const resolvedTitle = this.resolveTemplateValue(title, entity.data);
+    const resolvedDescription = this.resolveTemplateValue(
+      description,
+      entity.data,
+    );
+    const resolvedAssignee = this.resolveTemplateValue(assignee, entity.data);
+
+    // TODO: Integrate with actual task management system
+    // await TaskModel.create({ title, description, assignee, tenantId });
+
+    return {
+      message: `Task created: "${resolvedTitle}" assigned to ${resolvedAssignee}`,
+    };
+  }
+
   async executeWebhook(action, entity) {
     const { webhookUrl, method = "POST", payload } = action;
 
@@ -224,9 +191,6 @@ class WorkflowExecutionEngine {
     };
   }
 
-  /**
-   * Action: Export to S3
-   */
   async executeExportS3(action, entity, tenantId) {
     const {
       format = "json",
@@ -257,14 +221,10 @@ class WorkflowExecutionEngine {
     };
   }
 
-  /**
-   * Resolve template values (e.g., "${lead.email}" → actual email)
-   */
   resolveTemplateValue(template, data) {
     if (!template) return null;
 
     if (typeof template === "object") {
-      // Recursively resolve nested objects
       return Object.fromEntries(
         Object.entries(template).map(([key, val]) => [
           key,
@@ -277,23 +237,16 @@ class WorkflowExecutionEngine {
       return template;
     }
 
-    // Replace ${field} with actual values
     return template.replace(/\$\{([^}]+)\}/g, (match, path) => {
       const value = this.getNestedValue(data, path);
       return value ?? match;
     });
   }
 
-  /**
-   * Get nested value by path (e.g., "organization.size")
-   */
   getNestedValue(obj, path) {
     return path.split(".").reduce((current, part) => current?.[part], obj);
   }
 
-  /**
-   * Convert object to CSV
-   */
   convertToCSV(obj) {
     const keys = Object.keys(obj);
     const headers = keys.join(",");
@@ -310,9 +263,6 @@ class WorkflowExecutionEngine {
     return `${headers}\n${values}`;
   }
 
-  /**
-   * Get Model class for entity type
-   */
   getModelForEntity(entityType) {
     const models = {
       lead: leadModel,
@@ -327,9 +277,6 @@ class WorkflowExecutionEngine {
     return models[entityType];
   }
 
-  /**
-   * Update execution log in database
-   */
   async updateExecutionLog(executionLogId, updates) {
     await workflowExecutionLogModel.findByIdAndUpdate(executionLogId, {
       ...updates,
@@ -338,6 +285,5 @@ class WorkflowExecutionEngine {
   }
 }
 
-// Export singleton
 export const workflowExecutionEngine = new WorkflowExecutionEngine();
 export default workflowExecutionEngine;

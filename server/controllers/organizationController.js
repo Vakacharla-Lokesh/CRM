@@ -1,6 +1,7 @@
 import organizationModel from "../models/organizationModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 
 export const getAllOrganizations = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
@@ -64,6 +65,8 @@ export const createOrganization = asyncCatch(async (req, res) => {
 
   const organization = await organizationModel.create(organizationData);
 
+  await fireWorkflowTrigger(req, "organization", "create", organization._id, organization.toObject());
+
   res.status(201).json({
     message: "Organization created successfully",
     organization,
@@ -94,6 +97,8 @@ export const updateOrganization = asyncCatch(async (req, res) => {
     { new: true, runValidators: true },
   );
 
+  await fireWorkflowTrigger(req, "organization", "update", updatedOrganization._id, updatedOrganization.toObject());
+
   res.json({
     message: "Organization updated successfully",
     organization: updatedOrganization,
@@ -117,6 +122,8 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
   }
 
   await organizationModel.findByIdAndDelete(req.params.id);
+
+  await fireWorkflowTrigger(req, "organization", "delete", organization._id, organization.toObject());
 
   res.json({ message: "Organization deleted successfully" });
 });

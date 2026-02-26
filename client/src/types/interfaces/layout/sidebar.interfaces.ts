@@ -4,6 +4,7 @@ import {
   Building2,
   DollarSign,
   Building,
+  GitBranch,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -51,6 +52,12 @@ export const navItems: NavItem[] = [
     to: "/deals",
     label: "Deals",
     icon: DollarSign,
+    roles: ["user", "admin"],
+  },
+  {
+    to: "/workflows",
+    label: "Workflows",
+    icon: GitBranch,
     roles: ["user", "admin"],
   },
   {

@@ -1,33 +1,38 @@
 import nodemailer from "nodemailer";
-import { config } from "dotenv";
 
-config();
+// Lazy transport — created on first use so env vars are always resolved
+// after dotenv has been initialised by the calling process (server or worker).
+let _transport = null;
 
-const HOST = process.env.MAILTRAP_HOST;
-const PORT = process.env.MAILTRAP_PORT;
-const USER = process.env.MAILTRAP_USER;
-const PASS = process.env.MAILTRAP_PASS;
+function getTransport() {
+  if (_transport) return _transport;
 
-const FROM_EMAIL = process.env.MAILTRAP_FROM_EMAIL || "hello@demomailtrap.co";
-const FROM_NAME = process.env.MAILTRAP_FROM_NAME || "Your App";
+  const HOST = process.env.MAILTRAP_HOST;
+  const PORT = process.env.MAILTRAP_PORT;
+  const USER = process.env.MAILTRAP_USER;
+  const PASS = process.env.MAILTRAP_PASS;
 
-if (!HOST || !PORT || !USER || !PASS) {
-  console.warn("Mailtrap SMTP credentials are missing in .env");
+  if (!HOST || !PORT || !USER || !PASS) {
+    console.warn("Mailtrap SMTP credentials are missing in .env");
+  }
+
+  _transport = nodemailer.createTransport({
+    host: HOST,
+    port: Number(PORT),
+    secure: false,
+    auth: { user: USER, pass: PASS },
+  });
+
+  return _transport;
 }
 
-const transport = nodemailer.createTransport({
-  host: HOST,
-  port: Number(PORT),
-  secure: false,
-  auth: {
-    user: USER,
-    pass: PASS,
-  },
-});
+const FROM_EMAIL = () =>
+  process.env.MAILTRAP_FROM_EMAIL || "hello@demomailtrap.co";
+const FROM_NAME = () => process.env.MAILTRAP_FROM_NAME || "Your App";
 
 const emailTemplates = {
   otpEmail: (email, otp, expiryMinutes = 5) => ({
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
     to: email,
     subject: "Your Password Reset OTP",
     html: `
@@ -117,7 +122,7 @@ const emailTemplates = {
   }),
 
   passwordResetConfirmation: (email) => ({
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
     to: email,
     subject: "Password Reset Successful",
     text: "Your password has been successfully reset.",
@@ -196,7 +201,7 @@ const emailTemplates = {
   }),
 
   adminMail: (tenant, randomPassword) => ({
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
     to: tenant.userEmail,
     subject: "Your Admin Account Credentials have been created",
     html: `
@@ -254,26 +259,35 @@ const emailTemplates = {
 const emailController = {
   sendOTPEmail: async (email, otp) => {
     const mailOptions = emailTemplates.otpEmail(email, otp, 5);
-    return await transport.sendMail(mailOptions);
+    return await getTransport().sendMail(mailOptions);
   },
 
   sendPasswordResetConfirmation: async (email) => {
     const mailOptions = emailTemplates.passwordResetConfirmation(email);
-    return await transport.sendMail(mailOptions);
+    return await getTransport().sendMail(mailOptions);
   },
 
   sendAdminMail: async (tenant, randomPassword) => {
     const mailOptions = emailTemplates.adminMail(tenant, randomPassword);
-
-    return await transport.sendMail(mailOptions);
+    return await getTransport().sendMail(mailOptions);
   },
 
   sendTestEmail: async (email) => {
-    return await transport.sendMail({
-      from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+    return await getTransport().sendMail({
+      from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
       to: email,
       subject: "Test Email",
       text: "This is a test email.",
+    });
+  },
+
+  sendEmail: async ({ to, subject, html, text }) => {
+    return await getTransport().sendMail({
+      from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
+      to,
+      subject,
+      html,
+      text,
     });
   },
 };

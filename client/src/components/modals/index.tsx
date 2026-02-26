@@ -4,3 +4,4 @@ export { default as UserModal } from "./userModal";
 export { default as TenantModal } from "./tenantModal";
 export { default as DealModal } from "./dealModal";
 export { default as SettingsModal } from "./settingsModal";
+export { default as WorkflowModal } from "../workflows/workflowModal";
