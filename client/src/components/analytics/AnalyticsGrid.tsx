@@ -1,27 +1,11 @@
 import ChartRenderer from "./ChartRenderer";
 import { Pencil, Trash2 } from "lucide-react";
-import type { Widget } from "../../services/api/userAnalytics.api";
-
-interface AnalyticsGridProps {
-  widgets: Widget[];
-  onEdit: (widget: Widget) => void;
-  onDelete: (widgetId: string) => void;
-}
-
-const CHART_TYPE_LABEL: Record<string, string> = {
-  bar: "Bar",
-  line: "Line",
-  area: "Area",
-  pie: "Pie",
-  number: "Number",
-  table: "Table",
-};
-
-const ENTITY_LABEL: Record<string, string> = {
-  leads: "Leads",
-  deals: "Deals",
-  organizations: "Organizations",
-};
+import type { Widget } from "@/services/api/";
+import {
+  type AnalyticsGridProps,
+  CHART_TYPE_LABEL,
+  ENTITY_LABEL,
+} from "@/types/constants/analytics/analyticsChartTypes";
 
 function WidgetCard({
   widget,

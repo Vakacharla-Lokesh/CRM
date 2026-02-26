@@ -1,5 +1,4 @@
 import { queueManager } from "../queue/queueManager.js";
-import { sqsManager } from "../aws/sqsManager.js";
 import exportCsvEngine from "../exportToCsvService.js";
 
 const QUEUE_NAME = "exportData";
@@ -10,8 +9,6 @@ const POLL_INTERVAL_MS = 5000;
 
 async function processMessage(message) {
   const { messageId, receiptHandle, body } = message;
-  const queueUrl = queueManager.getQueueUrl(QUEUE_NAME);
-
   console.log(`[ExportWorker] 🔄 Processing message: ${messageId}`);
   console.log(`[ExportWorker] 📦 Entity type: ${body.entity?.type}`);
 
@@ -35,17 +32,17 @@ async function processMessage(message) {
     }
 
     if (result.success) {
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(`[ExportWorker] ✓ Message deleted: ${messageId}`);
     } else if (result.shouldRetry) {
       const retryMessage = { ...body, retryCount: (body.retryCount || 0) + 1 };
-      await sqsManager.sendMessage(queueUrl, retryMessage);
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.enqueue(QUEUE_NAME, retryMessage);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(
         `[ExportWorker] ↻ Requeued for retry (${retryMessage.retryCount}/${body.maxRetries}): ${messageId}`,
       );
     } else {
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(
         `[ExportWorker] ✗ Max retries reached, message dropped: ${messageId}`,
       );
@@ -60,8 +57,8 @@ async function processMessage(message) {
 
     if (retryMessage.retryCount < body.maxRetries) {
       try {
-        await sqsManager.sendMessage(queueUrl, retryMessage);
-        await sqsManager.deleteMessage(queueUrl, receiptHandle);
+        await queueManager.enqueue(QUEUE_NAME, retryMessage);
+        await queueManager.ack(QUEUE_NAME, receiptHandle);
         console.log(
           `[ExportWorker] ↻ Requeued after error (${retryMessage.retryCount}/${body.maxRetries}): ${messageId}`,
         );
@@ -73,7 +70,7 @@ async function processMessage(message) {
       }
     } else {
       try {
-        await sqsManager.deleteMessage(queueUrl, receiptHandle);
+        await queueManager.ack(QUEUE_NAME, receiptHandle);
       } catch (deleteError) {
         console.error(
           "[ExportWorker] Failed to delete failed message:",

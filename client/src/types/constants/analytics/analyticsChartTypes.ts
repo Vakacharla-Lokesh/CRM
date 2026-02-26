@@ -1,6 +1,9 @@
+// CHART CONFIGURATION TYPES AND CONSTANTS
+
 import type {
   GroupByField,
   Widget,
+  WidgetDataPoint,
   WidgetEntity,
   WidgetMetric,
   WidgetType,
@@ -54,3 +57,42 @@ export const GROUP_BY_OPTIONS: Record<
 };
 
 export const DEFAULT_POSITION = { x: 0, y: Infinity, w: 6, h: 3 };
+
+// ANALYTICS GRID LABELS
+
+export interface AnalyticsGridProps {
+  widgets: Widget[];
+  onEdit: (widget: Widget) => void;
+  onDelete: (widgetId: string) => void;
+}
+
+export const CHART_TYPE_LABEL: Record<string, string> = {
+  bar: "Bar",
+  line: "Line",
+  area: "Area",
+  pie: "Pie",
+  number: "Number",
+  table: "Table",
+};
+
+export const ENTITY_LABEL: Record<string, string> = {
+  leads: "Leads",
+  deals: "Deals",
+  organizations: "Organizations",
+};
+
+// CHART RENDERER COMPONENT TYPES
+export interface ChartRendererProps {
+  type: WidgetType;
+  data: WidgetDataPoint[];
+  metric: string;
+}
+
+export const CHART_COLORS = [
+  "var(--primary)",
+  "hsl(200, 70%, 55%)",
+  "hsl(145, 55%, 50%)",
+  "hsl(35, 80%, 60%)",
+  "hsl(270, 55%, 60%)",
+  "hsl(355, 70%, 55%)",
+];

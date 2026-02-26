@@ -14,22 +14,11 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
-import type { WidgetDataPoint, WidgetType } from "../../services/api/userAnalytics.api";
 
-interface ChartRendererProps {
-  type: WidgetType;
-  data: WidgetDataPoint[];
-  metric: string;
-}
-
-const CHART_COLORS = [
-  "var(--primary)",
-  "hsl(200, 70%, 55%)",
-  "hsl(145, 55%, 50%)",
-  "hsl(35, 80%, 60%)",
-  "hsl(270, 55%, 60%)",
-  "hsl(355, 70%, 55%)",
-];
+import {
+  type ChartRendererProps,
+  CHART_COLORS,
+} from "@/types/constants/analytics/analyticsChartTypes";
 
 function NumberCard({ value, metric }: { value: number; metric: string }) {
   const formatted =
@@ -51,7 +40,11 @@ function NumberCard({ value, metric }: { value: number; metric: string }) {
         className="text-sm mt-2"
         style={{ color: "var(--muted-foreground)" }}
       >
-        {metric === "count" ? "total records" : metric === "sum" ? "total value" : "average"}
+        {metric === "count"
+          ? "total records"
+          : metric === "sum"
+            ? "total value"
+            : "average"}
       </span>
     </div>
   );
@@ -72,7 +65,12 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
   // For "number" type, show the total/single value
   if (type === "number") {
     const total = data.reduce((sum, d) => sum + d.value, 0);
-    return <NumberCard value={total} metric={metric} />;
+    return (
+      <NumberCard
+        value={total}
+        metric={metric}
+      />
+    );
   }
 
   // For "table" type, render a simple data table
@@ -112,7 +110,9 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
                   className="py-2 px-3 text-right font-medium"
                   style={{ color: "var(--primary)" }}
                 >
-                  {typeof row.value === "number" ? row.value.toLocaleString() : row.value}
+                  {typeof row.value === "number"
+                    ? row.value.toLocaleString()
+                    : row.value}
                 </td>
               </tr>
             ))}
@@ -126,16 +126,30 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
 
   if (type === "bar") {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 6, right: 10, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+        <BarChart
+          data={data}
+          margin={{ top: 6, right: 10, left: -20, bottom: 0 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            vertical={false}
+          />
           <XAxis
             dataKey="label"
             tick={tickStyle}
             axisLine={false}
             tickLine={false}
           />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+          <YAxis
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
           <Tooltip
             contentStyle={{
               backgroundColor: "var(--card)",
@@ -145,7 +159,11 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
               color: "var(--foreground)",
             }}
           />
-          <Bar dataKey="value" fill="var(--primary)" radius={[4, 4, 0, 0]} />
+          <Bar
+            dataKey="value"
+            fill="var(--primary)"
+            radius={[4, 4, 0, 0]}
+          />
         </BarChart>
       </ResponsiveContainer>
     );
@@ -153,11 +171,30 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
 
   if (type === "line") {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <LineChart data={data} margin={{ top: 6, right: 10, left: -20, bottom: 0 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+        <LineChart
+          data={data}
+          margin={{ top: 6, right: 10, left: -20, bottom: 0 }}
+        >
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
           <Tooltip
             contentStyle={{
               backgroundColor: "var(--card)",
@@ -182,17 +219,50 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
 
   if (type === "area") {
     return (
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={data} margin={{ top: 6, right: 10, left: -20, bottom: 0 }}>
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
+        <AreaChart
+          data={data}
+          margin={{ top: 6, right: 10, left: -20, bottom: 0 }}
+        >
           <defs>
-            <linearGradient id="analyticsAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.2} />
-              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+            <linearGradient
+              id="analyticsAreaGrad"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+            >
+              <stop
+                offset="5%"
+                stopColor="var(--primary)"
+                stopOpacity={0.2}
+              />
+              <stop
+                offset="95%"
+                stopColor="var(--primary)"
+                stopOpacity={0}
+              />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis dataKey="label" tick={tickStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} />
+          <CartesianGrid
+            strokeDasharray="3 3"
+            stroke="var(--border)"
+            vertical={false}
+          />
+          <XAxis
+            dataKey="label"
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={tickStyle}
+            axisLine={false}
+            tickLine={false}
+          />
           <Tooltip
             contentStyle={{
               backgroundColor: "var(--card)",
@@ -216,7 +286,10 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
 
   if (type === "pie") {
     return (
-      <ResponsiveContainer width="100%" height="100%">
+      <ResponsiveContainer
+        width="100%"
+        height="100%"
+      >
         <PieChart>
           <Pie
             data={data}
@@ -242,7 +315,10 @@ function ChartRenderer({ type, data, metric }: ChartRendererProps) {
               fontSize: "12px",
               color: "var(--foreground)",
             }}
-            formatter={(value: number, name: string) => [value.toLocaleString(), name]}
+            formatter={(value: number, name: string) => [
+              value.toLocaleString(),
+              name,
+            ]}
           />
         </PieChart>
       </ResponsiveContainer>

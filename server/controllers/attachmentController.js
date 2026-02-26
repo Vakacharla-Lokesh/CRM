@@ -1,9 +1,3 @@
-import {
-  PutObjectCommand,
-  DeleteObjectCommand,
-  GetObjectCommand,
-} from "@aws-sdk/client-s3";
-import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
 import attachmentModel from "../models/attachmentModel.js";
@@ -11,15 +5,10 @@ import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
-import { s3 } from "../services/aws/awsClient.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
-
-const S3_BUCKET = "crm-leads";
-const LOCALSTACK_ENDPOINT =
-  process.env.LOCALSTACK_ENDPOINT || "http://localhost:4566";
-
-const buildBaseS3Url = (key) => `${LOCALSTACK_ENDPOINT}/${S3_BUCKET}/${key}`;
+import { s3Manager } from "../services/aws/s3Manager.js";
+import { BUCKETS } from "../services/aws/initAwsResources.js";
 
 function toPublic(att) {
   return {
@@ -77,16 +66,13 @@ export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
   const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
 
-  const command = new PutObjectCommand({
-    Bucket: S3_BUCKET,
-    Key: s3Key,
-    ContentType: fileType,
-    ContentLength: fileSize,
-  });
-
   // Presigned PUT URL valid for 5 minutes
-  const presignedUrl = await getSignedUrl(s3, command, { expiresIn: 300 });
-  const s3Url = buildBaseS3Url(s3Key);
+  const presignedUrl = await s3Manager.getPresignedUploadUrl(
+    BUCKETS.leads,
+    s3Key,
+    fileSize,
+  );
+  const s3Url = s3Manager.buildS3Url(BUCKETS.leads, s3Key);
 
   res.json({ presignedUrl, s3Key, s3Url });
 });
@@ -151,9 +137,7 @@ export const deleteAttachment = asyncCatch(async (req, res) => {
   }
 
   // Remove the object from S3
-  await s3.send(
-    new DeleteObjectCommand({ Bucket: S3_BUCKET, Key: attachment.s3Key }),
-  );
+  await s3Manager.deleteFile(BUCKETS.leads, attachment.s3Key);
 
   const leadId = attachment.leadId;
   await attachmentModel.findByIdAndDelete(req.params.id);
@@ -213,14 +197,13 @@ export const downloadAttachment = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot download this attachment", 403);
   }
 
-  const command = new GetObjectCommand({
-    Bucket: S3_BUCKET,
-    Key: attachment.s3Key,
-    ResponseContentDisposition: `attachment; filename="${attachment.fileName}"`,
-  });
-
   // Presigned GET URL valid for 5 minutes
-  const url = await getSignedUrl(s3, command, { expiresIn: 300 });
+  const result = await s3Manager.downloadFile(
+    BUCKETS.leads,
+    attachment.s3Key,
+    attachment.fileName,
+  );
+  const url = result.url;
 
   res.json({ url, fileName: attachment.fileName });
 });

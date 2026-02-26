@@ -1,5 +1,4 @@
 import { queueManager } from "../queue/queueManager.js";
-import { sqsManager } from "../aws/sqsManager.js";
 import { workflowExecutionEngine } from "../workflowExecutionService.js";
 import workflowExecutionLogModel from "../../models/workflows/workflowExecutionLogModel.js";
 
@@ -11,25 +10,23 @@ const POLL_INTERVAL_MS = 5000;
 
 async function processMessage(message) {
   const { messageId, receiptHandle, body } = message;
-  const queueUrl = queueManager.getQueueUrl(QUEUE_NAME);
-
   console.log(`[LeadWorker] Processing message: ${messageId}`);
 
   try {
     const result = await workflowExecutionEngine.executeWorkflow(body);
 
     if (result.success) {
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(`[LeadWorker] ✓ Message deleted: ${messageId}`);
     } else if (result.shouldRetry) {
       const retryMessage = { ...body, retryCount: (body.retryCount || 0) + 1 };
-      await sqsManager.sendMessage(queueUrl, retryMessage);
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.enqueue(QUEUE_NAME, retryMessage);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(
         `[LeadWorker] ↻ Requeued for retry (${retryMessage.retryCount}/${body.maxRetries}): ${messageId}`,
       );
     } else {
-      await sqsManager.deleteMessage(queueUrl, receiptHandle);
+      await queueManager.ack(QUEUE_NAME, receiptHandle);
       console.log(
         `[LeadWorker] ✗ Max retries reached, message dropped: ${messageId}`,
       );
@@ -44,8 +41,8 @@ async function processMessage(message) {
 
     if (retryMessage.retryCount < body.maxRetries) {
       try {
-        await sqsManager.sendMessage(queueUrl, retryMessage);
-        await sqsManager.deleteMessage(queueUrl, receiptHandle);
+        await queueManager.enqueue(QUEUE_NAME, retryMessage);
+        await queueManager.ack(QUEUE_NAME, receiptHandle);
         console.log(
           `[LeadWorker] ↻ Requeued after error (${retryMessage.retryCount}/${body.maxRetries}): ${messageId}`,
         );
@@ -54,7 +51,7 @@ async function processMessage(message) {
       }
     } else {
       try {
-        await sqsManager.deleteMessage(queueUrl, receiptHandle);
+        await queueManager.ack(QUEUE_NAME, receiptHandle);
       } catch (deleteError) {
         console.error(
           "[LeadWorker] Failed to delete failed message:",
