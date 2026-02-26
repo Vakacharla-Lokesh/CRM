@@ -24,8 +24,18 @@ import { ConfirmDialog } from "@/components/common/confirmDialog";
 import LeadStatistics from "@/components/leads/leadStatistics";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
+
 // other imports
-import { exportLeads } from "@/services/exportService";
+import { exportEmailLeads, exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 
 // offline handling imports
@@ -56,7 +66,7 @@ const LeadsPage = () => {
 
   // modal usestate
   const [isModalOpen, setIsModalOpen] = useState(false);
-  
+
   // selected lead for edit and bulk selection
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [selectedLeadIds, setSelectedLeadIds] = useState<string[]>([]);
@@ -79,6 +89,11 @@ const LeadsPage = () => {
 
   // notifications
   const { notifyEvent } = useNotifications();
+
+  // export dialog state
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   // Analytics stats (all-time, from server aggregation)
   const leadStatsQuery = useQuery({
@@ -171,6 +186,30 @@ const LeadsPage = () => {
     setSelectionResetKey((k) => k + 1);
   };
 
+  const handleEmailExport = async () => {
+    if (!exportEmail) return;
+
+    try {
+      setIsSending(true);
+
+      await exportEmailLeads(selectedLeadIds, exportEmail);
+
+      toast.success("Export emailed successfully!", {
+        description: "Check your inbox for the exported leads.",
+      });
+
+      setSelectedLeadIds([]);
+      setSelectionResetKey((k) => k + 1);
+      setExportEmail("");
+      setIsExportDialogOpen(false);
+    } catch (error) {
+      console.error("Error emailing export:", error);
+      toast.error("Failed to email export. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   // handle search and filters
   useEffect(() => {
     searchLeads(debouncedSearch, filters);
@@ -245,6 +284,18 @@ const LeadsPage = () => {
           >
             <Download className="w-4 h-4" />
             Export
+            {selectedLeadIds.length > 0 ? ` (${selectedLeadIds.length})` : ""}
+          </Button>
+          <Button
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+            onClick={() => {
+              handleEmailExport();
+              setIsExportDialogOpen(true);
+            }}
+            disabled={selectedLeadIds.length === 0 || !isOnline}
+          >
+            <Download className="w-4 h-4" />
+            Export to mail
             {selectedLeadIds.length > 0 ? ` (${selectedLeadIds.length})` : ""}
           </Button>
           <Button
@@ -399,6 +450,47 @@ const LeadsPage = () => {
         confirmText="Delete"
         variant="destructive"
       />
+
+      {/* Dialog */}
+      <AlertDialog
+        open={isExportDialogOpen}
+        onOpenChange={setIsExportDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Email Export</AlertDialogTitle>
+            <AlertDialogDescription>
+              Enter the email address where you'd like the exported leads sent.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <div className="py-4">
+            <Input
+              type="email"
+              placeholder="you@example.com"
+              value={exportEmail}
+              onChange={(e) => setExportEmail(e.target.value)}
+            />
+          </div>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() => {
+                setExportEmail("");
+              }}
+            >
+              Cancel
+            </AlertDialogCancel>
+
+            <Button
+              onClick={handleEmailExport}
+              disabled={!exportEmail || isSending}
+            >
+              {isSending ? "Sending..." : "Send"}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

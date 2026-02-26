@@ -1,26 +1,27 @@
 import mongoose from "mongoose";
-import { queueManager } from "../services/queueManager.js";
-import { workflowExecutionEngine } from "../services/workflowExecutionService.js";
-import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
-import { initAwsResources } from "../config/initAws.js";
+import { QueueManager } from "../services/queueManager.js";
+import { EXPORT_QUEUE_URL, initAwsResources } from "../config/initAws.js";
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
+import exportCsvEngine from "../services/exportToCsvService.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 config({ path: path.resolve(__dirname, "../.env") });
 
-class WorkflowWorker {
+class ExportWorker {
   constructor() {
     this.isRunning = false;
     this.processingTimeout = 5000;
     this.batchSize = 10;
+    this.queueUrl = null;
+    this.queueManager = new QueueManager(null);
   }
 
   async start() {
-    console.log("🚀 Workflow Worker starting...");
+    console.log("🚀 Export Worker starting...");
 
     try {
       // Connect to MongoDB
@@ -29,8 +30,9 @@ class WorkflowWorker {
       // Initialize AWS resources (creates SQS queue if not exists)
       await initAwsResources();
 
-      // Initialize queue
-      await queueManager.initialize();
+      await this.queueManager.initialize(EXPORT_QUEUE_URL);
+      this.queueUrl = this.queueManager.queueUrl;
+      console.log(`✓ Export Worker targeting queue: ${this.queueUrl}`);
 
       this.isRunning = true;
       console.log("✓ Worker initialized and ready");
@@ -45,9 +47,13 @@ class WorkflowWorker {
 
   async connectDatabase() {
     try {
-      await mongoose.connect(
-        process.env.MONGODB_URI || "mongodb://localhost:27017/campaign-flux",
-      );
+      const uri = process.env.DB_URI || process.env.MONGODB_URI;
+      if (!uri) {
+        throw new Error(
+          "No MongoDB URI found. Set DB_URI (or MONGODB_URI) in .env",
+        );
+      }
+      await mongoose.connect(uri);
       console.log("✓ Connected to MongoDB");
     } catch (error) {
       console.error("✗ MongoDB connection failed:", error);
@@ -59,7 +65,10 @@ class WorkflowWorker {
     while (this.isRunning) {
       try {
         // Receive messages from queue
-        const messages = await queueManager.receiveMessages(this.batchSize);
+        const messages = await this.queueManager.receiveMessages(
+          this.batchSize,
+          this.queueUrl,
+        );
 
         if (messages.length === 0) {
           // Queue is empty, wait before next poll
@@ -85,14 +94,31 @@ class WorkflowWorker {
     const { messageId, receiptHandle, body } = message;
 
     console.log(`\n🔄 Processing message: ${messageId}`);
+    console.log(`📦 Entity Type: ${body.entity.type}`);
+
+    console.log("testing body data: ", body);
 
     try {
-      // Execute the workflow
-      const result = await workflowExecutionEngine.executeWorkflow(body);
+      let result;
+
+      // Process based on entity type
+      switch (body.entity.type) {
+        case "leads":
+          result = await exportCsvEngine.exportLeads(body);
+          break;
+        case "deals":
+          result = await exportCsvEngine.exportDeals(body);
+          break;
+        case "organizations":
+          result = await exportCsvEngine.exportOrganizations(body);
+          break;
+        default:
+          throw new Error(`Unknown entity type: ${body.entityType}`);
+      }
 
       if (result.success) {
         // Delete message from queue on success
-        await queueManager.deleteMessage(receiptHandle);
+        await this.queueManager.deleteMessage(receiptHandle, this.queueUrl);
         console.log(`✓ Message deleted from queue: ${messageId}`);
       } else if (result.shouldRetry) {
         // Re-queue message with incremented retry count
@@ -101,15 +127,18 @@ class WorkflowWorker {
           retryCount: (body.retryCount || 0) + 1,
         };
 
-        const newMessageId = await queueManager.sendMessage(retryMessage);
-        await queueManager.deleteMessage(receiptHandle);
+        const newMessageId = await this.queueManager.sendMessage(
+          retryMessage,
+          this.queueUrl,
+        );
+        await this.queueManager.deleteMessage(receiptHandle, this.queueUrl);
 
         console.log(
           `↻ Message requeued for retry (${retryMessage.retryCount}/${body.maxRetries}): ${newMessageId}`,
         );
       } else {
         // Delete message after max retries
-        await queueManager.deleteMessage(receiptHandle);
+        await this.queueManager.deleteMessage(receiptHandle, this.queueUrl);
         console.log(`✗ Message deleted after max retries: ${messageId}`);
       }
     } catch (error) {
@@ -123,8 +152,11 @@ class WorkflowWorker {
 
       if (retryMessage.retryCount < body.maxRetries) {
         try {
-          const newMessageId = await queueManager.sendMessage(retryMessage);
-          await queueManager.deleteMessage(receiptHandle);
+          const newMessageId = await this.queueManager.sendMessage(
+            retryMessage,
+            this.queueUrl,
+          );
+          await this.queueManager.deleteMessage(receiptHandle, this.queueUrl);
           console.log(
             `↻ Message requeued after error (${retryMessage.retryCount}/${body.maxRetries}): ${newMessageId}`,
           );
@@ -133,7 +165,7 @@ class WorkflowWorker {
         }
       } else {
         try {
-          await queueManager.deleteMessage(receiptHandle);
+          await this.queueManager.deleteMessage(receiptHandle, this.queueUrl);
         } catch (deleteError) {
           console.error(`✗ Failed to delete failed message:`, deleteError);
         }
@@ -158,34 +190,9 @@ class WorkflowWorker {
   sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
-
-  async getStats() {
-    try {
-      const queueStats = await queueManager.getQueueStats();
-
-      const executionStats = await workflowExecutionLogModel.aggregate([
-        {
-          $group: {
-            _id: "$status",
-            count: { $sum: 1 },
-          },
-        },
-      ]);
-
-      return {
-        queue: queueStats,
-        executions: Object.fromEntries(
-          executionStats.map((s) => [s._id, s.count]),
-        ),
-      };
-    } catch (error) {
-      console.error("Failed to get stats:", error);
-      return null;
-    }
-  }
 }
 
-const worker = new WorkflowWorker();
+const worker = new ExportWorker();
 
 // Handle shutdown signals
 process.on("SIGTERM", () => worker.shutdown());
@@ -206,12 +213,6 @@ worker.start().catch((error) => {
 // Log stats periodically
 setInterval(async () => {
   if (worker.isRunning) {
-    const stats = await worker.getStats();
-    if (stats) {
-      console.log("\n📊 Worker Stats:");
-      console.log(`  Queue: ${stats.queue?.approximateMessages || 0} messages`);
-      console.log(`  Processing: ${stats.queue?.processingMessages || 0}`);
-      console.log(`  Executions: ${JSON.stringify(stats.executions)}`);
-    }
+    console.log("working on task: ...");
   }
 }, 60000); // Every minute

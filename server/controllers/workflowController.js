@@ -3,10 +3,6 @@ import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogM
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 
-/**
- * GET /api/workflows
- * List all workflows for the tenant (cursor-paginated)
- */
 export const getAllWorkflows = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
 
@@ -37,9 +33,6 @@ export const getAllWorkflows = asyncCatch(async (req, res) => {
   res.json({ count: workflows.length, workflows, nextCursor, hasNextPage });
 });
 
-/**
- * GET /api/workflows/:id
- */
 export const getWorkflowById = asyncCatch(async (req, res) => {
   const workflow = await workflowModel
     .findById(req.params.id)
@@ -57,9 +50,6 @@ export const getWorkflowById = asyncCatch(async (req, res) => {
   res.json({ workflow });
 });
 
-/**
- * POST /api/workflows
- */
 export const createWorkflow = asyncCatch(async (req, res) => {
   const workflowData = {
     ...req.body,
@@ -81,9 +71,6 @@ export const createWorkflow = asyncCatch(async (req, res) => {
     .json({ message: "Workflow created successfully", workflow: populated });
 });
 
-/**
- * PUT /api/workflows/:id
- */
 export const updateWorkflow = asyncCatch(async (req, res) => {
   const workflow = await workflowModel.findById(req.params.id);
 
@@ -106,9 +93,6 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
   res.json({ message: "Workflow updated successfully", workflow: updated });
 });
 
-/**
- * DELETE /api/workflows/:id
- */
 export const deleteWorkflow = asyncCatch(async (req, res) => {
   const workflow = await workflowModel.findById(req.params.id);
 
@@ -126,10 +110,6 @@ export const deleteWorkflow = asyncCatch(async (req, res) => {
   res.json({ message: "Workflow deleted successfully" });
 });
 
-/**
- * PATCH /api/workflows/:id/toggle
- * Toggle isActive status
- */
 export const toggleWorkflow = asyncCatch(async (req, res) => {
   const workflow = await workflowModel.findById(req.params.id);
 
@@ -151,10 +131,6 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
   });
 });
 
-/**
- * GET /api/workflows/:id/logs
- * Execution logs for a specific workflow (latest 50)
- */
 export const getWorkflowLogs = asyncCatch(async (req, res) => {
   const workflow = await workflowModel.findById(req.params.id);
 

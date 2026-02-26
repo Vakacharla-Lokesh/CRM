@@ -7,46 +7,69 @@ import {
 import { sqs } from "../config/awsClient.js";
 import { QUEUE_URL, initAwsResources } from "../config/initAws.js";
 
-const WORKFLOW_QUEUE = "crm-workflows";
-
-class QueueManager {
-  constructor() {
-    this.workflowQueueUrl = null;
+export class QueueManager {
+  constructor(defaultQueueUrl = null) {
+    this.queueUrl = defaultQueueUrl;
   }
 
-  async initialize() {
-    // If AWS resources haven't been initialized yet (e.g. server process),
-    // do it now so the queue URL is available.
-    if (!QUEUE_URL) {
-      await initAwsResources();
+  async initialize(queueUrl = null) {
+    if (queueUrl) {
+      this.queueUrl = queueUrl;
+    } else {
+      // If AWS resources haven't been initialized yet (e.g. server process),
+      // do it now so the queue URL is available.
+      if (!QUEUE_URL) {
+        await initAwsResources();
+      }
+      this.queueUrl = QUEUE_URL;
     }
-    this.workflowQueueUrl = QUEUE_URL;
-    console.log(`✓ Queue Manager initialized: ${this.workflowQueueUrl}`);
+    console.log(`✓ Queue Manager initialized: ${this.queueUrl}`);
   }
 
-  async sendMessage(message) {
-    if (!this.workflowQueueUrl) {
+  async resolveQueueUrl(queueUrl) {
+    const url = queueUrl || this.queueUrl;
+    if (!url) {
       await this.initialize();
+      return this.queueUrl;
     }
+    return url;
+  }
+
+  async sendMessage(message, queueUrl = null) {
+    const url = await this.resolveQueueUrl(queueUrl);
 
     try {
-      const command = new SendMessageCommand({
-        QueueUrl: this.workflowQueueUrl,
-        MessageBody: JSON.stringify(message),
-        MessageAttributes: {
-          TenantId: {
-            StringValue: message.tenantId,
-            DataType: "String",
-          },
-          WorkflowId: {
-            StringValue: message.workflowId,
-            DataType: "String",
-          },
-          EntityType: {
-            StringValue: message.entity.type,
-            DataType: "String",
-          },
+      const messageAttributes = {
+        TenantId: {
+          StringValue: message.tenantId,
+          DataType: "String",
         },
+        EntityType: {
+          StringValue: message.entity.type,
+          DataType: "String",
+        },
+      };
+
+      // Optional WorkflowId
+      if (message.workflowId) {
+        messageAttributes.WorkflowId = {
+          StringValue: message.workflowId,
+          DataType: "String",
+        };
+      }
+
+      // Optional EmailId
+      if (message.emailId) {
+        messageAttributes.EmailId = {
+          StringValue: message.emailId,
+          DataType: "String",
+        };
+      }
+
+      const command = new SendMessageCommand({
+        QueueUrl: url,
+        MessageBody: JSON.stringify(message),
+        MessageAttributes: messageAttributes,
       });
 
       const response = await sqs.send(command);
@@ -58,14 +81,12 @@ class QueueManager {
     }
   }
 
-  async receiveMessages(maxMessages = 1) {
-    if (!this.workflowQueueUrl) {
-      throw new Error("Queue not initialized");
-    }
+  async receiveMessages(maxMessages = 1, queueUrl = null) {
+    const url = await this.resolveQueueUrl(queueUrl);
 
     try {
       const command = new ReceiveMessageCommand({
-        QueueUrl: this.workflowQueueUrl,
+        QueueUrl: url,
         MaxNumberOfMessages: Math.min(maxMessages, 10),
         WaitTimeSeconds: 10,
         MessageAttributeNames: ["All"],
@@ -89,14 +110,12 @@ class QueueManager {
     }
   }
 
-  async deleteMessage(receiptHandle) {
-    if (!this.workflowQueueUrl) {
-      throw new Error("Queue not initialized");
-    }
+  async deleteMessage(receiptHandle, queueUrl = null) {
+    const url = await this.resolveQueueUrl(queueUrl);
 
     try {
       const command = new DeleteMessageCommand({
-        QueueUrl: this.workflowQueueUrl,
+        QueueUrl: url,
         ReceiptHandle: receiptHandle,
       });
 
@@ -108,14 +127,12 @@ class QueueManager {
     }
   }
 
-  async getQueueStats() {
-    if (!this.workflowQueueUrl) {
-      throw new Error("Queue not initialized");
-    }
+  async getQueueStats(queueUrl = null) {
+    const url = await this.resolveQueueUrl(queueUrl);
 
     try {
       const command = new GetQueueAttributesCommand({
-        QueueUrl: this.workflowQueueUrl,
+        QueueUrl: url,
         AttributeNames: [
           "ApproximateNumberOfMessages",
           "ApproximateNumberOfMessagesNotVisible",
@@ -142,9 +159,10 @@ class QueueManager {
   }
 
   setQueueUrl(url) {
-    this.workflowQueueUrl = url;
+    this.queueUrl = url;
   }
 }
 
+// Default singleton – resolved to the AWS workflow queue URL on initialize().
 export const queueManager = new QueueManager();
 export default queueManager;

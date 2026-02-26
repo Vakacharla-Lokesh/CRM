@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import { queueManager } from "../services/queueManager.js";
 import { workflowExecutionEngine } from "../services/workflowExecutionService.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
-import { initAwsResources } from "../config/initAws.js";
+import { QUEUE_URL, initAwsResources } from "../config/initAws.js";
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -13,10 +13,11 @@ const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../.env") });
 
 class WorkflowWorker {
-  constructor() {
+  constructor(queueUrl = null) {
     this.isRunning = false;
     this.processingTimeout = 5000;
     this.batchSize = 10;
+    this.queueUrl = queueUrl || process.env.WORKER_QUEUE_URL || null;
   }
 
   async start() {
@@ -29,8 +30,10 @@ class WorkflowWorker {
       // Initialize AWS resources (creates SQS queue if not exists)
       await initAwsResources();
 
-      // Initialize queue
-      await queueManager.initialize();
+      // Initialize queue with the explicit URL (or fall back to AWS-resolved default)
+      await queueManager.initialize(this.queueUrl);
+      this.queueUrl = queueManager.queueUrl;
+      console.log(`✓ Worker targeting queue: ${this.queueUrl}`);
 
       this.isRunning = true;
       console.log("✓ Worker initialized and ready");
@@ -58,8 +61,11 @@ class WorkflowWorker {
   async poll() {
     while (this.isRunning) {
       try {
-        // Receive messages from queue
-        const messages = await queueManager.receiveMessages(this.batchSize);
+        // Receive messages from the workflow queue
+        const messages = await queueManager.receiveMessages(
+          this.batchSize,
+          this.queueUrl,
+        );
 
         if (messages.length === 0) {
           // Queue is empty, wait before next poll
@@ -92,7 +98,7 @@ class WorkflowWorker {
 
       if (result.success) {
         // Delete message from queue on success
-        await queueManager.deleteMessage(receiptHandle);
+        await queueManager.deleteMessage(receiptHandle, this.queueUrl);
         console.log(`✓ Message deleted from queue: ${messageId}`);
       } else if (result.shouldRetry) {
         // Re-queue message with incremented retry count
@@ -101,15 +107,18 @@ class WorkflowWorker {
           retryCount: (body.retryCount || 0) + 1,
         };
 
-        const newMessageId = await queueManager.sendMessage(retryMessage);
-        await queueManager.deleteMessage(receiptHandle);
+        const newMessageId = await queueManager.sendMessage(
+          retryMessage,
+          this.queueUrl,
+        );
+        await queueManager.deleteMessage(receiptHandle, this.queueUrl);
 
         console.log(
           `↻ Message requeued for retry (${retryMessage.retryCount}/${body.maxRetries}): ${newMessageId}`,
         );
       } else {
         // Delete message after max retries
-        await queueManager.deleteMessage(receiptHandle);
+        await queueManager.deleteMessage(receiptHandle, this.queueUrl);
         console.log(`✗ Message deleted after max retries: ${messageId}`);
       }
     } catch (error) {
@@ -123,8 +132,11 @@ class WorkflowWorker {
 
       if (retryMessage.retryCount < body.maxRetries) {
         try {
-          const newMessageId = await queueManager.sendMessage(retryMessage);
-          await queueManager.deleteMessage(receiptHandle);
+          const newMessageId = await queueManager.sendMessage(
+            retryMessage,
+            this.queueUrl,
+          );
+          await queueManager.deleteMessage(receiptHandle, this.queueUrl);
           console.log(
             `↻ Message requeued after error (${retryMessage.retryCount}/${body.maxRetries}): ${newMessageId}`,
           );
@@ -133,7 +145,7 @@ class WorkflowWorker {
         }
       } else {
         try {
-          await queueManager.deleteMessage(receiptHandle);
+          await queueManager.deleteMessage(receiptHandle, this.queueUrl);
         } catch (deleteError) {
           console.error(`✗ Failed to delete failed message:`, deleteError);
         }
@@ -161,7 +173,7 @@ class WorkflowWorker {
 
   async getStats() {
     try {
-      const queueStats = await queueManager.getQueueStats();
+      const queueStats = await queueManager.getQueueStats(this.queueUrl);
 
       const executionStats = await workflowExecutionLogModel.aggregate([
         {
@@ -185,7 +197,7 @@ class WorkflowWorker {
   }
 }
 
-const worker = new WorkflowWorker();
+const worker = new WorkflowWorker(QUEUE_URL);
 
 // Handle shutdown signals
 process.on("SIGTERM", () => worker.shutdown());

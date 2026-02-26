@@ -8,6 +8,8 @@ import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
 
 import { s3, sqs } from "./awsClient.js";
 
+const REGION = process.env.AWS_REGION || "us-east-1";
+
 const BUCKET = "crm-leads";
 const WORKFLOWS_BUCKET = "crm-workflows";
 const QUEUE = "crm-offline-writes";
@@ -16,31 +18,36 @@ const EXPORTQUEUE = "crm-export-data";
 export let QUEUE_URL = null;
 export let EXPORT_QUEUE_URL = null;
 
-export async function initAwsResources() {
-  console.log("Initializing LocalStack resources...");
-
-  // ---------- S3 BUCKETS ----------
+async function ensureBucket(bucketName) {
   try {
-    await s3.send(new HeadBucketCommand({ Bucket: BUCKET }));
-    console.log("S3 bucket already exists:", BUCKET);
-  } catch {
-    console.log("Creating S3 bucket:", BUCKET);
-    await s3.send(new CreateBucketCommand({ Bucket: BUCKET }));
-    console.log("S3 bucket created:", BUCKET);
-  }
+    await s3.send(new HeadBucketCommand({ Bucket: bucketName }));
+    console.log(`S3 bucket already exists: ${bucketName}`);
+  } catch (err) {
+    if (err?.$metadata?.httpStatusCode === 404) {
+      console.log(`Creating S3 bucket: ${bucketName}`);
 
-  try {
-    await s3.send(new HeadBucketCommand({ Bucket: WORKFLOWS_BUCKET }));
-    console.log("S3 bucket already exists:", WORKFLOWS_BUCKET);
-  } catch {
-    console.log("Creating S3 bucket:", WORKFLOWS_BUCKET);
-    await s3.send(new CreateBucketCommand({ Bucket: WORKFLOWS_BUCKET }));
-    console.log("S3 bucket created:", WORKFLOWS_BUCKET);
-  }
+      const params = { Bucket: bucketName };
 
+      // Required for non us-east-1 in real AWS
+      if (REGION !== "us-east-1") {
+        params.CreateBucketConfiguration = {
+          LocationConstraint: REGION,
+        };
+      }
+
+      await s3.send(new CreateBucketCommand(params));
+      console.log(`S3 bucket created: ${bucketName}`);
+    } else {
+      console.error(`Error checking bucket ${bucketName}`, err);
+      throw err;
+    }
+  }
+}
+
+async function applyCors(bucketName) {
   await s3.send(
     new PutBucketCorsCommand({
-      Bucket: BUCKET,
+      Bucket: bucketName,
       CORSConfiguration: {
         CORSRules: [
           {
@@ -54,37 +61,48 @@ export async function initAwsResources() {
     }),
   );
 
-  // ---------- SQS QUEUE ----------
+  console.log(`CORS applied to bucket: ${bucketName}`);
+}
+
+async function ensureQueue(queueName) {
   try {
     const existing = await sqs.send(
-      new GetQueueUrlCommand({ QueueName: QUEUE }),
+      new GetQueueUrlCommand({ QueueName: queueName }),
     );
-    QUEUE_URL = existing.QueueUrl;
-    console.log("SQS queue already exists");
-  } catch {
-    console.log("Creating SQS queue...");
-    const created = await sqs.send(
-      new CreateQueueCommand({ QueueName: QUEUE }),
-    );
-    QUEUE_URL = created.QueueUrl;
-    console.log("SQS queue created");
-  }
 
-  // EXPORT QUEUE
-  try {
-    const existing = await sqs.send(
-      new GetQueueUrlCommand({ QueueName: EXPORTQUEUE }),
-    );
-    EXPORT_QUEUE_URL = existing.QueueUrl;
-    console.log("SQS queue already exists");
-  } catch {
-    console.log("Creating SQS queue...");
-    const created = await sqs.send(
-      new CreateQueueCommand({ QueueName: EXPORTQUEUE }),
-    );
-    EXPORT_QUEUE_URL = created.QueueUrl;
-    console.log("SQS queue created");
-  }
+    console.log(`SQS queue already exists: ${queueName}`);
+    return existing.QueueUrl;
+  } catch (err) {
+    if (
+      err?.$metadata?.httpStatusCode === 400 ||
+      err?.name === "QueueDoesNotExist"
+    ) {
+      console.log(`Creating SQS queue: ${queueName}`);
 
-  console.log("LocalStack ready.");
+      const created = await sqs.send(
+        new CreateQueueCommand({ QueueName: queueName }),
+      );
+
+      console.log(`SQS queue created: ${queueName}`);
+      return created.QueueUrl;
+    } else {
+      console.error(`Error checking queue ${queueName}`, err);
+      throw err;
+    }
+  }
+}
+
+export async function initAwsResources() {
+  console.log("Initializing LocalStack/AWS resources...");
+
+  await ensureBucket(BUCKET);
+  await ensureBucket(WORKFLOWS_BUCKET);
+
+  await applyCors(BUCKET);
+  await applyCors(WORKFLOWS_BUCKET);
+
+  QUEUE_URL = await ensureQueue(QUEUE);
+  EXPORT_QUEUE_URL = await ensureQueue(EXPORTQUEUE);
+
+  console.log("AWS resources ready.");
 }
