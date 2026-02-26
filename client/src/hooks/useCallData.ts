@@ -26,10 +26,13 @@ export const useCallData = (leadId: string) => {
     mutationFn: (callData: Omit<CreateCallDTO, "leadId">) =>
       callsAPI.create({ ...callData, leadId }),
     onSuccess: (newCall) => {
-      queryClient.setQueryData<Call[]>(queryKey, (prev = []) => [
-        newCall,
-        ...prev,
-      ]);
+      queryClient.setQueryData<{ calls: Call[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          calls: [newCall, ...(prev?.calls ?? [])],
+          total: (prev?.total ?? 0) + 1,
+        }),
+      );
     },
     onError: (err) => {
       console.error("Error creating call:", err);
@@ -40,8 +43,14 @@ export const useCallData = (leadId: string) => {
     mutationFn: ({ id, data }: { id: string; data: UpdateCallDTO }) =>
       callsAPI.update(id, data),
     onSuccess: (updatedCall) => {
-      queryClient.setQueryData<Call[]>(queryKey, (prev = []) =>
-        prev.map((c) => (c._id === updatedCall._id ? updatedCall : c)),
+      queryClient.setQueryData<{ calls: Call[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          calls: (prev?.calls ?? []).map((c) =>
+            c._id === updatedCall._id ? updatedCall : c,
+          ),
+          total: prev?.total ?? 0,
+        }),
       );
     },
     onError: (err) => {
@@ -52,8 +61,12 @@ export const useCallData = (leadId: string) => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => callsAPI.delete(id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<Call[]>(queryKey, (prev = []) =>
-        prev.filter((c) => c._id !== id),
+      queryClient.setQueryData<{ calls: Call[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          calls: (prev?.calls ?? []).filter((c) => c._id !== id),
+          total: Math.max(0, (prev?.total ?? 1) - 1),
+        }),
       );
     },
     onError: (err) => {

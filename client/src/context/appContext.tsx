@@ -31,7 +31,8 @@ const AppContext = createContext<AppContextType | null>(null);
 export const AppProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Derived — no separate state needed; always in sync with user+token.
+  const isAuthenticated = !!user && !!token;
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [loading, setLoading] = useState(true);
 
@@ -65,7 +66,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
               setToken(newToken);
               setUser(storedUser);
-              setIsAuthenticated(true);
 
               saveToLocalStorage("auth_token", newToken);
               if (newRefreshToken) {
@@ -82,7 +82,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
             // Token is still valid — restore session directly.
             setToken(storedToken);
             setUser(storedUser);
-            setIsAuthenticated(true);
           }
         }
         setLoading(false);
@@ -102,7 +101,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     const handleAuthLogout = () => {
       setUser(null);
       setToken(null);
-      setIsAuthenticated(false);
       removeFromLocalStorage("auth_token");
       removeFromLocalStorage("user_data");
       removeFromLocalStorage("refresh_token");
@@ -133,7 +131,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       setUser(userData);
       setToken(authToken);
-      setIsAuthenticated(true);
 
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", userData);
@@ -159,7 +156,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
       setUser(newUser);
       setToken(authToken);
-      setIsAuthenticated(true);
 
       saveToLocalStorage("auth_token", authToken);
       saveToLocalStorage("user_data", newUser);
@@ -183,7 +179,6 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setUser(null);
       setToken(null);
-      setIsAuthenticated(false);
       removeFromLocalStorage("auth_token");
       removeFromLocalStorage("user_data");
       removeFromLocalStorage("refresh_token");

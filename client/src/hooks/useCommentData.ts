@@ -26,10 +26,13 @@ export const useCommentData = (leadId: string) => {
     mutationFn: (commentData: Omit<CreateCommentDTO, "leadId">) =>
       commentsAPI.create({ ...commentData, leadId }),
     onSuccess: (newComment) => {
-      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) => [
-        newComment,
-        ...prev,
-      ]);
+      queryClient.setQueryData<{ comments: Comment[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          comments: [newComment, ...(prev?.comments ?? [])],
+          total: (prev?.total ?? 0) + 1,
+        }),
+      );
     },
     onError: (err) => {
       console.error("Error creating comment:", err);
@@ -40,8 +43,14 @@ export const useCommentData = (leadId: string) => {
     mutationFn: ({ id, data }: { id: string; data: UpdateCommentDTO }) =>
       commentsAPI.update(id, data),
     onSuccess: (updatedComment) => {
-      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) =>
-        prev.map((c) => (c._id === updatedComment._id ? updatedComment : c)),
+      queryClient.setQueryData<{ comments: Comment[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          comments: (prev?.comments ?? []).map((c) =>
+            c._id === updatedComment._id ? updatedComment : c,
+          ),
+          total: prev?.total ?? 0,
+        }),
       );
     },
     onError: (err) => {
@@ -52,8 +61,12 @@ export const useCommentData = (leadId: string) => {
   const deleteMutation = useMutation({
     mutationFn: (id: string) => commentsAPI.delete(id),
     onSuccess: (_, id) => {
-      queryClient.setQueryData<Comment[]>(queryKey, (prev = []) =>
-        prev.filter((c) => c._id !== id),
+      queryClient.setQueryData<{ comments: Comment[]; total: number }>(
+        queryKey,
+        (prev) => ({
+          comments: (prev?.comments ?? []).filter((c) => c._id !== id),
+          total: Math.max(0, (prev?.total ?? 1) - 1),
+        }),
       );
     },
     onError: (err) => {

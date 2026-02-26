@@ -166,14 +166,6 @@ function LeadDetailsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              {lead.leadFirstName} {lead.leadLastName || ""}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">
-              {lead.leadEmail}
-            </p>
-          </div>
         </div>
 
         {/* Convert to Deal Button */}
@@ -191,8 +183,8 @@ function LeadDetailsPage() {
               </>
             ) : (
               <>
-                <ArrowRight className="w-4 h-4" />
                 Convert to Deal
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </Button>

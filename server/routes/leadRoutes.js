@@ -25,7 +25,21 @@ import {
 } from "../validators/leadsValidator.js";
 import passport from "../config/passport.js";
 
+import { z } from "zod";
+
+import { withWorkflowTriggers } from "../middlewares/workflowTrigger.js";
+
 const router = Router();
+
+const idSchema = z.object({
+  id: z.string().refine((id) => {
+    try {
+      return new ObjectId(id).toString() === id;
+    } catch {
+      return false;
+    }
+  }),
+});
 
 router.use(passport.authenticate("jwt", { session: false }));
 
@@ -59,6 +73,7 @@ router.post(
   authorize("user", "admin", "super_admin"),
   validate(createLeadSchema),
   createLead,
+  withWorkflowTriggers("lead", "create", leadController.createLead),
 );
 
 router.put(
@@ -67,6 +82,7 @@ router.put(
   authorize("user", "admin", "super_admin"),
   validate(updateLeadSchema),
   updateLead,
+  withWorkflowTriggers("lead", "update", leadController.updateLead),
 );
 
 router.delete(
@@ -74,6 +90,7 @@ router.delete(
   authenticate,
   authorize("user", "admin", "super_admin"),
   deleteLead,
+  withWorkflowTriggers("lead", "delete", leadController.deleteLead),
 );
 
 router.get(

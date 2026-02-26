@@ -95,9 +95,9 @@ sqs
 
 >>> DONE import csv for leads, deals, organizations
 
-passport js fix by removing own auth middleware
+>>> NO NEED FOR NOW passport js fix by removing own auth middleware
 
-multer for attachment uploads
+<<< NO NEED FOR MULTER multer for attachment uploads
 
 zustand
 
@@ -109,8 +109,42 @@ profile photo upload to cloudinary/ local stack bucket
 
 bull mq
 
-local stack installation
+>>> local stack installation
 
 nginx and pm2? 
 
-web socket implementations to broadcast notifications
+TODO
+web socket implementations to broadcast notifications and live activities
+
+centralized note taking to relate to any thing, like lead, deal, org, etc
+
+bulk delete operations
+
+offline sync queue through sqs as well
+
+customizable dashboards?? (from twenty)
+
+kanban board type view?
+
+Sales Gamification (Leaderboards).
+
+pm2 clustering implementations
+
+Idempotency key enforcement
+
+atlas search instead of regex pattern matching
+
+WebSockets (Tenant-Wide Notifications) - see how to implement a redis pub sub to broadcast to all instances of node
+
+timeline feature for leads, organizations
+
+automations / triggers on particular actions (create a new collection for triggers and then add a pub sub or queue to process these triggers)
+
+dynamic rules and assign roles to users within tenant
+
+tasks and notes??
+
+fast csv pipe to stream to send data to controller
+
+lead score engine better
+
