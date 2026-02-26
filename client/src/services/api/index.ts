@@ -20,6 +20,7 @@ import { commentsAPI } from "./comments.api";
 import { attachmentsAPI } from "./attachments.api";
 import { exportAPI } from "./export.api";
 import { leadActivitiesAPI } from "./leadActivities.api";
+import { userAnalyticsAPI } from "../api";
 
 export {
   authAPI,
@@ -51,6 +52,7 @@ export const API = {
   analytics: analyticsAPI,
   export: exportAPI,
   leadActivities: leadActivitiesAPI,
+  userAnalytics: userAnalyticsAPI,
 };
 
 export default API;
@@ -71,3 +73,14 @@ export type {
   OrgIndustryStat,
   TopOrganization,
 } from "./analytics.api";
+
+export type {
+  Widget,
+  WidgetType,
+  WidgetEntity,
+  WidgetMetric,
+  WidgetPosition,
+  WidgetDataPoint,
+  UserAnalyticsDashboardResponse,
+  GroupByField,
+} from "./userAnalytics.api";

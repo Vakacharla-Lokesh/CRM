@@ -1,4 +1,8 @@
-import { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import {
+  PutObjectCommand,
+  DeleteObjectCommand,
+  GetObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { randomUUID } from "crypto";
 
@@ -7,12 +11,13 @@ import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
-import { s3 } from "../config/awsClient.js";
+import { s3 } from "../services/aws/awsClient.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 const S3_BUCKET = "crm-leads";
-const LOCALSTACK_ENDPOINT = "http://localhost:4566";
+const LOCALSTACK_ENDPOINT =
+  process.env.LOCALSTACK_ENDPOINT || "http://localhost:4566";
 
 const buildBaseS3Url = (key) => `${LOCALSTACK_ENDPOINT}/${S3_BUCKET}/${key}`;
 

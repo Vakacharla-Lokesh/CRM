@@ -58,8 +58,7 @@ function WidgetCard({
             className="text-xs mt-0.5"
             style={{ color: "var(--muted-foreground)" }}
           >
-            {ENTITY_LABEL[widget.entity]} ·{" "}
-            {CHART_TYPE_LABEL[widget.type]} ·{" "}
+            {ENTITY_LABEL[widget.entity]} · {CHART_TYPE_LABEL[widget.type]} ·{" "}
             {widget.metric}
           </span>
         </div>
@@ -70,7 +69,10 @@ function WidgetCard({
             className="p-1.5 rounded-md transition-colors hover:bg-muted"
             aria-label="Edit widget"
           >
-            <Pencil className="w-3.5 h-3.5" style={{ color: "var(--muted-foreground)" }} />
+            <Pencil
+              className="w-3.5 h-3.5"
+              style={{ color: "var(--muted-foreground)" }}
+            />
           </button>
           <button
             id={`analytics-delete-${widget._id}`}
@@ -78,13 +80,19 @@ function WidgetCard({
             className="p-1.5 rounded-md transition-colors hover:bg-muted"
             aria-label="Delete widget"
           >
-            <Trash2 className="w-3.5 h-3.5" style={{ color: "var(--destructive)" }} />
+            <Trash2
+              className="w-3.5 h-3.5"
+              style={{ color: "var(--destructive)" }}
+            />
           </button>
         </div>
       </div>
 
       {/* Chart Area */}
-      <div className="flex-1 px-4 py-4" style={{ minHeight: "200px" }}>
+      <div
+        className="flex-1 px-4 py-4"
+        style={{ minHeight: "200px" }}
+      >
         <ChartRenderer
           type={widget.type}
           data={widget.data ?? []}

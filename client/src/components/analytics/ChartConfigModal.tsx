@@ -21,7 +21,7 @@ import type {
   WidgetEntity,
   WidgetMetric,
   GroupByField,
-} from "../../services/api/userAnalytics.api";
+} from "@/services/api/";
 
 interface ChartConfigModalProps {
   open: boolean;
@@ -51,7 +51,10 @@ const METRICS: { value: WidgetMetric; label: string }[] = [
   { value: "avg", label: "Average" },
 ];
 
-const GROUP_BY_OPTIONS: Record<WidgetEntity, { value: GroupByField; label: string }[]> = {
+const GROUP_BY_OPTIONS: Record<
+  WidgetEntity,
+  { value: GroupByField; label: string }[]
+> = {
   leads: [
     { value: "leadStatus", label: "Lead Status" },
     { value: "leadSource", label: "Lead Source" },
@@ -69,11 +72,20 @@ const GROUP_BY_OPTIONS: Record<WidgetEntity, { value: GroupByField; label: strin
 
 const DEFAULT_POSITION = { x: 0, y: Infinity, w: 6, h: 3 };
 
-function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigModalProps) {
+function ChartConfigModal({
+  open,
+  onClose,
+  onSave,
+  initialWidget,
+}: ChartConfigModalProps) {
   const [title, setTitle] = useState(initialWidget?.title ?? "");
   const [type, setType] = useState<WidgetType>(initialWidget?.type ?? "bar");
-  const [entity, setEntity] = useState<WidgetEntity>(initialWidget?.entity ?? "leads");
-  const [metric, setMetric] = useState<WidgetMetric>(initialWidget?.metric ?? "count");
+  const [entity, setEntity] = useState<WidgetEntity>(
+    initialWidget?.entity ?? "leads",
+  );
+  const [metric, setMetric] = useState<WidgetMetric>(
+    initialWidget?.metric ?? "count",
+  );
   const [groupBy, setGroupBy] = useState<GroupByField>(
     initialWidget?.groupBy ?? "leadStatus",
   );
@@ -102,7 +114,9 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
   return (
     <Dialog
       open={open}
-      onOpenChange={(val) => { if (!val) onClose(); }}
+      onOpenChange={(val) => {
+        if (!val) onClose();
+      }}
     >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -137,13 +151,19 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
             >
               Chart Type
             </label>
-            <Select value={type} onValueChange={(v) => setType(v as WidgetType)}>
+            <Select
+              value={type}
+              onValueChange={(v) => setType(v as WidgetType)}
+            >
               <SelectTrigger id="widget-type">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {CHART_TYPES.map((t) => (
-                  <SelectItem key={t.value} value={t.value}>
+                  <SelectItem
+                    key={t.value}
+                    value={t.value}
+                  >
                     {t.label}
                   </SelectItem>
                 ))}
@@ -168,7 +188,10 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
               </SelectTrigger>
               <SelectContent>
                 {ENTITIES.map((e) => (
-                  <SelectItem key={e.value} value={e.value}>
+                  <SelectItem
+                    key={e.value}
+                    value={e.value}
+                  >
                     {e.label}
                   </SelectItem>
                 ))}
@@ -184,13 +207,19 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
             >
               Group By
             </label>
-            <Select value={groupBy} onValueChange={(v) => setGroupBy(v as GroupByField)}>
+            <Select
+              value={groupBy}
+              onValueChange={(v) => setGroupBy(v as GroupByField)}
+            >
               <SelectTrigger id="widget-groupby">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {GROUP_BY_OPTIONS[entity].map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                  >
                     {opt.label}
                   </SelectItem>
                 ))}
@@ -206,13 +235,19 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
             >
               Metric
             </label>
-            <Select value={metric} onValueChange={(v) => setMetric(v as WidgetMetric)}>
+            <Select
+              value={metric}
+              onValueChange={(v) => setMetric(v as WidgetMetric)}
+            >
               <SelectTrigger id="widget-metric">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {METRICS.map((m) => (
-                  <SelectItem key={m.value} value={m.value}>
+                  <SelectItem
+                    key={m.value}
+                    value={m.value}
+                  >
                     {m.label}
                   </SelectItem>
                 ))}
@@ -222,7 +257,10 @@ function ChartConfigModal({ open, onClose, onSave, initialWidget }: ChartConfigM
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button
+            variant="outline"
+            onClick={onClose}
+          >
             Cancel
           </Button>
           <Button

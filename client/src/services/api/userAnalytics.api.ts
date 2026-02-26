@@ -1,7 +1,5 @@
 import { get, put } from "./core";
 
-// --------------- Widget types ---------------
-
 export type WidgetType = "bar" | "line" | "pie" | "area" | "number" | "table";
 
 export type WidgetEntity = "leads" | "deals" | "organizations";
@@ -46,8 +44,7 @@ export interface UserAnalyticsDashboardResponse {
 
 export const userAnalyticsAPI = {
   /** GET /user-analytics — fetch layout with computed data */
-  getDashboard: () =>
-    get<UserAnalyticsDashboardResponse>("/user-analytics"),
+  getDashboard: () => get<UserAnalyticsDashboardResponse>("/user-analytics"),
 
   /** PUT /user-analytics — save layout */
   saveDashboard: (layout: Omit<Widget, "data">[]) =>

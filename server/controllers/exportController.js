@@ -2,8 +2,7 @@ import { asyncCatch } from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
-import { QueueManager } from "../services/queueManager.js";
-import { EXPORT_QUEUE_URL } from "../config/initAws.js";
+import { queueManager } from "../services/queue/queueManager.js";
 
 function createExportHandler(entityType, filename) {
   return asyncCatch(async (req, res) => {
@@ -97,10 +96,7 @@ function createEmailExportHandler(entityType) {
       timestamp: new Date().toISOString(),
     };
 
-    const queueManager = new QueueManager(EXPORT_QUEUE_URL);
-    await queueManager.initialize(EXPORT_QUEUE_URL);
-
-    const messageId = await queueManager.sendMessage(message, EXPORT_QUEUE_URL);
+    const messageId = await queueManager.enqueue("exportData", message);
 
     res.status(202).json({
       success: true,
@@ -113,7 +109,8 @@ function createEmailExportHandler(entityType) {
 }
 
 export const exportLeadsToEmail = createEmailExportHandler("leads");
-export const exportOrganizationsToEmail = createEmailExportHandler("organizations");
+export const exportOrganizationsToEmail =
+  createEmailExportHandler("organizations");
 export const exportDealsToEmail = createEmailExportHandler("deals");
 
 export default {
@@ -124,4 +121,3 @@ export default {
   exportOrganizationsToEmail,
   exportDealsToEmail,
 };
-
