@@ -1,5 +1,4 @@
 import emailController from "../controllers/emailController.js";
-import { s3Manager } from "./s3Manager.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
@@ -92,12 +91,6 @@ class WorkflowExecutionEngine {
       case "create_task":
         return await this.executeCreateTask(action, entity, tenantId);
 
-      case "webhook":
-        return await this.executeWebhook(action, entity);
-
-      case "export_s3":
-        return await this.executeExportS3(action, entity, tenantId);
-
       default:
         throw new Error(`Unknown action type: ${action.type}`);
     }
@@ -159,68 +152,6 @@ class WorkflowExecutionEngine {
     };
   }
 
-  async executeWebhook(action, entity) {
-    const { webhookUrl, method = "POST", payload } = action;
-
-    if (!webhookUrl) {
-      throw new Error("Webhook URL not specified");
-    }
-
-    const resolvedPayload = this.resolveTemplateValue(payload, entity.data);
-
-    const response = await fetch(webhookUrl, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        timestamp: new Date(),
-        entity,
-        ...resolvedPayload,
-      }),
-    });
-
-    if (!response.ok) {
-      throw new Error(
-        `Webhook returned ${response.status}: ${await response.text()}`,
-      );
-    }
-
-    return {
-      message: `Webhook called: ${webhookUrl}`,
-    };
-  }
-
-  async executeExportS3(action, entity, tenantId) {
-    const {
-      format = "json",
-      bucket = "crm-workflows",
-      prefix = "exports/",
-    } = action;
-
-    const filename = `${prefix}${entity.type}-${entity.id}-${Date.now()}.${format}`;
-
-    let content;
-    if (format === "json") {
-      content = JSON.stringify(entity.data, null, 2);
-    } else if (format === "csv") {
-      content = this.convertToCSV(entity.data);
-    } else {
-      throw new Error(`Unsupported export format: ${format}`);
-    }
-
-    const url = await s3Manager.uploadString(
-      bucket,
-      filename,
-      content,
-      format === "json" ? "application/json" : "text/csv",
-    );
-
-    return {
-      message: `Exported to S3: ${url}`,
-    };
-  }
-
   resolveTemplateValue(template, data) {
     if (!template) return null;
 
@@ -245,22 +176,6 @@ class WorkflowExecutionEngine {
 
   getNestedValue(obj, path) {
     return path.split(".").reduce((current, part) => current?.[part], obj);
-  }
-
-  convertToCSV(obj) {
-    const keys = Object.keys(obj);
-    const headers = keys.join(",");
-    const values = keys
-      .map((key) => {
-        const value = obj[key];
-        if (typeof value === "string" && value.includes(",")) {
-          return `"${value.replace(/"/g, '""')}"`;
-        }
-        return value;
-      })
-      .join(",");
-
-    return `${headers}\n${values}`;
   }
 
   getModelForEntity(entityType) {

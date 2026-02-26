@@ -26,3 +26,34 @@ export const exportDealsSchema = z.object({
       message: "Cannot export more than 10,000 records at once",
     }),
 });
+
+// Email export schemas
+export const exportLeadsToEmailSchema = z.object({
+  ids: z
+    .array(z.string().min(1, "ID cannot be empty"))
+    .min(1, "At least one ID is required")
+    .refine((ids) => ids.length <= 10000, {
+      message: "Cannot export more than 10,000 records at once",
+    }),
+  email: z.string().email("Valid email address is required"),
+});
+
+export const exportOrganizationsToEmailSchema = z.object({
+  ids: z
+    .array(z.string().min(1, "ID cannot be empty"))
+    .min(1, "At least one ID is required")
+    .refine((ids) => ids.length <= 10000, {
+      message: "Cannot export more than 10,000 records at once",
+    }),
+  email: z.string().email("Valid email address is required"),
+});
+
+export const exportDealsToEmailSchema = z.object({
+  ids: z
+    .array(z.string().min(1, "ID cannot be empty"))
+    .min(1, "At least one ID is required")
+    .refine((ids) => ids.length <= 10000, {
+      message: "Cannot export more than 10,000 records at once",
+    }),
+  email: z.string().email("Valid email address is required"),
+});

@@ -2,6 +2,8 @@ import { asyncCatch } from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
+import { QueueManager } from "../services/queueManager.js";
+import { EXPORT_QUEUE_URL } from "../config/initAws.js";
 
 function createExportHandler(entityType, filename) {
   return asyncCatch(async (req, res) => {
@@ -64,14 +66,62 @@ function createExportHandler(entityType, filename) {
 }
 
 export const exportLeads = createExportHandler("leads", "leads");
+
 export const exportOrganizations = createExportHandler(
   "organizations",
   "organizations",
 );
 export const exportDeals = createExportHandler("deals", "deals");
 
+// Email export handlers
+function createEmailExportHandler(entityType) {
+  return asyncCatch(async (req, res) => {
+    const { ids, email } = req.body;
+    const tenantId = req.user?.tenantId || req.tenantId;
+
+    if (!ids || ids.length === 0) {
+      throw new AppError(`No ${entityType} IDs provided for export`, 400);
+    }
+
+    if (!email) {
+      throw new AppError("Email address is required", 400);
+    }
+
+    const message = {
+      entity: { type: entityType },
+      ids,
+      tenantId,
+      email,
+      retryCount: 0,
+      maxRetries: 3,
+      timestamp: new Date().toISOString(),
+    };
+
+    const queueManager = new QueueManager(EXPORT_QUEUE_URL);
+    await queueManager.initialize(EXPORT_QUEUE_URL);
+
+    const messageId = await queueManager.sendMessage(message, EXPORT_QUEUE_URL);
+
+    res.status(202).json({
+      success: true,
+      message: `Export queued successfully. You will receive an email at ${email} when ready.`,
+      messageId,
+      entityType,
+      count: ids.length,
+    });
+  });
+}
+
+export const exportLeadsToEmail = createEmailExportHandler("leads");
+export const exportOrganizationsToEmail = createEmailExportHandler("organizations");
+export const exportDealsToEmail = createEmailExportHandler("deals");
+
 export default {
   exportLeads,
   exportOrganizations,
   exportDeals,
+  exportLeadsToEmail,
+  exportOrganizationsToEmail,
+  exportDealsToEmail,
 };
+

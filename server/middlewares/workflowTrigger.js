@@ -1,21 +1,8 @@
-/**
- * WORKFLOW TRIGGER MIDDLEWARE
- *
- * Detects which workflows should execute based on the current request
- * Queues matched workflows to SQS for async processing
- *
- * File: server/middlewares/workflowTrigger.js
- */
-
 import workflowModel from "../models/workflows/workflowModel.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
 import { queueManager } from "../services/queueManager.js";
 import asyncCatch from "../utils/asyncCatch.js";
 
-/**
- * Attach workflow context to request for later use
- * Called BEFORE controller
- */
 export const captureRequestContext = (req, res, next) => {
   // Store original data for comparison
   req.workflowContext = {
@@ -28,28 +15,6 @@ export const captureRequestContext = (req, res, next) => {
   next();
 };
 
-/**
- * Process workflow triggers
- * Called AFTER controller (in route handler or wrapper)
- *
- * Usage in route:
- * router.post('/',
- *   authenticate,
- *   captureRequestContext,
- *   asyncCatch(leadController.createLead),
- *   processWorkflowTriggers  // ← Add this
- * );
- */
-/**
- * Fire workflow triggers from within a controller.
- * Call this after a successful DB mutation, before res.json().
- *
- * @param {Object} req       - Express request (needs req.user.userId)
- * @param {string} entityType - 'lead' | 'deal' | 'organization' | 'call' | 'comment'
- * @param {string} action     - 'create' | 'update' | 'delete'
- * @param {*}      entityId   - MongoDB ObjectId of the entity
- * @param {Object} newData    - Plain entity document (call .toObject() if needed)
- */
 export async function fireWorkflowTrigger(
   req,
   entityType,
@@ -90,16 +55,9 @@ export async function fireWorkflowTrigger(
   }
 }
 
-/**
- * Evaluate trigger conditions against entity data
- *
- * @param {Array} conditions - Array of { field, operator, value }
- * @param {Object} data - Entity data to check against
- * @returns {boolean} - True if all conditions match
- */
 function evaluateTriggerConditions(conditions, data) {
   if (!Array.isArray(conditions) || conditions.length === 0) {
-    return true; // No conditions = always trigger
+    return true;
   }
 
   return conditions.every((condition) => {
@@ -134,18 +92,10 @@ function evaluateTriggerConditions(conditions, data) {
   });
 }
 
-/**
- * Get nested object value by dot notation
- * e.g., "organization.size" → data.organization.size
- */
 function getNestedValue(obj, path) {
   return path.split(".").reduce((current, part) => current?.[part], obj);
 }
 
-/**
- * Queue workflow for async execution via SQS
- * Also creates execution log for audit trail
- */
 async function queueWorkflowExecution(
   tenantId,
   workflow,
@@ -206,18 +156,6 @@ async function queueWorkflowExecution(
   }
 }
 
-/**
- * Wrapper to use in route handlers
- *
- * Usage:
- * const createLeadWithTriggers = withWorkflowTriggers(
- *   'lead',
- *   'create',
- *   leadController.createLead
- * );
- *
- * router.post('/', authenticate, createLeadWithTriggers);
- */
 export default {
   captureRequestContext,
   fireWorkflowTrigger,

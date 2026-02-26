@@ -3,6 +3,9 @@ import {
   exportLeads,
   exportOrganizations,
   exportDeals,
+  exportLeadsToEmail,
+  exportOrganizationsToEmail,
+  exportDealsToEmail,
 } from "../controllers/exportController.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
@@ -11,6 +14,9 @@ import {
   exportLeadsSchema,
   exportOrganizationsSchema,
   exportDealsSchema,
+  exportLeadsToEmailSchema,
+  exportOrganizationsToEmailSchema,
+  exportDealsToEmailSchema,
 } from "../validators/exportValidator.js";
 import passport from "../config/passport.js";
 
@@ -43,6 +49,34 @@ router.post(
   injectTenantFilter,
   validate(exportDealsSchema),
   exportDeals,
+);
+
+// Email export routes
+router.post(
+  "/leads/toemail",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  validate(exportLeadsToEmailSchema),
+  exportLeadsToEmail,
+);
+
+router.post(
+  "/organizations/toemail",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  validate(exportOrganizationsToEmailSchema),
+  exportOrganizationsToEmail,
+);
+
+router.post(
+  "/deals/toemail",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  injectTenantFilter,
+  validate(exportDealsToEmailSchema),
+  exportDealsToEmail,
 );
 
 export default router;
