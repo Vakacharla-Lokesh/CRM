@@ -30,7 +30,11 @@ export type NotificationEventType =
   // tenant events
   | "tenant_created"
   | "tenant_updated"
-  | "tenant_deleted";
+  | "tenant_deleted"
+  // Workflow events
+  | "workflow_created"
+  | "workflow_updated"
+  | "workflow_deleted";
 
 export interface AppNotification {
   id: string;

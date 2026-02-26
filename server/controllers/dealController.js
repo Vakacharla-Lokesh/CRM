@@ -1,6 +1,7 @@
 import dealModel from "../models/dealModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {
@@ -61,6 +62,8 @@ export const createDeal = asyncCatch(async (req, res) => {
 
   const deal = await dealModel.create(dealData);
 
+  await fireWorkflowTrigger(req, "deal", "create", deal._id, deal.toObject());
+
   res.status(201).json({
     message: "Deal created successfully",
     deal,
@@ -88,6 +91,8 @@ export const updateDeal = asyncCatch(async (req, res) => {
     { new: true, runValidators: true },
   );
 
+  await fireWorkflowTrigger(req, "deal", "update", updatedDeal._id, updatedDeal.toObject());
+
   res.json({
     message: "Deal updated successfully",
     deal: updatedDeal,
@@ -109,6 +114,8 @@ export const deleteDeal = asyncCatch(async (req, res) => {
   }
 
   await dealModel.findByIdAndDelete(req.params.id);
+
+  await fireWorkflowTrigger(req, "deal", "delete", deal._id, deal.toObject());
 
   res.json({ message: "Deal deleted successfully" });
 });
@@ -225,6 +232,8 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
 
   deal.dealStatus = dealStatus;
   await deal.save();
+
+  await fireWorkflowTrigger(req, "deal", "update", deal._id, deal.toObject());
 
   res.json({
     message: "Deal status updated successfully",

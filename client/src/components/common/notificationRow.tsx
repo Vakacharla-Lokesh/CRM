@@ -20,6 +20,7 @@ import {
   AlertCircle,
   CloudOff,
   X,
+  Cog,
 } from "lucide-react";
 
 const NOTIFICATION_ICONS: Record<
@@ -58,6 +59,19 @@ const NOTIFICATION_ICONS: Record<
   sync_completed: { icon: CheckCircle2, color: "text-emerald-500" },
   sync_failed: { icon: AlertCircle, color: "text-red-500" },
   offline_queued: { icon: CloudOff, color: "text-orange-500" },
+  // workflow events
+  workflow_deleted: {
+    icon: Cog,
+    color: "text-red-500",
+  },
+  workflow_created: {
+    icon: Cog,
+    color: "text-emerald-500",
+  },
+  workflow_updated: {
+    icon: Cog,
+    color: "text-blue-500",
+  },
 };
 
 function formatTime(date: Date): string {

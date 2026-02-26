@@ -6,6 +6,8 @@ export { default as organizationService } from "./organizationService";
 export { default as userService } from "./userService";
 export { default as tenantService } from "./tenantService";
 
+export { default as workflowService } from "./workflowService";
+
 export {
   API,
   apiClient as api,
@@ -25,3 +27,6 @@ export {
   commentsAPI,
   attachmentsAPI,
 } from "./api";
+
+export { workflowsAPI } from "./api/workflows.api";
+export { exportAPI } from "./api/export.api";

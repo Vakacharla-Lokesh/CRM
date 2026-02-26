@@ -14,6 +14,8 @@ export { useAttachmentData } from "./useAttachmentData.ts";
 export { useDashboardStats } from "./useDashboardStats.ts";
 export { useAnalyticsData } from "./useAnalyticsData.ts";
 
+export { useWorkflowData } from "./useWorkflowData";
+
 export { useOfflineManager } from "./useOfflineManager.ts";
 export {
   useLocalStorage,

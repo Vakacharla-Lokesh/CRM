@@ -20,6 +20,7 @@ import attachmentRoutes from "../routes/attachmentRoutes.js";
 import analyticsRoutes from "../routes/analyticsRoutes.js";
 import bulkRoutes from "../routes/bulkRoutes.js";
 import exportRoutes from "../routes/exportRoutes.js";
+import workflowRoutes from "../routes/workflowRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "../middlewares/errorHandler.js";
@@ -82,6 +83,7 @@ app.use("/api/attachments", attachmentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/api/export", exportRoutes);
+app.use("/api/workflows", workflowRoutes);
 
 // unknown route handler
 app.use(notFound);

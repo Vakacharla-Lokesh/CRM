@@ -2,37 +2,31 @@ import {
   SendMessageCommand,
   ReceiveMessageCommand,
   DeleteMessageCommand,
+  GetQueueAttributesCommand,
 } from "@aws-sdk/client-sqs";
 import { sqs } from "../config/awsClient.js";
-import { QUEUE_URL } from "../config/initAws.js";
+import { QUEUE_URL, initAwsResources } from "../config/initAws.js";
 
-const WORKFLOW_QUEUE = "crm-workflows"; // Different from your offline-writes queue
+const WORKFLOW_QUEUE = "crm-workflows";
 
 class QueueManager {
   constructor() {
     this.workflowQueueUrl = null;
   }
 
-  /**
-   * Initialize (called once on startup)
-   * Note: Queue is already created in your initAws.js
-   */
   async initialize() {
-    // Your initAws.js creates the queue, we just use the URL
-    this.workflowQueueUrl = QUEUE_URL; // Reuse your existing queue initialization pattern
-
+    // If AWS resources haven't been initialized yet (e.g. server process),
+    // do it now so the queue URL is available.
+    if (!QUEUE_URL) {
+      await initAwsResources();
+    }
+    this.workflowQueueUrl = QUEUE_URL;
     console.log(`✓ Queue Manager initialized: ${this.workflowQueueUrl}`);
   }
 
-  /**
-   * Send message to workflow queue
-   *
-   * @param {Object} message - Workflow message
-   * @returns {Promise<string>} - Message ID
-   */
   async sendMessage(message) {
     if (!this.workflowQueueUrl) {
-      throw new Error("Queue not initialized. Call initialize() first.");
+      await this.initialize();
     }
 
     try {
@@ -110,6 +104,39 @@ class QueueManager {
       console.log(`✓ Message deleted from queue`);
     } catch (error) {
       console.error("Failed to delete message:", error);
+      throw error;
+    }
+  }
+
+  async getQueueStats() {
+    if (!this.workflowQueueUrl) {
+      throw new Error("Queue not initialized");
+    }
+
+    try {
+      const command = new GetQueueAttributesCommand({
+        QueueUrl: this.workflowQueueUrl,
+        AttributeNames: [
+          "ApproximateNumberOfMessages",
+          "ApproximateNumberOfMessagesNotVisible",
+        ],
+      });
+
+      const response = await sqs.send(command);
+      const attrs = response.Attributes || {};
+
+      return {
+        approximateMessages: parseInt(
+          attrs.ApproximateNumberOfMessages || "0",
+          10,
+        ),
+        processingMessages: parseInt(
+          attrs.ApproximateNumberOfMessagesNotVisible || "0",
+          10,
+        ),
+      };
+    } catch (error) {
+      console.error("Failed to get queue stats:", error);
       throw error;
     }
   }

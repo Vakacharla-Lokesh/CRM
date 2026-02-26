@@ -7,6 +7,7 @@ import LeadsPage from "../pages/leadsPage";
 import OrganizationsPage from "../pages/organizationsPage";
 import DealsPage from "../pages/dealsPage";
 import TenantsPage from "../pages/tenantsPage";
+import WorkflowsPage from "../pages/workflowsPage";
 
 // lazy loading components
 import { lazy } from "react";
@@ -70,6 +71,12 @@ export const routeConfig: RouteConfig[] = [
     path: "/tenants/:id",
     element: <UsersPage />,
     allowedRoles: ["super_admin"],
+    unauthorizedFallback: "/dashboard",
+  },
+  {
+    path: "/workflows",
+    element: <WorkflowsPage />,
+    allowedRoles: ["user", "admin"],
     unauthorizedFallback: "/dashboard",
   },
 ];
