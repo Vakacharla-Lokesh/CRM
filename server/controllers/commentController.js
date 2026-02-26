@@ -3,6 +3,8 @@ import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { logActivity } from "../services/leadActivityService.js";
+import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 // Get all comments
 export const getAllComments = asyncCatch(async (req, res) => {
@@ -45,6 +47,15 @@ export const createComment = asyncCatch(async (req, res) => {
 
   // Update lead score after adding comment
   await updateLeadScore(req.body.leadId);
+
+  await logActivity({
+    leadId: req.body.leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.COMMENT_ADDED,
+    description: `Comment "${comment.commentTitle}" was added`,
+    metadata: { commentId: comment._id },
+    userId: req.user.userId,
+  });
 
   res.status(201).json({
     message: "Comment created successfully",
@@ -99,6 +110,15 @@ export const deleteComment = asyncCatch(async (req, res) => {
 
   // Update lead score after deleting comment
   await updateLeadScore(leadId);
+
+  await logActivity({
+    leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.COMMENT_DELETED,
+    description: `Comment "${comment.commentTitle}" was deleted`,
+    metadata: { commentId: req.params.id },
+    userId: req.user.userId,
+  });
 
   res.json({ message: "Comment deleted successfully" });
 });

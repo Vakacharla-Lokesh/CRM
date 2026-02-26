@@ -254,6 +254,78 @@ const emailTemplates = {
       </div>
     `,
   }),
+
+  sendLeadReminderMail: (to, userName, leadName, leadId) => ({
+    from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
+    to,
+    subject: "Your lead is getting stale.",
+    html: `
+  <!DOCTYPE html>
+  <html>
+    <body style="margin:0;padding:0;background-color:#f4f6f8;font-family:Arial,Helvetica,sans-serif;">
+      <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f6f8;padding:20px 0;">
+        <tr>
+          <td align="center">
+            <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+              
+              <!-- Header -->
+              <tr>
+                <td style="background:#111827;padding:24px;text-align:center;">
+                  <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;">
+                    Lead Reminder
+                  </h1>
+                </td>
+              </tr>
+
+              <!-- Body -->
+              <tr>
+                <td style="padding:32px;">
+                  <p style="margin:0 0 16px 0;font-size:16px;color:#111827;">
+                    Hi ${userName},
+                  </p>
+
+                  <p style="margin:0 0 16px 0;font-size:15px;color:#374151;line-height:1.6;">
+                    Just a quick reminder that your lead 
+                    <strong>${leadName}</strong> hasn’t been updated in the last 14 days.
+                  </p>
+
+                  <p style="margin:0 0 24px 0;font-size:15px;color:#374151;line-height:1.6;">
+                    Following up promptly can significantly improve your chances of conversion.
+                    Consider reaching out to keep the momentum going.
+                  </p>
+
+                  <!-- Button -->
+                  <table cellpadding="0" cellspacing="0">
+                    <tr>
+                      <td align="center" style="border-radius:6px;background-color:#2563eb;">
+                        <a href=/leads/${leadId} 
+                           style="display:inline-block;padding:12px 20px;font-size:14px;color:#ffffff;text-decoration:none;font-weight:600;">
+                          View Lead
+                        </a>
+                      </td>
+                    </tr>
+                  </table>
+
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="padding:24px;background:#f9fafb;text-align:center;font-size:12px;color:#6b7280;">
+                  You’re receiving this reminder because the lead is still marked as "New".
+                  <br/><br/>
+                  © ${new Date().getFullYear()} ${FROM_NAME()}
+                </td>
+              </tr>
+
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>
+  `,
+  }),
 };
 
 const emailController = {
@@ -289,6 +361,16 @@ const emailController = {
       html,
       text,
     });
+  },
+
+  sendLeadReminderMail: async ({ _id, to, userName, leadName }) => {
+    const mailOptions = emailTemplates.sendLeadReminderMail(
+      to,
+      userName,
+      leadName,
+      _id,
+    );
+    return await getTransport().sendMail(mailOptions);
   },
 };
 

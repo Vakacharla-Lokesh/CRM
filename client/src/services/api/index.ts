@@ -19,6 +19,7 @@ import { callsAPI } from "./calls.api";
 import { commentsAPI } from "./comments.api";
 import { attachmentsAPI } from "./attachments.api";
 import { exportAPI } from "./export.api";
+import { leadActivitiesAPI } from "./leadActivities.api";
 
 export {
   authAPI,
@@ -33,6 +34,7 @@ export {
   commentsAPI,
   attachmentsAPI,
   exportAPI,
+  leadActivitiesAPI,
 };
 
 export const API = {
@@ -48,6 +50,7 @@ export const API = {
   search: searchAPI,
   analytics: analyticsAPI,
   export: exportAPI,
+  leadActivities: leadActivitiesAPI,
 };
 
 export default API;

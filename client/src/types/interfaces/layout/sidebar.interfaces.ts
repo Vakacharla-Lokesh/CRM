@@ -5,6 +5,7 @@ import {
   DollarSign,
   Building,
   GitBranch,
+  BarChart2,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -71,5 +72,11 @@ export const navItems: NavItem[] = [
     label: "Tenants",
     icon: Building,
     roles: ["super_admin"],
+  },
+  {
+    to: "/analytics",
+    label: "Analytics",
+    icon: BarChart2,
+    roles: ["user", "admin"],
   },
 ];

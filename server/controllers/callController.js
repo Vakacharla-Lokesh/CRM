@@ -3,6 +3,8 @@ import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import { logActivity } from "../services/leadActivityService.js";
+import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 // Get all calls
 export const getAllCalls = asyncCatch(async (req, res) => {
@@ -45,6 +47,15 @@ export const createCall = asyncCatch(async (req, res) => {
 
   // Update lead score after adding call
   await updateLeadScore(req.body.leadId);
+
+  await logActivity({
+    leadId: req.body.leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.CALL_ADDED,
+    description: `${call.callType === "incoming" ? "Incoming" : "Outgoing"} call logged (${call.status})`,
+    metadata: { callId: call._id, callType: call.callType, status: call.status, duration: call.duration },
+    userId: req.user.userId,
+  });
 
   res.status(201).json({
     message: "Call created successfully",
@@ -99,6 +110,15 @@ export const deleteCall = asyncCatch(async (req, res) => {
 
   // Update lead score after deleting call
   await updateLeadScore(leadId);
+
+  await logActivity({
+    leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.CALL_DELETED,
+    description: `${call.callType === "incoming" ? "Incoming" : "Outgoing"} call record was deleted`,
+    metadata: { callId: req.params.id },
+    userId: req.user.userId,
+  });
 
   res.json({ message: "Call deleted successfully" });
 });

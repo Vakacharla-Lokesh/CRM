@@ -9,6 +9,7 @@ export * from "./comments";
 export * from "./attachments";
 export * from "./notifications";
 export * from "./workflows";
+export * from "./leadActivity";
 
 // API Types
 export interface ApiRequestOptions {

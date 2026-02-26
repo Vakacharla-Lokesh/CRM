@@ -8,6 +8,8 @@ import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { s3 } from "../config/awsClient.js";
+import { logActivity } from "../services/leadActivityService.js";
+import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 const S3_BUCKET = "crm-leads";
 const LOCALSTACK_ENDPOINT = "http://localhost:4566";
@@ -114,6 +116,15 @@ export const createAttachment = asyncCatch(async (req, res) => {
 
   await updateLeadScore(leadId);
 
+  await logActivity({
+    leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.ATTACHMENT_ADDED,
+    description: `File "${fileName}" was attached`,
+    metadata: { attachmentId: attachment._id, fileName, fileType, fileSize },
+    userId: req.user.userId,
+  });
+
   res.status(201).json({
     message: "Attachment created successfully",
     attachment: toPublic(attachment),
@@ -143,6 +154,15 @@ export const deleteAttachment = asyncCatch(async (req, res) => {
   await attachmentModel.findByIdAndDelete(req.params.id);
 
   await updateLeadScore(leadId);
+
+  await logActivity({
+    leadId,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.ATTACHMENT_REMOVED,
+    description: `File "${attachment.fileName}" was removed`,
+    metadata: { attachmentId: req.params.id, fileName: attachment.fileName },
+    userId: req.user.userId,
+  });
 
   res.json({ message: "Attachment deleted successfully" });
 });
