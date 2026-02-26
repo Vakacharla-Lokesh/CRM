@@ -16,61 +16,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type {
-  Widget,
   WidgetType,
   WidgetEntity,
   WidgetMetric,
   GroupByField,
 } from "@/services/api/";
 
-interface ChartConfigModalProps {
-  open: boolean;
-  onClose: () => void;
-  onSave: (widget: Omit<Widget, "_id" | "data" | "createdAt">) => void;
-  initialWidget?: Partial<Widget>;
-}
+import type { ChartConfigModalProps } from "@/types/constants/analytics/analyticsChartTypes";
 
-const CHART_TYPES: { value: WidgetType; label: string }[] = [
-  { value: "bar", label: "Bar Chart" },
-  { value: "line", label: "Line Chart" },
-  { value: "area", label: "Area Chart" },
-  { value: "pie", label: "Pie Chart" },
-  { value: "number", label: "Number Card" },
-  { value: "table", label: "Table" },
-];
-
-const ENTITIES: { value: WidgetEntity; label: string }[] = [
-  { value: "leads", label: "Leads" },
-  { value: "deals", label: "Deals" },
-  { value: "organizations", label: "Organizations" },
-];
-
-const METRICS: { value: WidgetMetric; label: string }[] = [
-  { value: "count", label: "Count" },
-  { value: "sum", label: "Sum" },
-  { value: "avg", label: "Average" },
-];
-
-const GROUP_BY_OPTIONS: Record<
-  WidgetEntity,
-  { value: GroupByField; label: string }[]
-> = {
-  leads: [
-    { value: "leadStatus", label: "Lead Status" },
-    { value: "leadSource", label: "Lead Source" },
-    { value: "createdAt", label: "Created Month" },
-  ],
-  deals: [
-    { value: "dealStatus", label: "Deal Status" },
-    { value: "createdAt", label: "Created Month" },
-  ],
-  organizations: [
-    { value: "organizationIndustry", label: "Industry" },
-    { value: "createdAt", label: "Created Month" },
-  ],
-};
-
-const DEFAULT_POSITION = { x: 0, y: Infinity, w: 6, h: 3 };
+import {
+  CHART_TYPES,
+  ENTITIES,
+  METRICS,
+  GROUP_BY_OPTIONS,
+  DEFAULT_POSITION,
+} from "@/types/constants/analytics/analyticsChartTypes";
 
 function ChartConfigModal({
   open,

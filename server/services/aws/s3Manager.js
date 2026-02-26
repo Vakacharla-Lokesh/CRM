@@ -19,10 +19,20 @@ function buildS3Url(bucket, key) {
 
 // ─── S3 Operations ────────────────────────────────────────────────────────────
 
-async function uploadFile(bucket, key, data, contentType = "application/octet-stream") {
+async function uploadFile(
+  bucket,
+  key,
+  data,
+  contentType = "application/octet-stream",
+) {
   try {
     await s3.send(
-      new PutObjectCommand({ Bucket: bucket, Key: key, Body: data, ContentType: contentType }),
+      new PutObjectCommand({
+        Bucket: bucket,
+        Key: key,
+        Body: data,
+        ContentType: contentType,
+      }),
     );
     const url = buildS3Url(bucket, key);
     console.log(`[S3] Uploaded: ${url}`);
@@ -38,7 +48,12 @@ async function uploadString(bucket, key, content, contentType = "text/plain") {
 }
 
 async function uploadJSON(bucket, key, data) {
-  return uploadString(bucket, key, JSON.stringify(data, null, 2), "application/json");
+  return uploadString(
+    bucket,
+    key,
+    JSON.stringify(data, null, 2),
+    "application/json",
+  );
 }
 
 async function downloadFile(bucket, key, fileName) {
@@ -48,7 +63,9 @@ async function downloadFile(bucket, key, fileName) {
       Key: key,
       ResponseContentDisposition: `attachment; filename="${fileName}"`,
     });
-    const url = await getSignedUrl(s3, command, { expiresIn: SIGNED_URL_EXPIRY_SECONDS });
+    const url = await getSignedUrl(s3, command, {
+      expiresIn: SIGNED_URL_EXPIRY_SECONDS,
+    });
     console.log(`[S3] Generated download URL for: ${key}`);
     return { url, fileName };
   } catch (error) {
@@ -74,7 +91,9 @@ async function getPresignedUploadUrl(bucket, key, fileSize) {
       Key: key,
       ContentLength: fileSize,
     });
-    const url = await getSignedUrl(s3, command, { expiresIn: SIGNED_URL_EXPIRY_SECONDS });
+    const url = await getSignedUrl(s3, command, {
+      expiresIn: SIGNED_URL_EXPIRY_SECONDS,
+    });
     console.log(`[S3] Generated presigned upload URL for: ${key}`);
     return url;
   } catch (error) {
@@ -105,6 +124,7 @@ export const s3Manager = {
   getPresignedUploadUrl,
   archiveLogs,
   getBucket: () => BUCKETS.workflows,
+  buildS3Url,
 };
 
 export default s3Manager;
