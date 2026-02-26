@@ -13,6 +13,7 @@ import {
   updateLeadScoreManually,
   searchLeads,
 } from "../controllers/leadController.js";
+import { getLeadActivities } from "../controllers/leadActivityController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
 import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
@@ -55,6 +56,13 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   searchLeads,
+);
+
+router.get(
+  "/:id/activities",
+  authenticate,
+  authorize("user", "admin", "super_admin"),
+  getLeadActivities,
 );
 
 router.get(

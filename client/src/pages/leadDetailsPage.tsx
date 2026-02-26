@@ -9,6 +9,7 @@ import EditLeadTab from "@/components/leads/tabs/editLeadTab";
 import CommentsTab from "@/components/leads/tabs/commentsTab";
 import CallsTab from "@/components/leads/tabs/callsTab";
 import AttachmentsTab from "@/components/leads/tabs/attachmentsTab";
+import { LeadActivityTimeline } from "@/components/leads/tabs/activityTab";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { toast } from "sonner";
 
@@ -26,6 +27,7 @@ const tabs = [
   { value: "comments", label: "Comments" },
   { value: "calls", label: "Calls" },
   { value: "attachments", label: "Attachments" },
+  { value: "activity", label: "Activity" },
 ] as const;
 
 function LeadDetailsPage() {
@@ -246,6 +248,16 @@ function LeadDetailsPage() {
             className="p-6 mt-0"
           >
             <AttachmentsTab leadId={lead._id} />
+          </TabsContent>
+
+          <TabsContent
+            value="activity"
+            className="p-6 mt-0"
+          >
+            <LeadActivityTimeline
+              leadId={lead._id}
+              enabled={activeTab === "activity"}
+            />
           </TabsContent>
         </Tabs>
       </div>

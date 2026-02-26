@@ -13,6 +13,8 @@ export { useCommentData } from "./useCommentData.ts";
 export { useAttachmentData } from "./useAttachmentData.ts";
 export { useDashboardStats } from "./useDashboardStats.ts";
 export { useAnalyticsData } from "./useAnalyticsData.ts";
+export { useLeadActivityData } from "./useLeadActivityData.ts";
+export { useUserAnalyticsData } from "./useUserAnalyticsData.ts";
 
 export { useWorkflowData } from "./useWorkflowData";
 

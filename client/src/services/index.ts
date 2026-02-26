@@ -26,6 +26,7 @@ export {
   callsAPI,
   commentsAPI,
   attachmentsAPI,
+  leadActivitiesAPI,
 } from "./api";
 
 export { workflowsAPI } from "./api/workflows.api";

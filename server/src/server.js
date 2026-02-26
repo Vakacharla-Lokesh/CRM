@@ -21,6 +21,7 @@ import analyticsRoutes from "../routes/analyticsRoutes.js";
 import bulkRoutes from "../routes/bulkRoutes.js";
 import exportRoutes from "../routes/exportRoutes.js";
 import workflowRoutes from "../routes/workflowRoutes.js";
+import userAnalyticsRoutes from "../routes/userAnalyticsRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "../middlewares/errorHandler.js";
@@ -84,6 +85,7 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/bulk", bulkRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/workflows", workflowRoutes);
+app.use("/api/user-analytics", userAnalyticsRoutes);
 
 // unknown route handler
 app.use(notFound);

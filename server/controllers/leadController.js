@@ -3,6 +3,8 @@ import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
+import { logActivity } from "../services/leadActivityService.js";
+import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
@@ -73,6 +75,14 @@ export const createLead = asyncCatch(async (req, res) => {
 
   await fireWorkflowTrigger(req, "lead", "create", updatedLead._id, updatedLead.toObject());
 
+  await logActivity({
+    leadId: lead._id,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.CREATED,
+    description: `Lead "${lead.leadFirstName} ${lead.leadLastName || ""}" was created`,
+    userId: req.user.userId,
+  });
+
   res.status(201).json({
     message: "Lead created successfully",
     lead: updatedLead,
@@ -104,6 +114,15 @@ export const updateLead = asyncCatch(async (req, res) => {
   const leadWithScore = await leadModel.findById(req.params.id);
 
   await fireWorkflowTrigger(req, "lead", "update", leadWithScore._id, leadWithScore.toObject());
+
+  await logActivity({
+    leadId: req.params.id,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.UPDATED,
+    description: `Lead "${leadWithScore.leadFirstName} ${leadWithScore.leadLastName || ""}" was updated`,
+    metadata: { changes: Object.keys(req.body) },
+    userId: req.user.userId,
+  });
 
   res.json({
     message: "Lead updated successfully",
@@ -180,6 +199,7 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
 
+  const previousStatus = lead.leadStatus;
   lead.leadStatus = leadStatus;
   await lead.save();
 
@@ -190,6 +210,15 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
   const updatedLead = await leadModel.findById(req.params.id);
 
   await fireWorkflowTrigger(req, "lead", "update", updatedLead._id, updatedLead.toObject());
+
+  await logActivity({
+    leadId: req.params.id,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.STATUS_CHANGED,
+    description: `Lead status changed from "${previousStatus}" to "${leadStatus}"`,
+    metadata: { from: previousStatus, to: leadStatus },
+    userId: req.user.userId,
+  });
 
   res.json({
     message: "Lead status updated successfully",
@@ -250,6 +279,15 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
   await lead.save();
 
   await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
+
+  await logActivity({
+    leadId: lead._id,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.CONVERTED_TO_DEAL,
+    description: `Lead "${lead.leadFirstName} ${lead.leadLastName || ""}" was converted to a deal`,
+    metadata: { dealId: deal._id },
+    userId: req.user.userId,
+  });
 
   res.status(201).json({
     message: "Lead converted to deal successfully",
