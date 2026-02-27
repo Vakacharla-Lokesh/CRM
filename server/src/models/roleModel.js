@@ -70,8 +70,6 @@ roleSchema.pre("save", async function (next) {
   if (invalidPermissions.length > 0) {
     throw new Error(`Invalid permissions: ${invalidPermissions.join(", ")}`);
   }
-
-  next();
 });
 
 // Static method: find by name and tenant

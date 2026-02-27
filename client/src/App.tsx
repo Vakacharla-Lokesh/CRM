@@ -9,6 +9,7 @@ import { AppRouter } from "./router/router";
 
 // Context and hooks
 import { AppProvider } from "./context";
+import { useAuth } from "@/hooks";
 import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
 import { NotificationProvider } from "./context/notificationContext";
@@ -30,15 +31,14 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 function AppRoutes() {
-  const { isAuthenticated, loading } = useAppContext();
+  const { isLoggedIn } = useAuth();
+  const { loading } = useAppContext();
 
+  // Show loading spinner while the initial auth state is being restored
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
-        </div>
+      <div className="flex h-screen items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -53,7 +53,7 @@ function AppRoutes() {
         <Route
           path="/login"
           element={
-            !isAuthenticated ? (
+            !isLoggedIn() ? (
               <LoginPage />
             ) : (
               <Navigate
@@ -66,7 +66,7 @@ function AppRoutes() {
         <Route
           path="/signup"
           element={
-            !isAuthenticated ? (
+            !isLoggedIn() ? (
               <SignupPage />
             ) : (
               <Navigate
@@ -82,7 +82,7 @@ function AppRoutes() {
         />
 
         {/* Authenticated routes – delegated to AppRouter */}
-        {isAuthenticated ? (
+        {isLoggedIn() ? (
           <Route
             path="/*"
             element={

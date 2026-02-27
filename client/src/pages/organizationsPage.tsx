@@ -27,7 +27,7 @@ import type {
   Organization,
   UpdateOrganizationDTO,
 } from "@/types";
-import { Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { useDebounce, useOrganizationData } from "@/hooks";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import { exportOrganizations } from "@/services/exportService";

@@ -72,6 +72,7 @@ passport.use(
         return done(null, {
           userId: user._id,
           role: user.role,
+          roleId: user.roleId?.toString() ?? jwtPayload.roleId ?? null,
           tenantId: jwtPayload.tenantId,
         });
       } catch (err) {
