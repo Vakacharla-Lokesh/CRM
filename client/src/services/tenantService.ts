@@ -34,6 +34,17 @@ class TenantService {
     return response.tenant;
   }
 
+  async searchTenants(params: {
+    q: string;
+    isActive?: boolean;
+    limit?: number;
+  }): Promise<{ tenants: Tenant[]; count: number }> {
+    return apiClient.get<{ tenants: Tenant[]; count: number }>(
+      "/tenants/search",
+      params,
+    );
+  }
+
   async createTenant(data: CreateTenantDto): Promise<Tenant> {
     const response = await apiClient.post<{ tenant: Tenant; message: string }>(
       "/tenants",

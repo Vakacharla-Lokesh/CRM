@@ -5,12 +5,18 @@ import {
 } from "@aws-sdk/client-s3";
 
 import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
+import {
+  CreateTableCommand,
+  DescribeTableCommand,
+} from "@aws-sdk/client-dynamodb";
 
-import { s3, sqs } from "./awsClient.js";
-
-// ─── Constants ────────────────────────────────────────────────────────────────
+import { s3, sqs, dynamoDb } from "./awsClient.js";
 
 const REGION = process.env.AWS_REGION || "us-east-1";
+
+const TABLES = {
+  jobs: "jobs",
+};
 
 const BUCKETS = {
   leads: "crm-leads",
@@ -22,18 +28,12 @@ const QUEUES = {
   exportData: "crm-export-data",
 };
 
-// ─── Resolved Queue URLs (populated after init) ───────────────────────────────
-
 export const queueUrls = {
   offlineWrites: null,
   exportData: null,
 };
 
-// ─── Idempotency guard ────────────────────────────────────────────────────────
-
 let _initPromise = null;
-
-// ─── Internal helpers ─────────────────────────────────────────────────────────
 
 async function ensureBucket(bucketName) {
   try {
@@ -45,7 +45,6 @@ async function ensureBucket(bucketName) {
 
       const params = { Bucket: bucketName };
 
-      // Required for non us-east-1 regions in real AWS
       if (REGION !== "us-east-1") {
         params.CreateBucketConfiguration = { LocationConstraint: REGION };
       }
@@ -65,7 +64,6 @@ async function applyCors(bucketName) {
     .map((o) => o.trim())
     .filter(Boolean);
 
-  // Always include localhost defaults for development
   const origins = allowedOrigins.length
     ? allowedOrigins
     : ["http://localhost:5173", "http://localhost:3000"];
@@ -114,12 +112,36 @@ async function ensureQueue(queueName) {
   }
 }
 
-// ─── Public API ───────────────────────────────────────────────────────────────
+async function ensureDynamoTable(tableName) {
+  try {
+    await dynamoDb.send(new DescribeTableCommand({ TableName: tableName }));
+    console.log(`[AWS] DynamoDB table already exists: ${tableName}`);
+  } catch (err) {
+    if (err.name === "ResourceNotFoundException") {
+      console.log(`[AWS] Creating DynamoDB table: ${tableName}`);
 
-/**
- * Initializes all AWS/LocalStack resources exactly once per process.
- * Safe to call from multiple places — subsequent calls return the same promise.
- */
+      const params = {
+        TableName: tableName,
+        AttributeDefinitions: [
+          { AttributeName: "jobId", AttributeType: "S" },
+          { AttributeName: "tenantId", AttributeType: "S" },
+        ],
+        KeySchema: [
+          { AttributeName: "jobId", KeyType: "HASH" },
+          { AttributeName: "tenantId", KeyType: "RANGE" },
+        ],
+        BillingMode: "PAY_PER_REQUEST",
+      };
+
+      await dynamoDb.send(new CreateTableCommand(params));
+      console.log(`[AWS] DynamoDB table created: ${tableName}`);
+    } else {
+      console.error(`[AWS] Error checking DynamoDB table ${tableName}:`, err);
+      throw err;
+    }
+  }
+}
+
 export async function ensureAwsInitialized() {
   if (_initPromise) return _initPromise;
 
@@ -137,10 +159,13 @@ export async function ensureAwsInitialized() {
     queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites);
     queueUrls.exportData = await ensureQueue(QUEUES.exportData);
 
+    // DynamoDB Table
+    await ensureDynamoTable(TABLES.jobs);
+
     console.log("[AWS] All resources ready.");
   })();
 
   return _initPromise;
 }
 
-export { BUCKETS, QUEUES };
+export { BUCKETS, QUEUES, TABLES };

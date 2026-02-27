@@ -33,6 +33,9 @@ export const useTenantData = () => {
     dateTo: "",
   });
 
+  const [isSearchMode, setIsSearchMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+
   const {
     data: queryData,
     isLoading: loading,
@@ -71,6 +74,20 @@ export const useTenantData = () => {
 
   const error = queryError instanceof Error ? queryError : null;
 
+  const { data: searchData, isLoading: searchLoading } = useQuery({
+    queryKey: ["tenants", "search", searchQuery],
+    queryFn: async () => {
+      if (!searchQuery.trim()) return { tenants: [], count: 0 };
+      const result = await tenantService.searchTenants({
+        q: searchQuery.trim(),
+        limit: 25,
+      });
+      return result;
+    },
+    enabled: isSearchMode && searchQuery.trim().length > 0,
+    staleTime: 30_000,
+  });
+
   const statistics: TenantStatistics = useMemo(
     () => ({
       total: allTenants.length,
@@ -79,6 +96,10 @@ export const useTenantData = () => {
   );
 
   const filteredTenants = useMemo(() => {
+    if (isSearchMode) {
+      return searchData?.tenants || [];
+    }
+
     return allTenants.filter((tenant) => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
@@ -108,7 +129,7 @@ export const useTenantData = () => {
 
       return true;
     });
-  }, [allTenants, filters]);
+  }, [allTenants, filters, isSearchMode, searchData]);
 
   const loadMore = useCallback(async () => {
     if (!hasNextPage || loadingMore || !nextCursor) return;
@@ -204,7 +225,25 @@ export const useTenantData = () => {
 
   const clearFilters = useCallback(() => {
     setFilters({ search: "", dateFrom: "", dateTo: "" });
+    setIsSearchMode(false);
+    setSearchQuery("");
   }, []);
+
+  const searchTenants = useCallback(
+    async (query: string, currentFilters?: TenantFilters) => {
+      if (!query || query.trim() === "") {
+        setIsSearchMode(false);
+        setSearchQuery("");
+        return;
+      }
+      if (currentFilters) {
+        setFilters((prev) => ({ ...prev, ...currentFilters }));
+      }
+      setIsSearchMode(true);
+      setSearchQuery(query);
+    },
+    [],
+  );
 
   const refresh = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ["tenants"] });
@@ -224,6 +263,11 @@ export const useTenantData = () => {
     filters,
     updateFilter,
     clearFilters,
+
+    // Search
+    searchTenants,
+    isSearchMode,
+    searchLoading,
 
     // CRUD
     createTenant,

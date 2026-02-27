@@ -9,7 +9,7 @@ import organizationModel from "../models/organizationModel.js";
 
 // Bulk create leads using MongoDB insertMany with transaction
 export const bulkCreateLeads = asyncCatch(async (req, res) => {
-  const { leads } = req.body;
+  const leads = req.body.operations || req.body.leads;
 
   if (!Array.isArray(leads) || leads.length === 0) {
     throw new AppError("Invalid leads array", 400);
@@ -49,7 +49,7 @@ export const bulkCreateLeads = asyncCatch(async (req, res) => {
 
 // Bulk update leads using MongoDB bulkWrite with transaction
 export const bulkUpdateLeads = asyncCatch(async (req, res) => {
-  const { updates } = req.body;
+  const updates = req.body.operations || req.body.updates;
 
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);
@@ -93,7 +93,7 @@ export const bulkUpdateLeads = asyncCatch(async (req, res) => {
 
 // Bulk create deals using MongoDB insertMany with transaction
 export const bulkCreateDeals = asyncCatch(async (req, res) => {
-  const { deals } = req.body;
+  const deals = req.body.operations || req.body.deals;
 
   if (!Array.isArray(deals) || deals.length === 0) {
     throw new AppError("Invalid deals array", 400);
@@ -133,7 +133,7 @@ export const bulkCreateDeals = asyncCatch(async (req, res) => {
 
 // Bulk update deals using MongoDB bulkWrite with transaction
 export const bulkUpdateDeals = asyncCatch(async (req, res) => {
-  const { updates } = req.body;
+  const updates = req.body.operations || req.body.updates;
 
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);
@@ -177,7 +177,7 @@ export const bulkUpdateDeals = asyncCatch(async (req, res) => {
 
 // Bulk create comments using MongoDB insertMany with transaction
 export const bulkCreateComments = asyncCatch(async (req, res) => {
-  const { comments } = req.body;
+  const comments = req.body.operations || req.body.comments;
 
   if (!Array.isArray(comments) || comments.length === 0) {
     throw new AppError("Invalid comments array", 400);
@@ -211,7 +211,7 @@ export const bulkCreateComments = asyncCatch(async (req, res) => {
 
 // Bulk create calls using MongoDB insertMany with transaction
 export const bulkCreateCalls = asyncCatch(async (req, res) => {
-  const { calls } = req.body;
+  const calls = req.body.operations || req.body.calls;
 
   if (!Array.isArray(calls) || calls.length === 0) {
     throw new AppError("Invalid calls array", 400);
@@ -245,7 +245,7 @@ export const bulkCreateCalls = asyncCatch(async (req, res) => {
 
 // Bulk create organizations using MongoDB insertMany with transaction
 export const bulkCreateOrganizations = asyncCatch(async (req, res) => {
-  const { organizations } = req.body;
+  const organizations = req.body.operations || req.body.organizations;
 
   if (!Array.isArray(organizations) || organizations.length === 0) {
     throw new AppError("Invalid organizations array", 400);
@@ -285,7 +285,7 @@ export const bulkCreateOrganizations = asyncCatch(async (req, res) => {
 
 // Bulk update organizations using MongoDB bulkWrite with transaction
 export const bulkUpdateOrganizations = asyncCatch(async (req, res) => {
-  const { updates } = req.body;
+  const updates = req.body.operations || req.body.updates;
 
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);

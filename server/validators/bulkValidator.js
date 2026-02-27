@@ -47,10 +47,14 @@ const bulkLeadItemSchema = z.object({
 
 export const bulkCreateLeadsSchema = z
   .object({
-    leads: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkLeadItemSchema)
-      .min(1, "At least one lead is required")
-      .max(MAX_BULK_SIZE, `Cannot bulk-create more than ${MAX_BULK_SIZE} leads`),
+      .min(1, "At least one operation is required")
+      .max(
+        MAX_BULK_SIZE,
+        `Cannot bulk-create more than ${MAX_BULK_SIZE} items`,
+      ),
   })
   .strict();
 
@@ -66,10 +70,14 @@ const bulkLeadUpdateItemSchema = z.object({
 
 export const bulkUpdateLeadsSchema = z
   .object({
-    updates: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkLeadUpdateItemSchema)
-      .min(1, "At least one update is required")
-      .max(MAX_BULK_SIZE, `Cannot bulk-update more than ${MAX_BULK_SIZE} leads`),
+      .min(1, "At least one operation is required")
+      .max(
+        MAX_BULK_SIZE,
+        `Cannot bulk-update more than ${MAX_BULK_SIZE} items`,
+      ),
   })
   .strict();
 
@@ -87,10 +95,14 @@ const bulkDealItemSchema = z.object({
 
 export const bulkCreateDealsSchema = z
   .object({
-    deals: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkDealItemSchema)
-      .min(1, "At least one deal is required")
-      .max(MAX_BULK_SIZE, `Cannot bulk-create more than ${MAX_BULK_SIZE} deals`),
+      .min(1, "At least one operation is required")
+      .max(
+        MAX_BULK_SIZE,
+        `Cannot bulk-create more than ${MAX_BULK_SIZE} items`,
+      ),
   })
   .strict();
 
@@ -103,10 +115,14 @@ const bulkDealUpdateItemSchema = z.object({
 
 export const bulkUpdateDealsSchema = z
   .object({
-    updates: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkDealUpdateItemSchema)
-      .min(1, "At least one update is required")
-      .max(MAX_BULK_SIZE, `Cannot bulk-update more than ${MAX_BULK_SIZE} deals`),
+      .min(1, "At least one operation is required")
+      .max(
+        MAX_BULK_SIZE,
+        `Cannot bulk-update more than ${MAX_BULK_SIZE} items`,
+      ),
   })
   .strict();
 
@@ -120,12 +136,13 @@ const bulkCommentItemSchema = z.object({
 
 export const bulkCreateCommentsSchema = z
   .object({
-    comments: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkCommentItemSchema)
-      .min(1, "At least one comment is required")
+      .min(1, "At least one operation is required")
       .max(
         MAX_BULK_SIZE,
-        `Cannot bulk-create more than ${MAX_BULK_SIZE} comments`,
+        `Cannot bulk-create more than ${MAX_BULK_SIZE} items`,
       ),
   })
   .strict();
@@ -142,10 +159,14 @@ const bulkCallItemSchema = z.object({
 
 export const bulkCreateCallsSchema = z
   .object({
-    calls: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkCallItemSchema)
-      .min(1, "At least one call is required")
-      .max(MAX_BULK_SIZE, `Cannot bulk-create more than ${MAX_BULK_SIZE} calls`),
+      .min(1, "At least one operation is required")
+      .max(
+        MAX_BULK_SIZE,
+        `Cannot bulk-create more than ${MAX_BULK_SIZE} items`,
+      ),
   })
   .strict();
 
@@ -162,12 +183,13 @@ const bulkOrganizationItemSchema = z.object({
 
 export const bulkCreateOrganizationsSchema = z
   .object({
-    organizations: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkOrganizationItemSchema)
-      .min(1, "At least one organization is required")
+      .min(1, "At least one operation is required")
       .max(
         MAX_BULK_SIZE,
-        `Cannot bulk-create more than ${MAX_BULK_SIZE} organizations`,
+        `Cannot bulk-create more than ${MAX_BULK_SIZE} items`,
       ),
   })
   .strict();
@@ -182,12 +204,13 @@ const bulkOrganizationUpdateItemSchema = z.object({
 
 export const bulkUpdateOrganizationsSchema = z
   .object({
-    updates: z
+    tenantId: z.string().optional(),
+    operations: z
       .array(bulkOrganizationUpdateItemSchema)
-      .min(1, "At least one update is required")
+      .min(1, "At least one operation is required")
       .max(
         MAX_BULK_SIZE,
-        `Cannot bulk-update more than ${MAX_BULK_SIZE} organizations`,
+        `Cannot bulk-update more than ${MAX_BULK_SIZE} items`,
       ),
   })
   .strict();
