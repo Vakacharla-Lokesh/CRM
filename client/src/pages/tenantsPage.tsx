@@ -1,6 +1,6 @@
 // hooks and basic imports
-import { useState } from "react";
-import { useTenantData } from "@/hooks";
+import { useState, useEffect } from "react";
+import { useDebounce, useTenantData } from "@/hooks";
 import { useOffline } from "@/context/useOffline";
 import { useNavigate } from "react-router-dom";
 
@@ -29,8 +29,10 @@ const TenantsPage = () => {
     loadingMore,
     error,
     filters,
-    updateFilter,
     clearFilters,
+    searchTenants,
+    isSearchMode,
+    searchLoading,
     createTenant,
     updateTenant,
     deleteTenant,
@@ -57,6 +59,22 @@ const TenantsPage = () => {
 
   // notifications
   const { notifyEvent } = useNotifications();
+
+  // search state
+  const [searchInput, setSearchInput] = useState(filters.search ?? "");
+  const debouncedSearch = useDebounce(searchInput, 400);
+
+  useEffect(() => {
+    searchTenants(debouncedSearch, filters);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
+
+  useEffect(() => {
+    if (isSearchMode && debouncedSearch) {
+      searchTenants(debouncedSearch, filters);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.dateFrom, filters.dateTo]);
 
   // handle save tenant for both create and update
   const handleSaveTenant = async (tenantData: CreateTenantDto) => {
@@ -170,19 +188,26 @@ const TenantsPage = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              {searchLoading ? (
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              )}
               <Input
                 placeholder="Search tenants by name, email, or mobile..."
-                value={filters.search}
-                onChange={(e) => updateFilter("search", e.target.value)}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="pl-10"
               />
             </div>
           </div>
           <Button
             variant="outline"
-            onClick={clearFilters}
-            disabled={!filters.search && !filters.dateFrom && !filters.dateTo}
+            onClick={() => {
+              clearFilters();
+              setSearchInput("");
+            }}
+            disabled={!searchInput && !filters.dateFrom && !filters.dateTo}
           >
             Clear Filters
           </Button>

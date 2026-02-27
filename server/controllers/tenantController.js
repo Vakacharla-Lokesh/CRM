@@ -89,11 +89,10 @@ export const createTenant = asyncCatch(async (req, res) => {
 
 // Update tenant
 export const updateTenant = asyncCatch(async (req, res) => {
-  const tenant = await tenantModel.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true },
-  );
+  const tenant = await tenantModel.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+    runValidators: true,
+  });
 
   if (!tenant) throw new AppError("Tenant not found", 404);
 
@@ -146,4 +145,83 @@ export const deleteTenant = asyncCatch(async (req, res) => {
     session.endSession();
     throw err;
   }
+});
+
+// search tenants
+export const searchTenants = asyncCatch(async (req, res) => {
+  const tenantFilter = req.tenantFilter || {};
+  const { q, isActive, limit = 25 } = req.query;
+
+  if (!q || q.trim() === "") {
+    throw new AppError("Search query 'q' is required", 400);
+  }
+
+  const parsedLimit = Math.min(parseInt(limit) || 25, 25);
+
+  const pipeline = [
+    {
+      $search: {
+        index: "tenant_search",
+        compound: {
+          must: [
+            {
+              text: {
+                query: q.trim(),
+                path: ["tenantName", "email"],
+                fuzzy: {
+                  maxEdits: 1,
+                  prefixLength: 2,
+                },
+              },
+            },
+          ],
+          filter: [],
+        },
+      },
+    },
+  ];
+
+  // Apply tenant-level filtering (multi-tenant safety)
+  if (Object.keys(tenantFilter).length > 0) {
+    pipeline[0].$search.compound.filter.push({
+      equals: {
+        path: Object.keys(tenantFilter)[0],
+        value: Object.values(tenantFilter)[0],
+      },
+    });
+  }
+
+  // Optional active filter
+  if (typeof isActive !== "undefined") {
+    pipeline[0].$search.compound.filter.push({
+      equals: {
+        path: "isActive",
+        value: isActive === "true",
+      },
+    });
+  }
+
+  pipeline.push(
+    {
+      $limit: parsedLimit,
+    },
+    {
+      $project: {
+        tenantName: 1,
+        email: 1,
+        mobile: 1,
+        isActive: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        score: { $meta: "searchScore" },
+      },
+    },
+  );
+
+  const tenants = await tenantModel.aggregate(pipeline);
+
+  res.json({
+    count: tenants.length,
+    tenants,
+  });
 });

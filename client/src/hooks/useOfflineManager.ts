@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
-import { API_BASE_URL, getToken } from "../services/api/core";
+import { processBatches } from "../offline/batchProcessor";
 
-interface OfflineRequest {
+export interface OfflineRequest {
   id: string;
   url: string;
   method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
@@ -44,7 +44,7 @@ export const useOfflineManager = () => {
   const [isOfflineModeEnabled, setIsOfflineModeEnabled] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const queueRef = useRef<Map<string, OfflineRequest>>(new Map());
-  const syncIntervalRef = useRef<number | null>(null);
+  const isSyncInProgress = useRef(false);
 
   // IndexedDB helper functions
   const openDB = useCallback((): Promise<IDBDatabase> => {
@@ -200,10 +200,11 @@ export const useOfflineManager = () => {
   }, [clearIndexedDB]);
 
   const syncQueue = useCallback(async (): Promise<SyncResult> => {
-    if (!isOnline || isSyncing || queue.length === 0) {
+    if (!isOnline || isSyncInProgress.current || queue.length === 0) {
       return { succeeded: 0, failed: 0, errors: [] };
     }
 
+    isSyncInProgress.current = true;
     setIsSyncing(true);
 
     const result: SyncResult = {
@@ -213,78 +214,29 @@ export const useOfflineManager = () => {
     };
 
     try {
-      const grouped = queue.reduce(
-        (acc, request) => {
-          const key = `${request.entityType}-${request.operationType}`;
-          if (!acc[key]) {
-            acc[key] = [];
-          }
-          acc[key].push(request);
-          return acc;
-        },
-        {} as Record<string, OfflineRequest[]>,
-      );
+      const batchResult = await processBatches(queue);
+      const processedCount = batchResult.processedCount;
 
-      for (const [key, requests] of Object.entries(grouped)) {
-        const [entityType, operationType] = key.split("-") as [
-          OfflineRequest["entityType"],
-          OfflineRequest["operationType"],
-        ];
+      const processedRequests = queue.slice(0, processedCount);
+      processedRequests.forEach((req) => {
+        removeFromQueue(req.id);
+      });
 
-        try {
-          const payload = requests.map((req) => req.body);
+      result.succeeded = processedCount;
 
-          const bulkEndpoint = `${API_BASE_URL}/bulk/${entityType}/${operationType}`;
-
-          const token = getToken();
-
-          const response = await fetch(bulkEndpoint, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              ...(token && { Authorization: `Bearer ${token}` }),
-            },
-            body: JSON.stringify(
-              operationType === "create"
-                ? { [entityType]: payload }
-                : { updates: payload },
-            ),
-          });
-
-          if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-          }
-
-          const data = await response.json();
-
-          requests.forEach((req) => {
-            removeFromQueue(req.id);
-          });
-
-          result.succeeded += data.created || data.updated || requests.length;
-        } catch (error) {
-          console.error(`Failed to sync ${key}:`, error);
-
-          requests.forEach((req) => {
-            if (req.retries < req.maxRetries) {
-              retryRequest(req.id);
-            } else {
-              // Max retries exhausted — remove from queue to stop spamming
-              removeFromQueue(req.id);
-              result.failed += 1;
-              result.errors.push({
-                entityType,
-                error: error instanceof Error ? error.message : "Unknown error",
-              });
-            }
-          });
-        }
+      if (batchResult.failedBatchIndex !== null) {
+        result.failed = queue.length - processedCount;
+        result.errors.push({
+          entityType: queue[processedCount]?.entityType || "unknown",
+          error: "Batch permanently failed",
+        });
       }
 
       setLastSyncTime(new Date());
-      setIsSyncing(false);
     } catch (error) {
-      console.log("Sync error:", error);
+      console.error("Sync error:", error);
+    } finally {
+      isSyncInProgress.current = false;
       setIsSyncing(false);
     }
 
@@ -296,7 +248,7 @@ export const useOfflineManager = () => {
     }
 
     return result;
-  }, [queue, isOnline, isSyncing, removeFromQueue, retryRequest]);
+  }, [queue, isOnline, isSyncing, removeFromQueue]);
 
   const getStats = useCallback((): QueueStats => {
     const failed = queue.filter((r) => r.retries >= r.maxRetries).length;
@@ -351,35 +303,10 @@ export const useOfflineManager = () => {
     };
   }, [syncQueue]);
 
-  // Auto-sync when online and queue has items
+  // Remount without auto-polling as per user instructions
   useEffect(() => {
-    if (!isOnline || queue.length === 0) {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-      return;
-    }
-
-    // Initial sync
-    syncQueue().catch((err) => {
-      console.error("Error syncing queue:", err);
-    });
-
-    // Poll every 30 seconds while online and queue has items
-    syncIntervalRef.current = setInterval(() => {
-      syncQueue().catch((err) => {
-        console.error("Error syncing queue:", err);
-      });
-    }, 30000);
-
-    return () => {
-      if (syncIntervalRef.current) {
-        clearInterval(syncIntervalRef.current);
-        syncIntervalRef.current = null;
-      }
-    };
-  }, [isOnline, queue.length, syncQueue]);
+    // Left intentionally blank - wait for connectivity events only
+  }, []);
 
   return {
     // State
