@@ -4,6 +4,7 @@ import type {
   AppNotification,
   NotifyEventPayload,
 } from "@/types/notifications";
+import NotificationSound from "@/components/common/notificationSounds";
 
 function generateId(): string {
   return `notif_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
@@ -13,6 +14,7 @@ const MAX_NOTIFICATIONS = 10;
 
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [soundTrigger, setSoundTrigger] = useState(false);
 
   const notifyEvent = useCallback((payload: NotifyEventPayload) => {
     const notification: AppNotification = {
@@ -31,6 +33,9 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       const updated = [notification, ...prev];
       return updated.slice(0, MAX_NOTIFICATIONS);
     });
+
+    // Trigger notification sound
+    setSoundTrigger((prev) => !prev);
   }, []);
 
   const markAsRead = useCallback((id: string) => {
@@ -66,6 +71,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
       }}
     >
       {children}
+      <NotificationSound trigger={soundTrigger} />
     </NotificationContext.Provider>
   );
 }
