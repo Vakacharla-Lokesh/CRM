@@ -1,4 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
+import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
+import { persistQueryClient } from "@tanstack/react-query-persist-client";
 
 // Configure TanStack Query with offline support
 export const queryClient = new QueryClient({
@@ -34,7 +36,22 @@ export const queryClient = new QueryClient({
     },
   },
 });
+const localStoragePersister = createSyncStoragePersister({
+  storage: window.localStorage,
+  serialize: JSON.stringify,
+  deserialize: JSON.parse,
+});
 
+// Persist query client to localStorage
+persistQueryClient({
+  queryClient,
+  persister: localStoragePersister,
+  maxAge: 1000 * 60 * 60 * 24, // 24 hours
+  dehydrateOptions: {
+    // Only persist queries that succeeded
+    shouldDehydrateQuery: (query) => query.state.status === "success",
+  },
+});
 // Helper to check if device is online
 export const isOnline = () => {
   return navigator.onLine;

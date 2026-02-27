@@ -1,32 +1,44 @@
 import Role from "../models/roleModel.js";
 import rolePermissionCache from "../config/cache.js";
 import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
-export const authorize = (...requiredPermissions) => {
+const ROLE_NAMES = new Set(["user", "admin", "super_admin"]);
+
+export const authorize = (...args) => {
   return async (req, res, next) => {
     try {
-      // Check if user is authenticated
       if (!req.user) {
         throw new AppError("Authentication required", 401);
       }
 
       const { roleId, role: legacyRole } = req.user;
 
-      // Super admin bypass (legacy)
+      // Super admin always passes
       if (legacyRole === "super_admin") {
         return next();
       }
 
-      // Check if roleId exists
+      // If every argument is a role name, do a role-based check (legacy path)
+      // e.g. authorize("user", "admin", "super_admin")
+      if (args.every((a) => ROLE_NAMES.has(a))) {
+        if (!args.includes(legacyRole)) {
+          throw new AppError(
+            `Access denied. Required roles: ${args.join(", ")}`,
+            403,
+          );
+        }
+        return next();
+      }
+
+      // Otherwise treat args as permission strings — use dynamic RBAC
       if (!roleId) {
         throw new AppError("User role not assigned", 403);
       }
 
-      // Try to get role from cache
       const cacheKey = `role:${roleId}`;
       let roleDoc = rolePermissionCache.get(cacheKey);
 
-      // If not in cache, fetch from database
       if (!roleDoc) {
         roleDoc = await Role.findById(roleId).lean();
 
@@ -38,21 +50,15 @@ export const authorize = (...requiredPermissions) => {
           throw new AppError("Role is inactive", 403);
         }
 
-        // Cache for 5 minutes
         rolePermissionCache.set(cacheKey, roleDoc, 300000);
       }
 
       const userPermissions = roleDoc.permissions || [];
-
-      const hasAllPermissions = requiredPermissions.every((permission) =>
-        userPermissions.includes(permission),
+      const missingPermissions = args.filter(
+        (perm) => !userPermissions.includes(perm),
       );
 
-      if (!hasAllPermissions) {
-        const missingPermissions = requiredPermissions.filter(
-          (perm) => !userPermissions.includes(perm),
-        );
-
+      if (missingPermissions.length > 0) {
         throw new AppError(
           `Missing permissions: ${missingPermissions.join(", ")}`,
           403,
@@ -94,7 +100,12 @@ export const authorizeLegacy = (...allowedRoles) => {
 
 export const injectTenantFilter = (req, res, next) => {
   if (req.user && req.user.role !== "super_admin") {
-    req.tenantFilter = { tenantId: req.user.tenantId };
+    const rawId = req.user.tenantId;
+    const tenantId =
+      rawId && mongoose.Types.ObjectId.isValid(rawId)
+        ? new mongoose.Types.ObjectId(rawId)
+        : rawId;
+    req.tenantFilter = { tenantId };
   } else {
     req.tenantFilter = {};
   }

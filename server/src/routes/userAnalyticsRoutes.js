@@ -4,12 +4,12 @@ import {
   saveUserAnalyticsDashboard,
 } from "../controllers/userAnalyticsController.js";
 import { authenticate } from "../middlewares/auth.js";
-import { injectTenantFilter } from "../middlewares/rbac.js";
+import { authorize, injectTenantFilter } from "../middlewares/rbac.js";
 import passport from "../config/passport.js";
 
 const router = Router();
 
-const auth = [authenticate, injectTenantFilter];
+const auth = [authenticate, authorize("user", "admin", "super_admin"), injectTenantFilter];
 
 router.use(passport.authenticate("jwt", { session: false }));
 

@@ -6,6 +6,9 @@ export interface User {
   userEmail: string;
   mobile?: string;
   role: UserRole;
+  roleId?: string;
+  roleName?: string;
+  permissions: string[];
   tenantId: string;
   isActive?: boolean;
   lastLogin?: Date;
@@ -54,52 +57,6 @@ export interface UserStatistics {
 
 export type UserRole = "user" | "admin" | "super_admin";
 
-export interface UserPermissions {
-  canCreateLead: boolean;
-  canEditLead: boolean;
-  canDeleteLead: boolean;
-  canViewAllLeads: boolean;
-  canManageUsers: boolean;
-  canManageOrganization: boolean;
-  canExportData: boolean;
-  canAccessAnalytics: boolean;
-}
-
-export function getRolePermissions(role: UserRole): UserPermissions {
-  const permissions: Record<UserRole, UserPermissions> = {
-    super_admin: {
-      canCreateLead: true,
-      canEditLead: true,
-      canDeleteLead: true,
-      canViewAllLeads: true,
-      canManageUsers: true,
-      canManageOrganization: true,
-      canExportData: true,
-      canAccessAnalytics: true,
-    },
-    admin: {
-      canCreateLead: true,
-      canEditLead: true,
-      canDeleteLead: true,
-      canViewAllLeads: true,
-      canManageUsers: true,
-      canManageOrganization: false,
-      canExportData: true,
-      canAccessAnalytics: true,
-    },
-    user: {
-      canCreateLead: true,
-      canEditLead: true,
-      canDeleteLead: false,
-      canViewAllLeads: false,
-      canManageUsers: false,
-      canManageOrganization: false,
-      canExportData: false,
-      canAccessAnalytics: true,
-    },
-  };
-  return permissions[role];
-}
 
 export function isUser(obj: any): obj is User {
   return (

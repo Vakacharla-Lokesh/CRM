@@ -2,6 +2,19 @@ export { useAuth } from "./useAuth.ts";
 export { useDebounce } from "./useDebounce.ts";
 export { useForm } from "./useForm.ts";
 export { useIndexedDB } from "./useIndexedDB.ts";
+export {
+  useRoles,
+  useRole,
+  useCreateRole,
+  useUpdateRole,
+  useDeleteRole,
+} from "./useRoles.ts";
+export {
+  usePermissions,
+  useHasPermission,
+  useHasAllPermissions,
+  useHasAnyPermission,
+} from "./usePermissions.ts";
 
 export { useLeadData } from "./useLeadData";
 export { useUserData } from "./useUserData.ts";

@@ -1,7 +1,7 @@
 import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
-
 import passport from "../config/passport.js";
+import AppError from "../utils/AppError.js";
 
 export const authenticate = async (req, res, next) => {
   passport.authenticate("jwt", { session: false }, async (err, user, info) => {
