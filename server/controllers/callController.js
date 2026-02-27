@@ -53,7 +53,12 @@ export const createCall = asyncCatch(async (req, res) => {
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.CALL_ADDED,
     description: `${call.callType === "incoming" ? "Incoming" : "Outgoing"} call logged (${call.status})`,
-    metadata: { callId: call._id, callType: call.callType, status: call.status, duration: call.duration },
+    metadata: {
+      callId: call._id,
+      callType: call.callType,
+      status: call.status,
+      duration: call.duration,
+    },
     userId: req.user.userId,
   });
 

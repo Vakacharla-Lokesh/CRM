@@ -162,6 +162,24 @@ export async function ensureAwsInitialized() {
     // DynamoDB Table
     await ensureDynamoTable(TABLES.jobs);
 
+    // EventBridge Rules (best-effort)
+    try {
+      const { eventBridgeAdapter } =
+        await import("../../src/infrastructure/queue/eventbridge.adapter.js");
+
+      const lambdaArn =
+        process.env.LAMBDA_JOB_PROCESSOR_ARN ||
+        "arn:aws:lambda:us-east-1:000000000000:function:crm-job-processor";
+
+      await eventBridgeAdapter.ensureScheduleRule(
+        "crm-lead-reminder-schedule",
+        "cron(0 10 * * ? *)",
+        lambdaArn,
+      );
+    } catch (err) {
+      console.warn("[AWS] EventBridge setup skipped:", err.message);
+    }
+
     console.log("[AWS] All resources ready.");
   })();
 

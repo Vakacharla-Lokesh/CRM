@@ -65,7 +65,13 @@ export const createOrganization = asyncCatch(async (req, res) => {
 
   const organization = await organizationModel.create(organizationData);
 
-  await fireWorkflowTrigger(req, "organization", "create", organization._id, organization.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "organization",
+    "create",
+    organization._id,
+    organization.toObject(),
+  );
 
   res.status(201).json({
     message: "Organization created successfully",
@@ -84,10 +90,7 @@ export const updateOrganization = asyncCatch(async (req, res) => {
     req.user.role !== "super_admin" &&
     organization.tenantId.toString() !== req.user.tenantId
   ) {
-    throw new AppError(
-      "Forbidden: You cannot update this organization",
-      403,
-    );
+    throw new AppError("Forbidden: You cannot update this organization", 403);
   }
 
   // Update organization
@@ -97,7 +100,13 @@ export const updateOrganization = asyncCatch(async (req, res) => {
     { new: true, runValidators: true },
   );
 
-  await fireWorkflowTrigger(req, "organization", "update", updatedOrganization._id, updatedOrganization.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "organization",
+    "update",
+    updatedOrganization._id,
+    updatedOrganization.toObject(),
+  );
 
   res.json({
     message: "Organization updated successfully",
@@ -115,15 +124,18 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
     req.user.role !== "super_admin" &&
     organization.tenantId.toString() !== req.user.tenantId
   ) {
-    throw new AppError(
-      "Forbidden: You cannot delete this organization",
-      403,
-    );
+    throw new AppError("Forbidden: You cannot delete this organization", 403);
   }
 
   await organizationModel.findByIdAndDelete(req.params.id);
 
-  await fireWorkflowTrigger(req, "organization", "delete", organization._id, organization.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "organization",
+    "delete",
+    organization._id,
+    organization.toObject(),
+  );
 
   res.json({ message: "Organization deleted successfully" });
 });

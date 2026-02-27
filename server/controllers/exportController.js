@@ -2,7 +2,8 @@ import { asyncCatch } from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
-import { queueManager } from "../services/queue/queueManager.js";
+import { jobDispatcher } from "../src/modules/jobs/jobDispatcher.service.js";
+import { JOB_TYPES } from "../src/modules/jobs/job.types.js";
 
 function createExportHandler(entityType, filename) {
   return asyncCatch(async (req, res) => {
@@ -96,7 +97,11 @@ function createEmailExportHandler(entityType) {
       timestamp: new Date().toISOString(),
     };
 
-    const messageId = await queueManager.enqueue("exportData", message);
+    const { messageId } = await jobDispatcher.dispatch({
+      jobType: JOB_TYPES.EXPORT_DATA,
+      payload: message,
+      tenantId,
+    });
 
     res.status(202).json({
       success: true,

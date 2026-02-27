@@ -147,8 +147,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
   const currentPeriodLeads = leadSummary[0]?.currentPeriod[0]?.count ?? 0;
 
   const revenue = dealSummary[0]?.wonRevenue[0]?.total ?? 0;
-  const currentPeriodRevenue =
-    dealSummary[0]?.currentPeriodWon[0]?.total ?? 0;
+  const currentPeriodRevenue = dealSummary[0]?.currentPeriodWon[0]?.total ?? 0;
   const totalDeals = dealSummary[0]?.totalDeals[0]?.count ?? 0;
   const openDeals = dealSummary[0]?.openDeals[0]?.count ?? 0;
 

@@ -44,8 +44,6 @@ export const getAttachmentById = asyncCatch(async (req, res) => {
 });
 
 // POST /attachments/presigned-url
-// Body: { leadId, fileName, fileType, fileSize }
-// Returns a pre-signed PUT URL so the client can upload directly to S3.
 export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize } = req.body;
 
@@ -78,8 +76,6 @@ export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
 });
 
 // POST /attachments
-// Body: { leadId, fileName, fileType, fileSize, s3Key, s3Url }
-// Called AFTER the client has uploaded the file to S3 via presigned URL.
 export const createAttachment = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize, s3Key, s3Url } = req.body;
 
@@ -183,7 +179,6 @@ export const getAttachmentsByLead = asyncCatch(async (req, res) => {
 });
 
 // GET /attachments/:id/download
-// Returns a fresh presigned GET URL (valid 5 min) the client uses directly.
 export const downloadAttachment = asyncCatch(async (req, res) => {
   const attachment = await attachmentModel.findById(req.params.id);
 
@@ -197,7 +192,6 @@ export const downloadAttachment = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot download this attachment", 403);
   }
 
-  // Presigned GET URL valid for 5 minutes
   const result = await s3Manager.downloadFile(
     BUCKETS.leads,
     attachment.s3Key,

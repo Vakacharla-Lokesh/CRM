@@ -25,13 +25,6 @@ const ALLOWED_METRIC_FIELDS = {
   organizations: { sum: "organizationSize", avg: "organizationSize" },
 };
 
-/**
- * Fetch (or create) the user's analytics dashboard.
- *
- * @param {string} userId
- * @param {string|null} tenantId
- * @returns {Promise<Object>}
- */
 export const getUserDashboard = async (userId, tenantId) => {
   const filter = { userId };
   if (tenantId) filter.tenantId = tenantId;
@@ -50,14 +43,6 @@ export const getUserDashboard = async (userId, tenantId) => {
   return dashboard;
 };
 
-/**
- * Replace the layout array for the user's dashboard.
- *
- * @param {string} userId
- * @param {string|null} tenantId
- * @param {Array} layout
- * @returns {Promise<Object>}
- */
 export const updateDashboardLayout = async (userId, tenantId, layout) => {
   const filter = { userId };
   if (tenantId) filter.tenantId = tenantId;
@@ -71,13 +56,6 @@ export const updateDashboardLayout = async (userId, tenantId, layout) => {
   return updated;
 };
 
-/**
- * Build an aggregation pipeline and compute chart data for a single widget.
- *
- * @param {Object} widgetConfig - The widget document from the layout array.
- * @param {string|null} tenantId - Tenant id for isolation.
- * @returns {Promise<Array>}
- */
 export const computeChartData = async (widgetConfig, tenantId) => {
   const { entity, groupBy, metric, filters = {} } = widgetConfig;
 
@@ -87,13 +65,11 @@ export const computeChartData = async (widgetConfig, tenantId) => {
   const allowedGroupByFields = ALLOWED_GROUP_BY[entity] || [];
   if (!allowedGroupByFields.includes(groupBy)) return [];
 
-  // Build base $match stage — always enforce tenant isolation
   const matchStage = {};
   if (tenantId) {
     matchStage.tenantId = new mongoose.Types.ObjectId(String(tenantId));
   }
 
-  // Apply safe filters (allowlist: status-like string filters only)
   const SAFE_FILTER_KEYS = {
     leads: ["leadStatus", "leadSource"],
     deals: ["dealStatus"],
@@ -107,7 +83,6 @@ export const computeChartData = async (widgetConfig, tenantId) => {
     }
   }
 
-  // Determine $group _id
   let groupId;
   if (groupBy === "createdAt") {
     groupId = {
@@ -118,7 +93,6 @@ export const computeChartData = async (widgetConfig, tenantId) => {
     groupId = `$${groupBy}`;
   }
 
-  // Determine accumulator
   let accumulator;
   if (metric === "count") {
     accumulator = { $sum: 1 };
@@ -146,13 +120,22 @@ export const computeChartData = async (widgetConfig, tenantId) => {
 
   const results = await Model.aggregate(pipeline);
 
-  // Normalize output for frontend
   return results.map((r) => {
     let label;
     if (groupBy === "createdAt" && r._id?.year) {
       const monthNames = [
-        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
       ];
       label = `${monthNames[(r._id.month || 1) - 1]} ${r._id.year}`;
     } else {
@@ -160,7 +143,10 @@ export const computeChartData = async (widgetConfig, tenantId) => {
     }
     return {
       label: String(label),
-      value: metric === "avg" ? parseFloat((r.value ?? 0).toFixed(2)) : (r.value ?? 0),
+      value:
+        metric === "avg"
+          ? parseFloat((r.value ?? 0).toFixed(2))
+          : (r.value ?? 0),
     };
   });
 };

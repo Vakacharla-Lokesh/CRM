@@ -9,9 +9,6 @@ import { TABLES } from "./aws/initAwsResources.js";
 import crypto from "crypto";
 
 export const jobService = {
-  /**
-   * Create a new job record
-   */
   async createJob({ tenantId, type, status = "pending" }) {
     const jobId = crypto.randomUUID();
     const now = Date.now();
@@ -37,9 +34,6 @@ export const jobService = {
     return params.Item;
   },
 
-  /**
-   * Get a job's current state
-   */
   async getJob(jobId, tenantId) {
     const params = {
       TableName: TABLES.jobs,
@@ -53,9 +47,6 @@ export const jobService = {
     return Item;
   },
 
-  /**
-   * Update job status and progress
-   */
   async updateJob(jobId, tenantId, updates) {
     const { status, progress, result, error } = updates;
     const now = Date.now();

@@ -144,9 +144,6 @@ class WorkflowExecutionEngine {
     );
     const resolvedAssignee = this.resolveTemplateValue(assignee, entity.data);
 
-    // TODO: Integrate with actual task management system
-    // await TaskModel.create({ title, description, assignee, tenantId });
-
     return {
       message: `Task created: "${resolvedTitle}" assigned to ${resolvedAssignee}`,
     };
