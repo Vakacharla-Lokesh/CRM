@@ -39,7 +39,7 @@ passport.use(
         }
 
         const tenant = await tenantModel.findById(user.tenantId).lean();
-        
+
         if (user.role !== "super_admin" && tenant && !tenant.isActive) {
           return done(null, false, {
             message: "Organization account is deactivated",

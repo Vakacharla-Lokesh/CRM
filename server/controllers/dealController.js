@@ -91,7 +91,13 @@ export const updateDeal = asyncCatch(async (req, res) => {
     { new: true, runValidators: true },
   );
 
-  await fireWorkflowTrigger(req, "deal", "update", updatedDeal._id, updatedDeal.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "deal",
+    "update",
+    updatedDeal._id,
+    updatedDeal.toObject(),
+  );
 
   res.json({
     message: "Deal updated successfully",
@@ -203,9 +209,7 @@ export const searchDeals = asyncCatch(async (req, res) => {
 
   const searchRegex = new RegExp(q.trim(), "i");
 
-  filter.$or = [
-    { dealName: searchRegex },
-  ];
+  filter.$or = [{ dealName: searchRegex }];
 
   const deals = await dealModel
     .find(filter)

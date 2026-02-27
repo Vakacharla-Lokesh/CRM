@@ -52,6 +52,9 @@ const userAnalyticsDashboardSchema = new Schema(
 );
 
 // Compound index for per-user, per-tenant lookup
-userAnalyticsDashboardSchema.index({ userId: 1, tenantId: 1 }, { unique: true });
+userAnalyticsDashboardSchema.index(
+  { userId: 1, tenantId: 1 },
+  { unique: true },
+);
 
 export default model("UserAnalyticsDashboard", userAnalyticsDashboardSchema);

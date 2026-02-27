@@ -1,7 +1,5 @@
 import nodemailer from "nodemailer";
 
-// Lazy transport — created on first use so env vars are always resolved
-// after dotenv has been initialised by the calling process (server or worker).
 let _transport = null;
 
 function getTransport() {

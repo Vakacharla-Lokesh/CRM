@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { OfflineRequest } from "../hooks/useOfflineManager";
 import type { BatchExecutionResult } from "./batchTypes";
 import { executeWithRetry } from "./retryStrategy";

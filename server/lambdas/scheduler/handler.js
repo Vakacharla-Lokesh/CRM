@@ -1,23 +1,13 @@
 import { jobService } from "../../services/jobService.js";
-import { sqsManager } from "../../services/aws/sqsManager.js";
-import { QUEUES } from "../../services/aws/initAwsResources.js";
+import { jobDispatcher } from "../../src/modules/jobs/jobDispatcher.service.js";
+import { JOB_TYPES } from "../../src/modules/jobs/job.types.js";
 
-/**
- * EventBridge Scheduler Lambda Handler
- * This executes at configured intervals (e.g., cron)
- * to trigger necessary backend processes like scheduled exports.
- */
 export const handler = async (event, _context) => {
   console.log("[Scheduler] Event received:", JSON.stringify(event));
 
   try {
-    // Determine action based on EventBridge event details, or just perform scheduled sweep
-    // Example: process scheduled regular tasks, create jobs, enqueue them.
-
-    // As an example, create a scheduled sync job
     const tenantId = event.detail?.tenantId || "system-scheduler";
 
-    // 1. Create a tracking job in DynamoDB
     const job = await jobService.createJob({
       tenantId,
       type: "scheduled_sync",
@@ -26,7 +16,6 @@ export const handler = async (event, _context) => {
 
     console.log(`[Scheduler] Created job: ${job.jobId}`);
 
-    // 2. Enqueue the task to SQS for processing
     const payload = {
       jobId: job.jobId,
       tenantId: job.tenantId,
@@ -34,10 +23,15 @@ export const handler = async (event, _context) => {
       timestamp: new Date().toISOString(),
     };
 
-    // Wait, the offlineWrites queue is used as an example, update this based on logic
-    await sqsManager.sendMessage(QUEUES.offlineWrites, payload);
+    const { messageId } = await jobDispatcher.dispatch({
+      jobType: JOB_TYPES.SCHEDULED_SYNC,
+      payload,
+      tenantId: job.tenantId,
+    });
 
-    console.log(`[Scheduler] Enqueued job: ${job.jobId}`);
+    console.log(
+      `[Scheduler] Enqueued job: ${job.jobId} (message: ${messageId})`,
+    );
 
     return { statusCode: 200, body: "Success" };
   } catch (err) {

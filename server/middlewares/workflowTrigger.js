@@ -1,10 +1,10 @@
 import workflowModel from "../models/workflows/workflowModel.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
-import { queueManager } from "../services/queue/queueManager.js";
+import { jobDispatcher } from "../src/modules/jobs/jobDispatcher.service.js";
+import { JOB_TYPES } from "../src/modules/jobs/job.types.js";
 import asyncCatch from "../utils/asyncCatch.js";
 
 export const captureRequestContext = (req, res, next) => {
-  // Store original data for comparison
   req.workflowContext = {
     entityType: null,
     entityId: null,
@@ -50,7 +50,6 @@ export async function fireWorkflowTrigger(
       );
     }
   } catch (error) {
-    // Never re-throw – workflow failures must not affect the HTTP response
     console.error("Workflow trigger error:", error);
   }
 }
@@ -104,7 +103,6 @@ async function queueWorkflowExecution(
   entityData,
 ) {
   try {
-    // Create execution log (status: queued)
     const executionLog = await workflowExecutionLogModel.create({
       tenantId,
       workflowId: workflow._id,
@@ -114,7 +112,6 @@ async function queueWorkflowExecution(
       triggeredAt: new Date(),
     });
 
-    // Prepare message for SQS
     const message = {
       executionLogId: executionLog._id.toString(),
       tenantId: tenantId ? tenantId.toString() : null,
@@ -132,10 +129,12 @@ async function queueWorkflowExecution(
       maxRetries: 3,
     };
 
-    // Push to SQS queue
-    const messageId = await queueManager.enqueue("offlineWrites", message);
+    const { messageId } = await jobDispatcher.dispatch({
+      jobType: JOB_TYPES.WORKFLOW_EXECUTION,
+      payload: message,
+      tenantId: tenantId ? tenantId.toString() : null,
+    });
 
-    // Update execution log with SQS message ID
     await workflowExecutionLogModel.findByIdAndUpdate(executionLog._id, {
       sqsMessageId: messageId,
       status: "processing",
@@ -145,14 +144,12 @@ async function queueWorkflowExecution(
       `✓ Workflow triggered: ${workflow.name} (execution: ${executionLog._id})`,
     );
 
-    // Increment workflow execution count
     await workflowModel.findByIdAndUpdate(workflow._id, {
       $inc: { totalExecutions: 1 },
       lastExecuted: new Date(),
     });
   } catch (error) {
     console.error("Failed to queue workflow:", error);
-    // Don't re-throw - we don't want to block the original request
   }
 }
 

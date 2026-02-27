@@ -7,6 +7,7 @@ import { SQSClient } from "@aws-sdk/client-sqs";
 import { SNSClient } from "@aws-sdk/client-sns";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import { EventBridgeClient } from "@aws-sdk/client-eventbridge";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -42,3 +43,5 @@ export const docClient = DynamoDBDocumentClient.from(dynamoDb, {
     removeUndefinedValues: true,
   },
 });
+
+export const eventBridge = new EventBridgeClient(baseConfig);

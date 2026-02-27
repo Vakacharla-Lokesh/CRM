@@ -73,7 +73,13 @@ export const createLead = asyncCatch(async (req, res) => {
   // Fetch updated lead with score
   const updatedLead = await leadModel.findById(lead._id);
 
-  await fireWorkflowTrigger(req, "lead", "create", updatedLead._id, updatedLead.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "lead",
+    "create",
+    updatedLead._id,
+    updatedLead.toObject(),
+  );
 
   await logActivity({
     leadId: lead._id,
@@ -113,7 +119,13 @@ export const updateLead = asyncCatch(async (req, res) => {
   // Fetch updated lead with new score
   const leadWithScore = await leadModel.findById(req.params.id);
 
-  await fireWorkflowTrigger(req, "lead", "update", leadWithScore._id, leadWithScore.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "lead",
+    "update",
+    leadWithScore._id,
+    leadWithScore.toObject(),
+  );
 
   await logActivity({
     leadId: req.params.id,
@@ -209,7 +221,13 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
   // Fetch updated lead with new score
   const updatedLead = await leadModel.findById(req.params.id);
 
-  await fireWorkflowTrigger(req, "lead", "update", updatedLead._id, updatedLead.toObject());
+  await fireWorkflowTrigger(
+    req,
+    "lead",
+    "update",
+    updatedLead._id,
+    updatedLead.toObject(),
+  );
 
   await logActivity({
     leadId: req.params.id,

@@ -1,13 +1,16 @@
 import { subDays, startOfDay, endOfDay } from "date-fns";
 import LeadModel from "../../models/leadModel.js";
 import emailController from "../../controllers/emailController.js";
+import { JOB_TYPES } from "../modules/jobs/job.types.js";
 
-/**
- * Finds leads that have been in "new" status for 14+ days and sends
- * a reminder email to the assigned user.
- */
-export async function runLeadReminderJob() {
-  console.log("[LeadReminderJob] Running...");
+export const jobType = JOB_TYPES.LEAD_REMINDER;
+
+export async function handler(_payload, context) {
+  const { tenantId } = context;
+
+  console.log(
+    `[LeadReminderWorker] Running lead reminder (tenant: ${tenantId})`,
+  );
 
   try {
     const targetDate = subDays(new Date(), 14);
@@ -38,8 +41,19 @@ export async function runLeadReminderJob() {
       sentCount++;
     }
 
-    console.log(`[LeadReminderJob] Sent ${sentCount} reminder email(s).`);
+    console.log(`[LeadReminderWorker] Sent ${sentCount} reminder email(s).`);
+
+    return {
+      success: true,
+      shouldRetry: false,
+      message: `Sent ${sentCount} lead reminder emails`,
+    };
   } catch (error) {
-    console.error("[LeadReminderJob] Error:", error);
+    console.error("[LeadReminderWorker] Error:", error);
+    return {
+      success: false,
+      shouldRetry: true,
+      message: error.message,
+    };
   }
 }

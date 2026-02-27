@@ -75,10 +75,7 @@ export const register = asyncCatch(async (req, res) => {
   }
 
   if (!tenantId) {
-    throw new AppError(
-      "Tenant information is required for registration",
-      400,
-    );
+    throw new AppError("Tenant information is required for registration", 400);
   }
 
   const user = await userModel.create({ ...userData, tenantId, password });

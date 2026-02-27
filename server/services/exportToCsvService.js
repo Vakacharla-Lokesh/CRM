@@ -9,7 +9,6 @@ import mongoose from "mongoose";
 class ExportCsvEngine {
   constructor() {}
 
-  // Build CSV from docs and columns (minimal, safe escaping)
   buildCsv(columns, docs) {
     const header = columns.join(",") + "\n";
 
