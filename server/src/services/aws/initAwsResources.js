@@ -165,7 +165,7 @@ export async function ensureAwsInitialized() {
     // EventBridge Rules (best-effort)
     try {
       const { eventBridgeAdapter } =
-        await import("../../src/infrastructure/queue/eventbridge.adapter.js");
+        await import("../../infrastructure/queue/eventbridge.adapter.js");
 
       const lambdaArn =
         process.env.LAMBDA_JOB_PROCESSOR_ARN ||

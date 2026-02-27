@@ -2,8 +2,8 @@ import { asyncCatch } from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
-import { jobDispatcher } from "../src/modules/jobs/jobDispatcher.service.js";
-import { JOB_TYPES } from "../src/modules/jobs/job.types.js";
+import { jobDispatcher } from "../modules/jobs/jobDispatcher.service.js";
+import { JOB_TYPES } from "../modules/jobs/job.types.js";
 
 function createExportHandler(entityType, filename) {
   return asyncCatch(async (req, res) => {

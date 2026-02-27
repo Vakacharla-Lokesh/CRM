@@ -5,7 +5,7 @@ import {
   DeleteRuleCommand,
   PutEventsCommand,
 } from "@aws-sdk/client-eventbridge";
-import { eventBridge } from "../../../services/aws/awsClient.js";
+import { eventBridge } from "../../services/aws/awsClient.js";
 
 async function ensureScheduleRule(ruleName, scheduleExpression, targetArn) {
   try {

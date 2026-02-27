@@ -5,29 +5,29 @@ import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
-import passport from "../config/passport.js";
+import passport from "./config/passport.js";
 
 // Routes
-import authRoutes from "../routes/authRoutes.js";
-import leadRoutes from "../routes/leadRoutes.js";
-import userRoutes from "../routes/userRoutes.js";
-import tenantRoutes from "../routes/tenantRoutes.js";
-import organizationRoutes from "../routes/organizationRoutes.js";
-import dealRoutes from "../routes/dealRoutes.js";
-import callRoutes from "../routes/callRoutes.js";
-import commentRoutes from "../routes/commentRoutes.js";
-import attachmentRoutes from "../routes/attachmentRoutes.js";
-import analyticsRoutes from "../routes/analyticsRoutes.js";
-import bulkRoutes from "../routes/bulkRoutes.js";
-import exportRoutes from "../routes/exportRoutes.js";
-import workflowRoutes from "../routes/workflowRoutes.js";
-import userAnalyticsRoutes from "../routes/userAnalyticsRoutes.js";
+import authRoutes from "./routes/authRoutes.js";
+import leadRoutes from "./routes/leadRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
+import tenantRoutes from "./routes/tenantRoutes.js";
+import organizationRoutes from "./routes/organizationRoutes.js";
+import dealRoutes from "./routes/dealRoutes.js";
+import callRoutes from "./routes/callRoutes.js";
+import commentRoutes from "./routes/commentRoutes.js";
+import attachmentRoutes from "./routes/attachmentRoutes.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
+import bulkRoutes from "./routes/bulkRoutes.js";
+import exportRoutes from "./routes/exportRoutes.js";
+import workflowRoutes from "./routes/workflowRoutes.js";
+import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
 
 // error handler middlewares
-import { errorHandler, notFound } from "../middlewares/errorHandler.js";
+import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
-import "../db/initDb.js";
-import { limiter } from "../utils/rateLimit.js";
+import "./db/initDb.js";
+import { limiter } from "./utils/rateLimit.js";
 
 import { config } from "dotenv";
 config();

@@ -13,7 +13,7 @@ const __dirname = path.dirname(__filename);
 
 config({ path: path.resolve(__dirname, "../../../.env") });
 
-import { ensureAwsInitialized } from "../../../services/aws/initAwsResources.js";
+import { ensureAwsInitialized } from "../../services/aws/initAwsResources.js";
 import { queueService } from "../queue/queue.service.js";
 import { handler } from "./jobProcessor.lambda.js";
 

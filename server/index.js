@@ -3,7 +3,7 @@ config();
 
 import app from "./src/server.js";
 
-import { ensureAwsInitialized } from "./services/aws/initAwsResources.js";
+import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
 import { queueService } from "./src/infrastructure/queue/queue.service.js";
 
 await ensureAwsInitialized();
