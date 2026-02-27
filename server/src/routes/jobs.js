@@ -1,12 +1,16 @@
-import { Router } from 'express';
-import { getJobStatus } from '../controllers/jobController.js';
-import { authenticate } from '../middlewares/auth.js';
-import { requirePermission } from '../middlewares/rbac.js';
-import passport from '../config/passport.js';
+import { Router } from "express";
+import { getJobStatus } from "../controllers/jobController.js";
+import { authenticateRequest } from "../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
 
 const router = Router();
-router.use(passport.authenticate('jwt', { session: false }));
 
-router.get('/:jobId', authenticate, requirePermission('settings:read'), getJobStatus);
+router.get(
+  "/:jobId",
+  authenticateRequest,
+  requirePermission("settings:read"),
+  injectTenantContext,
+  getJobStatus,
+);
 
 export default router;

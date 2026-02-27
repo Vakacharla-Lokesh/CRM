@@ -1,29 +1,131 @@
-import { Router } from 'express';
-import { getAllUsers, getUserById, createUser, updateUser, deleteUser, getUsersByTenant, updateUserRole, getCurrentUser, searchUsers, getUserStats, updatePassword, sendPasswordReset, updateProfile, getUserActivity, getUserPermissions, assignRoleToUser } from '../controllers/userController.js';
-import { validate } from '../middlewares/validate.js';
-import { authenticate, checkActive } from '../middlewares/auth.js';
-import { requirePermission, injectTenantFilter } from '../middlewares/rbac.js';
-import { createUserSchema, updateUserSchema, updateRoleSchema, updatePasswordSchema, passwordResetSchema, updateProfileSchema } from '../validators/userValidators.js';
-import passport from '../config/passport.js';
-import { assignRoleSchema } from '../validators/roleValidator.js';
+import { Router } from "express";
+import {
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+  getUsersByTenant,
+  updateUserRole,
+  getCurrentUser,
+  searchUsers,
+  getUserStats,
+  updatePassword,
+  sendPasswordReset,
+  updateProfile,
+  getUserActivity,
+  getUserPermissions,
+  assignRoleToUser,
+} from "../controllers/userController.js";
+import { validate } from "../middlewares/validate.js";
+import { authenticateRequest, checkActive } from "../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
+import {
+  createUserSchema,
+  updateUserSchema,
+  updateRoleSchema,
+  updatePasswordSchema,
+  passwordResetSchema,
+  updateProfileSchema,
+} from "../validators/userValidators.js";
+import { assignRoleSchema } from "../validators/roleValidator.js";
 
 const router = Router();
-router.use(passport.authenticate('jwt', { session: false }));
 
-router.post('/password-reset', validate(passwordResetSchema), sendPasswordReset);
-router.get('/me', authenticate, getCurrentUser);
-router.get('/search', authenticate, checkActive, requirePermission('users:read'), injectTenantFilter, searchUsers);
-router.get('/stats', authenticate, checkActive, requirePermission('users:read'), injectTenantFilter, getUserStats);
-router.get('/', authenticate, checkActive, requirePermission('users:read'), injectTenantFilter, getAllUsers);
-router.post('/', authenticate, requirePermission('users:write'), validate(createUserSchema), createUser);
-router.get('/tenant/:tenantId', authenticate, requirePermission('super_admin'), getUsersByTenant);
-router.get('/:id', authenticate, checkActive, requirePermission('users:read'), getUserById);
-router.put('/:id', authenticate, requirePermission('users:write'), validate(updateUserSchema), updateUser);
-router.delete('/:id', authenticate, requirePermission('users:delete'), deleteUser);
-router.patch('/:id/role', authenticate, requirePermission('users:manage_roles'), validate(assignRoleSchema), assignRoleToUser);
-router.put('/:id/password', authenticate, validate(updatePasswordSchema), updatePassword);
-router.patch('/:id/profile', authenticate, validate(updateProfileSchema), updateProfile);
-router.get('/:id/activity', authenticate, getUserActivity);
-router.get('/:id/permissions', authenticate, getUserPermissions);
+router.post(
+  "/password-reset",
+  validate(passwordResetSchema),
+  sendPasswordReset,
+);
+router.get("/me", authenticateRequest, getCurrentUser);
+router.get(
+  "/search",
+  authenticateRequest,
+  checkActive,
+  requirePermission("users:read"),
+  injectTenantContext,
+  searchUsers,
+);
+router.get(
+  "/stats",
+  authenticateRequest,
+  checkActive,
+  requirePermission("users:read"),
+  injectTenantContext,
+  getUserStats,
+);
+router.get(
+  "/",
+  authenticateRequest,
+  checkActive,
+  requirePermission("users:read"),
+  injectTenantContext,
+  getAllUsers,
+);
+router.post(
+  "/",
+  authenticateRequest,
+  requirePermission("users:write"),
+  injectTenantContext,
+  validate(createUserSchema),
+  createUser,
+);
+router.get(
+  "/tenant/:tenantId",
+  authenticateRequest,
+  requirePermission("users:view_all"),
+  injectTenantContext,
+  getUsersByTenant,
+);
+router.get(
+  "/:id",
+  authenticateRequest,
+  checkActive,
+  requirePermission("users:read"),
+  injectTenantContext,
+  getUserById,
+);
+router.put(
+  "/:id",
+  authenticateRequest,
+  requirePermission("users:write"),
+  injectTenantContext,
+  validate(updateUserSchema),
+  updateUser,
+);
+router.delete(
+  "/:id",
+  authenticateRequest,
+  requirePermission("users:delete"),
+  injectTenantContext,
+  deleteUser,
+);
+router.patch(
+  "/:id/role",
+  authenticateRequest,
+  requirePermission("users:manage_roles"),
+  injectTenantContext,
+  validate(assignRoleSchema),
+  assignRoleToUser,
+);
+router.put(
+  "/:id/password",
+  authenticateRequest,
+  validate(updatePasswordSchema),
+  updatePassword,
+);
+router.patch(
+  "/:id/profile",
+  authenticateRequest,
+  validate(updateProfileSchema),
+  updateProfile,
+);
+router.get(
+  "/:id/activity",
+  authenticateRequest,
+  injectTenantContext,
+  getUserActivity,
+);
+router.get("/:id/permissions", authenticateRequest, getUserPermissions);
 
 export default router;

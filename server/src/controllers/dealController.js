@@ -7,7 +7,10 @@ import { bulkDeleteDeals } from "../services/bulkDeleteService.js";
 
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {
-  const filter = req.tenantFilter || {};
+  const filter =
+    req.tenantContext?.scope === "tenant"
+      ? { tenantId: req.tenantContext.tenantId }
+      : {};
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
@@ -38,10 +41,9 @@ export const getDealById = asyncCatch(async (req, res) => {
 
   if (!deal) throw new AppError("Deal not found", 404);
 
-  // Check tenant access for non-super_admin
   if (
-    req.user.role !== "super_admin" &&
-    deal.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot access this deal", 403);
   }
@@ -57,9 +59,8 @@ export const createDeal = asyncCatch(async (req, res) => {
     userId: req.user.userId,
   };
 
-  // For non-super_admin, ensure tenantId matches
-  if (req.user.role !== "super_admin") {
-    dealData.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    dealData.tenantId = req.tenantContext.tenantId;
   }
 
   const deal = await dealModel.create(dealData);
@@ -78,10 +79,9 @@ export const updateDeal = asyncCatch(async (req, res) => {
 
   if (!deal) throw new AppError("Deal not found", 404);
 
-  // Check tenant access for non-super_admin
   if (
-    req.user.role !== "super_admin" &&
-    deal.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
@@ -113,10 +113,9 @@ export const deleteDeal = asyncCatch(async (req, res) => {
 
   if (!deal) throw new AppError("Deal not found", 404);
 
-  // Check tenant access for non-super_admin
   if (
-    req.user.role !== "super_admin" &&
-    deal.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot delete this deal", 403);
   }
@@ -130,10 +129,9 @@ export const deleteDeal = asyncCatch(async (req, res) => {
 
 // Get deals by tenant
 export const getDealsByTenant = asyncCatch(async (req, res) => {
-  // Check tenant access
   if (
-    req.user.role !== "super_admin" &&
-    req.params.tenantId !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    req.params.tenantId !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError(
       "Forbidden: You cannot access deals from other tenants",
@@ -153,9 +151,8 @@ export const getDealsByTenant = asyncCatch(async (req, res) => {
 export const getDealsByUser = asyncCatch(async (req, res) => {
   const filter = { userId: req.params.userId };
 
-  // Add tenant filter for non-super_admin
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    filter.tenantId = req.tenantContext.tenantId;
   }
 
   const deals = await dealModel.find(filter);
@@ -170,9 +167,8 @@ export const getDealsByUser = asyncCatch(async (req, res) => {
 export const getDealsByLead = asyncCatch(async (req, res) => {
   const filter = { leadId: req.params.leadId };
 
-  // Add tenant filter for non-super_admin
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    filter.tenantId = req.tenantContext.tenantId;
   }
 
   const deals = await dealModel.find(filter);
@@ -187,9 +183,8 @@ export const getDealsByLead = asyncCatch(async (req, res) => {
 export const getDealsByOrganization = asyncCatch(async (req, res) => {
   const filter = { organizationId: req.params.organizationId };
 
-  // Add tenant filter for non-super_admin
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    filter.tenantId = req.tenantContext.tenantId;
   }
 
   const deals = await dealModel.find(filter);
@@ -202,7 +197,10 @@ export const getDealsByOrganization = asyncCatch(async (req, res) => {
 
 // Search deals
 export const searchDeals = asyncCatch(async (req, res) => {
-  const filter = req.tenantFilter || {};
+  const filter =
+    req.tenantContext?.scope === "tenant"
+      ? { tenantId: req.tenantContext.tenantId }
+      : {};
   const { q, limit = 25 } = req.query;
 
   if (!q || q.trim() === "") {
@@ -228,10 +226,9 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
 
   if (!deal) throw new AppError("Deal not found", 404);
 
-  // Check tenant access for non-super_admin
   if (
-    req.user.role !== "super_admin" &&
-    deal.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
@@ -249,10 +246,11 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
 
 export const bulkDeleteDealsController = asyncCatch(async (req, res) => {
   const { ids } = req.body;
-  const tenantId = req.user.tenantId;
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
   const userContext = {
-    userId: req.user.userId,
-    role: req.user.role,
+    userId: req.auth.userId,
+    scope: req.tenantContext?.scope,
   };
 
   const result = await bulkDeleteDeals(ids, tenantId, userContext);

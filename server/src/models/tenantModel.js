@@ -19,6 +19,7 @@ const tenantSchema = new Schema(
       match: [/^[1-9]\d{9}$/, "Please provide valid mobile number"],
     },
     isActive: { type: Boolean, default: true },
+    isSystemTenant: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

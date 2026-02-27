@@ -1,25 +1,115 @@
-import { Router } from 'express';
-import { getAllDeals, getDealById, createDeal, updateDeal, deleteDeal, getDealsByTenant, getDealsByUser, getDealsByLead, getDealsByOrganization, updateDealStatus, searchDeals, bulkDeleteDealsController } from '../controllers/dealController.js';
-import { validate } from '../middlewares/validate.js';
-import { authenticate } from '../middlewares/auth.js';
-import { requirePermission, injectTenantFilter } from '../middlewares/rbac.js';
-import { createDealSchema, updateDealSchema, updateDealStatusSchema } from '../validators/dealsValidator.js';
-import passport from '../config/passport.js';
+import { Router } from "express";
+import {
+  getAllDeals,
+  getDealById,
+  createDeal,
+  updateDeal,
+  deleteDeal,
+  getDealsByTenant,
+  getDealsByUser,
+  getDealsByLead,
+  getDealsByOrganization,
+  updateDealStatus,
+  searchDeals,
+  bulkDeleteDealsController,
+} from "../controllers/dealController.js";
+import { validate } from "../middlewares/validate.js";
+import { authenticateRequest } from "../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
+import {
+  createDealSchema,
+  updateDealSchema,
+  updateDealStatusSchema,
+} from "../validators/dealsValidator.js";
 
 const router = Router();
-router.use(passport.authenticate('jwt', { session: false }));
 
-router.get('/', authenticate, requirePermission('deals:read'), injectTenantFilter, getAllDeals);
-router.get('/search', authenticate, requirePermission('deals:read'), injectTenantFilter, searchDeals);
-router.post('/bulk-delete', authenticate, requirePermission('deals:delete'), bulkDeleteDealsController);
-router.get('/:id', authenticate, requirePermission('deals:read'), getDealById);
-router.post('/', authenticate, requirePermission('deals:write'), validate(createDealSchema), createDeal);
-router.put('/:id', authenticate, requirePermission('deals:write'), validate(updateDealSchema), updateDeal);
-router.delete('/:id', authenticate, requirePermission('deals:delete'), deleteDeal);
-router.get('/tenant/:tenantId', authenticate, requirePermission('deals:view_all'), getDealsByTenant);
-router.get('/user/:userId', authenticate, requirePermission('deals:read'), getDealsByUser);
-router.get('/lead/:leadId', authenticate, requirePermission('deals:read'), getDealsByLead);
-router.get('/organization/:organizationId', authenticate, requirePermission('deals:read'), getDealsByOrganization);
-router.patch('/:id/status', authenticate, requirePermission('deals:write'), validate(updateDealStatusSchema), updateDealStatus);
+router.get(
+  "/",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  getAllDeals,
+);
+router.get(
+  "/search",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  searchDeals,
+);
+router.post(
+  "/bulk-delete",
+  authenticateRequest,
+  requirePermission("deals:delete"),
+  injectTenantContext,
+  bulkDeleteDealsController,
+);
+router.get(
+  "/:id",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  getDealById,
+);
+router.post(
+  "/",
+  authenticateRequest,
+  requirePermission("deals:write"),
+  injectTenantContext,
+  validate(createDealSchema),
+  createDeal,
+);
+router.put(
+  "/:id",
+  authenticateRequest,
+  requirePermission("deals:write"),
+  injectTenantContext,
+  validate(updateDealSchema),
+  updateDeal,
+);
+router.delete(
+  "/:id",
+  authenticateRequest,
+  requirePermission("deals:delete"),
+  injectTenantContext,
+  deleteDeal,
+);
+router.get(
+  "/tenant/:tenantId",
+  authenticateRequest,
+  requirePermission("deals:view_all"),
+  injectTenantContext,
+  getDealsByTenant,
+);
+router.get(
+  "/user/:userId",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  getDealsByUser,
+);
+router.get(
+  "/lead/:leadId",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  getDealsByLead,
+);
+router.get(
+  "/organization/:organizationId",
+  authenticateRequest,
+  requirePermission("deals:read"),
+  injectTenantContext,
+  getDealsByOrganization,
+);
+router.patch(
+  "/:id/status",
+  authenticateRequest,
+  requirePermission("deals:write"),
+  injectTenantContext,
+  validate(updateDealStatusSchema),
+  updateDealStatus,
+);
 
 export default router;

@@ -1,19 +1,65 @@
-import { Router } from 'express';
-import { getAllRoles, getRoleById, createRole, updateRole, deleteRole, getRolePermissions } from '../controllers/roleController.js';
-import { validate } from '../middlewares/validate.js';
-import { authenticate } from '../middlewares/auth.js';
-import { requirePermission, injectTenantFilter } from '../middlewares/rbac.js';
-import { createRoleSchema, updateRoleSchema } from '../validators/roleValidator.js';
-import passport from '../config/passport.js';
+import { Router } from "express";
+import {
+  getAllRoles,
+  getRoleById,
+  createRole,
+  updateRole,
+  deleteRole,
+  getRolePermissions,
+} from "../controllers/roleController.js";
+import { validate } from "../middlewares/validate.js";
+import { authenticateRequest } from "../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
+import {
+  createRoleSchema,
+  updateRoleSchema,
+} from "../validators/roleValidator.js";
 
 const router = Router();
-router.use(passport.authenticate('jwt', { session: false }));
 
-router.get('/', authenticate, requirePermission('roles:read'), injectTenantFilter, getAllRoles);
-router.get('/:id', authenticate, requirePermission('roles:read'), getRoleById);
-router.get('/:id/permissions', authenticate, requirePermission('roles:read'), getRolePermissions);
-router.post('/', authenticate, requirePermission('roles:write'), validate(createRoleSchema), createRole);
-router.put('/:id', authenticate, requirePermission('roles:write'), validate(updateRoleSchema), updateRole);
-router.delete('/:id', authenticate, requirePermission('roles:delete'), deleteRole);
+router.get(
+  "/",
+  authenticateRequest,
+  requirePermission("roles:read"),
+  injectTenantContext,
+  getAllRoles,
+);
+router.get(
+  "/:id",
+  authenticateRequest,
+  requirePermission("roles:read"),
+  injectTenantContext,
+  getRoleById,
+);
+router.get(
+  "/:id/permissions",
+  authenticateRequest,
+  requirePermission("roles:read"),
+  injectTenantContext,
+  getRolePermissions,
+);
+router.post(
+  "/",
+  authenticateRequest,
+  requirePermission("roles:write"),
+  injectTenantContext,
+  validate(createRoleSchema),
+  createRole,
+);
+router.put(
+  "/:id",
+  authenticateRequest,
+  requirePermission("roles:write"),
+  injectTenantContext,
+  validate(updateRoleSchema),
+  updateRole,
+);
+router.delete(
+  "/:id",
+  authenticateRequest,
+  requirePermission("roles:delete"),
+  injectTenantContext,
+  deleteRole,
+);
 
 export default router;

@@ -59,6 +59,9 @@ export const PERMISSION_MAP = {
 
   // Settings
   SETTINGS: ["settings:read", "settings:write"],
+
+  // System-wide access (super_admin / global tenant only)
+  SYSTEM: ["system:manage"],
 };
 
 // Flatten all permissions into single array

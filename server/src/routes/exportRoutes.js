@@ -1,19 +1,73 @@
-import { Router } from 'express';
-import { exportLeads, exportOrganizations, exportDeals, exportLeadsToEmail, exportOrganizationsToEmail, exportDealsToEmail } from '../controllers/exportController.js';
-import { authenticate } from '../middlewares/auth.js';
-import { requirePermission, injectTenantFilter } from '../middlewares/rbac.js';
-import { validate } from '../middlewares/validate.js';
-import { exportLeadsSchema, exportOrganizationsSchema, exportDealsSchema, exportLeadsToEmailSchema, exportOrganizationsToEmailSchema, exportDealsToEmailSchema } from '../validators/exportValidator.js';
-import passport from '../config/passport.js';
+import { Router } from "express";
+import {
+  exportLeads,
+  exportOrganizations,
+  exportDeals,
+  exportLeadsToEmail,
+  exportOrganizationsToEmail,
+  exportDealsToEmail,
+} from "../controllers/exportController.js";
+import { authenticateRequest } from "../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
+import { validate } from "../middlewares/validate.js";
+import {
+  exportLeadsSchema,
+  exportOrganizationsSchema,
+  exportDealsSchema,
+  exportLeadsToEmailSchema,
+  exportOrganizationsToEmailSchema,
+  exportDealsToEmailSchema,
+} from "../validators/exportValidator.js";
 
 const router = Router();
-router.use(passport.authenticate('jwt', { session: false }));
 
-router.post('/leads', authenticate, requirePermission('leads:export'), injectTenantFilter, validate(exportLeadsSchema), exportLeads);
-router.post('/organizations', authenticate, requirePermission('organizations:export'), injectTenantFilter, validate(exportOrganizationsSchema), exportOrganizations);
-router.post('/deals', authenticate, requirePermission('deals:export'), injectTenantFilter, validate(exportDealsSchema), exportDeals);
-router.post('/leads/toemail', authenticate, requirePermission('leads:export'), injectTenantFilter, validate(exportLeadsToEmailSchema), exportLeadsToEmail);
-router.post('/organizations/toemail', authenticate, requirePermission('organizations:export'), injectTenantFilter, validate(exportOrganizationsToEmailSchema), exportOrganizationsToEmail);
-router.post('/deals/toemail', authenticate, requirePermission('deals:export'), injectTenantFilter, validate(exportDealsToEmailSchema), exportDealsToEmail);
+router.post(
+  "/leads",
+  authenticateRequest,
+  requirePermission("leads:export"),
+  injectTenantContext,
+  validate(exportLeadsSchema),
+  exportLeads,
+);
+router.post(
+  "/organizations",
+  authenticateRequest,
+  requirePermission("organizations:export"),
+  injectTenantContext,
+  validate(exportOrganizationsSchema),
+  exportOrganizations,
+);
+router.post(
+  "/deals",
+  authenticateRequest,
+  requirePermission("deals:export"),
+  injectTenantContext,
+  validate(exportDealsSchema),
+  exportDeals,
+);
+router.post(
+  "/leads/toemail",
+  authenticateRequest,
+  requirePermission("leads:export"),
+  injectTenantContext,
+  validate(exportLeadsToEmailSchema),
+  exportLeadsToEmail,
+);
+router.post(
+  "/organizations/toemail",
+  authenticateRequest,
+  requirePermission("organizations:export"),
+  injectTenantContext,
+  validate(exportOrganizationsToEmailSchema),
+  exportOrganizationsToEmail,
+);
+router.post(
+  "/deals/toemail",
+  authenticateRequest,
+  requirePermission("deals:export"),
+  injectTenantContext,
+  validate(exportDealsToEmailSchema),
+  exportDealsToEmail,
+);
 
 export default router;
