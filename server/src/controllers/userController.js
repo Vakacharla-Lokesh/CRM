@@ -2,6 +2,7 @@ import userModel from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
+import Role from "../models/roleModel.js";
 
 // Get all users
 export const getAllUsers = asyncCatch(async (req, res) => {
@@ -307,51 +308,129 @@ export const getUserActivity = asyncCatch(async (req, res) => {
 
 // Get user permissions
 export const getUserPermissions = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.params.id);
+  const user = await userModel.findById(req.params.id).populate("roleId");
 
   if (!user) throw new AppError("User not found", 404);
 
-  // Define permissions based on role
-  const permissionsMap = {
-    super_admin: [
-      "users:read",
-      "users:write",
-      "users:delete",
-      "tenants:read",
-      "tenants:write",
-      "tenants:delete",
-      "leads:read",
-      "leads:write",
-      "leads:delete",
-      "deals:read",
-      "deals:write",
-      "deals:delete",
-      "organizations:read",
-      "organizations:write",
-      "organizations:delete",
-    ],
-    admin: [
-      "users:read",
-      "users:write",
-      "leads:read",
-      "leads:write",
-      "leads:delete",
-      "deals:read",
-      "deals:write",
-      "deals:delete",
-      "organizations:read",
-      "organizations:write",
-      "organizations:delete",
-    ],
-    user: [
-      "leads:read",
-      "leads:write",
-      "deals:read",
-      "deals:write",
-      "organizations:read",
-    ],
-  };
+  // If roleId exists, return permissions from Role document
+  if (user.roleId && user.roleId.permissions) {
+    return res.json({
+      role: user.roleId.name,
+      roleId: user.roleId._id,
+      permissions: user.roleId.permissions,
+      isSystemRole: user.roleId.isSystemRole,
+    });
+  }
 
-  const permissions = permissionsMap[user.role] || [];
-  res.json(permissions);
+  // Fallback to legacy role-based permissions
+  const { getLegacyRolePermissions } =
+    await import("../models/permissionPresets.js");
+  const permissions = getLegacyRolePermissions(user.role);
+
+  res.json({
+    role: user.role,
+    roleId: null,
+    permissions,
+    isSystemRole: true,
+    legacy: true,
+  });
 });
+
+/**
+ * Assign a role to a user (updated for dynamic RBAC)
+ * @route PATCH /api/users/:id/role
+ * @access Private (admin, super_admin)
+ */
+export const assignRoleToUser = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { roleId } = req.body;
+
+    // Validate user ID
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID format",
+      });
+    }
+
+    // Validate role ID
+    if (!mongoose.Types.ObjectId.isValid(roleId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid role ID format",
+      });
+    }
+
+    // Find user
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Check tenant access
+    if (
+      req.user.role !== "super_admin" &&
+      user.tenantId.toString() !== req.user.tenantId
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You do not have permission to modify this user",
+      });
+    }
+
+    // Verify role exists and belongs to the same tenant
+    const role = await Role.findById(roleId);
+    if (!role) {
+      return res.status(404).json({
+        success: false,
+        message: "Role not found",
+      });
+    }
+
+    if (!role.isActive) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot assign an inactive role",
+      });
+    }
+
+    // Ensure role belongs to the same tenant (unless super_admin)
+    if (
+      req.user.role !== "super_admin" &&
+      role.tenantId.toString() !== user.tenantId.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Cannot assign a role from a different organization",
+      });
+    }
+
+    // Update user's role
+    user.roleId = roleId;
+    await user.save();
+
+    // Populate role details for response
+    await user.populate("roleId", "name description permissions");
+
+    res.status(200).json({
+      success: true,
+      message: "Role assigned successfully",
+      data: {
+        user: {
+          _id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          userEmail: user.userEmail,
+          role: user.roleId,
+          tenantId: user.tenantId,
+        },
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};

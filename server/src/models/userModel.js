@@ -1,4 +1,4 @@
-import { Schema, model } from "mongoose";
+import { Schema, model, mongoose } from "mongoose";
 import bcrypt from "bcryptjs";
 
 // MongoDB collection schema
@@ -25,6 +25,12 @@ const userSchema = new Schema(
       type: String,
       enum: ["user", "admin", "super_admin"],
       required: true,
+    },
+    roleId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Role",
+      index: true,
+      comment: "Reference to dynamic Role document (RBAC v2)",
     },
     password: { type: String, select: false },
     isActive: { type: Boolean, default: true },

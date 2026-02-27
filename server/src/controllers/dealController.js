@@ -3,6 +3,8 @@ import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 
+import { bulkDeleteDeals } from "../services/bulkDeleteService.js";
+
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
@@ -242,5 +244,21 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
   res.json({
     message: "Deal status updated successfully",
     deal,
+  });
+});
+
+export const bulkDeleteDealsController = asyncCatch(async (req, res) => {
+  const { ids } = req.body;
+  const tenantId = req.user.tenantId;
+  const userContext = {
+    userId: req.user.userId,
+    role: req.user.role,
+  };
+
+  const result = await bulkDeleteDeals(ids, tenantId, userContext);
+
+  res.json({
+    message: "Bulk delete completed",
+    ...result,
   });
 });

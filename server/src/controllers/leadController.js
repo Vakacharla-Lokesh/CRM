@@ -5,6 +5,7 @@ import AppError from "../utils/AppError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
+import { bulkDeleteLeads } from "../services/bulkDeleteService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
@@ -339,4 +340,20 @@ export const searchLeads = asyncCatch(async (req, res) => {
     .limit(Math.min(parseInt(limit), 25));
 
   res.json({ count: leads.length, leads });
+});
+
+export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
+  const { ids } = req.body;
+  const tenantId = req.user.tenantId;
+  const userContext = {
+    userId: req.user.userId,
+    role: req.user.role,
+  };
+
+  const result = await bulkDeleteLeads(ids, tenantId, userContext);
+
+  res.json({
+    message: "Bulk delete completed",
+    ...result,
+  });
 });

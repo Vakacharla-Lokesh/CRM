@@ -11,6 +11,7 @@ import {
   getDealsByOrganization,
   updateDealStatus,
   searchDeals,
+  bulkDeleteDealsController,
 } from "../controllers/dealController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -21,7 +22,6 @@ import {
   updateDealStatusSchema,
 } from "../validators/dealsValidator.js";
 import passport from "../config/passport.js";
-
 
 const router = Router();
 
@@ -42,6 +42,13 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   searchDeals,
+);
+
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize("admin", "super_admin"),
+  bulkDeleteDealsController,
 );
 
 router.get(
