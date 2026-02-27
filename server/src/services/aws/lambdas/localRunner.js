@@ -1,8 +1,3 @@
-// ─── Local Development Runner ─────────────────────────────────────────────────
-//
-// Simulates what AWS does in production: polls SQS queues and invokes
-// the Lambda handler with SQS-formatted events. For local dev only.
-
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import path from "path";
@@ -11,9 +6,9 @@ import mongoose from "mongoose";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-config({ path: path.resolve(__dirname, "../../../.env") });
+config({ path: path.resolve(__dirname, "../../../../.env") });
 
-import { ensureAwsInitialized } from "../../services/aws/initAwsResources.js";
+import { ensureAwsInitialized } from "../initAwsResources.js";
 import { queueService } from "../queue/queue.service.js";
 import { handler } from "./jobProcessor.lambda.js";
 
@@ -21,12 +16,8 @@ const POLL_INTERVAL_MS = 5000;
 const BATCH_SIZE = 10;
 const QUEUE_NAMES = ["offlineWrites", "exportData"];
 
-// ─── Process-level abort controller ───────────────────────────────────────────
-
 const controller = new AbortController();
 const { signal } = controller;
-
-// ─── Database ─────────────────────────────────────────────────────────────────
 
 async function connectDatabase() {
   const uri = process.env.DB_URI || process.env.MONGODB_URI;
@@ -36,9 +27,6 @@ async function connectDatabase() {
   await mongoose.connect(uri);
   console.log("[LocalRunner] ✓ Connected to MongoDB");
 }
-
-// ─── Shutdown ─────────────────────────────────────────────────────────────────
-
 async function shutdown() {
   console.log("\n[LocalRunner] ⏸  Shutting down...");
   controller.abort();
@@ -53,8 +41,6 @@ async function shutdown() {
   process.exit(0);
 }
 
-// ─── Poll and Process ─────────────────────────────────────────────────────────
-
 async function pollQueue(queueName) {
   try {
     const messages = await queueService.poll(queueName, BATCH_SIZE);
@@ -65,7 +51,6 @@ async function pollQueue(queueName) {
       `[LocalRunner] 📨 Received ${messages.length} message(s) from "${queueName}"`,
     );
 
-    // Transform to SQS Lambda event format
     const sqsEvent = {
       Records: messages.map((msg) => ({
         messageId: msg.messageId,
@@ -75,10 +60,8 @@ async function pollQueue(queueName) {
       })),
     };
 
-    // Invoke the Lambda handler
     const result = await handler(sqsEvent, {});
 
-    // Ack successful messages (those NOT in batchItemFailures)
     const failedIds = new Set(
       (result.batchItemFailures || []).map((f) => f.itemIdentifier),
     );
@@ -92,8 +75,6 @@ async function pollQueue(queueName) {
     console.error(`[LocalRunner] Error polling "${queueName}":`, error);
   }
 }
-
-// ─── Main Loop ────────────────────────────────────────────────────────────────
 
 async function main() {
   console.log("[LocalRunner] 🚀 Starting local worker runner...");
@@ -125,8 +106,6 @@ async function main() {
   console.log("[LocalRunner] ⏸ Stopped.");
 }
 
-// ─── Process Signal Handlers ──────────────────────────────────────────────────
-
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 
@@ -139,8 +118,6 @@ process.on("unhandledRejection", (reason) => {
   console.error("[LocalRunner] ✗ Unhandled rejection:", reason);
   shutdown();
 });
-
-// ─── Start ────────────────────────────────────────────────────────────────────
 
 main().catch((error) => {
   console.error("[LocalRunner] ✗ Fatal error:", error);

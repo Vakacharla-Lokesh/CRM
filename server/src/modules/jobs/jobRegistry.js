@@ -1,14 +1,6 @@
-// ─── Job Registry ─────────────────────────────────────────────────────────────
-//
-// Static mapping of jobType → worker handler.
-// Initialized once at module load. Prevents duplicate registration
-// and arbitrary handler execution.
-
 import { isValidJobType } from "./job.types.js";
 
 const _handlers = new Map();
-
-// ─── Register ─────────────────────────────────────────────────────────────────
 
 function register(jobType, handler) {
   if (!jobType || typeof handler !== "function") {
@@ -31,8 +23,6 @@ function register(jobType, handler) {
   console.log(`[JobRegistry] Registered handler for: ${jobType}`);
 }
 
-// ─── Get Handler ──────────────────────────────────────────────────────────────
-
 function getHandler(jobType) {
   const handler = _handlers.get(jobType);
   if (!handler) {
@@ -43,8 +33,6 @@ function getHandler(jobType) {
   return handler;
 }
 
-// ─── Utilities ────────────────────────────────────────────────────────────────
-
 function getAllTypes() {
   return Array.from(_handlers.keys());
 }
@@ -52,8 +40,6 @@ function getAllTypes() {
 function isRegistered(jobType) {
   return _handlers.has(jobType);
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const jobRegistry = {
   register,

@@ -1,4 +1,4 @@
-import exportCsvEngine from "../../services/exportToCsvService.js";
+import exportCsvEngine from "../services/exportToCsvService.js";
 import { JOB_TYPES } from "../modules/jobs/job.types.js";
 
 export const jobType = JOB_TYPES.EXPORT_DATA;

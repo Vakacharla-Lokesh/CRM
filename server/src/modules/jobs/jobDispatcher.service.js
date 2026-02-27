@@ -1,8 +1,6 @@
 import crypto from "crypto";
-import { queueService } from "../../infrastructure/queue/queue.service.js";
+import { queueService } from "../../services/aws/queue/queue.service.js";
 import { isValidJobType } from "./job.types.js";
-
-// ─── Dispatch ─────────────────────────────────────────────────────────────────
 
 async function dispatch({ jobType, payload, tenantId, userId }) {
   if (!jobType) {
@@ -44,8 +42,6 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
 
   return { messageId, requestId, traceId };
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const jobDispatcher = {
   dispatch,

@@ -1,9 +1,9 @@
 import { sqsAdapter } from "./sqs.adapter.js";
-import { queueUrls } from "../../services/aws/initAwsResources.js";
+import { queueUrls } from "../initAwsResources.js";
 import {
   isValidJobType,
   JOB_TYPE_QUEUE_MAP,
-} from "../../modules/jobs/job.types.js";
+} from "../../../modules/jobs/job.types.js";
 
 // ─── Queue Registry ───────────────────────────────────────────────────────────
 
