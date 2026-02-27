@@ -12,7 +12,7 @@ import { EventBridgeClient } from "@aws-sdk/client-eventbridge";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-config({ path: path.resolve(__dirname, "../../.env") });
+config({ path: path.resolve(__dirname, "../../../.env") });
 
 const LOCALSTACK_ENDPOINT = process.env.LOCALSTACK_ENDPOINT;
 

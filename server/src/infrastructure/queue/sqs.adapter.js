@@ -4,7 +4,7 @@ import {
   DeleteMessageCommand,
   GetQueueAttributesCommand,
 } from "@aws-sdk/client-sqs";
-import { sqs } from "../../../services/aws/awsClient.js";
+import { sqs } from "../../services/aws/awsClient.js";
 
 // ─── Send Message ─────────────────────────────────────────────────────────────
 

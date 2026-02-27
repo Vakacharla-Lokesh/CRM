@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-config({ path: path.resolve(__dirname, "../.env") });
+config({ path: path.resolve(__dirname, "../../.env") });
 
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
