@@ -11,7 +11,7 @@ import {
   resetPassword,
 } from "../controllers/authController.js";
 import { validate } from "../middlewares/validate.js";
-import { authenticate } from "../middlewares/auth.js";
+import { authenticateRequest } from "../middlewares/auth.js";
 import {
   loginSchema,
   registerSchema,
@@ -30,7 +30,7 @@ router.post("/register", validate(registerSchema), register);
 router.post("/login", validate(loginSchema), login);
 router.post("/logout", validate(logoutSchema), logout);
 router.post("/refresh", validate(refreshTokenSchema), refreshToken);
-router.get("/profile", authenticate, getProfile);
+router.get("/profile", authenticateRequest, getProfile);
 router.get("/status", checkToken);
 
 router.post(

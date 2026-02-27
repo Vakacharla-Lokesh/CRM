@@ -6,6 +6,7 @@ import {
   Building,
   GitBranch,
   BarChart2,
+  ShieldCheck,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -27,7 +28,10 @@ export interface NavItem {
   to: string;
   label: string;
   icon: LucideIcon;
-  roles: UserRole[];
+  /** Legacy role-based guard — used only for super_admin-exclusive items */
+  roles?: UserRole[];
+  /** Fine-grained permission guard — show only when user has this permission */
+  permission?: string;
 }
 
 export const navItems: NavItem[] = [
@@ -35,48 +39,53 @@ export const navItems: NavItem[] = [
     to: "/dashboard",
     label: "Dashboard",
     icon: LayoutDashboard,
-    roles: ["user", "admin", "super_admin"],
   },
   {
     to: "/leads",
     label: "Leads",
     icon: Users,
-    roles: ["user", "admin"],
+    permission: "leads:read",
   },
   {
     to: "/organizations",
     label: "Organizations",
     icon: Building2,
-    roles: ["user", "admin"],
+    permission: "organizations:read",
   },
   {
     to: "/deals",
     label: "Deals",
     icon: DollarSign,
-    roles: ["user", "admin"],
+    permission: "deals:read",
   },
   {
     to: "/workflows",
     label: "Workflows",
     icon: GitBranch,
-    roles: ["user", "admin"],
+    permission: "leads:read",
+  },
+  {
+    to: "/analytics",
+    label: "Analytics",
+    icon: BarChart2,
+    permission: "analytics:read",
   },
   {
     to: "/users",
     label: "Users",
     icon: Users,
-    roles: ["admin", "super_admin"],
+    permission: "users:read",
+  },
+  {
+    to: "/roles",
+    label: "Roles",
+    icon: ShieldCheck,
+    permission: "roles:read",
   },
   {
     to: "/tenants",
     label: "Tenants",
     icon: Building,
     roles: ["super_admin"],
-  },
-  {
-    to: "/analytics",
-    label: "Analytics",
-    icon: BarChart2,
-    roles: ["user", "admin"],
   },
 ];

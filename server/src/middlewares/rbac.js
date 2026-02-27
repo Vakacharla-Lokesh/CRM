@@ -1,60 +1,24 @@
-import Role from "../models/roleModel.js";
 import rolePermissionCache from "../config/cache.js";
 import AppError from "../utils/AppError.js";
 import mongoose from "mongoose";
 
-const ROLE_NAMES = new Set(["user", "admin", "super_admin"]);
-
-export const requirePermission = (...args) => {
-  return async (req, res, next) => {
+/**
+ * Permission-only authorization middleware.
+ *
+ * Accepts one or more permission strings (e.g. "leads:read", "tenants:write").
+ * Checks req.auth.permissions — never inspects role names.
+ *
+ * Must run AFTER authenticateRequest.
+ */
+export const requirePermission = (...requiredPermissions) => {
+  return (req, res, next) => {
     try {
-      if (!req.user) {
+      if (!req.auth) {
         throw new AppError("Authentication required", 401);
       }
 
-      const { roleId, role: legacyRole } = req.user;
-
-      // Super admin always passes
-      if (legacyRole === "super_admin") {
-        return next();
-      }
-
-      // If every argument is a role name, do a role-based check (legacy path)
-      // e.g. authorize("user", "admin", "super_admin")
-      if (args.every((a) => ROLE_NAMES.has(a))) {
-        if (!args.includes(legacyRole)) {
-          throw new AppError(
-            `Access denied. Required roles: ${args.join(", ")}`,
-            403,
-          );
-        }
-        return next();
-      }
-
-      // Otherwise treat args as permission strings — use dynamic RBAC
-      if (!roleId) {
-        throw new AppError("User role not assigned", 403);
-      }
-
-      const cacheKey = `role:${roleId}`;
-      let roleDoc = rolePermissionCache.get(cacheKey);
-
-      if (!roleDoc) {
-        roleDoc = await Role.findById(roleId).lean();
-
-        if (!roleDoc) {
-          throw new AppError("Role not found", 403);
-        }
-
-        if (!roleDoc.isActive) {
-          throw new AppError("Role is inactive", 403);
-        }
-
-        rolePermissionCache.set(cacheKey, roleDoc, 300000);
-      }
-
-      const userPermissions = roleDoc.permissions || [];
-      const missingPermissions = args.filter(
+      const userPermissions = req.auth.permissions || [];
+      const missingPermissions = requiredPermissions.filter(
         (perm) => !userPermissions.includes(perm),
       );
 
@@ -65,9 +29,6 @@ export const requirePermission = (...args) => {
         );
       }
 
-      req.role = roleDoc;
-      req.permissions = userPermissions;
-
       next();
     } catch (error) {
       next(error);
@@ -75,17 +36,34 @@ export const requirePermission = (...args) => {
   };
 };
 
-export const injectTenantFilter = (req, res, next) => {
-  if (req.user && req.user.role !== "super_admin") {
-    const rawId = req.user.tenantId;
+/**
+ * Tenant context middleware.
+ *
+ * Sets req.tenantContext based on permissions:
+ *  - system:manage permission → { scope: 'global' }
+ *  - otherwise → { scope: 'tenant', tenantId }
+ *
+ * Also sets req.tenantFilter for backward compatibility with controllers.
+ *
+ * Must run AFTER authenticateRequest.
+ */
+export const injectTenantContext = (req, res, next) => {
+  const permissions = req.auth?.permissions || [];
+
+  if (permissions.includes("system:manage")) {
+    req.tenantContext = { scope: "global" };
+    req.tenantFilter = {};
+  } else {
+    const rawId = req.auth?.tenantId;
     const tenantId =
       rawId && mongoose.Types.ObjectId.isValid(rawId)
         ? new mongoose.Types.ObjectId(rawId)
         : rawId;
+
+    req.tenantContext = { scope: "tenant", tenantId };
     req.tenantFilter = { tenantId };
-  } else {
-    req.tenantFilter = {};
   }
+
   next();
 };
 

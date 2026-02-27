@@ -8,7 +8,10 @@ import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 import { bulkDeleteLeads } from "../services/bulkDeleteService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
-  const filter = req.tenantFilter || {};
+  const filter =
+    req.tenantContext?.scope === "tenant"
+      ? { tenantId: req.tenantContext.tenantId }
+      : {};
 
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
@@ -47,8 +50,8 @@ export const getLeadById = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot access this lead", 403);
   }
@@ -62,8 +65,8 @@ export const createLead = asyncCatch(async (req, res) => {
     userId: req.user.userId,
   };
 
-  if (req.user.role !== "super_admin") {
-    leadData.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    leadData.tenantId = req.tenantContext.tenantId;
   }
 
   const lead = await leadModel.create(leadData);
@@ -102,8 +105,8 @@ export const updateLead = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
@@ -149,8 +152,8 @@ export const deleteLead = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot delete this lead", 403);
   }
@@ -163,7 +166,10 @@ export const deleteLead = asyncCatch(async (req, res) => {
 });
 
 export const getLeadsByTenant = asyncCatch(async (req, res) => {
-  if (req.user.role !== "super_admin") {
+  if (
+    req.tenantContext?.scope === "tenant" &&
+    req.params.tenantId !== req.tenantContext.tenantId.toString()
+  ) {
     throw new AppError(
       "Forbidden: You cannot access leads from other tenants",
       403,
@@ -178,8 +184,8 @@ export const getLeadsByTenant = asyncCatch(async (req, res) => {
 export const getLeadsByUser = asyncCatch(async (req, res) => {
   const filter = { userId: req.params.userId };
 
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    filter.tenantId = req.tenantContext.tenantId;
   }
 
   const leads = await leadModel.find(filter);
@@ -190,8 +196,8 @@ export const getLeadsByUser = asyncCatch(async (req, res) => {
 export const getLeadsByOrganization = asyncCatch(async (req, res) => {
   const filter = { organizationId: req.params.organizationId };
 
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
+  if (req.tenantContext?.scope === "tenant") {
+    filter.tenantId = req.tenantContext.tenantId;
   }
 
   const leads = await leadModel.find(filter);
@@ -206,8 +212,8 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
@@ -252,8 +258,8 @@ export const updateLeadScoreManually = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
@@ -270,8 +276,8 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId?.toString() !== req.user.tenantId?.toString()
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId?.toString() !== req.tenantContext.tenantId?.toString()
   ) {
     throw new AppError("Forbidden: You cannot convert this lead", 403);
   }
@@ -316,7 +322,10 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
 });
 
 export const searchLeads = asyncCatch(async (req, res) => {
-  const filter = req.tenantFilter || {};
+  const filter =
+    req.tenantContext?.scope === "tenant"
+      ? { tenantId: req.tenantContext.tenantId }
+      : {};
   const { q, status, source, limit = 25 } = req.query;
 
   if (!q || q.trim() === "") {
@@ -344,10 +353,11 @@ export const searchLeads = asyncCatch(async (req, res) => {
 
 export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
   const { ids } = req.body;
-  const tenantId = req.user.tenantId;
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
   const userContext = {
-    userId: req.user.userId,
-    role: req.user.role,
+    userId: req.auth.userId,
+    scope: req.tenantContext?.scope,
   };
 
   const result = await bulkDeleteLeads(ids, tenantId, userContext);

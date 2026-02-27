@@ -32,10 +32,9 @@ const userSchema = new Schema(
       index: true,
       validate: {
         validator: function () {
-          // super_admin users bypass dynamic RBAC; all others must have a roleId
-          return this.role === "super_admin" || !!this.roleId;
+          return !!this.roleId;
         },
-        message: "roleId is required for non-super_admin users",
+        message: "roleId is required for all users",
       },
       comment: "Reference to dynamic Role document (RBAC v2)",
     },
