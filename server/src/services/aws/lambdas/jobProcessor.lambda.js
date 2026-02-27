@@ -6,16 +6,16 @@ import mongoose from "mongoose";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-config({ path: path.resolve(__dirname, "../../../.env") });
+config({ path: path.resolve(__dirname, "../../../../.env") });
 
-import { ensureAwsInitialized } from "../../services/aws/initAwsResources.js";
-import { queueService } from "../../infrastructure/queue/queue.service.js";
-import { jobRegistry } from "../../modules/jobs/jobRegistry.js";
+import { ensureAwsInitialized } from "../initAwsResources.js";
+import { queueService } from "../queue/queue.service.js";
+import { jobRegistry } from "../../../modules/jobs/jobRegistry.js";
 
 
-import * as workflowWorker from "../../workers/workflow.worker.js";
-import * as exportWorker from "../../workers/export.worker.js";
-import * as leadReminderWorker from "../../workers/leadReminder.worker.js";
+import * as workflowWorker from "../../../workers/workflow.worker.js";
+import * as exportWorker from "../../../workers/export.worker.js";
+import * as leadReminderWorker from "../../../workers/leadReminder.worker.js";
 
 
 let _initialized = false;

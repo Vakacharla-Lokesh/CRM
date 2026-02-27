@@ -6,8 +6,8 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "worker": "node src/infrastructure/lambda/localRunner.js",
-    "worker:dev": "nodemon src/infrastructure/lambda/localRunner.js",
+    "worker": "node src/services/aws/lambdas/localRunner.js",
+    "worker:dev": "nodemon src/services/aws/lambdas/localRunner.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

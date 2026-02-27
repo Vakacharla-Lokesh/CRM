@@ -4,7 +4,7 @@ config();
 import app from "./src/server.js";
 
 import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
-import { queueService } from "./src/infrastructure/queue/queue.service.js";
+import { queueService } from "./src/services/aws/queue/queue.service.js";
 
 await ensureAwsInitialized();
 queueService.bootstrap();
