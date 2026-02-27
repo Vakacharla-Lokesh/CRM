@@ -12,22 +12,34 @@ interface ProtectedRouteProps {
 
 function ProtectedRoute({ config }: ProtectedRouteProps) {
   const { user } = useAppContext();
-  const { allowedRoles, unauthorizedFallback = "/dashboard" } = config;
+  const {
+    allowedRoles,
+    requiredPermissions,
+    unauthorizedFallback = "/dashboard",
+  } = config;
 
-  if (!allowedRoles || allowedRoles.length === 0) {
+  // Super admins bypass all permission / role guards
+  if (user?.role === "super_admin") {
     return <>{config.element}</>;
   }
 
-  if (user && allowedRoles.includes(user.role)) {
-    return <>{config.element}</>;
+  // Coarse role guard (for super_admin-exclusive routes like /tenants)
+  if (allowedRoles && allowedRoles.length > 0) {
+    if (!user || !allowedRoles.includes(user.role)) {
+      return <Navigate to={unauthorizedFallback} replace />;
+    }
   }
 
-  return (
-    <Navigate
-      to={unauthorizedFallback}
-      replace
-    />
-  );
+  // Fine-grained permission guard
+  if (requiredPermissions && requiredPermissions.length > 0) {
+    const userPerms: string[] = user?.permissions ?? [];
+    const hasAll = requiredPermissions.every((p) => userPerms.includes(p));
+    if (!hasAll) {
+      return <Navigate to={unauthorizedFallback} replace />;
+    }
+  }
+
+  return <>{config.element}</>;
 }
 
 export function AppRouter() {

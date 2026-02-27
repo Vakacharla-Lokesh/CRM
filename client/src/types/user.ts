@@ -23,6 +23,7 @@ export interface CreateUserDTO {
   password: string;
   mobile?: string;
   role?: UserRole;
+  roleId?: string;
   tenantId: string;
 }
 

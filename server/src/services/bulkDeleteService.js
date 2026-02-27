@@ -40,11 +40,6 @@ export async function bulkDeleteDeals(ids, tenantId, userContext) {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
 
-  // Role-based restriction: regular users can only delete their own deals
-  if (userContext.role === "user") {
-    filter.userId = new mongoose.Types.ObjectId(userContext.userId);
-  }
-
   // Find matching deals first to identify failures
   const matchingDeals = await dealModel.find(filter).select("_id").lean();
 
@@ -106,11 +101,6 @@ export async function bulkDeleteLeads(ids, tenantId, userContext) {
   // Tenant enforcement — never trust client tenantId
   if (userContext.role !== "super_admin") {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
-  }
-
-  // Role-based restriction: regular users can only delete their own leads
-  if (userContext.role === "user") {
-    filter.userId = new mongoose.Types.ObjectId(userContext.userId);
   }
 
   // Find matching leads first to identify failures
@@ -176,10 +166,7 @@ export async function bulkDeleteOrganizations(ids, tenantId, userContext) {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
 
-  // Role-based restriction: regular users can only delete their own organizations
-  if (userContext.role === "user") {
-    filter.userId = new mongoose.Types.ObjectId(userContext.userId);
-  }
+
 
   // Find matching organizations first to identify failures
   const matchingOrgs = await organizationModel

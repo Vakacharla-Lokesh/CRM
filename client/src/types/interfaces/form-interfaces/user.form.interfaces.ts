@@ -6,6 +6,7 @@ export interface UserFormData {
   userEmail: string;
   mobile: string;
   role: UserRole;
+  roleId: string;
   password: string;
   tenantId: string;
 }

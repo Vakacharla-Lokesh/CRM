@@ -30,6 +30,13 @@ const userSchema = new Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Role",
       index: true,
+      validate: {
+        validator: function () {
+          // super_admin users bypass dynamic RBAC; all others must have a roleId
+          return this.role === "super_admin" || !!this.roleId;
+        },
+        message: "roleId is required for non-super_admin users",
+      },
       comment: "Reference to dynamic Role document (RBAC v2)",
     },
     password: { type: String, select: false },
@@ -52,6 +59,7 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 
 // Indexes
 userSchema.index({ tenantId: 1 });
+userSchema.index({ tenantId: 1, roleId: 1 });
 
 // search index
 userSchema.index({

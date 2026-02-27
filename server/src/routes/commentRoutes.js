@@ -1,68 +1,19 @@
-import { Router } from "express";
-import {
-  getAllComments,
-  getCommentById,
-  createComment,
-  updateComment,
-  deleteComment,
-  getCommentsByLead,
-} from "../controllers/commentController.js";
-import { validate } from "../middlewares/validate.js";
-import { authenticate } from "../middlewares/auth.js";
-import { authorize } from "../middlewares/rbac.js";
-import {
-  createCommentSchema,
-  updateCommentSchema,
-} from "../validators/commentsValidator.js";
-import passport from "../config/passport.js";
+import { Router } from 'express';
+import { getAllComments, getCommentById, createComment, updateComment, deleteComment, getCommentsByLead } from '../controllers/commentController.js';
+import { validate } from '../middlewares/validate.js';
+import { authenticate } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/rbac.js';
+import { createCommentSchema, updateCommentSchema } from '../validators/commentsValidator.js';
+import passport from '../config/passport.js';
 
 const router = Router();
+router.use(passport.authenticate('jwt', { session: false }));
 
-router.use(passport.authenticate("jwt", { session: false }));
-
-// Routes
-router.get(
-  "/",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  getAllComments,
-);
-
-router.get(
-  "/:id",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  getCommentById,
-);
-
-router.post(
-  "/",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  validate(createCommentSchema),
-  createComment,
-);
-
-router.put(
-  "/:id",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  validate(updateCommentSchema),
-  updateComment,
-);
-
-router.delete(
-  "/:id",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  deleteComment,
-);
-
-router.get(
-  "/lead/:leadId",
-  authenticate,
-  authorize("user", "admin", "super_admin"),
-  getCommentsByLead,
-);
+router.get('/', authenticate, requirePermission('comments:read'), getAllComments);
+router.get('/:id', authenticate, requirePermission('comments:read'), getCommentById);
+router.post('/', authenticate, requirePermission('comments:write'), validate(createCommentSchema), createComment);
+router.put('/:id', authenticate, requirePermission('comments:write'), validate(updateCommentSchema), updateComment);
+router.delete('/:id', authenticate, requirePermission('comments:delete'), deleteComment);
+router.get('/lead/:leadId', authenticate, requirePermission('comments:read'), getCommentsByLead);
 
 export default router;

@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 
 const ROLE_NAMES = new Set(["user", "admin", "super_admin"]);
 
-export const authorize = (...args) => {
+export const requirePermission = (...args) => {
   return async (req, res, next) => {
     try {
       if (!req.user) {
@@ -67,29 +67,6 @@ export const authorize = (...args) => {
 
       req.role = roleDoc;
       req.permissions = userPermissions;
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-
-export const authorizeLegacy = (...allowedRoles) => {
-  return (req, res, next) => {
-    try {
-      if (!req.user) {
-        throw new AppError("Authentication required", 401);
-      }
-
-      const { role } = req.user;
-
-      if (!allowedRoles.includes(role)) {
-        throw new AppError(
-          `Access denied. Required roles: ${allowedRoles.join(", ")}`,
-          403,
-        );
-      }
 
       next();
     } catch (error) {

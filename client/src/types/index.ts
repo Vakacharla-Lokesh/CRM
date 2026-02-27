@@ -10,6 +10,7 @@ export * from "./attachments";
 export * from "./notifications";
 export * from "./workflows";
 export * from "./leadActivity";
+export * from "./role";
 
 // API Types
 export interface ApiRequestOptions {
