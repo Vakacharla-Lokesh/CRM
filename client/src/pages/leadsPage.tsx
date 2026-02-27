@@ -10,7 +10,8 @@ import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/leads/leadColumns";
 import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
-import { Download, Search } from "lucide-react";
+import { Search } from "lucide-react";
+import { BulkActionBar } from "@/components/bulk/BulkActionBar";
 import { Input } from "../components/ui/input";
 import {
   Select,
@@ -278,27 +279,6 @@ const LeadsPage = () => {
         </div>
         <div className="flex flex-row gap-4">
           <Button
-            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
-            onClick={handleExport}
-            disabled={selectedLeadIds.length === 0 || !isOnline}
-          >
-            <Download className="w-4 h-4" />
-            Export
-            {selectedLeadIds.length > 0 ? ` (${selectedLeadIds.length})` : ""}
-          </Button>
-          <Button
-            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
-            onClick={() => {
-              handleEmailExport();
-              setIsExportDialogOpen(true);
-            }}
-            disabled={selectedLeadIds.length === 0 || !isOnline}
-          >
-            <Download className="w-4 h-4" />
-            Export to mail
-            {selectedLeadIds.length > 0 ? ` (${selectedLeadIds.length})` : ""}
-          </Button>
-          <Button
             onClick={handleAddLead}
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
           >
@@ -433,6 +413,18 @@ const LeadsPage = () => {
           resetSelectionTrigger={selectionResetKey}
         />
       )}
+
+      <BulkActionBar
+        selectedIds={selectedLeadIds}
+        entityType="leads"
+        onClearSelection={() => {
+          setSelectedLeadIds([]);
+          setSelectionResetKey((k) => k + 1);
+        }}
+        exportHandler={handleExport}
+        exportMailHandler={() => setIsExportDialogOpen(true)}
+        onDeleteSuccess={fetchLeads}
+      />
 
       <LeadModal
         isOpen={isModalOpen}

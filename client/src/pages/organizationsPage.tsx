@@ -31,6 +31,7 @@ import { Download, Search } from "lucide-react";
 import { useDebounce, useOrganizationData } from "@/hooks";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import { exportOrganizations } from "@/services/exportService";
+import { BulkActionBar } from "@/components/bulk/BulkActionBar";
 
 // offline handling
 import { useOffline } from "@/context/useOffline";
@@ -268,17 +269,6 @@ const OrganizationsPage = () => {
         </div>
         <div className="flex flex-row gap-4">
           <Button
-            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap disabled:opacity-35 disabled:bg-muted-foreground"
-            onClick={handleExport}
-            disabled={selectedOrganizationIds.length === 0 || !isOnline}
-          >
-            <Download className="w-4 h-4" />
-            Export
-            {selectedOrganizationIds.length > 0
-              ? ` (${selectedOrganizationIds.length})`
-              : ""}
-          </Button>
-          <Button
             onClick={handleAddOrganization}
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
           >
@@ -390,6 +380,17 @@ const OrganizationsPage = () => {
           resetSelectionTrigger={selectionResetKey}
         ></DataTable>
       )}
+
+      <BulkActionBar
+        selectedIds={selectedOrganizationIds}
+        entityType="organizations"
+        onClearSelection={() => {
+          setSelectedOrganizationIds([]);
+          setSelectionResetKey((k) => k + 1);
+        }}
+        exportHandler={handleExport}
+        onDeleteSuccess={fetchOrganizations}
+      />
 
       <OrganizationModal
         isOpen={isModalOpen}

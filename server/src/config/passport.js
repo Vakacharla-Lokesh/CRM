@@ -23,6 +23,7 @@ passport.use(
     async (userEmail, password, done) => {
       try {
         const user = await userModel.findOne({ userEmail }).select("+password");
+        await user.populate("roleId");
 
         if (!user) {
           return done(null, false, { message: "Invalid credentials" });

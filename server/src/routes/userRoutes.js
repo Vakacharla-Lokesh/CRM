@@ -15,6 +15,7 @@ import {
   updateProfile,
   getUserActivity,
   getUserPermissions,
+  assignRoleToUser,
 } from "../controllers/userController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate, checkActive } from "../middlewares/auth.js";
@@ -28,6 +29,8 @@ import {
   updateProfileSchema,
 } from "../validators/userValidators.js";
 import passport from "../config/passport.js";
+
+import { assignRoleSchema } from "../validators/roleValidator.js";
 
 const router = Router();
 
@@ -111,12 +114,13 @@ router.delete(
   deleteUser,
 );
 
+// Assign role to user
 router.patch(
   "/:id/role",
   authenticate,
-  authorize("super_admin"),
-  validate(updateRoleSchema),
-  updateUserRole,
+  authorize("admin", "super_admin"),
+  validate(assignRoleSchema),
+  assignRoleToUser,
 );
 
 router.put(

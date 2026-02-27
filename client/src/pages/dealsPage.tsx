@@ -29,6 +29,8 @@ import { toast } from "sonner";
 
 // other imports
 import { Search } from "lucide-react";
+import { BulkActionBar } from "@/components/bulk/BulkActionBar";
+import { exportDeals } from "@/services/exportService";
 
 // notification imports
 import { useNotifications } from "@/hooks";
@@ -70,6 +72,10 @@ const DealsPage = () => {
 
   // delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  // selection state for bulk actions
+  const [selectedDealIds, setSelectedDealIds] = useState<string[]>([]);
+  const [selectionResetKey, setSelectionResetKey] = useState(0);
 
   // notifications
   const { notifyEvent } = useNotifications();
@@ -144,6 +150,13 @@ const DealsPage = () => {
     setSelectedDeal(null);
   };
 
+  // export handler
+  const handleExport = async () => {
+    await exportDeals(selectedDealIds);
+    setSelectedDealIds([]);
+    setSelectionResetKey((k) => k + 1);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -159,7 +172,13 @@ const DealsPage = () => {
 
       <DealStatistics
         pipeline={dealStatsQuery.data?.pipeline ?? []}
-        summary={dealStatsQuery.data?.summary ?? { totalPipelineValue: 0, totalDeals: 0, avgDealValue: 0 }}
+        summary={
+          dealStatsQuery.data?.summary ?? {
+            totalPipelineValue: 0,
+            totalDeals: 0,
+            avgDealValue: 0,
+          }
+        }
         isLoading={dealStatsQuery.isLoading}
       />
 
@@ -256,11 +275,25 @@ const DealsPage = () => {
           data={filteredDeals}
           name="Deals"
           searchColumn="dealName"
+          onSelectionChange={(rows) =>
+            setSelectedDealIds(rows.map((r: any) => r._id))
+          }
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}
+          resetSelectionTrigger={selectionResetKey}
         ></DataTable>
       )}
+
+      <BulkActionBar
+        selectedIds={selectedDealIds}
+        entityType="deals"
+        onClearSelection={() => {
+          setSelectedDealIds([]);
+          setSelectionResetKey((k) => k + 1);
+        }}
+        exportHandler={handleExport}
+      />
 
       <DealModal
         isOpen={isModalOpen}

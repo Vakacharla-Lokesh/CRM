@@ -12,6 +12,7 @@ import {
   convertLeadToDeal,
   updateLeadScoreManually,
   searchLeads,
+  bulkDeleteLeadsController,
 } from "../controllers/leadController.js";
 import { getLeadActivities } from "../controllers/leadActivityController.js";
 import { validate } from "../middlewares/validate.js";
@@ -56,6 +57,13 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   searchLeads,
+);
+
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize("admin", "super_admin"),
+  bulkDeleteLeadsController,
 );
 
 router.get(

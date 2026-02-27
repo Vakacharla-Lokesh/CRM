@@ -14,17 +14,18 @@ const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
-function generateAccessToken(payload) {
+const generateAccessToken = (user) => {
   return jwt.sign(
     {
-      userId: payload._id ?? payload.userId,
-      role: payload.role,
-      tenantId: payload.tenantId,
+      userId: user._id,
+      roleId: user.roleId,
+      tenantId: user.tenantId,
+      role: user.role,
     },
     process.env.JWT_SECRET,
     { expiresIn: "15m" },
   );
-}
+};
 
 async function generateAndStoreRefreshToken(payload) {
   const rawToken = crypto.randomBytes(64).toString("hex");
@@ -50,6 +51,9 @@ function formatUser(user) {
     userEmail: user.userEmail,
     mobile: user.mobile,
     role: user.role,
+    roleId: user.roleId?._id,
+    roleName: user.roleId?.name,
+    permissions: user.roleId?.permissions || [],
     tenantId: user.tenantId,
   };
 }

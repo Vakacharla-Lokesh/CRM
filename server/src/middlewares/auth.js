@@ -3,22 +3,25 @@ import tenantModel from "../models/tenantModel.js";
 
 import passport from "../config/passport.js";
 
-export const authenticate = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
-    if (err) {
-      return res
-        .status(500)
-        .json({ message: "Internal server error", error: err.message });
-    }
-
-    if (!user) {
-      return res.status(401).json({
-        message: "Invalid or expired token",
-        error: info?.message || "Authentication required",
-      });
-    }
+export const authenticate = async (req, res, next) => {
+  passport.authenticate("jwt", { session: false }, async (err, user, info) => {
+    if (err) return next(err);
+    if (!user) return next(new AppError("Unauthorized", 401));
 
     req.user = user;
+
+    if (user.roleId && typeof user.roleId === "string") {
+      try {
+        const Role = (await import("../models/roleModel.js")).default;
+        const roleDoc = await Role.findById(user.roleId).lean();
+        if (roleDoc) {
+          req.userRole = roleDoc;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch role:", error);
+      }
+    }
+
     next();
   })(req, res, next);
 };

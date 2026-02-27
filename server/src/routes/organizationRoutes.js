@@ -8,6 +8,7 @@ import {
   getOrganizationsByTenant,
   getOrganizationsByUser,
   searchOrganizations,
+  bulkDeleteOrganizationsController,
 } from "../controllers/organizationController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticate } from "../middlewares/auth.js";
@@ -37,6 +38,13 @@ router.get(
   authorize("user", "admin", "super_admin"),
   injectTenantFilter,
   searchOrganizations,
+);
+
+router.post(
+  "/bulk-delete",
+  authenticate,
+  authorize("admin", "super_admin"),
+  bulkDeleteOrganizationsController,
 );
 
 router.get(
