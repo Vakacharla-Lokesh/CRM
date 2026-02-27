@@ -2,6 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 
 import { type User } from "@/types";
 import ActionDropdown from "../common/actionDropDown";
@@ -9,11 +10,13 @@ import ActionDropdown from "../common/actionDropDown";
 interface ColumnsProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onAssignRole?: (id: string) => void;
 }
 
 export const columns = ({
   onEdit,
   onDelete,
+  onAssignRole,
 }: ColumnsProps = {}): ColumnDef<User>[] => [
   {
     id: "select",
@@ -143,6 +146,21 @@ export const columns = ({
     },
   },
   {
+    accessorKey: "roleName",
+    header: "Assigned Role",
+    cell: ({ row }) => {
+      const roleName = row.original.roleName;
+      if (!roleName) {
+        return <span className="text-gray-400 text-xs">—</span>;
+      }
+      return (
+        <Badge variant="outline" className="text-xs font-normal">
+          {roleName}
+        </Badge>
+      );
+    },
+  },
+  {
     accessorKey: "isActive",
     header: ({ column }) => {
       return (
@@ -192,12 +210,24 @@ export const columns = ({
     id: "actions",
     header: "Actions",
     cell: ({ row }) => (
-      <ActionDropdown
-        id={row.original._id}
-        type="User"
-        onEdit={onEdit}
-        onDelete={onDelete}
-      />
+      <div className="flex items-center gap-2">
+        <ActionDropdown
+          id={row.original._id}
+          type="User"
+          onEdit={onEdit}
+          onDelete={onDelete}
+        />
+        {onAssignRole && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="text-xs h-7 px-2"
+            onClick={() => onAssignRole(row.original._id)}
+          >
+            Assign Role
+          </Button>
+        )}
+      </div>
     ),
   },
 ];

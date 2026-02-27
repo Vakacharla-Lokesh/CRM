@@ -41,8 +41,8 @@ export const getWorkflowById = asyncCatch(async (req, res) => {
   if (!workflow) throw new AppError("Workflow not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    workflow.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantFilter.tenantId &&
+    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot access this workflow", 403);
   }
@@ -56,8 +56,8 @@ export const createWorkflow = asyncCatch(async (req, res) => {
     createdBy: req.user.userId,
   };
 
-  if (req.user.role !== "super_admin") {
-    workflowData.tenantId = req.user.tenantId;
+  if (req.tenantFilter.tenantId) {
+    workflowData.tenantId = req.tenantFilter.tenantId;
   }
 
   const workflow = await workflowModel.create(workflowData);
@@ -77,8 +77,8 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
   if (!workflow) throw new AppError("Workflow not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    workflow.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantFilter.tenantId &&
+    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this workflow", 403);
   }
@@ -99,8 +99,8 @@ export const deleteWorkflow = asyncCatch(async (req, res) => {
   if (!workflow) throw new AppError("Workflow not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    workflow.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantFilter.tenantId &&
+    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot delete this workflow", 403);
   }
@@ -116,8 +116,8 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
   if (!workflow) throw new AppError("Workflow not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    workflow.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantFilter.tenantId &&
+    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
   ) {
     throw new AppError("Forbidden: You cannot modify this workflow", 403);
   }
@@ -137,8 +137,8 @@ export const getWorkflowLogs = asyncCatch(async (req, res) => {
   if (!workflow) throw new AppError("Workflow not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    workflow.tenantId.toString() !== req.user.tenantId.toString()
+    req.tenantFilter.tenantId &&
+    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
   ) {
     throw new AppError("Forbidden", 403);
   }

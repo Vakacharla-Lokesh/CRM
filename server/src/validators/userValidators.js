@@ -9,6 +9,7 @@ export const createUserSchema = z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
     role: z.enum(["user", "admin", "super_admin"]),
+    roleId: z.string().optional(),
     password: z.string().min(8).optional(),
     tenantId: z.string().min(1).optional(),
   })
@@ -24,6 +25,7 @@ export const updateUserSchema = z
       .regex(/^[1-9]\d{9}$/)
       .optional(),
     role: z.enum(["user", "admin", "super_admin"]).optional(),
+    roleId: z.string().optional(),
     password: z.string().min(8).optional(),
   })
   .strict();

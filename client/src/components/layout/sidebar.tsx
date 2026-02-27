@@ -38,9 +38,28 @@ function Sidebar({ isOpen }: SidebarProps) {
     return location.pathname === path;
   };
 
-  const filteredNavItems = navItems.filter(
-    (item) => user?.role && item.roles.includes(user.role),
-  );
+  const isSuperAdmin = user?.role === "super_admin";
+  const userPermissions = user?.permissions ?? [];
+
+  const filteredNavItems = navItems.filter((item) => {
+    // Items with no guards are always visible (e.g. Dashboard)
+    if (!item.roles && !item.permission) return true;
+
+    // Super-admins see everything
+    if (isSuperAdmin) return true;
+
+    // Role-exclusive items (e.g. Tenants)
+    if (item.roles && item.roles.length > 0) {
+      return user?.role ? item.roles.includes(user.role) : false;
+    }
+
+    // Permission-gated items
+    if (item.permission) {
+      return userPermissions.includes(item.permission);
+    }
+
+    return false;
+  });
 
   return (
     <aside

@@ -1,12 +1,12 @@
-import { Router } from "express";
-import { getJobStatus } from "../controllers/jobController.js";
-// Import authentication middleware if required
-// import { requireAuth } from "../middleware/auth.js";
+import { Router } from 'express';
+import { getJobStatus } from '../controllers/jobController.js';
+import { authenticate } from '../middlewares/auth.js';
+import { requirePermission } from '../middlewares/rbac.js';
+import passport from '../config/passport.js';
 
 const router = Router();
+router.use(passport.authenticate('jwt', { session: false }));
 
-// Endpoint for checking the current progress and status of a DynamoDB-tracked job.
-// Consider adding auth middleware: router.get("/:jobId", requireAuth, getJobStatus);
-router.get("/:jobId", getJobStatus);
+router.get('/:jobId', authenticate, requirePermission('settings:read'), getJobStatus);
 
 export default router;

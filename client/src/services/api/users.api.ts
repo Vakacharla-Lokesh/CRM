@@ -1,4 +1,4 @@
-import { get, post, put, delete_ } from "./core";
+import { get, post, put, patch, delete_ } from "./core";
 import type {
   User,
   UserListResponse,
@@ -53,4 +53,15 @@ export const usersAPI = {
     userId: string,
     params?: { page?: number; limit?: number },
   ) => get<LeadListResponse>(`/users/${userId}/leads`, params),
+
+  assignRole: async (userId: string, roleId: string) => {
+    const response = await patch<{ message: string; user: User }>(
+      `/users/${userId}/role`,
+      { roleId },
+    );
+    return response.user;
+  },
+
+  getPermissions: (userId: string) =>
+    get<{ permissions: string[] }>(`/users/${userId}/permissions`),
 };

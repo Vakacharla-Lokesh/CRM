@@ -120,7 +120,7 @@ centralized note taking to relate to any thing, like lead, deal, org, etc
 
 bulk delete operations
 
-offline sync queue through sqs as well
+>>>offline sync queue through sqs as well
 
 customizable dashboards?? (from twenty)
 
@@ -128,17 +128,17 @@ kanban board type view?
 
 Sales Gamification (Leaderboards).
 
-pm2 clustering implementations
+>>>pm2 clustering implementations
 
 Idempotency key enforcement
 
-atlas search instead of regex pattern matching
+>>>atlas search instead of regex pattern matching
 
 WebSockets (Tenant-Wide Notifications) - see how to implement a redis pub sub to broadcast to all instances of node
 
-timeline feature for leads, organizations
+>>>timeline feature for leads, organizations
 
-automations / triggers on particular actions (create a new collection for triggers and then add a pub sub or queue to process these triggers)
+>>>automations / triggers on particular actions (create a new collection for triggers and then add a pub sub or queue to process these triggers)
 
 dynamic rules and assign roles to users within tenant
 
@@ -147,4 +147,21 @@ tasks and notes??
 fast csv pipe to stream to send data to controller
 
 lead score engine better
+
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+
+TODO: 27/02/2026
+
+socket io for activity within tenant
+
+widgets for dashboard and (rearrange widgets)
+
+tenant based settings
+
+tasks new tab per user in kanban type page and create through workflows
+
+start up login and flow on first login, send a link instead of password and credentials, reset password and take in profile data
+
+calender to show leads, deals and organizations created
 

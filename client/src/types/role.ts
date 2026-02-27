@@ -5,6 +5,7 @@ export interface Role {
   description?: string;
   permissions: string[];
   isActive: boolean;
+  isSystemRole: boolean;
   createdAt: string;
   updatedAt: string;
 }

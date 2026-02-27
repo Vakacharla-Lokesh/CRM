@@ -9,6 +9,7 @@ import DealsPage from "../pages/dealsPage";
 import TenantsPage from "../pages/tenantsPage";
 import WorkflowsPage from "../pages/workflowsPage";
 import AnalyticsPage from "../pages/analyticsPage";
+import RolesPage from "../pages/rolesPage";
 
 // lazy loading components
 import { lazy } from "react";
@@ -22,7 +23,10 @@ const LeadDetailsPage = lazy(() => import("../pages/leadDetailsPage"));
 export interface RouteConfig {
   path: string;
   element: React.ReactNode;
+  /** Legacy coarse-grained role guard (still used for super_admin-only routes) */
   allowedRoles?: UserRole[];
+  /** Fine-grained permission guard — user must have ALL listed permissions */
+  requiredPermissions?: string[];
   unauthorizedFallback?: string;
 }
 
@@ -34,32 +38,38 @@ export const routeConfig: RouteConfig[] = [
   {
     path: "/leads",
     element: <LeadsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["leads:read"],
   },
   {
     path: "/leads/:id",
     element: <LeadDetailsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["leads:read"],
   },
   {
     path: "/organizations",
     element: <OrganizationsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["organizations:read"],
   },
   {
     path: "/organizations/:id/leads",
     element: <OrganizationLeadsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["organizations:read"],
   },
   {
     path: "/deals",
     element: <DealsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["deals:read"],
   },
   {
     path: "/users",
     element: <UsersPage />,
-    allowedRoles: ["admin", "super_admin"],
+    requiredPermissions: ["users:read"],
+    unauthorizedFallback: "/dashboard",
+  },
+  {
+    path: "/roles",
+    element: <RolesPage />,
+    requiredPermissions: ["roles:read"],
     unauthorizedFallback: "/dashboard",
   },
   {
@@ -77,13 +87,13 @@ export const routeConfig: RouteConfig[] = [
   {
     path: "/workflows",
     element: <WorkflowsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["leads:read"],
     unauthorizedFallback: "/dashboard",
   },
   {
     path: "/analytics",
     element: <AnalyticsPage />,
-    allowedRoles: ["user", "admin"],
+    requiredPermissions: ["analytics:read"],
     unauthorizedFallback: "/dashboard",
   },
 ];

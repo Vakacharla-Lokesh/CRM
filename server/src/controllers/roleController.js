@@ -1,26 +1,19 @@
-import Role from "../models/roleModel.js";
-import User from "../models/userModel.js";
-import mongoose from "mongoose";
+﻿import * as roleService from "../services/roleService.js";
 
 /**
- * Get all roles for the authenticated user's tenant
+ * Get all roles for the authenticated user's tenant.
  * @route GET /api/roles
- * @access Private (admin, super_admin)
+ * @access Private (roles:read)
  */
 export const getAllRoles = async (req, res, next) => {
   try {
-    const tenantId = req.user.tenantId;
+    // super_admin without tenantId sees all roles
+    const tenantId =
+      req.user.role === "super_admin" && !req.user.tenantId
+        ? null
+        : req.user.tenantId;
 
-    // Super admin can see all roles if no tenant filter provided
-    const filter =
-      req.user.role === "super_admin" && !tenantId
-        ? {}
-        : { tenantId: new mongoose.Types.ObjectId(tenantId) };
-
-    const roles = await Role.find(filter)
-      .select("-__v")
-      .sort({ createdAt: -1 })
-      .lean();
+    const roles = await roleService.getRolesByTenant(tenantId);
 
     res.status(200).json({
       success: true,
@@ -33,40 +26,16 @@ export const getAllRoles = async (req, res, next) => {
 };
 
 /**
- * Get single role by ID
+ * Get single role by ID.
  * @route GET /api/roles/:id
- * @access Private (admin, super_admin)
+ * @access Private (roles:read)
  */
 export const getRoleById = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const tenantId =
+      req.user.role === "super_admin" ? null : req.user.tenantId;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role ID format",
-      });
-    }
-
-    const role = await Role.findById(id).select("-__v").lean();
-
-    if (!role) {
-      return res.status(404).json({
-        success: false,
-        message: "Role not found",
-      });
-    }
-
-    // Check tenant access (super_admin can access all)
-    if (
-      req.user.role !== "super_admin" &&
-      role.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "You do not have permission to access this role",
-      });
-    }
+    const role = await roleService.getRoleById(req.params.id, tenantId);
 
     res.status(200).json({
       success: true,
@@ -78,35 +47,19 @@ export const getRoleById = async (req, res, next) => {
 };
 
 /**
- * Create a new role
+ * Create a new role.
  * @route POST /api/roles
- * @access Private (admin, super_admin)
+ * @access Private (roles:write)
  */
 export const createRole = async (req, res, next) => {
   try {
     const { name, description, permissions } = req.body;
-    const tenantId = req.user.tenantId;
 
-    // Check if role name already exists for this tenant
-    const existingRole = await Role.findOne({
-      tenantId: new mongoose.Types.ObjectId(tenantId),
-      name: name.trim(),
-    });
-
-    if (existingRole) {
-      return res.status(409).json({
-        success: false,
-        message: `Role "${name}" already exists in your organization`,
-      });
-    }
-
-    // Create new role
-    const role = await Role.create({
-      tenantId: new mongoose.Types.ObjectId(tenantId),
-      name: name.trim(),
-      description: description?.trim(),
+    const role = await roleService.createRole({
+      tenantId: req.user.tenantId,
+      name,
+      description,
       permissions,
-      isActive: true,
     });
 
     res.status(201).json({
@@ -120,65 +73,20 @@ export const createRole = async (req, res, next) => {
 };
 
 /**
- * Update an existing role
+ * Update an existing role.
  * @route PUT /api/roles/:id
- * @access Private (admin, super_admin)
+ * @access Private (roles:write)
  */
 export const updateRole = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { name, description, permissions, isActive } = req.body;
+    const tenantId =
+      req.user.role === "super_admin" ? null : req.user.tenantId;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role ID format",
-      });
-    }
-
-    const role = await Role.findById(id);
-
-    if (!role) {
-      return res.status(404).json({
-        success: false,
-        message: "Role not found",
-      });
-    }
-
-    // Check tenant access
-    if (
-      req.user.role !== "super_admin" &&
-      role.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "You do not have permission to update this role",
-      });
-    }
-
-    // Check if new name conflicts with existing role (if name is being changed)
-    if (name && name.trim() !== role.name) {
-      const existingRole = await Role.findOne({
-        tenantId: role.tenantId,
-        name: name.trim(),
-        _id: { $ne: id },
-      });
-
-      if (existingRole) {
-        return res.status(409).json({
-          success: false,
-          message: `Role "${name}" already exists in your organization`,
-        });
-      }
-    }
-
-    // Update fields
-    if (name) role.name = name.trim();
-    if (description !== undefined) role.description = description.trim();
-    if (permissions) role.permissions = permissions;
-    if (isActive !== undefined) role.isActive = isActive;
-
-    await role.save();
+    const role = await roleService.updateRole(
+      req.params.id,
+      tenantId,
+      req.body,
+    );
 
     res.status(200).json({
       success: true,
@@ -191,54 +99,16 @@ export const updateRole = async (req, res, next) => {
 };
 
 /**
- * Delete a role (soft delete by setting isActive = false)
+ * Soft-delete a role.
  * @route DELETE /api/roles/:id
- * @access Private (super_admin only)
+ * @access Private (roles:delete)
  */
 export const deleteRole = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const tenantId =
+      req.user.role === "super_admin" ? null : req.user.tenantId;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role ID format",
-      });
-    }
-
-    const role = await Role.findById(id);
-
-    if (!role) {
-      return res.status(404).json({
-        success: false,
-        message: "Role not found",
-      });
-    }
-
-    // Check tenant access
-    if (
-      req.user.role !== "super_admin" &&
-      role.tenantId.toString() !== req.user.tenantId
-    ) {
-      return res.status(403).json({
-        success: false,
-        message: "You do not have permission to delete this role",
-      });
-    }
-
-    // Check if any users are assigned this role
-    const usersWithRole = await User.countDocuments({ roleId: id });
-
-    if (usersWithRole > 0) {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot delete role. ${usersWithRole} user(s) are currently assigned to this role. Please reassign them first.`,
-      });
-    }
-
-    // Soft delete
-    role.isActive = false;
-    await role.save();
+    await roleService.deleteRole(req.params.id, tenantId);
 
     res.status(200).json({
       success: true,
@@ -250,35 +120,17 @@ export const deleteRole = async (req, res, next) => {
 };
 
 /**
- * Get permissions for a specific role
+ * Get permissions list for a specific role.
  * @route GET /api/roles/:id/permissions
- * @access Private (authenticated users)
+ * @access Private (roles:read)
  */
 export const getRolePermissions = async (req, res, next) => {
   try {
-    const { id } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({
-        success: false,
-        message: "Invalid role ID format",
-      });
-    }
-
-    const role = await Role.findById(id).select("permissions").lean();
-
-    if (!role) {
-      return res.status(404).json({
-        success: false,
-        message: "Role not found",
-      });
-    }
+    const permissions = await roleService.getRolePermissions(req.params.id);
 
     res.status(200).json({
       success: true,
-      data: {
-        permissions: role.permissions || [],
-      },
+      data: { permissions },
     });
   } catch (error) {
     next(error);
