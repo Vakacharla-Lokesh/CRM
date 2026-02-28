@@ -2,14 +2,6 @@ import rolePermissionCache from "../config/cache.js";
 import AppError from "../utils/AppError.js";
 import mongoose from "mongoose";
 
-/**
- * Permission-only authorization middleware.
- *
- * Accepts one or more permission strings (e.g. "leads:read", "tenants:write").
- * Checks req.auth.permissions — never inspects role names.
- *
- * Must run AFTER authenticateRequest.
- */
 export const requirePermission = (...requiredPermissions) => {
   return (req, res, next) => {
     try {
@@ -36,17 +28,6 @@ export const requirePermission = (...requiredPermissions) => {
   };
 };
 
-/**
- * Tenant context middleware.
- *
- * Sets req.tenantContext based on permissions:
- *  - system:manage permission → { scope: 'global' }
- *  - otherwise → { scope: 'tenant', tenantId }
- *
- * Also sets req.tenantFilter for backward compatibility with controllers.
- *
- * Must run AFTER authenticateRequest.
- */
 export const injectTenantContext = (req, res, next) => {
   const permissions = req.auth?.permissions || [];
 

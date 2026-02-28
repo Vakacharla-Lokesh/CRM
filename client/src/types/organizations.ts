@@ -25,6 +25,8 @@ export interface Organization {
   organizationSize?: number;
   organizationWebsite: string;
   organizationIndustry: OrganizationIndustry;
+  city?: string;
+  country?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,6 +37,8 @@ export interface CreateOrganizationDTO {
   organizationWebsite: string;
   organizationSize?: number;
   organizationIndustry: OrganizationIndustry;
+  city?: string;
+  country?: string;
 }
 
 export interface UpdateOrganizationDTO {
@@ -42,6 +46,8 @@ export interface UpdateOrganizationDTO {
   organizationWebsite?: string;
   organizationSize?: number;
   organizationIndustry?: OrganizationIndustry;
+  city?: string;
+  country?: string;
 }
 
 export interface OrganizationListResponse {

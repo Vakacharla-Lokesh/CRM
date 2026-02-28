@@ -252,6 +252,15 @@ export function validateOrganizationForm(
     errors.organizationIndustry = "Industry is required";
   }
 
+  // Optional fields - only validate if provided
+  if (formData.city && formData.city.trim().length > 100) {
+    errors.city = "City name cannot exceed 100 characters";
+  }
+
+  if (formData.country && formData.country.trim().length > 100) {
+    errors.country = "Country name cannot exceed 100 characters";
+  }
+
   return errors;
 }
 

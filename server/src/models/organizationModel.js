@@ -21,8 +21,16 @@ const organizationsSchema = new Schema(
       enum: ["Software", "Textile", "Foods", "Others"],
       required: true,
     },
-    // Used for offline-sync deduplication — enforced unique when present
-    idempotencyKey: { type: String, default: null },
+    city: {
+      type: String,
+      trim: true,
+      maxlength: [100, "City name cannot exceed 100 characters"],
+    },
+    country: {
+      type: String,
+      trim: true,
+      maxlength: [100, "Country name cannot exceed 100 characters"],
+    },
   },
   { timestamps: true },
 );
@@ -36,10 +44,13 @@ organizationsSchema.index(
 );
 
 // search index
+// search index
 organizationsSchema.index({
   organizationName: "text",
   organizationWebsite: "text",
   organizationIndustry: "text",
+  city: "text",
+  country: "text",
 });
 
 export default model("Organizations", organizationsSchema);
