@@ -8,16 +8,25 @@ export const createOrganizationSchema = z
     organizationSize: z.number().int().min(1).max(10_000_000).optional(),
     organizationWebsite: z.url("Please provide valid website link"),
     organizationIndustry: z.enum(["Software", "Textile", "Foods", "Others"]),
+    city: z.string().max(100).optional(),
+    country: z.string().max(100).optional(),
   })
   .strict();
 
 export const updateOrganizationSchema = z
   .object({
     organizationName: z.string("wrong format").min(1).optional(),
-    organizationSize: z.number("wrong org size").int().min(1).max(10_000_000).optional(),
+    organizationSize: z
+      .number("wrong org size")
+      .int()
+      .min(1)
+      .max(10_000_000)
+      .optional(),
     organizationWebsite: z.url("Please provide valid url").optional(),
     organizationIndustry: z
       .enum(["Software", "Textile", "Foods", "Others"])
       .optional(),
+    city: z.string().max(100).optional(),
+    country: z.string().max(100).optional(),
   })
   .strict();

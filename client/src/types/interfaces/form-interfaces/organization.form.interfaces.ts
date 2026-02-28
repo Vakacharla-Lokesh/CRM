@@ -9,6 +9,8 @@ export interface OrganizationFormData {
   organizationWebsite: string;
   organizationSize: number;
   organizationIndustry: string;
+  city: string;
+  country: string;
 }
 
 export interface FormErrors {
@@ -16,6 +18,8 @@ export interface FormErrors {
   organizationWebsite?: string;
   organizationSize?: string;
   organizationIndustry?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface OrganizationModalProps {

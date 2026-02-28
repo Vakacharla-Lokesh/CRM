@@ -39,8 +39,8 @@ const migrateSuperAdminGlobalTenant = async () => {
     if (!globalTenant) {
       globalTenant = await Tenant.create({
         tenantName: GLOBAL_TENANT_NAME,
-        email: "system@global.internal",
-        mobile: "0000000000",
+        email: "system@global.com",
+        mobile: "9999999999",
         isActive: true,
         isSystemTenant: true,
       });
