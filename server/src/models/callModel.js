@@ -13,11 +13,17 @@ const callsSchema = new Schema(
       enum: ["completed", "missed", "no-answer", "voicemail"],
     },
     duration: { type: Number, min: 1, max: 1000 },
+    // Used for offline-sync deduplication — enforced unique when present
+    idempotencyKey: { type: String, default: null },
   },
   { timestamps: true },
 );
 
 // Indexes
 callsSchema.index({ leadId: 1, createdAt: -1 });
+callsSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: "idempotency_key_unique" },
+);
 
 export default model("Calls", callsSchema);

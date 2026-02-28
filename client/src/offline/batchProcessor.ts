@@ -66,6 +66,8 @@ export const processBatches = async (
         ...(req.body as any),
         operation_type: req.operationType,
         timestamp: req.timestamp,
+        // Forward idempotency key so the backend can deduplicate retried syncs
+        idempotencyKey: req.idempotencyKey,
       };
     });
 
@@ -80,20 +82,32 @@ export const processBatches = async (
     try {
       await executeWithRetry(async () => {
         const token = getToken();
+        // Build a stable batch-level idempotency key from all keys in the chunk
+        // so parseError can correctly classify HTTP failures (statusCode, not status)
+        const batchIdempotencyKey = chunk
+          .map((r) => r.idempotencyKey)
+          .filter(Boolean)
+          .join(",");
+
         const response = await fetch(endpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(batchIdempotencyKey
+              ? { "Idempotency-Key": batchIdempotencyKey }
+              : {}),
           },
           body: JSON.stringify(bodyPayload),
         });
 
         if (!response.ok) {
+          // Use `statusCode` (not `status`) so parseError correctly detects this
+          // as an APIError-like object via `"statusCode" in error`
           const err: any = new Error(
             `Batch HTTP error! status: ${response.status}`,
           );
-          err.status = response.status;
+          err.statusCode = response.status;
           throw err;
         }
       });

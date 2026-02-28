@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   parseError,
   logError,
@@ -117,6 +117,11 @@ export function useAsyncOperation<T>(
     maxRetries = autoRetry ? 2 : 0,
   } = options;
 
+  const { logout } = useAppContext();
+  // Keep a stable ref so the execute callback can always reach the latest logout
+  const logoutRef = useRef(logout);
+  logoutRef.current = logout;
+
   const [data, setData] = useState<T | null>(null);
   const [error, setError] = useState<AppError | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -163,6 +168,12 @@ export function useAsyncOperation<T>(
       // Failed after all retries
       if (lastError) {
         setError(lastError);
+
+        // Mirror the auth-error auto-logout behaviour from useErrorHandler
+        if (lastError.category === "auth") {
+          await logoutRef.current();
+        }
+
         if (onError) {
           onError(lastError);
         }

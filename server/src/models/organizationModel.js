@@ -21,6 +21,8 @@ const organizationsSchema = new Schema(
       enum: ["Software", "Textile", "Foods", "Others"],
       required: true,
     },
+    // Used for offline-sync deduplication — enforced unique when present
+    idempotencyKey: { type: String, default: null },
   },
   { timestamps: true },
 );
@@ -28,6 +30,10 @@ const organizationsSchema = new Schema(
 // Indexes
 organizationsSchema.index({ tenantId: 1 });
 organizationsSchema.index({ userId: 1, createdAt: -1 });
+organizationsSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: "idempotency_key_unique" },
+);
 
 // search index
 organizationsSchema.index({

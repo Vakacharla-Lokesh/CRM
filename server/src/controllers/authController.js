@@ -15,10 +15,16 @@ const RESET_TOKEN_EXPIRY_MINUTES = 15;
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 
 const generateAccessToken = (user) => {
+  // Normalize roleId to a plain string regardless of whether it is a
+  // populated Mongoose sub-document (login path) or a raw ObjectId
+  // (refresh-token path). This ensures consistent JWT payload shape.
+  const roleId =
+    user.roleId?._id?.toString() ?? user.roleId?.toString() ?? null;
+
   return jwt.sign(
     {
       userId: user._id,
-      roleId: user.roleId,
+      roleId,
       tenantId: user.tenantId,
       role: user.role,
     },
@@ -234,9 +240,7 @@ export const requestPasswordResetOTP = asyncCatch(async (req, res) => {
   } catch (emailError) {
     console.error("Email sending failed:", emailError);
     await OTP.deleteOne({ email });
-    return res.status(500).json({
-      message: "Failed to send OTP. Please try again.",
-    });
+    throw new AppError("Failed to send OTP. Please try again.", 500);
   }
 
   res.json({

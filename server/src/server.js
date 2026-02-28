@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import passport from "./config/passport.js";
+import { requestContextMiddleware } from "./middlewares/requestContext.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -45,8 +46,25 @@ app.use(
   }),
 );
 
+// Assign a unique requestId to every request and expose it via AsyncLocalStorage
+// so all downstream code (controllers, services) can log it without manual threading.
+// Must be mounted BEFORE Morgan so the custom :request-id token is always populated.
+app.use(requestContextMiddleware);
+
+// Custom Morgan tokens
+morgan.token("request-id", (req) => req.requestId ?? "-");
+morgan.token("user-id", (req) => req.auth?.userId?.toString() ?? "-");
+
 // Request logger for express
-app.use(morgan("dev"));
+app.use(
+  morgan(
+    process.env.NODE_ENV === "production"
+      // Structured JSON line — easy to ingest into CloudWatch / Datadog / etc.
+      ? '{"time":":date[iso]","method":":method","url":":url","status":":status","ms":":response-time","requestId":":request-id","userId":":user-id"}'
+      // Human-readable dev format
+      : ":method :url :status :response-time ms — :request-id",
+  ),
+);
 
 // Cors package to handle request from frontend
 app.use(

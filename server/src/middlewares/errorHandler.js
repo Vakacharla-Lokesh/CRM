@@ -1,5 +1,13 @@
+import { logger } from "../utils/logger.js";
+
 export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+  // Log with full request context (requestId, userId, tenantId) automatically
+  // included by the logger via AsyncLocalStorage.
+  logger.error(err.message, {
+    stack: err.stack,
+    statusCode: err.statusCode ?? 500,
+    ...(err.isOperational ? {} : { unexpectedError: true }),
+  });
 
   // Operational errors created via AppError — send the exact message & status
   if (err.isOperational) {
@@ -12,6 +20,7 @@ export const errorHandler = (err, req, res, next) => {
   // Mongoose validation error
   if (err.name === "ValidationError") {
     return res.status(400).json({
+      status: "fail",
       message: "Validation Error",
       errors: Object.values(err.errors).map((e) => e.message),
     });
@@ -20,6 +29,7 @@ export const errorHandler = (err, req, res, next) => {
   // Mongoose duplicate key error
   if (err.code === 11000) {
     return res.status(409).json({
+      status: "fail",
       message: "Duplicate Entry",
       field: Object.keys(err.keyPattern)[0],
     });
@@ -28,6 +38,7 @@ export const errorHandler = (err, req, res, next) => {
   // Mongoose cast error (invalid ID)
   if (err.name === "CastError") {
     return res.status(400).json({
+      status: "fail",
       message: "Invalid ID format",
     });
   }
@@ -35,18 +46,22 @@ export const errorHandler = (err, req, res, next) => {
   // JWT errors
   if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
+      status: "fail",
       message: "Invalid token",
     });
   }
 
   if (err.name === "TokenExpiredError") {
     return res.status(401).json({
+      status: "fail",
       message: "Token expired",
     });
   }
 
   // Default error
-  res.status(err.statusCode || 500).json({
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    status: statusCode >= 500 ? "error" : "fail",
     message: err.message || "Internal Server Error",
   });
 };
