@@ -1,5 +1,6 @@
 import exportCsvEngine from "../services/exportToCsvService.js";
 import { JOB_TYPES } from "../modules/jobs/job.types.js";
+import { logger } from "../utils/logger.js";
 
 export const jobType = JOB_TYPES.EXPORT_DATA;
 
@@ -13,9 +14,7 @@ export async function handler(payload, context) {
   }
 
   const entityType = payload.entity?.type;
-  console.log(
-    `[ExportWorker] Processing export: ${entityType} (tenant: ${tenantId})`,
-  );
+  logger.info("[ExportWorker] Processing export", { entityType });
 
   let result;
 
@@ -32,6 +31,8 @@ export async function handler(payload, context) {
     default:
       throw new Error(`[ExportWorker] Unknown entity type: ${entityType}`);
   }
+
+  logger.info("[ExportWorker] Export completed", { entityType, count: result.count || 0 });
 
   return {
     success: result.success === true,

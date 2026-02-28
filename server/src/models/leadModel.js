@@ -44,6 +44,8 @@ const leadsSchema = new Schema(
       enum: ["New", "Converted", "Dead", "Follow-Up"],
       required: true,
     },
+    // Used for offline-sync deduplication — enforced unique when present
+    idempotencyKey: { type: String, default: null },
   },
   { timestamps: true },
 );
@@ -52,6 +54,10 @@ const leadsSchema = new Schema(
 leadsSchema.index({ userId: 1, createdAt: -1 });
 leadsSchema.index({ tenantId: 1 });
 leadsSchema.index({ organizationId: 1 });
+leadsSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: "idempotency_key_unique" },
+);
 
 // search index
 leadsSchema.index({

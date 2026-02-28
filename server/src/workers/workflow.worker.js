@@ -1,5 +1,6 @@
 import { workflowExecutionEngine } from "../services/workflowExecutionService.js";
 import { JOB_TYPES } from "../modules/jobs/job.types.js";
+import { logger } from "../utils/logger.js";
 
 export const jobType = JOB_TYPES.WORKFLOW_EXECUTION;
 
@@ -12,11 +13,11 @@ export async function handler(payload, context) {
     );
   }
 
-  console.log(
-    `[WorkflowWorker] Processing workflow execution (tenant: ${tenantId})`,
-  );
+  logger.info("[WorkflowWorker] Processing workflow execution");
 
   const result = await workflowExecutionEngine.executeWorkflow(payload);
+
+  logger.info("[WorkflowWorker] Workflow execution complete", { status: result.status });
 
   return {
     success: result.status === "success",

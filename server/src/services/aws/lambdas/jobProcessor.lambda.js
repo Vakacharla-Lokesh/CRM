@@ -11,6 +11,8 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 import { ensureAwsInitialized } from "../initAwsResources.js";
 import { queueService } from "../queue/queue.service.js";
 import { jobRegistry } from "../../../modules/jobs/jobRegistry.js";
+import { requestStore } from "../../../utils/requestContext.js";
+import { logger } from "../../../utils/logger.js";
 
 
 import * as workflowWorker from "../../../workers/workflow.worker.js";
@@ -30,7 +32,7 @@ async function initialize() {
 
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri);
-    console.log("[Lambda] ✓ Connected to MongoDB");
+    logger.info("[Lambda] Connected to MongoDB");
   }
 
   // Initialize AWS resources
@@ -42,8 +44,8 @@ async function initialize() {
   jobRegistry.register(exportWorker.jobType, exportWorker.handler);
   jobRegistry.register(leadReminderWorker.jobType, leadReminderWorker.handler);
 
-  console.log(
-    `[Lambda] ✓ Initialized with ${jobRegistry.getAllTypes().length} worker(s)`,
+  logger.info(
+    `[Lambda] Initialized with ${jobRegistry.getAllTypes().length} worker(s)`,
   );
 
   _initialized = true;
@@ -56,11 +58,11 @@ export const handler = async (event, _context) => {
   const records = event.Records || [];
 
   if (records.length === 0) {
-    console.log("[Lambda] No records in event, skipping.");
+    logger.info("[Lambda] No records in event, skipping.");
     return { statusCode: 200, body: "No records" };
   }
 
-  console.log(`[Lambda] Processing ${records.length} record(s)`);
+  logger.info(`[Lambda] Processing ${records.length} record(s)`);
 
   const batchItemFailures = [];
 
@@ -72,15 +74,14 @@ export const handler = async (event, _context) => {
       const jobType = body.jobType;
 
       if (!jobType) {
-        console.error(
-          `[Lambda] Message ${messageId} missing jobType, skipping`,
-        );
+        logger.warn("[Lambda] Message missing jobType, skipping", { messageId });
         continue;
       }
 
       const workerHandler = jobRegistry.getHandler(jobType);
 
-      // Build execution context
+      // Build execution context — mirrors the shape set up by requestContextMiddleware
+      // for HTTP requests so the logger picks up the same fields automatically.
       const context = {
         tenantId: body.tenantId || body.payload?._meta?.tenantId || null,
         userId: body.payload?._meta?.userId || null,
@@ -88,27 +89,35 @@ export const handler = async (event, _context) => {
         traceId: body.payload?._meta?.traceId || null,
       };
 
-      console.log(
-        `[Lambda] Executing ${jobType} (message: ${messageId}, tenant: ${context.tenantId})`,
-      );
+      // Build the AsyncLocalStorage context for this job execution.
+      // Any logger call inside the worker will automatically include these fields.
+      const jobStoreContext = {
+        requestId: context.requestId,
+        traceId: context.traceId,
+        tenantId: context.tenantId?.toString() ?? null,
+        userId: context.userId?.toString() ?? null,
+        jobType,
+      };
 
-      const result = await workerHandler(body.payload || body, context);
+      logger.info(`[Lambda] Executing job`, { jobType, messageId, tenantId: context.tenantId });
+
+      // Run the worker inside the store so all its logs carry full context
+      const result = await new Promise((resolve, reject) => {
+        requestStore.run(jobStoreContext, () => {
+          workerHandler(body.payload || body, context).then(resolve).catch(reject);
+        });
+      });
 
       if (result.success) {
-        console.log(`[Lambda] ✓ ${jobType} completed: ${result.message}`);
+        logger.info(`[Lambda] Job completed`, { jobType, messageId, message: result.message });
       } else if (result.shouldRetry) {
-        console.warn(`[Lambda] ↻ ${jobType} needs retry: ${result.message}`);
+        logger.warn(`[Lambda] Job needs retry`, { jobType, messageId, message: result.message });
         batchItemFailures.push({ itemIdentifier: messageId });
       } else {
-        console.error(
-          `[Lambda] ✗ ${jobType} failed (no retry): ${result.message}`,
-        );
+        logger.error(`[Lambda] Job failed (no retry)`, { jobType, messageId, message: result.message });
       }
     } catch (error) {
-      console.error(
-        `[Lambda] ✗ Failed to process message ${messageId}:`,
-        error,
-      );
+      logger.error(`[Lambda] Failed to process message`, { messageId, error: error.message, stack: error.stack });
       batchItemFailures.push({ itemIdentifier: messageId });
     }
   }

@@ -2,15 +2,14 @@ import { subDays, startOfDay, endOfDay } from "date-fns";
 import LeadModel from "../models/leadModel.js";
 import emailController from "../controllers/emailController.js";
 import { JOB_TYPES } from "../modules/jobs/job.types.js";
+import { logger } from "../utils/logger.js";
 
 export const jobType = JOB_TYPES.LEAD_REMINDER;
 
 export async function handler(_payload, context) {
   const { tenantId } = context;
 
-  console.log(
-    `[LeadReminderWorker] Running lead reminder (tenant: ${tenantId})`,
-  );
+  logger.info("[LeadReminderWorker] Running lead reminder");
 
   try {
     const targetDate = subDays(new Date(), 14);
@@ -41,7 +40,7 @@ export async function handler(_payload, context) {
       sentCount++;
     }
 
-    console.log(`[LeadReminderWorker] Sent ${sentCount} reminder email(s).`);
+    logger.info(`[LeadReminderWorker] Reminder run complete`, { sentCount });
 
     return {
       success: true,
@@ -49,7 +48,7 @@ export async function handler(_payload, context) {
       message: `Sent ${sentCount} lead reminder emails`,
     };
   } catch (error) {
-    console.error("[LeadReminderWorker] Error:", error);
+    logger.error("[LeadReminderWorker] Error", { error: error.message, stack: error.stack });
     return {
       success: false,
       shouldRetry: true,

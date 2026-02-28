@@ -2,6 +2,7 @@ import Role from "../models/roleModel.js";
 import rolePermissionCache from "../config/cache.js";
 import passport from "../config/passport.js";
 import AppError from "../utils/AppError.js";
+import { requestStore } from "../utils/requestContext.js";
 
 /**
  * Single canonical authentication middleware.
@@ -50,6 +51,15 @@ export const authenticateRequest = (req, res, next) => {
 
       // Backward-compat alias
       req.user = req.auth;
+
+      // Enrich the AsyncLocalStorage store so every log line produced inside
+      // this request automatically includes the authenticated user context.
+      const store = requestStore.getStore();
+      if (store) {
+        store.userId = userId?.toString();
+        store.tenantId = tenantId?.toString();
+        store.role = role;
+      }
 
       next();
     } catch (error) {
