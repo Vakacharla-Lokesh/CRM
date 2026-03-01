@@ -1,17 +1,14 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useCallback, useMemo } from "react";
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { userService } from "../services/userService.ts";
 import { useIndexedDB } from "./useIndexedDB";
 import type { User, UserRole } from "../types";
 
 const PAGE_LIMIT = 20;
-
-interface UserStatistics {
-  total: number;
-  byRole: Record<UserRole | string, number>;
-  active: number;
-  inactive: number;
-}
 
 interface UserFilters {
   role: UserRole | "";
@@ -19,16 +16,9 @@ interface UserFilters {
   search: string;
 }
 
-export const useUserData = () => {
+export const useUserData = (tenantId?: string) => {
   const queryClient = useQueryClient();
   const { updateItem, deleteItem, getAll } = useIndexedDB("users");
-
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasNextPage, setHasNextPage] = useState(false);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [allUsers, setAllUsers] = useState<User[]>([]);
-
-  const [tenantId, setTenantId] = useState<string | null>(null);
 
   const [filters, setFilters] = useState<UserFilters>({
     role: "",
@@ -37,62 +27,52 @@ export const useUserData = () => {
   });
 
   const {
-    data: queryData,
+    data,
     isLoading: loading,
+    isFetchingNextPage: loadingMore,
     error: queryError,
-  } = useQuery({
-    queryKey: ["users", { tenantId }],
-    queryFn: async () => {
+    fetchNextPage,
+    hasNextPage,
+    refetch,
+  } = useInfiniteQuery({
+    queryKey: ["users-list", { tenantId: tenantId ?? null }],
+    queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = (await getAll()) as unknown as User[];
         return { users: cached, nextCursor: null, hasNextPage: false };
       }
 
       if (tenantId) {
-        const data = await userService.getUsersByTenant(tenantId);
-        return { users: data, nextCursor: null, hasNextPage: false };
+        const users = await userService.getUsersByTenant(tenantId);
+        return { users, nextCursor: null, hasNextPage: false };
       }
 
-      const page = await userService.getAllUsers({ limit: PAGE_LIMIT });
+      const page = await userService.getAllUsers({
+        cursor: pageParam ?? undefined,
+        limit: PAGE_LIMIT,
+      });
+
+      for (const user of page.users) {
+        try {
+          await updateItem(user._id, { ...user, id: user._id });
+        } catch (e) {
+          console.warn("Failed to cache user in IndexedDB:", e);
+        }
+      }
+
       return page;
     },
-    staleTime: 30_000,
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNextPage ? lastPage.nextCursor : undefined,
   });
 
-  useEffect(() => {
-    if (!queryData) return;
-    const { users, nextCursor: cursor, hasNextPage: more } = queryData;
-
-    setAllUsers(users);
-    setNextCursor(cursor ?? null);
-    setHasNextPage(more ?? false);
-
-    users.forEach((user) => {
-      updateItem(user._id, { ...user, id: user._id });
-    });
-  }, [queryData, updateItem]);
+  const allUsers: User[] = useMemo(
+    () => data?.pages.flatMap((page) => page.users) ?? [],
+    [data],
+  );
 
   const error = queryError instanceof Error ? queryError : null;
-
-  const statistics = useMemo((): UserStatistics => {
-    const stats: UserStatistics = {
-      total: allUsers.length,
-      byRole: {},
-      active: 0,
-      inactive: 0,
-    };
-
-    allUsers.forEach((user) => {
-      stats.byRole[user.role] = (stats.byRole[user.role] ?? 0) + 1;
-      if (user.isActive !== false) {
-        stats.active += 1;
-      } else {
-        stats.inactive += 1;
-      }
-    });
-
-    return stats;
-  }, [allUsers]);
 
   const filteredUsers = useMemo(() => {
     let filtered = [...allUsers];
@@ -122,39 +102,24 @@ export const useUserData = () => {
     return filtered;
   }, [allUsers, filters]);
 
-  const loadMore = useCallback(async () => {
-    if (!hasNextPage || loadingMore || !nextCursor) return;
-    setLoadingMore(true);
-    try {
-      const page = await userService.getAllUsers({
-        cursor: nextCursor,
-        limit: PAGE_LIMIT,
-      });
-      setAllUsers((prev) => [...prev, ...page.users]);
-      setNextCursor(page.nextCursor ?? null);
-      setHasNextPage(page.hasNextPage ?? false);
-      for (const user of page.users) {
-        await updateItem(user._id, { ...user, id: user._id });
-      }
-    } catch (err) {
-      console.error("Error loading more users:", err);
-    } finally {
-      setLoadingMore(false);
+  const loadMore = useCallback(() => {
+    if (hasNextPage && !loadingMore) {
+      fetchNextPage();
     }
-  }, [hasNextPage, loadingMore, nextCursor, updateItem]);
+  }, [hasNextPage, loadingMore, fetchNextPage]);
 
   const fetchUsers = useCallback(() => {
-    setTenantId(null);
-    setAllUsers([]);
-    setNextCursor(null);
-    queryClient.invalidateQueries({ queryKey: ["users"] });
-  }, [queryClient]);
+    refetch();
+  }, [refetch]);
 
-  const fetchUserByTenant = useCallback((id: string) => {
-    setTenantId(id);
-    setAllUsers([]);
-    setNextCursor(null);
-  }, []);
+  const fetchUserByTenant = useCallback(
+    (_id: string) => {
+      // tenantId is now reactive via the hook parameter;
+      // this just triggers a refetch for backward compat
+      refetch();
+    },
+    [refetch],
+  );
 
   const fetchUserById = useCallback(async (id: string) => {
     return userService.getUserById(id);
@@ -166,43 +131,35 @@ export const useUserData = () => {
 
   const createMutation = useMutation({
     mutationFn: (userData: Partial<User>) => userService.createUser(userData),
-    onSuccess: async (newUser) => {
-      setAllUsers((prev) => [...prev, newUser]);
-      await updateItem(newUser._id, { ...newUser, id: newUser._id });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess: (newUser) => {
+      updateItem(newUser._id, { ...newUser, id: newUser._id }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["users-list"] });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, updates }: { id: string; updates: Partial<User> }) =>
       userService.updateUser(id, updates),
-    onSuccess: async (updated) => {
-      setAllUsers((prev) =>
-        prev.map((u) => (u._id === updated._id ? updated : u)),
-      );
-      await updateItem(updated._id, { ...updated, id: updated._id });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess: (updated) => {
+      updateItem(updated._id, { ...updated, id: updated._id }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["users-list"] });
     },
   });
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => userService.deleteUser(id),
-    onSuccess: async (_, id) => {
-      setAllUsers((prev) => prev.filter((u) => u._id !== id));
-      await deleteItem(id);
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess: (_, id) => {
+      deleteItem(id).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["users-list"] });
     },
   });
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ id, role }: { id: string; role: UserRole }) =>
       userService.updateRole(id, role),
-    onSuccess: async (updated) => {
-      setAllUsers((prev) =>
-        prev.map((u) => (u._id === updated._id ? updated : u)),
-      );
-      await updateItem(updated._id, { ...updated, id: updated._id });
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+    onSuccess: (updated) => {
+      updateItem(updated._id, { ...updated, id: updated._id }).catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ["users-list"] });
     },
   });
 
@@ -255,14 +212,12 @@ export const useUserData = () => {
     // Data
     users: allUsers,
     filteredUsers,
-    statistics,
     filters,
     loading,
     error,
 
     // Pagination
-    nextCursor,
-    hasNextPage,
+    hasNextPage: hasNextPage ?? false,
     loadingMore,
     loadMore,
 

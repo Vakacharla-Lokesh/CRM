@@ -4,10 +4,10 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-foreground">
           Profile
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           Your account overview
         </p>
       </div>
@@ -18,10 +18,10 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
           {initials}
         </div>
         <div>
-          <p className="text-base font-semibold text-gray-900 dark:text-white">
+          <p className="text-base font-semibold text-foreground">
             {user?.firstName} {user?.lastName}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-sm text-muted-foreground">
             {user?.userEmail}
           </p>
           <span className="inline-block mt-1 text-xs text-blue-700 dark:text-blue-300 rounded px-2 py-0.5 font-medium capitalize">
@@ -40,12 +40,12 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
         ].map((field) => (
           <div
             key={field.label}
-            className="rounded-lg border border-gray-200 dark:border-gray-700 bg-secondary dark:bg-secondary-foreground px-4 py-3"
+            className="rounded-lg border border-border bg-card px-4 py-3"
           >
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">
+            <p className="text-xs text-muted-foreground mb-0.5">
               {field.label}
             </p>
-            <p className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+            <p className="text-sm font-medium text-foreground capitalize">
               {field.value || "—"}
             </p>
           </div>

@@ -31,3 +31,4 @@ export {
 
 export { workflowsAPI } from "./api/workflows.api";
 export { exportAPI } from "./api/export.api";
+export { statsAPI } from "./api/stats.api";

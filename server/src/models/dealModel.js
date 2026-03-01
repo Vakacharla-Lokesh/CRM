@@ -33,10 +33,10 @@ const dealsSchema = new Schema(
 // Indexes
 dealsSchema.index({ leadId: 1, createdAt: -1 });
 dealsSchema.index({ tenantId: 1 });
-dealsSchema.index(
-  { idempotencyKey: 1 },
-  { unique: true, sparse: true, name: "idempotency_key_unique" },
-);
+// dealsSchema.index(
+//   { idempotencyKey: 1 },
+//   { unique: true, sparse: true, name: "idempotency_key_unique" },
+// );
 
 // search index
 dealsSchema.index({
