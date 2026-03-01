@@ -96,7 +96,8 @@ const UsersPage = () => {
       setSelectedRoleId("");
     },
     onError: (err: unknown) => {
-      const message = err instanceof Error ? err.message : "Failed to assign role";
+      const message =
+        err instanceof Error ? err.message : "Failed to assign role";
       toast.error(message);
     },
   });
@@ -110,9 +111,11 @@ const UsersPage = () => {
 
   const handleConfirmAssignRole = () => {
     if (!assignRoleUserId || !selectedRoleId) return;
-    assignRoleMutation.mutate({ userId: assignRoleUserId, roleId: selectedRoleId });
+    assignRoleMutation.mutate({
+      userId: assignRoleUserId,
+      roleId: selectedRoleId,
+    });
   };
-
 
   // handle add user
   const handleAddUser = () => {
@@ -210,7 +213,10 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <UserStatistics statistics={usersStats} isLoading={statsLoading} />
+      <UserStatistics
+        statistics={usersStats}
+        isLoading={statsLoading}
+      />
 
       {/* Filters */}
       <div className=" rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -314,6 +320,11 @@ const UsersPage = () => {
         user={selectedUser}
         onClose={handleCloseModal}
         onSave={handleSaveUser}
+        availableRoles={availableRoles}
+        onAssignRole={(userId, roleId) =>
+          assignRoleMutation.mutate({ userId, roleId })
+        }
+        isAssigningRole={assignRoleMutation.isPending}
       />
 
       <ConfirmDialog
@@ -351,7 +362,10 @@ const UsersPage = () => {
               </SelectTrigger>
               <SelectContent>
                 {availableRoles.map((role) => (
-                  <SelectItem key={role._id} value={role._id}>
+                  <SelectItem
+                    key={role._id}
+                    value={role._id}
+                  >
                     {role.name}
                   </SelectItem>
                 ))}

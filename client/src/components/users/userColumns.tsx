@@ -16,7 +16,6 @@ interface ColumnsProps {
 export const columns = ({
   onEdit,
   onDelete,
-  onAssignRole,
 }: ColumnsProps = {}): ColumnDef<User>[] => [
   {
     id: "select",
@@ -154,7 +153,10 @@ export const columns = ({
         return <span className="text-gray-400 text-xs">—</span>;
       }
       return (
-        <Badge variant="outline" className="text-xs font-normal">
+        <Badge
+          variant="outline"
+          className="text-xs font-normal"
+        >
           {roleName}
         </Badge>
       );
@@ -217,16 +219,6 @@ export const columns = ({
           onEdit={onEdit}
           onDelete={onDelete}
         />
-        {onAssignRole && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="text-xs h-7 px-2"
-            onClick={() => onAssignRole(row.original._id)}
-          >
-            Assign Role
-          </Button>
-        )}
       </div>
     ),
   },

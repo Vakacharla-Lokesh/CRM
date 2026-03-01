@@ -1,4 +1,5 @@
 import type { CreateUserDTO, User, UserRole } from "@/types";
+import type { Role } from "@/types";
 
 export interface UserFormData {
   firstName: string;
@@ -25,4 +26,7 @@ export interface UserModalProps {
   user: User | null;
   onClose: () => void;
   onSave: (userData: CreateUserDTO) => Promise<void>;
+  availableRoles?: Role[];
+  onAssignRole?: (userId: string, roleId: string) => void;
+  isAssigningRole?: boolean;
 }
