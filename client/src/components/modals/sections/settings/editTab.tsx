@@ -26,10 +26,10 @@ function EditTab({
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-foreground">
           Edit Profile
         </h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">
+        <p className="text-sm text-muted-foreground mt-0.5">
           Update your display name
         </p>
       </div>

@@ -18,7 +18,7 @@ import {
   assignRoleToUser,
 } from "../controllers/userController.js";
 import { validate } from "../middlewares/validate.js";
-import { authenticateRequest, checkActive } from "../middlewares/auth.js";
+import { authenticateRequest } from "../middlewares/auth.js";
 import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
 import {
   createUserSchema,
@@ -41,7 +41,6 @@ router.get("/me", authenticateRequest, getCurrentUser);
 router.get(
   "/search",
   authenticateRequest,
-  checkActive,
   requirePermission("users:read"),
   injectTenantContext,
   searchUsers,
@@ -49,7 +48,6 @@ router.get(
 router.get(
   "/stats",
   authenticateRequest,
-  checkActive,
   requirePermission("users:read"),
   injectTenantContext,
   getUserStats,
@@ -57,7 +55,6 @@ router.get(
 router.get(
   "/",
   authenticateRequest,
-  checkActive,
   requirePermission("users:read"),
   injectTenantContext,
   getAllUsers,
@@ -80,7 +77,6 @@ router.get(
 router.get(
   "/:id",
   authenticateRequest,
-  checkActive,
   requirePermission("users:read"),
   injectTenantContext,
   getUserById,

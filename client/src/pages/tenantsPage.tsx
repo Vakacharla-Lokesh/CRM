@@ -1,6 +1,6 @@
 // hooks and basic imports
 import { useState, useEffect } from "react";
-import { useDebounce, useTenantData } from "@/hooks";
+import { useDebounce, useTenantData, useTenantsStats } from "@/hooks";
 import { useOffline } from "@/context/useOffline";
 import { useNavigate } from "react-router-dom";
 
@@ -24,7 +24,6 @@ import { useNotifications } from "@/hooks";
 const TenantsPage = () => {
   const {
     filteredTenants,
-    statistics,
     loading,
     loadingMore,
     error,
@@ -40,6 +39,8 @@ const TenantsPage = () => {
     hasNextPage,
     loadMore,
   } = useTenantData();
+
+  const { data: tenantsStats, isLoading: statsLoading } = useTenantsStats();
 
   // navigation handler
   const navigate = useNavigate();
@@ -181,7 +182,7 @@ const TenantsPage = () => {
       </div>
 
       {/* Statistics Cards */}
-      <TenantStatistics statistics={statistics} />
+      <TenantStatistics statistics={tenantsStats} isLoading={statsLoading} />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">

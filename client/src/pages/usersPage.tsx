@@ -1,6 +1,6 @@
 // hooks and basic imports
-import { useState, useEffect } from "react";
-import { useUserData } from "@/hooks";
+import { useState } from "react";
+import { useUserData, useUsersStats } from "@/hooks";
 import { useParams } from "react-router-dom";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
@@ -41,9 +41,11 @@ import { useHasPermission } from "@/hooks/usePermissions";
 import { usersAPI } from "@/services/api/users.api";
 
 const UsersPage = () => {
+  // get tenant id from url params if present to fetch users of that tenant
+  const { id } = useParams();
+
   const {
     filteredUsers,
-    statistics,
     loading,
     loadingMore,
     error,
@@ -54,13 +56,11 @@ const UsersPage = () => {
     createUser,
     updateUser,
     deleteUser,
-    fetchUserByTenant,
     hasNextPage,
     loadMore,
-  } = useUserData();
+  } = useUserData(id);
 
-  // get tenant id from url params if present to fetch users of that tenant, otherwise fetch all users
-  const { id } = useParams();
+  const { data: usersStats, isLoading: statsLoading } = useUsersStats();
 
   // selected user for edit and delete
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -89,7 +89,7 @@ const UsersPage = () => {
     mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
       usersAPI.assignRole(userId, roleId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
+      queryClient.invalidateQueries({ queryKey: ["users-list"] });
       toast.success("Role assigned successfully");
       setAssignRoleDialogOpen(false);
       setAssignRoleUserId(null);
@@ -112,13 +112,7 @@ const UsersPage = () => {
     if (!assignRoleUserId || !selectedRoleId) return;
     assignRoleMutation.mutate({ userId: assignRoleUserId, roleId: selectedRoleId });
   };
-  useEffect(() => {
-    if (id) {
-      fetchUserByTenant(id);
-    } else {
-      fetchUsers();
-    }
-  }, [fetchUserByTenant, fetchUsers, id]);
+
 
   // handle add user
   const handleAddUser = () => {
@@ -216,7 +210,7 @@ const UsersPage = () => {
         </div>
       </div>
 
-      <UserStatistics statistics={statistics} />
+      <UserStatistics statistics={usersStats} isLoading={statsLoading} />
 
       {/* Filters */}
       <div className=" rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -292,7 +286,7 @@ const UsersPage = () => {
               {error.message}
             </p>
             <Button
-              onClick={() => id && fetchUserByTenant(id)}
+              onClick={() => fetchUsers()}
               variant="outline"
             >
               Retry
