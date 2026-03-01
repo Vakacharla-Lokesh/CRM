@@ -23,7 +23,26 @@ import { validateUserForm } from "@/utils/formValidators";
 import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
 
-function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Shield } from "lucide-react";
+import { Button } from "../ui/button";
+
+function UserModal({
+  isOpen,
+  user,
+  onClose,
+  onSave,
+  availableRoles = [],
+  onAssignRole,
+  isAssigningRole,
+}: UserModalProps) {
   const { user: currentUser } = useAppContext();
   const isSuperAdmin = currentUser?.role === "super_admin";
   const { id } = useParams();
@@ -41,6 +60,13 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
+
+  // Sync selectedRoleId with user's current roleId when modal opens
+  useEffect(() => {
+    setSelectedRoleId(user?.roleId ?? "");
+  }, [user, isOpen]);
 
   useEffect(() => {
     if (user) {
@@ -274,6 +300,51 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                 )}
               </button>
             </div>
+          )}
+
+          {/* Assign Role Section — only shown when editing an existing user */}
+          {user && onAssignRole && availableRoles.length > 0 && (
+            <>
+              <Separator />
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Shield
+                    size={15}
+                    className="text-muted-foreground"
+                  />
+                  <label className="text-sm font-medium">Assign Role</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={selectedRoleId}
+                    onValueChange={setSelectedRoleId}
+                  >
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Select a role…" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableRoles.map((role) => (
+                        <SelectItem
+                          key={role._id}
+                          value={role._id}
+                        >
+                          {role.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    disabled={!selectedRoleId || isAssigningRole}
+                    onClick={() => onAssignRole(user._id, selectedRoleId)}
+                  >
+                    {isAssigningRole ? "Saving…" : "Apply"}
+                  </Button>
+                </div>
+              </div>
+            </>
           )}
 
           <ModalFooter
