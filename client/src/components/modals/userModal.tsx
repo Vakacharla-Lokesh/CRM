@@ -23,26 +23,9 @@ import { validateUserForm } from "@/utils/formValidators";
 import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
 
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Shield } from "lucide-react";
-import { Button } from "../ui/button";
+import { useRoles } from "@/hooks/useRoles";
 
-function UserModal({
-  isOpen,
-  user,
-  onClose,
-  onSave,
-  availableRoles = [],
-  onAssignRole,
-  isAssigningRole,
-}: UserModalProps) {
+function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
   const isSuperAdmin = currentUser?.role === "super_admin";
   const { id } = useParams();
@@ -61,7 +44,9 @@ function UserModal({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
+  const [, setSelectedRoleId] = useState<string>("");
+
+  const { data: tenantRoles = [] } = useRoles();
 
   // Sync selectedRoleId with user's current roleId when modal opens
   useEffect(() => {
@@ -76,6 +61,7 @@ function UserModal({
         userEmail: user.userEmail,
         mobile: user.mobile || "",
         role: user.role,
+        roleId: user.roleId ?? "",
         password: "",
         tenantId: user.tenantId,
       });
@@ -86,6 +72,7 @@ function UserModal({
         userEmail: "",
         mobile: "",
         role: "user",
+        roleId: "",
         password: "",
         tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
       });
@@ -248,30 +235,62 @@ function UserModal({
             <FormSelect
               id="role"
               label="Role"
-              value={formData.role}
-              onChange={(value) => handleInputChange("role", value)}
+              value={formData.roleId || formData.role}
+              onChange={(value) => {
+                // value is either a tenant role _id or a fallback system role string
+                const matchedRole = tenantRoles.find((r) => r._id === value);
+                if (matchedRole) {
+                  // Map role name to system role enum — fallback to "user"
+                  const systemRole =
+                    matchedRole.name.toLowerCase() === "admin"
+                      ? "admin"
+                      : matchedRole.name.toLowerCase() === "super_admin"
+                        ? "super_admin"
+                        : "user";
+                  setFormData((prev) => ({
+                    ...prev,
+                    role: systemRole as UserFormData["role"],
+                    roleId: matchedRole._id,
+                  }));
+                } else {
+                  // Fallback: treat as plain system role string
+                  handleInputChange("role", value);
+                }
+              }}
               placeholder="Select role"
               required
-              options={[
-                {
-                  value: "user",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-gray-500"></div>
-                      <span>User</span>
-                    </div>
-                  ),
-                },
-                {
-                  value: "admin",
-                  label: (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span>Admin</span>
-                    </div>
-                  ),
-                },
-              ]}
+              options={
+                tenantRoles.length > 0
+                  ? tenantRoles.map((r) => ({
+                      value: r._id,
+                      label: (
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <span>{r.name}</span>
+                        </div>
+                      ),
+                    }))
+                  : [
+                      {
+                        value: "user",
+                        label: (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                            <span>User</span>
+                          </div>
+                        ),
+                      },
+                      {
+                        value: "admin",
+                        label: (
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <span>Admin</span>
+                          </div>
+                        ),
+                      },
+                    ]
+              }
             />
           </div>
 
@@ -300,51 +319,6 @@ function UserModal({
                 )}
               </button>
             </div>
-          )}
-
-          {/* Assign Role Section — only shown when editing an existing user */}
-          {user && onAssignRole && availableRoles.length > 0 && (
-            <>
-              <Separator />
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Shield
-                    size={15}
-                    className="text-muted-foreground"
-                  />
-                  <label className="text-sm font-medium">Assign Role</label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={selectedRoleId}
-                    onValueChange={setSelectedRoleId}
-                  >
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select a role…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableRoles.map((role) => (
-                        <SelectItem
-                          key={role._id}
-                          value={role._id}
-                        >
-                          {role.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="sm"
-                    disabled={!selectedRoleId || isAssigningRole}
-                    onClick={() => onAssignRole(user._id, selectedRoleId)}
-                  >
-                    {isAssigningRole ? "Saving…" : "Apply"}
-                  </Button>
-                </div>
-              </div>
-            </>
           )}
 
           <ModalFooter

@@ -320,11 +320,6 @@ const UsersPage = () => {
         user={selectedUser}
         onClose={handleCloseModal}
         onSave={handleSaveUser}
-        availableRoles={availableRoles}
-        onAssignRole={(userId, roleId) =>
-          assignRoleMutation.mutate({ userId, roleId })
-        }
-        isAssigningRole={assignRoleMutation.isPending}
       />
 
       <ConfirmDialog
