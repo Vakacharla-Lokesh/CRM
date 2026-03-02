@@ -2,7 +2,7 @@ import { asyncCatch } from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
-import { jobDispatcher } from "../modules/jobs/jobDispatcher.js";
+import { jobDispatcher } from "../services/jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../utils/jobTypes.js";
 
 function createExportHandler(entityType, filename) {
