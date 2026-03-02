@@ -8,7 +8,6 @@ export interface LeadFormData {
   leadStatus: LeadStatus;
   leadScore: number;
   organizationId: string;
-  notes: string;
 }
 
 export interface FormErrors {

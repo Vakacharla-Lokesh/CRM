@@ -10,9 +10,15 @@ export const getAllUsers = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Never expose super_admin users
+  filter.role = { $ne: "super_admin" };
+
   // Server-side filters
   if (req.query.role) {
-    filter.role = req.query.role;
+    // Only apply role filter if it isn't trying to fetch super_admin
+    if (req.query.role !== "super_admin") {
+      filter.role = req.query.role;
+    }
   }
   if (req.query.status === "active") {
     filter.isActive = { $ne: false };
@@ -53,7 +59,7 @@ export const getAllUsers = asyncCatch(async (req, res) => {
 export const getUserById = asyncCatch(async (req, res) => {
   const user = await userModel.findById(req.params.id);
 
-  if (!user) throw new AppError("User not found", 404);
+  if (!user || user.role === "super_admin") throw new AppError("User not found", 404);
 
   res.json({ user });
 });
@@ -133,6 +139,7 @@ export const getUsersByTenant = asyncCatch(async (req, res) => {
   const users = await userModel.find({
     tenantId: req.params.tenantId,
     isActive: true,
+    role: { $ne: "super_admin" },
   });
 
   res.json({
@@ -189,6 +196,7 @@ export const searchUsers = asyncCatch(async (req, res) => {
 
   const users = await userModel.find({
     ...filter,
+    role: { $ne: "super_admin" },
     $or: [
       { firstName: searchRegex },
       { lastName: searchRegex },
@@ -204,14 +212,16 @@ export const searchUsers = asyncCatch(async (req, res) => {
 export const getUserStats = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
 
-  const totalUsers = await userModel.countDocuments(filter);
+  const statsFilter = { ...filter, role: { $ne: "super_admin" } };
+
+  const totalUsers = await userModel.countDocuments(statsFilter);
   const activeUsers = await userModel.countDocuments({
-    ...filter,
+    ...statsFilter,
     // Add your active user criteria here
   });
 
   const usersByRole = await userModel.aggregate([
-    { $match: filter },
+    { $match: statsFilter },
     {
       $group: {
         _id: "$role",

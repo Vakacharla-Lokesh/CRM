@@ -56,12 +56,10 @@ const workflowExecutionLogSchema = new Schema(
       type: Number,
       default: 3,
     },
-
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );
+
 workflowExecutionLogSchema.index({ tenantId: 1, workflowId: 1 });
 workflowExecutionLogSchema.index({ entityType: 1, entityId: 1 });
 workflowExecutionLogSchema.index({ status: 1 });

@@ -182,7 +182,10 @@ const TenantsPage = () => {
       </div>
 
       {/* Statistics Cards */}
-      <TenantStatistics statistics={tenantsStats} isLoading={statsLoading} />
+      <TenantStatistics
+        statistics={tenantsStats}
+        isLoading={statsLoading}
+      />
 
       {/* Filters */}
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
@@ -259,6 +262,7 @@ const TenantsPage = () => {
       )}
 
       <TenantModal
+        key={selectedTenant?._id ?? "new"}
         isOpen={isModalOpen}
         tenant={selectedTenant}
         onClose={() => {
