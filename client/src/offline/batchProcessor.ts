@@ -82,8 +82,6 @@ export const processBatches = async (
     try {
       await executeWithRetry(async () => {
         const token = getToken();
-        // Build a stable batch-level idempotency key from all keys in the chunk
-        // so parseError can correctly classify HTTP failures (statusCode, not status)
         const batchIdempotencyKey = chunk
           .map((r) => r.idempotencyKey)
           .filter(Boolean)
@@ -102,8 +100,6 @@ export const processBatches = async (
         });
 
         if (!response.ok) {
-          // Use `statusCode` (not `status`) so parseError correctly detects this
-          // as an APIError-like object via `"statusCode" in error`
           const err: any = new Error(
             `Batch HTTP error! status: ${response.status}`,
           );

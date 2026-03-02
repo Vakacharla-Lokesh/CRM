@@ -16,20 +16,20 @@ export {
   useHasAnyPermission,
 } from "./usePermissions.ts";
 
-export { useLeadData } from "./useLeadData";
-export { useUserData } from "./useUserData.ts";
-export { useOrganizationData } from "./useOrganizationData.ts";
-export { useDealData } from "./useDealData.ts";
-export { default as useTenantData } from "./useTenantData.ts";
-export { useCallData } from "./useCallData.ts";
-export { useCommentData } from "./useCommentData.ts";
-export { useAttachmentData } from "./useAttachmentData.ts";
-export { useDashboardStats } from "./useDashboardStats.ts";
-export { useAnalyticsData } from "./useAnalyticsData.ts";
-export { useLeadActivityData } from "./useLeadActivityData.ts";
-export { useUserAnalyticsData } from "./useUserAnalyticsData.ts";
+export { useLeadData } from "./leads/useLeadData.ts";
+export { useUserData } from "./users/useUserData.ts";
+export { useOrganizationData } from "./organizations/useOrganizationData.ts";
+export { useDealData } from "./deals/useDealData.ts";
+export { default as useTenantData } from "./tenants/useTenantData.ts";
+export { useCallData } from "./leads/tabs/useCallData.ts";
+export { useCommentData } from "./leads/tabs/useCommentData.ts";
+export { useAttachmentData } from "./leads/tabs/useAttachmentData.ts";
+export { useDashboardStats } from "./analytics/useDashboardStats.ts";
+export { useAnalyticsData } from "./analytics/useAnalyticsData.ts";
+export { useLeadActivityData } from "./leads/useLeadActivityData.ts";
+export { useUserAnalyticsData } from "./users/useUserAnalyticsData.ts";
 
-export { useWorkflowData } from "./useWorkflowData";
+export { useWorkflowData } from "./useWorkflowData.ts";
 
 export { useOfflineManager } from "./useOfflineManager.ts";
 export {
@@ -41,6 +41,6 @@ export {
 } from "./useLocalStorage.ts";
 export { useAppContext } from "./useAppContext.ts";
 export { useNotifications } from "./useNotifications.ts";
-export { useUsersStats } from "./useUsersStats.ts";
-export { useTenantsStats } from "./useTenantsStats.ts";
+export { useUsersStats } from "./users/useUsersStats.ts";
+export { useTenantsStats } from "./tenants/useTenantsStats.ts";
 export { useSocket } from "./useSocket.ts";
