@@ -4,11 +4,6 @@ import User from "../models/userModel.js";
 import AppError from "../utils/AppError.js";
 import { invalidateRoleCache } from "../middlewares/rbac.js";
 
-/**
- * Validate that a role exists and belongs to the given tenant.
- * Pass null for tenantId to skip tenant check (super_admin callers).
- * Returns the Role document (not lean, so it can be mutated).
- */
 export const validateRoleOwnership = async (roleId, tenantId) => {
   if (!mongoose.Types.ObjectId.isValid(roleId)) {
     throw new AppError("Invalid role ID format", 400);
@@ -28,10 +23,6 @@ export const validateRoleOwnership = async (roleId, tenantId) => {
   return role;
 };
 
-/**
- * Fetch all roles for a tenant.
- * Pass null for tenantId to return all roles (super_admin use case).
- */
 export const getRolesByTenant = async (tenantId) => {
   const filter = tenantId
     ? { tenantId: new mongoose.Types.ObjectId(tenantId) }
@@ -40,16 +31,10 @@ export const getRolesByTenant = async (tenantId) => {
   return Role.find(filter).select("-__v").sort({ createdAt: -1 }).lean();
 };
 
-/**
- * Fetch a single role, enforcing tenant ownership.
- */
 export const getRoleById = async (roleId, tenantId) => {
   return validateRoleOwnership(roleId, tenantId);
 };
 
-/**
- * Return the permissions array for a role.
- */
 export const getRolePermissions = async (roleId) => {
   if (!mongoose.Types.ObjectId.isValid(roleId)) {
     throw new AppError("Invalid role ID format", 400);
@@ -64,10 +49,12 @@ export const getRolePermissions = async (roleId) => {
   return role.permissions || [];
 };
 
-/**
- * Create a new role for the given tenant.
- */
-export const createRole = async ({ tenantId, name, description, permissions }) => {
+export const createRole = async ({
+  tenantId,
+  name,
+  description,
+  permissions,
+}) => {
   const existingRole = await Role.findOne({
     tenantId: new mongoose.Types.ObjectId(tenantId),
     name: name.trim(),
@@ -89,19 +76,11 @@ export const createRole = async ({ tenantId, name, description, permissions }) =
   });
 };
 
-/**
- * Update an existing role.
- * Blocks modification of system roles (name/permissions).
- * Pass null for tenantId to skip tenant check (super_admin callers).
- */
 export const updateRole = async (roleId, tenantId, updates) => {
   const role = await validateRoleOwnership(roleId, tenantId);
 
   if (role.isSystemRole) {
-    throw new AppError(
-      "System roles cannot be modified",
-      403,
-    );
+    throw new AppError("System roles cannot be modified", 403);
   }
 
   const { name, description, permissions, isActive } = updates;
@@ -135,12 +114,6 @@ export const updateRole = async (roleId, tenantId, updates) => {
   return role;
 };
 
-/**
- * Soft-delete a role (sets isActive = false).
- * Blocks deletion of system roles.
- * Blocks deletion if any users are still assigned to this role.
- * Pass null for tenantId to skip tenant check (super_admin callers).
- */
 export const deleteRole = async (roleId, tenantId) => {
   const role = await validateRoleOwnership(roleId, tenantId);
 

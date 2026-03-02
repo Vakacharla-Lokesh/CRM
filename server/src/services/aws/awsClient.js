@@ -20,7 +20,7 @@ const isLocalStack = !!LOCALSTACK_ENDPOINT;
 
 const credentials = isLocalStack
   ? { accessKeyId: "test", secretAccessKey: "test" }
-  : undefined; // Let AWS SDK pick credentials from environment in production
+  : undefined;
 
 const baseConfig = {
   region: process.env.AWS_REGION || "us-east-1",
@@ -29,7 +29,7 @@ const baseConfig = {
 
 export const s3 = new S3Client({
   ...baseConfig,
-  forcePathStyle: true, // Required for LocalStack and path-style S3 access
+  forcePathStyle: true,
 });
 
 export const sqs = new SQSClient(baseConfig);

@@ -6,8 +6,6 @@ import {
 } from "@aws-sdk/client-sqs";
 import { sqs } from "../awsClient.js";
 
-// ─── Send Message ─────────────────────────────────────────────────────────────
-
 async function sendMessage(queueUrl, messageBody, attributes = {}) {
   if (!queueUrl) throw new Error("[SQS] queueUrl is required for sendMessage");
 
@@ -53,8 +51,6 @@ async function sendMessage(queueUrl, messageBody, attributes = {}) {
   }
 }
 
-// ─── Receive Messages ─────────────────────────────────────────────────────────
-
 async function receiveMessages(queueUrl, maxMessages = 1) {
   if (!queueUrl)
     throw new Error("[SQS] queueUrl is required for receiveMessages");
@@ -83,8 +79,6 @@ async function receiveMessages(queueUrl, maxMessages = 1) {
   }
 }
 
-// ─── Delete Message ───────────────────────────────────────────────────────────
-
 async function deleteMessage(queueUrl, receiptHandle) {
   if (!queueUrl)
     throw new Error("[SQS] queueUrl is required for deleteMessage");
@@ -102,8 +96,6 @@ async function deleteMessage(queueUrl, receiptHandle) {
     throw error;
   }
 }
-
-// ─── Queue Stats ──────────────────────────────────────────────────────────────
 
 async function getQueueStats(queueUrl) {
   if (!queueUrl)
@@ -136,8 +128,6 @@ async function getQueueStats(queueUrl) {
     throw error;
   }
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const sqsAdapter = {
   sendMessage,
