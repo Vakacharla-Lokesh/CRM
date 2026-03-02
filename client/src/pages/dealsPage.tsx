@@ -30,10 +30,11 @@ import { toast } from "sonner";
 // other imports
 import { Search } from "lucide-react";
 import { BulkActionBar } from "@/components/bulk/BulkActionBar";
-import { exportDeals } from "@/services/exportService";
+import { exportDeals, exportEmailDeals } from "@/services/exportService";
 
 // notification imports
 import { useNotifications } from "@/hooks";
+import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
 
 const DealsPage = () => {
   const {
@@ -79,6 +80,11 @@ const DealsPage = () => {
 
   // notifications
   const { notifyEvent } = useNotifications();
+
+  // export dialog state
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   // search handlers
   useEffect(() => {
@@ -155,6 +161,30 @@ const DealsPage = () => {
     await exportDeals(selectedDealIds);
     setSelectedDealIds([]);
     setSelectionResetKey((k) => k + 1);
+  };
+
+  const handleEmailExport = async () => {
+    if (!exportEmail) return;
+
+    try {
+      setIsSending(true);
+
+      await exportEmailDeals(selectedDealIds, exportEmail);
+
+      toast.success("Export emailed successfully!", {
+        description: "Check your inbox for the exported deals.",
+      });
+
+      setSelectedDealIds([]);
+      setSelectionResetKey((k) => k + 1);
+      setExportEmail("");
+      setIsExportDialogOpen(false);
+    } catch (error) {
+      console.error("Error emailing export:", error);
+      toast.error("Failed to email export. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   return (
@@ -293,6 +323,7 @@ const DealsPage = () => {
           setSelectedDealIds([]);
           setSelectionResetKey((k) => k + 1);
         }}
+        exportMailHandler={() => setIsExportDialogOpen(true)}
         exportHandler={handleExport}
       />
 
@@ -312,6 +343,16 @@ const DealsPage = () => {
         description="Are you sure you want to delete this deal? This action cannot be undone."
         confirmText="Delete"
         variant="destructive"
+      />
+
+      {/* Dialog */}
+      <EmailExportDialogBox
+        isExportDialogOpen={isExportDialogOpen}
+        setIsExportDialogOpen={setIsExportDialogOpen}
+        exportEmail={exportEmail}
+        setExportEmail={setExportEmail}
+        handleEmailExport={handleEmailExport}
+        isSending={isSending}
       />
     </div>
   );

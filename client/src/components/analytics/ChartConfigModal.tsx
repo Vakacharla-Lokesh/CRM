@@ -41,8 +41,6 @@ import {
   SectionLabel,
 } from "./analyticHelpers";
 
-// ─── Main modal ───────────────────────────────────────────────────────────────
-
 function ChartConfigModal({
   open,
   onClose,
@@ -97,7 +95,7 @@ function ChartConfigModal({
       }}
     >
       <DialogContent
-        className="sm:max-w-sm p-0 overflow-hidden gap-0"
+        className="sm:max-w-lg p-0 overflow-hidden gap-0"
         style={{ backgroundColor: "var(--background)" }}
       >
         {/* Header */}
@@ -117,7 +115,6 @@ function ChartConfigModal({
             onChange={setType}
           />
 
-          {/* ── DATA ────────────────────────────────────── */}
           <SectionLabel label="Data" />
 
           <div
@@ -128,25 +125,18 @@ function ChartConfigModal({
             }}
           >
             {/* Title */}
-            <div className="flex items-center justify-between gap-4 py-2.5 px-3">
-              <div className="flex items-center gap-3 shrink-0">
-                <span style={{ color: "var(--muted-foreground)" }}>
-                  <IconT />
-                </span>
-                <span
-                  className="text-sm font-medium"
-                  style={{ color: "var(--foreground)" }}
-                >
-                  Title
-                </span>
+            <div className="flex items-center gap-4 px-4 py-3">
+              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground min-w-20">
+                <IconT />
+                Title
               </div>
+
               <Input
                 id="widget-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Leads by Status"
-                className="border-0 bg-transparent shadow-none h-auto p-0 text-right text-sm focus-visible:ring-0 focus-visible:ring-offset-0 max-w-[180px]"
-                style={{ color: "var(--foreground)" }}
+                placeholder="Leads by Status"
+                className="h-8 text-sm"
               />
             </div>
 
@@ -197,74 +187,77 @@ function ChartConfigModal({
             </ConfigRow>
           </div>
 
-          {/* ── X AXIS ──────────────────────────────────── */}
-          <SectionLabel label="X Axis" />
+          <div className="grid grid-cols-2 gap-6 mb-4">
+            {/* X AXIS */}
+            <div className="flex flex-col gap-3">
+              <SectionLabel label="X Axis" />
 
-          <div
-            className="rounded-xl overflow-hidden"
-            style={{
-              border: "1px solid var(--border)",
-              backgroundColor: "var(--card)",
-            }}
-          >
-            <ConfigRow
-              icon={<IconBarSmall />}
-              label="Group by"
-            >
-              <PillSelect
-                id="widget-groupby"
-                value={groupBy}
-                onValueChange={(v) => setGroupBy(v as GroupByField)}
+              <div
+                className="rounded-xl p-4 flex flex-col gap-3"
+                style={{
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--card)",
+                }}
               >
-                {GROUP_BY_OPTIONS[entity].map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    value={opt.value}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </PillSelect>
-            </ConfigRow>
-          </div>
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                  <IconBarSmall />
+                  Group by
+                </div>
 
-          {/* ── Y AXIS ──────────────────────────────────── */}
-          <SectionLabel label="Y Axis" />
+                <PillSelect
+                  id="widget-groupby"
+                  value={groupBy}
+                  onValueChange={(v) => setGroupBy(v as GroupByField)}
+                >
+                  {GROUP_BY_OPTIONS[entity].map((opt) => (
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                    >
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </PillSelect>
+              </div>
+            </div>
 
-          <div
-            className="rounded-xl overflow-hidden mb-4"
-            style={{
-              border: "1px solid var(--border)",
-              backgroundColor: "var(--card)",
-            }}
-          >
-            {/* Data on display — read-only, mirrors metric */}
-            <ConfigRow
-              icon={<IconTrendUp />}
-              label="Data on display"
-            >
-              <ReadonlyValue value={currentMetricLabel} />
-            </ConfigRow>
+            {/* Y AXIS */}
+            <div className="flex flex-col gap-3">
+              <SectionLabel label="Y Axis" />
 
-            <RowDivider />
+              <div
+                className="rounded-xl overflow-hidden"
+                style={{
+                  border: "1px solid var(--border)",
+                  backgroundColor: "var(--card)",
+                }}
+              >
+                <ConfigRow
+                  icon={<IconTrendUp />}
+                  label="Data on display"
+                >
+                  <ReadonlyValue value={currentMetricLabel} />
+                </ConfigRow>
 
-            {/* Sort by — static read-only */}
-            <ConfigRow
-              icon={<IconUpDown />}
-              label="Sort by"
-            >
-              <ReadonlyValue value="Value desc" />
-            </ConfigRow>
+                <RowDivider />
 
-            <RowDivider />
+                <ConfigRow
+                  icon={<IconUpDown />}
+                  label="Sort by"
+                >
+                  <ReadonlyValue value="Value desc" />
+                </ConfigRow>
 
-            {/* Group by — read-only, mirrors X axis groupBy */}
-            <ConfigRow
-              icon={<IconLayers />}
-              label="Group by"
-            >
-              <ReadonlyValue value={currentGroupByLabel} />
-            </ConfigRow>
+                <RowDivider />
+
+                <ConfigRow
+                  icon={<IconLayers />}
+                  label="Group by"
+                >
+                  <ReadonlyValue value={currentGroupByLabel} />
+                </ConfigRow>
+              </div>
+            </div>
           </div>
         </div>
 

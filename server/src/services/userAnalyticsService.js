@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import UserAnalyticsDashboard from "../models/UserAnalyticsDashboard.js";
+import UserAnalyticsDashboard from "../models/userAnalyticsDashboardModel.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";

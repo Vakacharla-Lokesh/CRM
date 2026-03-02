@@ -1,4 +1,4 @@
-import { formatCurrency } from "@/utils/";
+import { formatCompactCurrency } from "@/utils/";
 import type {
   DealPipelineStage,
   DealPipelineSummary,
@@ -53,19 +53,19 @@ const DealStatistics = ({
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <p className="text-sm text-gray-600 dark:text-gray-400">Total Value</p>
         <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
-          {formatCurrency(summary.totalPipelineValue)}
+          {formatCompactCurrency(summary.totalPipelineValue)}
         </p>
       </div>
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <p className="text-sm text-gray-600 dark:text-gray-400">Avg Value</p>
         <p className="text-2xl font-bold text-green-600 dark:text-green-400 mt-1">
-          {formatCurrency(summary.avgDealValue)}
+          {formatCompactCurrency(summary.avgDealValue)}
         </p>
       </div>
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
         <p className="text-sm text-gray-600 dark:text-gray-400">Forecast</p>
         <p className="text-2xl font-bold text-purple-600 dark:text-purple-400 mt-1">
-          {formatCurrency(forecastValue)}
+          {formatCompactCurrency(forecastValue)}
         </p>
       </div>
       <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
