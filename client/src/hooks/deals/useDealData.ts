@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import dealService from "@/services/dealService";
-import { useIndexedDB } from "./useIndexedDB";
+import { useIndexedDB } from "@/hooks/useIndexedDB";
 import type { Deal, DealStatus, CreateDealDTO, UpdateDealDTO } from "@/types";
 
 export interface DealFilters {

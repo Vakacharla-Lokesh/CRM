@@ -8,11 +8,7 @@ export const authAPI = {
   register: (data: RegisterRequest) =>
     post<LoginResponse>("/auth/register", data),
 
-  logout: (refreshToken?: string) =>
-    post<void>("/auth/logout", { refreshToken }),
+  logout: () => post<void>("/auth/logout", {}),
 
-  refreshToken: (refreshToken: string) =>
-    post<{ token: string; refreshToken: string }>("/auth/refresh", {
-      refreshToken,
-    }),
+  refreshSession: () => post<void>("/auth/refresh", {}),
 };

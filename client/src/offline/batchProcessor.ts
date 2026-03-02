@@ -2,7 +2,6 @@
 import type { OfflineRequest } from "../hooks/useOfflineManager";
 import type { BatchExecutionResult } from "./batchTypes";
 import { executeWithRetry } from "./retryStrategy";
-import { getToken } from "../services/api/core";
 import { resolveBulkRoute } from "./routeResolver";
 
 export const processBatches = async (
@@ -81,7 +80,6 @@ export const processBatches = async (
 
     try {
       await executeWithRetry(async () => {
-        const token = getToken();
         const batchIdempotencyKey = chunk
           .map((r) => r.idempotencyKey)
           .filter(Boolean)
@@ -91,7 +89,6 @@ export const processBatches = async (
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
             ...(batchIdempotencyKey
               ? { "Idempotency-Key": batchIdempotencyKey }
               : {}),

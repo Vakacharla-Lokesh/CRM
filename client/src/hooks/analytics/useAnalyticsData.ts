@@ -1,6 +1,6 @@
 import { useQueries, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { analyticsAPI } from "../services";
+import { analyticsAPI } from "@/services";
 import type {
   LeadTrendDay,
   LeadStatusEntry,
@@ -11,7 +11,7 @@ import type {
   DealTrendDay,
   OrgIndustryStat,
   TopOrganization,
-} from "../services/api/analytics.api";
+} from "@/services/api/analytics.api";
 
 interface UseAnalyticsDataReturn {
   // Leads

@@ -9,8 +9,7 @@ interface Resource {
 }
 
 export const useAuth = () => {
-  const { user, token, isAuthenticated, login, logout, signup } =
-    useAppContext();
+  const { user, isAuthenticated, login, logout, signup } = useAppContext();
 
   const hasRole = (roles: UserRole | UserRole[]): boolean => {
     if (!user) return false;
@@ -40,7 +39,7 @@ export const useAuth = () => {
   };
 
   const isLoggedIn = (): boolean => {
-    return isAuthenticated && !!token;
+    return isAuthenticated;
   };
 
   const getRole = (): UserRole | null => {
@@ -57,7 +56,6 @@ export const useAuth = () => {
 
   return {
     user,
-    token,
     isAuthenticated,
     isLoggedIn,
     hasRole,

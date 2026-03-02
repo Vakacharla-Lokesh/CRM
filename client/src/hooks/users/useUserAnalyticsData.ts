@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useCallback } from "react";
-import { userAnalyticsAPI } from "../services/api/userAnalytics.api";
-import type { Widget } from "../services/api/userAnalytics.api";
+import { userAnalyticsAPI } from "@/services/api/userAnalytics.api";
+import type { Widget } from "@/services/api/";
 
 const QUERY_KEY = ["userAnalytics", "dashboard"] as const;
 

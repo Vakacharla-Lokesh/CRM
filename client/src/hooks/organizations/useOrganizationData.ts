@@ -6,7 +6,7 @@ import {
   useQueryClient,
 } from "@tanstack/react-query";
 import { organizationService } from "@/services";
-import { useIndexedDB } from "./useIndexedDB";
+import { useIndexedDB } from "@/hooks/useIndexedDB";
 import type { Organization } from "@/types";
 
 interface OrganizationFilters {

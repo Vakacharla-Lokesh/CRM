@@ -2,7 +2,7 @@
 import { useState, useCallback } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useUserAnalyticsData } from "../hooks/useUserAnalyticsData";
+import { useUserAnalyticsData } from "@/hooks/users/useUserAnalyticsData";
 import AnalyticsGrid, { WidgetSkeleton } from "../components/analytics/AnalyticsGrid";
 import AnalyticsEmptyState from "../components/analytics/AnalyticsEmptyState";
 import ChartConfigModal from "../components/analytics/ChartConfigModal";

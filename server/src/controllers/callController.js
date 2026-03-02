@@ -52,10 +52,10 @@ export const createCall = asyncCatch(async (req, res) => {
     leadId: req.body.leadId,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.CALL_ADDED,
-    description: `${call.callType === "incoming" ? "Incoming" : "Outgoing"} call logged (${call.status})`,
+    description: `${call.type === "incoming" ? "Incoming" : "Outgoing"} call logged (${call.status})`,
     metadata: {
       callId: call._id,
-      callType: call.callType,
+      type: call.type,
       status: call.status,
       duration: call.duration,
     },
@@ -120,7 +120,7 @@ export const deleteCall = asyncCatch(async (req, res) => {
     leadId,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.CALL_DELETED,
-    description: `${call.callType === "incoming" ? "Incoming" : "Outgoing"} call record was deleted`,
+    description: `${call.type === "incoming" ? "Incoming" : "Outgoing"} call record was deleted`,
     metadata: { callId: req.params.id },
     userId: req.user.userId,
   });

@@ -4,9 +4,9 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { userService } from "../services/userService.ts";
-import { useIndexedDB } from "./useIndexedDB";
-import type { User, UserRole } from "../types";
+import { userService } from "@/services/userService.ts";
+import { useIndexedDB } from "@/hooks/useIndexedDB";
+import type { User, UserRole } from "@/types";
 
 const PAGE_LIMIT = 20;
 
@@ -102,8 +102,6 @@ export const useUserData = (tenantId?: string) => {
 
   const fetchUserByTenant = useCallback(
     (_id: string) => {
-      // tenantId is now reactive via the hook parameter;
-      // this just triggers a refetch for backward compat
       refetch();
     },
     [refetch],

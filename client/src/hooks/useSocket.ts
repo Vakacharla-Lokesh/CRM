@@ -17,7 +17,7 @@ interface NotificationPayload {
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
-  const { token, user } = useAppContext();
+  const { user } = useAppContext();
   const { notifyEvent } = useNotifications();
 
   const initializeSocket = useCallback(() => {
@@ -29,14 +29,14 @@ export function useSocket() {
       reconnectTimeoutRef.current = null;
     }
 
-    if (!token || !user) {
+    if (!user) {
       console.warn("[Socket] Cannot connect: Missing auth credentials");
       return;
     }
 
     try {
       socketRef.current = io(SOCKET_SERVER_URL, {
-        auth: { token },
+        withCredentials: true,
         reconnection: true,
         reconnectionDelay: 1000,
         reconnectionDelayMax: 5000,
@@ -103,7 +103,7 @@ export function useSocket() {
     } catch (error) {
       console.error("[Socket] Initialization failed:", error);
     }
-  }, [token, user, notifyEvent]);
+  }, [user, notifyEvent]);
 
   const sendMessage = useCallback(
     (message: string, type = "message", metadata?: Record<string, unknown>) => {
@@ -175,8 +175,8 @@ export function useSocket() {
 
   // Initialize when token and user exist
   useEffect(() => {
-    if (token && user) initializeSocket();
-  }, [token, user, initializeSocket]);
+    if (user) initializeSocket();
+  }, [user, initializeSocket]);
 
   // Cleanup on unmount
   useEffect(() => {

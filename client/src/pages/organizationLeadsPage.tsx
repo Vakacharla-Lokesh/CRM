@@ -6,7 +6,7 @@ import { columns } from "@/components/leads/leadColumns";
 import { leadsAPI, organizationsAPI } from "@/services/api";
 import type { Lead, Organization } from "@/types";
 import { DataTable } from "@/components/common/dataTable";
-import { useLeadData } from "@/hooks/useLeadData";
+import { useLeadData } from "@/hooks/leads/useLeadData";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 const OrganizationLeadsPage = () => {

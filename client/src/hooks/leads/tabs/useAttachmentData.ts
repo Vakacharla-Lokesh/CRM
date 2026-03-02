@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { Attachment } from "../types";
-import { attachmentsAPI } from "../services";
+import type { Attachment } from "@/types";
+import { attachmentsAPI } from "@/services";
 
 export const useAttachmentData = (leadId: string) => {
   const queryClient = useQueryClient();
