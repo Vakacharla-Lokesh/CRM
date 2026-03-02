@@ -16,6 +16,14 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Server-side filters
+  if (req.query.status) {
+    filter.leadStatus = req.query.status;
+  }
+  if (req.query.source) {
+    filter.leadSource = req.query.source;
+  }
+
   if (cursor) {
     const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
     filter.updatedAt = { $lt: new Date(lastUpdatedAt) };

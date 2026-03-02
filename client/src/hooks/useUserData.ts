@@ -35,7 +35,15 @@ export const useUserData = (tenantId?: string) => {
     hasNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["users-list", { tenantId: tenantId ?? null }],
+    queryKey: [
+      "users-list",
+      {
+        tenantId: tenantId ?? null,
+        role: filters.role,
+        status: filters.status,
+        search: filters.search,
+      },
+    ],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = (await getAll()) as unknown as User[];
@@ -50,6 +58,9 @@ export const useUserData = (tenantId?: string) => {
       const page = await userService.getAllUsers({
         cursor: pageParam ?? undefined,
         limit: PAGE_LIMIT,
+        role: filters.role || undefined,
+        status: filters.status || undefined,
+        search: filters.search || undefined,
       });
 
       for (const user of page.users) {
@@ -75,32 +86,9 @@ export const useUserData = (tenantId?: string) => {
   const error = queryError instanceof Error ? queryError : null;
 
   const filteredUsers = useMemo(() => {
-    let filtered = [...allUsers];
-
-    if (filters.role) {
-      filtered = filtered.filter((u) => u.role === filters.role);
-    }
-
-    if (filters.status) {
-      if (filters.status === "active") {
-        filtered = filtered.filter((u) => u.isActive !== false);
-      } else {
-        filtered = filtered.filter((u) => u.isActive === false);
-      }
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      filtered = filtered.filter(
-        (u) =>
-          (u.firstName?.toLowerCase().includes(searchLower) ?? false) ||
-          (u.lastName?.toLowerCase().includes(searchLower) ?? false) ||
-          (u.userEmail?.toLowerCase().includes(searchLower) ?? false),
-      );
-    }
-
-    return filtered;
-  }, [allUsers, filters]);
+    // role, status, and search are now filtered server-side
+    return [...allUsers];
+  }, [allUsers]);
 
   const loadMore = useCallback(() => {
     if (hasNextPage && !loadingMore) {

@@ -41,7 +41,7 @@ export const useTenantData = () => {
     isLoading: loading,
     error: queryError,
   } = useQuery({
-    queryKey: ["tenants"],
+    queryKey: ["tenants", { search: filters.search }],
     queryFn: async () => {
       if (!navigator.onLine) {
         const cached = await getAll();
@@ -51,7 +51,10 @@ export const useTenantData = () => {
           hasNextPage: false,
         };
       }
-      const page = await tenantService.getAllTenants({ limit: PAGE_LIMIT });
+      const page = await tenantService.getAllTenants({
+        limit: PAGE_LIMIT,
+        search: filters.search || undefined,
+      });
       return page;
     },
     staleTime: 30_000,
@@ -101,14 +104,7 @@ export const useTenantData = () => {
     }
 
     return allTenants.filter((tenant) => {
-      if (filters.search) {
-        const searchLower = filters.search.toLowerCase();
-        const matchesSearch =
-          tenant.tenantName?.toLowerCase().includes(searchLower) ||
-          tenant.email?.toLowerCase().includes(searchLower) ||
-          tenant.mobile?.includes(filters.search);
-        if (!matchesSearch) return false;
-      }
+      // search is now filtered server-side
 
       if (filters.dateFrom || filters.dateTo) {
         const tenantDate = tenant.createdAt
@@ -138,6 +134,7 @@ export const useTenantData = () => {
       const page = await tenantService.getAllTenants({
         cursor: nextCursor,
         limit: PAGE_LIMIT,
+        search: filters.search || undefined,
       });
       setAllTenants((prev) => [...prev, ...page.tenants]);
       setNextCursor(page.nextCursor ?? null);

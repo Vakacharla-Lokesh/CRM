@@ -1,7 +1,7 @@
 import { subDays, startOfDay, endOfDay } from "date-fns";
 import LeadModel from "../models/leadModel.js";
 import emailController from "../controllers/emailController.js";
-import { JOB_TYPES } from "../modules/jobs/job.types.js";
+import { JOB_TYPES } from "../utils/jobTypes.js";
 import { logger } from "../utils/logger.js";
 
 export const jobType = JOB_TYPES.LEAD_REMINDER;

@@ -14,6 +14,14 @@ export const getAllDeals = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Server-side filters
+  if (req.query.status) {
+    filter.dealStatus = req.query.status;
+  }
+  if (req.query.stage) {
+    filter.dealStatus = req.query.stage;
+  }
+
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };

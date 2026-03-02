@@ -27,11 +27,15 @@ const leadService = {
   getAllLeads: async (params?: {
     cursor?: string | null;
     limit?: number;
+    status?: string;
+    source?: string;
   }): Promise<CursorLeadPage> => {
     const queryParams: Record<string, unknown> = {
       limit: params?.limit ?? 20,
     };
     if (params?.cursor) queryParams.cursor = params.cursor;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.source) queryParams.source = params.source;
 
     const response = await apiClient.get<{
       count: number;

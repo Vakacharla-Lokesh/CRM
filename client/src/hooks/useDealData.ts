@@ -57,7 +57,7 @@ export const useDealData = () => {
     hasNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["deals"],
+    queryKey: ["deals", { status: filters.status, stage: filters.stage }],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = await getAll();
@@ -71,6 +71,8 @@ export const useDealData = () => {
       const page = await dealService.getAllDeals({
         cursor: pageParam ?? undefined,
         limit: PAGE_LIMIT,
+        status: filters.status || undefined,
+        stage: filters.stage || undefined,
       });
 
       for (const deal of page.deals) {
@@ -155,8 +157,7 @@ export const useDealData = () => {
     if (isSearchMode) return searchResults;
 
     return allDeals.filter((deal) => {
-      if (filters.status && deal.dealStatus !== filters.status) return false;
-      if (filters.stage && deal.dealStatus !== filters.stage) return false;
+      // status and stage are now filtered server-side
 
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();

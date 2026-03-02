@@ -43,7 +43,7 @@ export function useLeadData() {
     hasNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["leads"],
+    queryKey: ["leads", { status: filters.status, source: filters.source }],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = await getAll();
@@ -57,6 +57,8 @@ export function useLeadData() {
       const page = await leadService.getAllLeads({
         cursor: pageParam ?? undefined,
         limit: PAGE_LIMIT,
+        status: filters.status || undefined,
+        source: filters.source || undefined,
       });
 
       for (const lead of page.leads) {
@@ -101,12 +103,8 @@ export function useLeadData() {
 
     let result = allLeads;
 
-    if (filters.status) {
-      result = result.filter((l) => l.leadStatus === filters.status);
-    }
-    if (filters.source) {
-      result = result.filter((l) => l.leadSource === filters.source);
-    }
+    // status and source are now filtered server-side
+
     if (filters.dateFrom) {
       const from = new Date(filters.dateFrom).getTime();
       result = result.filter(

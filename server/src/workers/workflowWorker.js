@@ -1,5 +1,5 @@
 import { workflowExecutionEngine } from "../services/workflowExecutionService.js";
-import { JOB_TYPES } from "../modules/jobs/job.types.js";
+import { JOB_TYPES } from "../utils/jobTypes.js";
 import { logger } from "../utils/logger.js";
 
 export const jobType = JOB_TYPES.WORKFLOW_EXECUTION;

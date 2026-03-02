@@ -10,13 +10,31 @@ export const getAllUsers = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Server-side filters
+  if (req.query.role) {
+    filter.role = req.query.role;
+  }
+  if (req.query.status === "active") {
+    filter.isActive = { $ne: false };
+  } else if (req.query.status === "inactive") {
+    filter.isActive = false;
+  }
+  if (req.query.search) {
+    const searchRegex = new RegExp(req.query.search, "i");
+    filter.$or = [
+      { firstName: searchRegex },
+      { lastName: searchRegex },
+      { userEmail: searchRegex },
+    ];
+  }
+
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };
   }
 
   const users = await userModel
-    .find({ ...filter, isActive: true })
+    .find({ ...filter })
     .sort({ _id: 1 })
     .limit(limit + 1);
 

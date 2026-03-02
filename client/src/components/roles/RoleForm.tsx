@@ -18,10 +18,17 @@ interface RoleFormErrors {
   permissions?: string;
 }
 
-export function RoleForm({ role, onSubmit, onCancel, isLoading }: RoleFormProps) {
+export function RoleForm({
+  role,
+  onSubmit,
+  onCancel,
+  isLoading,
+}: RoleFormProps) {
   const [name, setName] = useState(role?.name ?? "");
   const [description, setDescription] = useState(role?.description ?? "");
-  const [permissions, setPermissions] = useState<string[]>(role?.permissions ?? []);
+  const [permissions, setPermissions] = useState<string[]>(
+    role?.permissions ?? [],
+  );
   const [errors, setErrors] = useState<RoleFormErrors>({});
 
   const isSystemRole = role?.isSystemRole ?? false;
@@ -30,7 +37,8 @@ export function RoleForm({ role, onSubmit, onCancel, isLoading }: RoleFormProps)
   const validate = (): boolean => {
     const newErrors: RoleFormErrors = {};
     if (!name.trim()) newErrors.name = "Role name is required";
-    if (permissions.length === 0) newErrors.permissions = "Select at least one permission";
+    if (permissions.length === 0)
+      newErrors.permissions = "Select at least one permission";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -38,7 +46,11 @@ export function RoleForm({ role, onSubmit, onCancel, isLoading }: RoleFormProps)
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
-    onSubmit({ name: name.trim(), description: description.trim() || undefined, permissions });
+    onSubmit({
+      name: name.trim(),
+      description: description.trim() || undefined,
+      permissions,
+    });
   };
 
   return (
@@ -89,13 +101,11 @@ export function RoleForm({ role, onSubmit, onCancel, isLoading }: RoleFormProps)
             changed.
           </p>
         )}
-        <div className="max-h-96 overflow-y-auto pr-1">
-          <PermissionSelector
-            value={permissions}
-            onChange={setPermissions}
-            disabled={isSystemRole}
-          />
-        </div>
+        <PermissionSelector
+          value={permissions}
+          onChange={setPermissions}
+          disabled={isSystemRole}
+        />
         {errors.permissions && (
           <p className="text-xs text-destructive">{errors.permissions}</p>
         )}

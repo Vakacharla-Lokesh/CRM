@@ -9,6 +9,11 @@ export const getAllOrganizations = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Server-side filters
+  if (req.query.industry) {
+    filter.organizationIndustry = req.query.industry;
+  }
+
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };

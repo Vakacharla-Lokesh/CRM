@@ -27,9 +27,13 @@ const dealService = {
   getAllDeals: async (params?: {
     cursor?: string | null;
     limit?: number;
+    status?: string;
+    stage?: string;
   }): Promise<CursorDealPage> => {
     const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
     if (params?.cursor) queryParams.cursor = params.cursor;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.stage) queryParams.stage = params.stage;
 
     const response = await apiClient.get<{
       count: number;

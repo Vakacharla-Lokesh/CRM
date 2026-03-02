@@ -12,6 +12,16 @@ export const getAllTenants = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
+  // Server-side search filter
+  if (req.query.search) {
+    const searchRegex = new RegExp(req.query.search, "i");
+    filter.$or = [
+      { tenantName: searchRegex },
+      { email: searchRegex },
+      { mobile: searchRegex },
+    ];
+  }
+
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };

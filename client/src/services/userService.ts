@@ -34,9 +34,15 @@ export const userService = {
   getAllUsers: async (params?: {
     cursor?: string | null;
     limit?: number;
+    role?: string;
+    status?: string;
+    search?: string;
   }): Promise<CursorUserPage> => {
     const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
     if (params?.cursor) queryParams.cursor = params.cursor;
+    if (params?.role) queryParams.role = params.role;
+    if (params?.status) queryParams.status = params.status;
+    if (params?.search) queryParams.search = params.search;
 
     const response = await apiClient.get<{
       count: number;
