@@ -1,5 +1,5 @@
 import { jobService } from "../../../../services/jobService.js";
-import { jobDispatcher } from "../../../../modules/jobs/jobDispatcher.js";
+import { jobDispatcher } from "../../../jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../../../../utils/jobTypes.js";
 
 export const handler = async (event, _context) => {

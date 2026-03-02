@@ -10,13 +10,13 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { ensureAwsInitialized } from "../initAwsResources.js";
 import { queueService } from "../queue/queue.service.js";
-import { jobRegistry } from "../../../modules/jobs/jobRegistry.js";
+import { jobRegistry } from "../../jobs/jobRegistry.js";
 import { requestStore } from "../../../utils/requestContext.js";
 import { logger } from "../../../utils/logger.js";
 
-import * as workflowWorker from "../../../workers/workflowWorker.js";
-import * as exportWorker from "../../../workers/exportWorker.js";
-import * as leadReminderWorker from "../../../workers/leadReminderWorker.js";
+import * as workflowWorker from "./workflowLambda.js";
+import * as exportWorker from "./exportLambda.js";
+import * as leadReminderWorker from "./leadReminderLambda.js";
 
 let _initialized = false;
 
