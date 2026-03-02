@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { useRoles, useCreateRole, useUpdateRole, useDeleteRole } from "@/hooks/useRoles";
+import {
+  useRoles,
+  useCreateRole,
+  useUpdateRole,
+  useDeleteRole,
+} from "@/hooks/useRoles";
 import { useHasPermission } from "@/hooks/usePermissions";
 import { RoleForm } from "@/components/roles/RoleForm";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
@@ -55,7 +60,10 @@ const RolesPage = () => {
   const handleSubmit = async (dto: CreateRoleDTO | UpdateRoleDTO) => {
     try {
       if (editingRole) {
-        await updateRole.mutateAsync({ roleId: editingRole._id, updates: dto as UpdateRoleDTO });
+        await updateRole.mutateAsync({
+          roleId: editingRole._id,
+          updates: dto as UpdateRoleDTO,
+        });
         toast.success(`Role "${editingRole.name}" updated successfully`);
       } else {
         await createRole.mutateAsync(dto as CreateRoleDTO);
@@ -63,7 +71,8 @@ const RolesPage = () => {
       }
       handleDialogClose();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Something went wrong";
+      const message =
+        err instanceof Error ? err.message : "Something went wrong";
       toast.error(message);
     }
   };
@@ -75,7 +84,8 @@ const RolesPage = () => {
       toast.success(`Role "${roleToDelete.name}" deleted`);
       setRoleToDelete(null);
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Failed to delete role";
+      const message =
+        err instanceof Error ? err.message : "Failed to delete role";
       toast.error(message);
     }
   };
@@ -119,7 +129,9 @@ const RolesPage = () => {
         <div className="flex items-center justify-center py-16">
           <div className="text-center">
             <div className="text-destructive text-5xl mb-4">⚠️</div>
-            <p className="text-destructive font-semibold mb-2">Failed to load roles</p>
+            <p className="text-destructive font-semibold mb-2">
+              Failed to load roles
+            </p>
             <p className="text-muted-foreground text-sm">
               {error instanceof Error ? error.message : "Unknown error"}
             </p>
@@ -127,13 +139,19 @@ const RolesPage = () => {
         </div>
       ) : roles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <ShieldCheck size={48} className="text-muted-foreground mb-4" />
+          <ShieldCheck
+            size={48}
+            className="text-muted-foreground mb-4"
+          />
           <h3 className="text-lg font-semibold mb-1">No roles yet</h3>
           <p className="text-muted-foreground text-sm mb-4">
             Create a role to start managing permissions.
           </p>
           {canWrite && (
-            <Button onClick={handleCreate} className="flex items-center gap-2">
+            <Button
+              onClick={handleCreate}
+              className="flex items-center gap-2"
+            >
               <Plus size={16} />
               Create Role
             </Button>
@@ -149,9 +167,14 @@ const RolesPage = () => {
               {/* Left section */}
               <div className="flex-1 min-w-0">
                 <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <h3 className="text-base font-semibold truncate">{role.name}</h3>
+                  <h3 className="text-base font-semibold truncate">
+                    {role.name}
+                  </h3>
                   {role.isSystemRole && (
-                    <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-1 text-xs"
+                    >
                       <Lock size={10} />
                       System
                     </Badge>
@@ -209,9 +232,12 @@ const RolesPage = () => {
       )}
 
       {/* Create / Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={handleDialogClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={handleDialogClose}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col p-0 gap-0">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b sticky top-0 bg-background z-10">
             <DialogTitle>
               {editingRole
                 ? editingRole.isSystemRole
@@ -220,13 +246,15 @@ const RolesPage = () => {
                 : "Create New Role"}
             </DialogTitle>
           </DialogHeader>
-          <RoleForm
-            key={editingRole?._id ?? "new-role"}
-            role={editingRole}
-            onSubmit={handleSubmit}
-            onCancel={handleDialogClose}
-            isLoading={createRole.isPending || updateRole.isPending}
-          />
+          <div className="overflow-y-auto flex-1 px-6 py-4">
+            <RoleForm
+              key={editingRole?._id ?? "new-role"}
+              role={editingRole}
+              onSubmit={handleSubmit}
+              onCancel={handleDialogClose}
+              isLoading={createRole.isPending || updateRole.isPending}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 

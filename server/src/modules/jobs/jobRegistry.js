@@ -1,4 +1,4 @@
-import { isValidJobType } from "./job.types.js";
+import { isValidJobType } from "../../utils/jobTypes.js";
 
 const _handlers = new Map();
 

@@ -6,13 +6,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SelectItem } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import type {
@@ -25,12 +19,29 @@ import type {
 import type { ChartConfigModalProps } from "@/types/constants/analytics/analyticsChartTypes";
 
 import {
-  CHART_TYPES,
   ENTITIES,
   METRICS,
   GROUP_BY_OPTIONS,
   DEFAULT_POSITION,
 } from "@/types/constants/analytics/analyticsChartTypes";
+
+import {
+  ChartTypePicker,
+  ConfigRow,
+  IconBarSmall,
+  IconDatabase,
+  IconLayers,
+  IconSigma,
+  IconT,
+  IconTrendUp,
+  IconUpDown,
+  PillSelect,
+  ReadonlyValue,
+  RowDivider,
+  SectionLabel,
+} from "./analyticHelpers";
+
+// ─── Main modal ───────────────────────────────────────────────────────────────
 
 function ChartConfigModal({
   open,
@@ -71,6 +82,13 @@ function ChartConfigModal({
     onClose();
   };
 
+  // Derived display-only values for Y Axis read-only rows
+  const currentMetricLabel =
+    METRICS.find((m) => m.value === metric)?.label ?? metric;
+  const currentGroupByLabel =
+    GROUP_BY_OPTIONS[entity]?.find((o) => o.value === groupBy)?.label ??
+    groupBy;
+
   return (
     <Dialog
       open={open}
@@ -78,75 +96,72 @@ function ChartConfigModal({
         if (!val) onClose();
       }}
     >
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>
+      <DialogContent
+        className="sm:max-w-sm p-0 overflow-hidden gap-0"
+        style={{ backgroundColor: "var(--background)" }}
+      >
+        {/* Header */}
+        <DialogHeader
+          className="px-5 pt-5 pb-4"
+          style={{ borderBottom: "1px solid var(--border)" }}
+        >
+          <DialogTitle className="text-base font-bold tracking-tight">
             {initialWidget?.title ? "Edit Widget" : "Add Widget"}
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Title */}
-          <div className="space-y-1.5">
-            <label
-              htmlFor="widget-title"
-              className="text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
-            >
-              Title
-            </label>
-            <Input
-              id="widget-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Leads by Status"
-            />
-          </div>
+        <div className="px-5 pb-2 overflow-y-auto max-h-[72vh]">
+          {/* Chart type icon picker */}
+          <ChartTypePicker
+            value={type}
+            onChange={setType}
+          />
 
-          {/* Chart Type */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
-            >
-              Chart Type
-            </label>
-            <Select
-              value={type}
-              onValueChange={(v) => setType(v as WidgetType)}
-            >
-              <SelectTrigger id="widget-type">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CHART_TYPES.map((t) => (
-                  <SelectItem
-                    key={t.value}
-                    value={t.value}
-                  >
-                    {t.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          {/* ── DATA ────────────────────────────────────── */}
+          <SectionLabel label="Data" />
 
-          {/* Entity */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+            }}
+          >
+            {/* Title */}
+            <div className="flex items-center justify-between gap-4 py-2.5 px-3">
+              <div className="flex items-center gap-3 shrink-0">
+                <span style={{ color: "var(--muted-foreground)" }}>
+                  <IconT />
+                </span>
+                <span
+                  className="text-sm font-medium"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  Title
+                </span>
+              </div>
+              <Input
+                id="widget-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Leads by Status"
+                className="border-0 bg-transparent shadow-none h-auto p-0 text-right text-sm focus-visible:ring-0 focus-visible:ring-offset-0 max-w-[180px]"
+                style={{ color: "var(--foreground)" }}
+              />
+            </div>
+
+            <RowDivider />
+
+            {/* Source */}
+            <ConfigRow
+              icon={<IconDatabase />}
+              label="Source"
             >
-              Data Source
-            </label>
-            <Select
-              value={entity}
-              onValueChange={(v) => handleEntityChange(v as WidgetEntity)}
-            >
-              <SelectTrigger id="widget-entity">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+              <PillSelect
+                id="widget-entity"
+                value={entity}
+                onValueChange={(v) => handleEntityChange(v as WidgetEntity)}
+              >
                 {ENTITIES.map((e) => (
                   <SelectItem
                     key={e.value}
@@ -155,54 +170,21 @@ function ChartConfigModal({
                     {e.label}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
+              </PillSelect>
+            </ConfigRow>
 
-          {/* Group By */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
-            >
-              Group By
-            </label>
-            <Select
-              value={groupBy}
-              onValueChange={(v) => setGroupBy(v as GroupByField)}
-            >
-              <SelectTrigger id="widget-groupby">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {GROUP_BY_OPTIONS[entity].map((opt) => (
-                  <SelectItem
-                    key={opt.value}
-                    value={opt.value}
-                  >
-                    {opt.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+            <RowDivider />
 
-          {/* Metric */}
-          <div className="space-y-1.5">
-            <label
-              className="text-sm font-medium"
-              style={{ color: "var(--foreground)" }}
+            {/* Metric */}
+            <ConfigRow
+              icon={<IconSigma />}
+              label="Metric"
             >
-              Metric
-            </label>
-            <Select
-              value={metric}
-              onValueChange={(v) => setMetric(v as WidgetMetric)}
-            >
-              <SelectTrigger id="widget-metric">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
+              <PillSelect
+                id="widget-metric"
+                value={metric}
+                onValueChange={(v) => setMetric(v as WidgetMetric)}
+              >
                 {METRICS.map((m) => (
                   <SelectItem
                     key={m.value}
@@ -211,15 +193,90 @@ function ChartConfigModal({
                     {m.label}
                   </SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
+              </PillSelect>
+            </ConfigRow>
+          </div>
+
+          {/* ── X AXIS ──────────────────────────────────── */}
+          <SectionLabel label="X Axis" />
+
+          <div
+            className="rounded-xl overflow-hidden"
+            style={{
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+            }}
+          >
+            <ConfigRow
+              icon={<IconBarSmall />}
+              label="Group by"
+            >
+              <PillSelect
+                id="widget-groupby"
+                value={groupBy}
+                onValueChange={(v) => setGroupBy(v as GroupByField)}
+              >
+                {GROUP_BY_OPTIONS[entity].map((opt) => (
+                  <SelectItem
+                    key={opt.value}
+                    value={opt.value}
+                  >
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </PillSelect>
+            </ConfigRow>
+          </div>
+
+          {/* ── Y AXIS ──────────────────────────────────── */}
+          <SectionLabel label="Y Axis" />
+
+          <div
+            className="rounded-xl overflow-hidden mb-4"
+            style={{
+              border: "1px solid var(--border)",
+              backgroundColor: "var(--card)",
+            }}
+          >
+            {/* Data on display — read-only, mirrors metric */}
+            <ConfigRow
+              icon={<IconTrendUp />}
+              label="Data on display"
+            >
+              <ReadonlyValue value={currentMetricLabel} />
+            </ConfigRow>
+
+            <RowDivider />
+
+            {/* Sort by — static read-only */}
+            <ConfigRow
+              icon={<IconUpDown />}
+              label="Sort by"
+            >
+              <ReadonlyValue value="Value desc" />
+            </ConfigRow>
+
+            <RowDivider />
+
+            {/* Group by — read-only, mirrors X axis groupBy */}
+            <ConfigRow
+              icon={<IconLayers />}
+              label="Group by"
+            >
+              <ReadonlyValue value={currentGroupByLabel} />
+            </ConfigRow>
           </div>
         </div>
 
-        <DialogFooter>
+        {/* Footer */}
+        <DialogFooter
+          className="px-4 py-3 gap-2 flex flex-row"
+          style={{ borderTop: "1px solid var(--border)" }}
+        >
           <Button
             variant="outline"
             onClick={onClose}
+            className="flex-1 rounded-full"
           >
             Cancel
           </Button>
@@ -227,6 +284,7 @@ function ChartConfigModal({
             id="widget-save-btn"
             onClick={handleSave}
             disabled={!title.trim()}
+            className="flex-1 rounded-full"
           >
             {initialWidget?.title ? "Update Widget" : "Add Widget"}
           </Button>

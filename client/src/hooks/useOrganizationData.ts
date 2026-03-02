@@ -49,7 +49,7 @@ export const useOrganizationData = () => {
     hasNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["organizations"],
+    queryKey: ["organizations", { industry: filters.industry }],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = await getAll();
@@ -63,6 +63,7 @@ export const useOrganizationData = () => {
       const page = await organizationService.getAllOrganizations({
         cursor: pageParam ?? undefined,
         limit: PAGE_LIMIT,
+        industry: filters.industry || undefined,
       });
 
       for (const org of page.organizations) {
@@ -108,13 +109,7 @@ export const useOrganizationData = () => {
     if (isSearchMode) return searchResults;
 
     return allOrganizations.filter((org) => {
-      if (filters.industry) {
-        if (
-          org.organizationIndustry?.toLowerCase() !==
-          filters.industry.toLowerCase()
-        )
-          return false;
-      }
+      // industry is now filtered server-side
 
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();

@@ -11,9 +11,11 @@ class TenantService {
   async getAllTenants(params?: {
     cursor?: string | null;
     limit?: number;
+    search?: string;
   }): Promise<CursorTenantPage> {
     const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
     if (params?.cursor) queryParams.cursor = params.cursor;
+    if (params?.search) queryParams.search = params.search;
 
     const response = await apiClient.get<{
       tenants: Tenant[];

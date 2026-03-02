@@ -2,8 +2,6 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-
 import { type User } from "@/types";
 import ActionDropdown from "../common/actionDropDown";
 
@@ -85,6 +83,21 @@ export const columns = ({
         </Button>
       );
     },
+    cell: ({ row }) => {
+      const email = row.getValue("userEmail") as string | undefined;
+      return email ? (
+        <a
+          href={`mailto:${email}?subject=Regarding%20Campaign%20Flux&body=Hi%20there,%0D%0A`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline dark:text-blue-400"
+        >
+          {email}
+        </a>
+      ) : (
+        <span className="text-gray-400">-</span>
+      );
+    },
   },
   {
     accessorKey: "mobile",
@@ -141,24 +154,6 @@ export const columns = ({
         >
           {roleLabels[role] || role}
         </span>
-      );
-    },
-  },
-  {
-    accessorKey: "roleName",
-    header: "Assigned Role",
-    cell: ({ row }) => {
-      const roleName = row.original.roleName;
-      if (!roleName) {
-        return <span className="text-gray-400 text-xs">—</span>;
-      }
-      return (
-        <Badge
-          variant="outline"
-          className="text-xs font-normal"
-        >
-          {roleName}
-        </Badge>
       );
     },
   },

@@ -157,7 +157,7 @@ socket io for activity within tenant
 
 widgets for dashboard and (rearrange widgets)
 
-tenant based settings
+>>>tenant based settings
 
 tasks new tab per user in kanban type page and create through workflows
 

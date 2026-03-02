@@ -27,9 +27,11 @@ const organizationService = {
   getAllOrganizations: async (params?: {
     cursor?: string | null;
     limit?: number;
+    industry?: string;
   }): Promise<CursorOrgPage> => {
     const queryParams: Record<string, unknown> = { limit: params?.limit ?? 20 };
     if (params?.cursor) queryParams.cursor = params.cursor;
+    if (params?.industry) queryParams.industry = params.industry;
 
     const response = await apiClient.get<{
       count: number;
