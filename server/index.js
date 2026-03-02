@@ -1,7 +1,7 @@
 import { config } from "dotenv";
 config();
 
-import app from "./src/server.js";
+import httpServer from "./src/server.js";
 
 import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
 import { queueService } from "./src/services/aws/queue/queue.service.js";
@@ -30,6 +30,7 @@ try {
   console.warn("[Queue] Server will continue without queue functionality");
 }
 
-app.listen(process.env.PORT, () => {
+httpServer.listen(process.env.PORT, () => {
   console.log(`[Server] Running on port ${process.env.PORT}`);
+  console.log(`[Socket.IO] Real-time notifications server initialized`);
 });

@@ -4,7 +4,7 @@ export const validate = (schema) => (req, res, next) => {
     next();
   } catch (err) {
     return res.status(400).json({
-      message: "Validation failed",
+      message: "Validation failed in validation middleware",
       errors: err.errors,
     });
   }

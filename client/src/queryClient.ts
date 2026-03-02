@@ -1,42 +1,39 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import { persistQueryClient } from "@tanstack/react-query-persist-client";
+import type { ApiError } from "./types";
 
-// Configure TanStack Query with offline support
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       // Retry failed queries
-      retry: 3,
+      retry: (failureCount, error: ApiError) => {
+        if (error.status === 401 || error.status === 403) return false;
+        if (error.status === 404) return false;
+        return failureCount < 3;
+      },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
 
       // Stale time configuration
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 60 * 1000,
 
-      // Network mode - online queries won't run when offline
       networkMode: "online",
 
-      // Refetch configuration
       refetchOnWindowFocus: true,
       refetchOnReconnect: true,
     },
 
     mutations: {
-      // Retry failed mutations
-      retry: 3,
-      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
-
-      // Network mode - mutations will be paused when offline
+      retry: 0,
       networkMode: "online",
-
-      // Global mutation error handler
-      onError: (error: any) => {
+      onError: (error: ApiError) => {
         console.error("Mutation error:", error);
       },
     },
   },
 });
-const localStoragePersister = createSyncStoragePersister({
+
+export const localStoragePersister = createSyncStoragePersister({
   storage: window.localStorage,
   serialize: JSON.stringify,
   deserialize: JSON.parse,
@@ -48,11 +45,10 @@ persistQueryClient({
   persister: localStoragePersister,
   maxAge: 1000 * 60 * 60 * 24, // 24 hours
   dehydrateOptions: {
-    // Only persist queries that succeeded
     shouldDehydrateQuery: (query) => query.state.status === "success",
   },
 });
-// Helper to check if device is online
+
 export const isOnline = () => {
   return navigator.onLine;
 };
