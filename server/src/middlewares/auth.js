@@ -15,12 +15,12 @@ export const authenticateRequest = (req, res, next) => {
       let permissions = [];
       if (roleId) {
         const cacheKey = `role:${roleId}`;
-        let roleDoc = rolePermissionCache.get(cacheKey);
+        let roleDoc = await rolePermissionCache.get(cacheKey);
 
         if (!roleDoc) {
           roleDoc = await Role.findById(roleId).lean();
           if (roleDoc && roleDoc.isActive) {
-            rolePermissionCache.set(cacheKey, roleDoc, 300000);
+            await rolePermissionCache.set(cacheKey, roleDoc, 300);
           }
         }
 

@@ -1,12 +1,18 @@
 import express from "express";
+import { createServer } from "http";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
 
+import { config } from "dotenv";
+config();
+
+// passport js for authentication
 import passport from "./config/passport.js";
 import { requestContextMiddleware } from "./middlewares/requestContext.js";
+import { initializeSocketServer } from "./config/socketServer.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
@@ -29,16 +35,23 @@ import statsRoutes from "./routes/statsRoutes.js";
 // error handler middlewares
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
+// mongodb connection
 import "./config/initDb.js";
+
+// rate limiter function
 import { limiter } from "./utils/rateLimit.js";
 
-import { config } from "dotenv";
-config();
+// redis caching file
+import "./config/redis.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+const httpServer = createServer(app);
+
+// Initialize Socket.IO
+initializeSocketServer(httpServer);
 
 // Security Package for express
 app.use(
@@ -110,5 +123,5 @@ app.use(notFound);
 // error handler middleware
 app.use(errorHandler);
 
-export { app };
-export default app;
+export { app, httpServer };
+export default httpServer;

@@ -52,6 +52,16 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Selection */
+  ::selection {
+    @apply bg-primary text-primary-foreground;
+    color: white;
+  }
+  .dark ::selection {
+    @apply bg-primary text-primary-foreground;
+    color: black;
+  }
 }
 
 :root {

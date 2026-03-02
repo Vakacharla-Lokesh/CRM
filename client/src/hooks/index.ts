@@ -43,3 +43,4 @@ export { useAppContext } from "./useAppContext.ts";
 export { useNotifications } from "./useNotifications.ts";
 export { useUsersStats } from "./useUsersStats.ts";
 export { useTenantsStats } from "./useTenantsStats.ts";
+export { useSocket } from "./useSocket.ts";

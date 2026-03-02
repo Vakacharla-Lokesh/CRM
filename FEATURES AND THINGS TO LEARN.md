@@ -153,7 +153,7 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 
 TODO: 27/02/2026
 
-socket io for activity within tenant
+>>>socket io for activity within tenant
 
 widgets for dashboard and (rearrange widgets)
 
@@ -164,4 +164,15 @@ tasks new tab per user in kanban type page and create through workflows
 start up login and flow on first login, send a link instead of password and credentials, reset password and take in profile data
 
 calender to show leads, deals and organizations created
+
+
+TODO 02/03/2026
+
+>>>remove retry logic for create
+
+>>>custom select color and custom scroll bars
+
+>>>caching added for role permissions
+
+webhook connections to other projects?
 

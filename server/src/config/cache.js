@@ -1,72 +1,70 @@
-class SimpleCache {
-  constructor() {
-    this.cache = new Map();
-    this.ttlTimers = new Map();
-  }
+import redis from "./redis.js";
 
-  get(key) {
-    if (!this.cache.has(key)) {
+class RedisCache {
+  async get(key) {
+    try {
+      const data = await redis.get(key);
+      console.log(`[Cache Get]: ${data}`);
+      if (!data) return null;
+      return data;
+    } catch (err) {
+      console.error("Cache GET error:", err);
       return null;
     }
-
-    const item = this.cache.get(key);
-
-    // Check if expired
-    if (item.expiresAt && Date.now() > item.expiresAt) {
-      this.delete(key);
-      return null;
-    }
-
-    return item.value;
   }
 
-  set(key, value, ttl = 300000) {
-    // Clear existing timer if any
-    if (this.ttlTimers.has(key)) {
-      clearTimeout(this.ttlTimers.get(key));
-    }
-
-    const expiresAt = ttl ? Date.now() + ttl : null;
-
-    this.cache.set(key, { value, expiresAt });
-
-    // Set TTL timer
-    if (ttl) {
-      const timer = setTimeout(() => {
-        this.delete(key);
-      }, ttl);
-
-      this.ttlTimers.set(key, timer);
+  async set(key, value, ttl = 300) {
+    try {
+      if (ttl) {
+        await redis.set(key, value, { ex: ttl });
+        console.log(`[Cache Set]: ${key}`);
+      } else {
+        await redis.set(key, value);
+      }
+    } catch (err) {
+      console.error("Cache SET error:", err);
     }
   }
 
-  delete(key) {
-    if (this.ttlTimers.has(key)) {
-      clearTimeout(this.ttlTimers.get(key));
-      this.ttlTimers.delete(key);
+  async delete(key) {
+    try {
+      await redis.del(key);
+      console.log(`[Cache Delete]: ${key}`);
+    } catch (err) {
+      console.error("Cache DELETE error:", err);
     }
-    this.cache.delete(key);
   }
 
-  clear() {
-    // Clear all timers
-    for (const timer of this.ttlTimers.values()) {
-      clearTimeout(timer);
+  async clear() {
+    try {
+      await redis.flushdb();
+      console.log(`[Cache Clear]:`)
+    } catch (err) {
+      console.error("Cache CLEAR error:", err);
     }
-    this.ttlTimers.clear();
-    this.cache.clear();
   }
 
-  size() {
-    return this.cache.size;
+  async has(key) {
+    try {
+      const exists = await redis.exists(key);
+      return exists === 1;
+    } catch (err) {
+      console.error("Cache HAS error:", err);
+      return false;
+    }
   }
 
-  has(key) {
-    return this.cache.has(key) && this.get(key) !== null;
+  async size() {
+    try {
+      const keys = await redis.keys("*");
+      return keys.length;
+    } catch (err) {
+      console.error("Cache SIZE error:", err);
+      return 0;
+    }
   }
 }
 
-// Singleton instance
-const rolePermissionCache = new SimpleCache();
+export const rolePermissionCache = new RedisCache();
 
 export default rolePermissionCache;

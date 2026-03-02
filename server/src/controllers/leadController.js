@@ -6,6 +6,7 @@ import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 import { bulkDeleteLeads } from "../services/bulkDeleteService.js";
+import notificationService, { notificationTypes } from "../services/notificationService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const filter =
@@ -100,6 +101,12 @@ export const createLead = asyncCatch(async (req, res) => {
     description: `Lead "${lead.leadFirstName} ${lead.leadLastName || ""}" was created`,
     userId: req.user.userId,
   });
+
+  notificationService.notifyLeadEvent(
+    lead.tenantId,
+    notificationTypes.LEAD_CREATED,
+    updatedLead.toObject(),
+  );
 
   res.status(201).json({
     message: "Lead created successfully",

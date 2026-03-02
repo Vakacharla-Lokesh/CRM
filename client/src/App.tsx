@@ -14,6 +14,7 @@ import { useAppContext } from "@/hooks";
 import { OfflineProvider } from "./context/offlineContext";
 import { NotificationProvider } from "./context/notificationContext";
 import { ThemeProvider } from "./components/common/themeProvider";
+import { SocketProvider } from "./context/socketContext";
 
 // Public pages
 import LoginPage from "./pages/loginPage";
@@ -26,9 +27,9 @@ import "./App.css";
 import { Toaster } from "./components/ui/sonner";
 
 // tanstack query
-import { queryClient } from "./queryClient";
-import { QueryClientProvider } from "@tanstack/react-query";
+import { localStoragePersister, queryClient } from "./queryClient";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 
 function AppRoutes() {
   const { isLoggedIn } = useAuth();
@@ -115,18 +116,29 @@ function AppRoutes() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister: localStoragePersister,
+        maxAge: 1000 * 60 * 60 * 24,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) => query.state.status === "success",
+        },
+      }}
+    >
       <AppProvider>
         <OfflineProvider>
           <NotificationProvider>
-            <ThemeProvider>
-              <Toaster position="top-center" />
-              <AppRoutes />
-            </ThemeProvider>
+            <SocketProvider>
+              <ThemeProvider>
+                <Toaster position="top-center" />
+                <AppRoutes />
+              </ThemeProvider>
+            </SocketProvider>
           </NotificationProvider>
         </OfflineProvider>
       </AppProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   );
 }
 

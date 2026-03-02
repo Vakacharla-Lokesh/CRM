@@ -2,10 +2,11 @@ import { z } from "zod";
 
 export const createLeadSchema = z.object({
   organizationId: z.string().min(1).optional(),
+  tenantId: z.string().min(1).optional(),
   userId: z.string().min(1).optional(),
   leadFirstName: z.string().min(1),
   leadLastName: z.string().nullable().optional(),
-  leadEmail: z.email("Invalid email format").optional(),
+  leadEmail: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format").or(z.literal("")).optional(),
   leadSource: z
     .enum([
       "API",
@@ -31,7 +32,7 @@ export const updateLeadSchema = z
   .object({
     leadFirstName: z.string().min(1).optional(),
     leadLastName: z.string().optional(),
-    leadEmail: z.email().optional(),
+    leadEmail: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format").or(z.literal("")).optional(),
     leadSource: z
       .enum([
         "API",
