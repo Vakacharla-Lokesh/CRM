@@ -1,15 +1,8 @@
 import { sqsAdapter } from "./sqs.adapter.js";
 import { queueUrls } from "../initAwsResources.js";
-import {
-  isValidJobType,
-  JOB_TYPE_QUEUE_MAP,
-} from "../../../modules/jobs/job.types.js";
-
-// ─── Queue Registry ───────────────────────────────────────────────────────────
+import { isValidJobType, JOB_TYPE_QUEUE_MAP } from "../../../utils/jobTypes.js";
 
 const _queueRegistry = new Map();
-
-// ─── Bootstrap ────────────────────────────────────────────────────────────────
 
 function bootstrap() {
   for (const [key, url] of Object.entries(queueUrls)) {
@@ -21,8 +14,6 @@ function bootstrap() {
     `[QueueService] Bootstrapped with ${_queueRegistry.size} queue(s).`,
   );
 }
-
-// ─── Registry Helpers ─────────────────────────────────────────────────────────
 
 function getQueueUrl(name) {
   const url = _queueRegistry.get(name);
@@ -40,8 +31,6 @@ function registerQueue(name, url) {
   _queueRegistry.set(name, url);
   console.log(`[QueueService] Registered queue "${name}": ${url}`);
 }
-
-// ─── Enqueue Job ──────────────────────────────────────────────────────────────
 
 async function enqueueJob(jobType, payload, tenantId) {
   if (!isValidJobType(jobType)) {
@@ -79,8 +68,6 @@ async function enqueueJob(jobType, payload, tenantId) {
   return messageId;
 }
 
-// ─── Direct Queue Operations (for Lambda processing) ─────────────────────────
-
 async function ack(queueName, receiptHandle) {
   const url = getQueueUrl(queueName);
   return sqsAdapter.deleteMessage(url, receiptHandle);
@@ -95,8 +82,6 @@ async function stats(queueName) {
   const url = getQueueUrl(queueName);
   return sqsAdapter.getQueueStats(url);
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const queueService = {
   bootstrap,

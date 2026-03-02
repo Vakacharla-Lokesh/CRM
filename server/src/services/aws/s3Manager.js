@@ -9,15 +9,11 @@ import { BUCKETS } from "./initAwsResources.js";
 
 const SIGNED_URL_EXPIRY_SECONDS = 300;
 
-// ─── Internal helpers ─────────────────────────────────────────────────────────
-
 function buildS3Url(bucket, key) {
   const endpoint =
     process.env.LOCALSTACK_ENDPOINT || "https://s3.amazonaws.com";
   return `${endpoint}/${bucket}/${key}`;
 }
-
-// ─── S3 Operations ────────────────────────────────────────────────────────────
 
 async function uploadFile(
   bucket,
@@ -112,8 +108,6 @@ async function archiveLogs(tenantId, logs) {
     logs,
   });
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const s3Manager = {
   uploadFile,

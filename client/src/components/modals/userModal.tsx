@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
@@ -31,54 +30,35 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { id } = useParams();
   const { isOnline, addToQueue } = useOffline();
 
-  const [formData, setFormData] = useState<UserFormData>({
-    firstName: "",
-    lastName: "",
-    userEmail: "",
-    mobile: "",
-    role: "user",
-    password: "",
-    tenantId: currentUser?.tenantId || "",
-  });
+  const [formData, setFormData] = useState<UserFormData>(
+    user
+      ? {
+          firstName: user.firstName,
+          lastName: user.lastName || "",
+          userEmail: user.userEmail,
+          mobile: user.mobile || "",
+          role: user.role,
+          roleId: user.roleId ?? "",
+          password: "",
+          tenantId: user.tenantId,
+        }
+      : {
+          firstName: "",
+          lastName: "",
+          userEmail: "",
+          mobile: "",
+          role: "user",
+          roleId: "",
+          password: "",
+          tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
+        },
+  );
+
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const [, setSelectedRoleId] = useState<string>("");
-
   const { data: tenantRoles = [] } = useRoles();
-
-  // Sync selectedRoleId with user's current roleId when modal opens
-  useEffect(() => {
-    setSelectedRoleId(user?.roleId ?? "");
-  }, [user, isOpen]);
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        firstName: user.firstName,
-        lastName: user.lastName || "",
-        userEmail: user.userEmail,
-        mobile: user.mobile || "",
-        role: user.role,
-        roleId: user.roleId ?? "",
-        password: "",
-        tenantId: user.tenantId,
-      });
-    } else {
-      setFormData({
-        firstName: "",
-        lastName: "",
-        userEmail: "",
-        mobile: "",
-        role: "user",
-        roleId: "",
-        password: "",
-        tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
-      });
-    }
-    setErrors({});
-  }, [user, isOpen, currentUser, id, isSuperAdmin]);
 
   const validateForm = (): boolean => {
     const newErrors = validateUserForm(formData, {

@@ -14,11 +14,9 @@ import { jobRegistry } from "../../../modules/jobs/jobRegistry.js";
 import { requestStore } from "../../../utils/requestContext.js";
 import { logger } from "../../../utils/logger.js";
 
-
-import * as workflowWorker from "../../../workers/workflow.worker.js";
-import * as exportWorker from "../../../workers/export.worker.js";
-import * as leadReminderWorker from "../../../workers/leadReminder.worker.js";
-
+import * as workflowWorker from "../../../workers/workflowWorker.js";
+import * as exportWorker from "../../../workers/exportWorker.js";
+import * as leadReminderWorker from "../../../workers/leadReminderWorker.js";
 
 let _initialized = false;
 
@@ -51,7 +49,6 @@ async function initialize() {
   _initialized = true;
 }
 
-
 export const handler = async (event, _context) => {
   await initialize();
 
@@ -74,14 +71,14 @@ export const handler = async (event, _context) => {
       const jobType = body.jobType;
 
       if (!jobType) {
-        logger.warn("[Lambda] Message missing jobType, skipping", { messageId });
+        logger.warn("[Lambda] Message missing jobType, skipping", {
+          messageId,
+        });
         continue;
       }
 
       const workerHandler = jobRegistry.getHandler(jobType);
 
-      // Build execution context — mirrors the shape set up by requestContextMiddleware
-      // for HTTP requests so the logger picks up the same fields automatically.
       const context = {
         tenantId: body.tenantId || body.payload?._meta?.tenantId || null,
         userId: body.payload?._meta?.userId || null,
@@ -89,8 +86,6 @@ export const handler = async (event, _context) => {
         traceId: body.payload?._meta?.traceId || null,
       };
 
-      // Build the AsyncLocalStorage context for this job execution.
-      // Any logger call inside the worker will automatically include these fields.
       const jobStoreContext = {
         requestId: context.requestId,
         traceId: context.traceId,
@@ -99,29 +94,49 @@ export const handler = async (event, _context) => {
         jobType,
       };
 
-      logger.info(`[Lambda] Executing job`, { jobType, messageId, tenantId: context.tenantId });
+      logger.info(`[Lambda] Executing job`, {
+        jobType,
+        messageId,
+        tenantId: context.tenantId,
+      });
 
-      // Run the worker inside the store so all its logs carry full context
       const result = await new Promise((resolve, reject) => {
         requestStore.run(jobStoreContext, () => {
-          workerHandler(body.payload || body, context).then(resolve).catch(reject);
+          workerHandler(body.payload || body, context)
+            .then(resolve)
+            .catch(reject);
         });
       });
 
       if (result.success) {
-        logger.info(`[Lambda] Job completed`, { jobType, messageId, message: result.message });
+        logger.info(`[Lambda] Job completed`, {
+          jobType,
+          messageId,
+          message: result.message,
+        });
       } else if (result.shouldRetry) {
-        logger.warn(`[Lambda] Job needs retry`, { jobType, messageId, message: result.message });
+        logger.warn(`[Lambda] Job needs retry`, {
+          jobType,
+          messageId,
+          message: result.message,
+        });
         batchItemFailures.push({ itemIdentifier: messageId });
       } else {
-        logger.error(`[Lambda] Job failed (no retry)`, { jobType, messageId, message: result.message });
+        logger.error(`[Lambda] Job failed (no retry)`, {
+          jobType,
+          messageId,
+          message: result.message,
+        });
       }
     } catch (error) {
-      logger.error(`[Lambda] Failed to process message`, { messageId, error: error.message, stack: error.stack });
+      logger.error(`[Lambda] Failed to process message`, {
+        messageId,
+        error: error.message,
+        stack: error.stack,
+      });
       batchItemFailures.push({ itemIdentifier: messageId });
     }
   }
 
-  // Return partial batch failure response for SQS
   return { batchItemFailures };
 };

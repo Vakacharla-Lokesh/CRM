@@ -29,7 +29,7 @@ import statsRoutes from "./routes/statsRoutes.js";
 // error handler middlewares
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
-import "./db/initDb.js";
+import "./config/initDb.js";
 import { limiter } from "./utils/rateLimit.js";
 
 import { config } from "dotenv";
@@ -47,9 +47,6 @@ app.use(
   }),
 );
 
-// Assign a unique requestId to every request and expose it via AsyncLocalStorage
-// so all downstream code (controllers, services) can log it without manual threading.
-// Must be mounted BEFORE Morgan so the custom :request-id token is always populated.
 app.use(requestContextMiddleware);
 
 // Custom Morgan tokens
@@ -60,9 +57,7 @@ morgan.token("user-id", (req) => req.auth?.userId?.toString() ?? "-");
 app.use(
   morgan(
     process.env.NODE_ENV === "production"
-      // Structured JSON line — easy to ingest into CloudWatch / Datadog / etc.
       ? '{"time":":date[iso]","method":":method","url":":url","status":":status","ms":":response-time","requestId":":request-id","userId":":user-id"}'
-      // Human-readable dev format
       : ":method :url :status :response-time ms — :request-id",
   ),
 );

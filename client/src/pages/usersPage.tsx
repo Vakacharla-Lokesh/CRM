@@ -316,6 +316,7 @@ const UsersPage = () => {
       )}
 
       <UserModal
+        key={selectedUser?._id ?? "new"}
         isOpen={isModalOpen}
         user={selectedUser}
         onClose={handleCloseModal}

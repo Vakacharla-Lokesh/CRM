@@ -1,8 +1,6 @@
 import { logger } from "../utils/logger.js";
 
 export const errorHandler = (err, req, res, next) => {
-  // Log with full request context (requestId, userId, tenantId) automatically
-  // included by the logger via AsyncLocalStorage.
   logger.error(err.message, {
     stack: err.stack,
     statusCode: err.statusCode ?? 500,

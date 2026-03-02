@@ -19,7 +19,6 @@ export async function bulkDeleteDeals(ids, tenantId, userContext) {
     );
   }
 
-  // Validate ObjectId format
   const invalidIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
   if (invalidIds.length > 0) {
     throw new AppError(
@@ -30,17 +29,14 @@ export async function bulkDeleteDeals(ids, tenantId, userContext) {
 
   const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
-  // Build filter with tenant isolation
   const filter = {
     _id: { $in: objectIds },
   };
 
-  // Tenant enforcement — never trust client tenantId
   if (userContext.role !== "super_admin") {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
 
-  // Find matching deals first to identify failures
   const matchingDeals = await dealModel.find(filter).select("_id").lean();
 
   const matchedIds = new Set(matchingDeals.map((d) => d._id.toString()));
@@ -54,7 +50,6 @@ export async function bulkDeleteDeals(ids, tenantId, userContext) {
     };
   }
 
-  // Perform delete
   const result = await dealModel.deleteMany({
     _id: { $in: matchingDeals.map((d) => d._id) },
   });
@@ -82,7 +77,6 @@ export async function bulkDeleteLeads(ids, tenantId, userContext) {
     );
   }
 
-  // Validate ObjectId format
   const invalidIds = ids.filter((id) => !mongoose.Types.ObjectId.isValid(id));
   if (invalidIds.length > 0) {
     throw new AppError(
@@ -93,17 +87,14 @@ export async function bulkDeleteLeads(ids, tenantId, userContext) {
 
   const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
-  // Build filter with tenant isolation
   const filter = {
     _id: { $in: objectIds },
   };
 
-  // Tenant enforcement — never trust client tenantId
   if (userContext.role !== "super_admin") {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
 
-  // Find matching leads first to identify failures
   const matchingLeads = await leadModel.find(filter).select("_id").lean();
 
   const matchedIds = new Set(matchingLeads.map((l) => l._id.toString()));
@@ -165,8 +156,6 @@ export async function bulkDeleteOrganizations(ids, tenantId, userContext) {
   if (userContext.role !== "super_admin") {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
-
-
 
   // Find matching organizations first to identify failures
   const matchingOrgs = await organizationModel

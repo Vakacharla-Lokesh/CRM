@@ -6,11 +6,6 @@ import {
   ListTopicsCommand,
 } from "@aws-sdk/client-sns";
 
-// ─── SNS Operations ───────────────────────────────────────────────────────────
-
-/**
- * Publishes a message to an SNS topic.
- */
 async function publish(topicArn, message, subject = "") {
   if (!topicArn) throw new Error("[SNS] topicArn is required for publish");
 
@@ -18,7 +13,8 @@ async function publish(topicArn, message, subject = "") {
     const response = await sns.send(
       new PublishCommand({
         TopicArn: topicArn,
-        Message: typeof message === "string" ? message : JSON.stringify(message),
+        Message:
+          typeof message === "string" ? message : JSON.stringify(message),
         Subject: subject,
       }),
     );
@@ -30,9 +26,6 @@ async function publish(topicArn, message, subject = "") {
   }
 }
 
-/**
- * Creates an SNS topic if it does not already exist, returns the ARN.
- */
 async function ensureTopic(topicName) {
   try {
     const response = await sns.send(
@@ -46,13 +39,14 @@ async function ensureTopic(topicName) {
   }
 }
 
-/**
- * Subscribes an endpoint (e.g. SQS ARN, HTTPS URL) to an SNS topic.
- */
 async function subscribe(topicArn, protocol, endpoint) {
   try {
     const response = await sns.send(
-      new SubscribeCommand({ TopicArn: topicArn, Protocol: protocol, Endpoint: endpoint }),
+      new SubscribeCommand({
+        TopicArn: topicArn,
+        Protocol: protocol,
+        Endpoint: endpoint,
+      }),
     );
     console.log(`[SNS] Subscribed (${protocol}): ${response.SubscriptionArn}`);
     return response.SubscriptionArn;
@@ -62,9 +56,6 @@ async function subscribe(topicArn, protocol, endpoint) {
   }
 }
 
-/**
- * Lists all SNS topics in the current region.
- */
 async function listTopics() {
   try {
     const response = await sns.send(new ListTopicsCommand({}));
@@ -74,8 +65,6 @@ async function listTopics() {
     throw error;
   }
 }
-
-// ─── Exports ──────────────────────────────────────────────────────────────────
 
 export const snsManager = {
   publish,

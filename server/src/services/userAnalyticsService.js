@@ -4,21 +4,18 @@ import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
 
-// Map entity name to the mongoose model
 const ENTITY_MODEL_MAP = {
   leads: leadModel,
   deals: dealModel,
   organizations: organizationModel,
 };
 
-// Fields allowed as groupBy keys per entity (allowlist to prevent field injection)
 const ALLOWED_GROUP_BY = {
   leads: ["leadStatus", "leadSource", "createdAt"],
   deals: ["dealStatus", "createdAt"],
   organizations: ["organizationIndustry", "createdAt"],
 };
 
-// Fields allowed for sum/avg metrics per entity
 const ALLOWED_METRIC_FIELDS = {
   leads: { sum: "leadScore", avg: "leadScore" },
   deals: { sum: "dealValue", avg: "dealValue" },
