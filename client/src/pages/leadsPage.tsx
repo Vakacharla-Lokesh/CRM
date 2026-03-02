@@ -427,6 +427,7 @@ const LeadsPage = () => {
       />
 
       <LeadModal
+        key={selectedLead?._id ?? "new"}
         isOpen={isModalOpen}
         lead={selectedLead}
         onClose={handleCloseModal}

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
@@ -40,16 +39,27 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const { user } = useAppContext();
   const { isOnline, addToQueue } = useOffline();
 
-  const [formData, setFormData] = useState<LeadFormData>({
-    leadFirstName: "",
-    leadLastName: "",
-    leadEmail: "",
-    leadSource: "API",
-    leadStatus: "New",
-    leadScore: 0,
-    organizationId: "",
-    notes: "",
-  });
+  const [formData, setFormData] = useState<LeadFormData>(
+    lead
+      ? {
+          leadFirstName: lead.leadFirstName,
+          leadLastName: lead.leadLastName || "",
+          leadEmail: lead.leadEmail,
+          leadSource: lead.leadSource,
+          leadStatus: lead.leadStatus,
+          leadScore: lead.leadScore,
+          organizationId: lead.organizationId || "",
+        }
+      : {
+          leadFirstName: "",
+          leadLastName: "",
+          leadEmail: "",
+          leadSource: "API",
+          leadStatus: "New",
+          leadScore: 0,
+          organizationId: "",
+        },
+  );
   const [organizationMode, setOrganizationMode] = useState<"select" | "create">(
     "select",
   );
@@ -71,44 +81,6 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       fetchOrganizations();
     }
   }, [isOpen, fetchOrganizations]);
-
-  useEffect(() => {
-    if (lead) {
-      setFormData({
-        leadFirstName: lead.leadFirstName,
-        leadLastName: lead.leadLastName || "",
-        leadEmail: lead.leadEmail,
-        leadSource: lead.leadSource,
-        leadStatus: lead.leadStatus,
-        leadScore: lead.leadScore,
-        organizationId: lead.organizationId || "",
-        notes: "",
-      });
-      if (lead.organizationId) {
-        setOrganizationMode("select");
-      }
-    } else {
-      setFormData({
-        leadFirstName: "",
-        leadLastName: "",
-        leadEmail: "",
-        leadSource: "API",
-        leadStatus: "New",
-        leadScore: 0,
-        organizationId: "",
-        notes: "",
-      });
-      setOrganizationMode("select");
-      setNewOrgData({
-        organizationName: "",
-        organizationWebsite: "",
-        organizationSize: 10,
-        organizationIndustry: "Software",
-      });
-    }
-    setErrors({});
-    setSubmitError(null);
-  }, [lead, isOpen]);
 
   const validateForm = (): boolean => {
     const newErrors = validateLeadForm(formData, organizationMode, newOrgData);

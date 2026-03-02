@@ -48,9 +48,6 @@ const TRIGGER_ACTIONS: WorkflowTriggerAction[] = ["create", "update", "delete"];
 const ACTION_TYPES: { value: WorkflowActionType; label: string }[] = [
   { value: "send_email", label: "Send Email" },
   { value: "update_field", label: "Update Field" },
-  { value: "create_task", label: "Create Task" },
-  { value: "webhook", label: "Webhook" },
-  { value: "export_s3", label: "Export to S3" },
 ];
 
 const emptyAction = (): WorkflowAction => ({ type: "send_email" });

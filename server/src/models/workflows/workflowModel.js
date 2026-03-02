@@ -81,17 +81,6 @@ const workflowSchema = new Schema(
         recipient: String,
         subject: String,
         body: String,
-        // update_field
-        targetField: String,
-        value: Schema.Types.Mixed,
-        // webhook
-        webhookUrl: String,
-        method: { type: String, enum: ["POST", "PUT"] },
-        payload: Schema.Types.Mixed,
-        // export_s3
-        format: { type: String, enum: ["csv", "json"] },
-        bucket: String,
-        prefix: String,
         _id: false,
       },
     ],
@@ -111,11 +100,8 @@ const workflowSchema = new Schema(
     // Scheduling (optional)
     schedule: {
       enabled: Boolean,
-      cronExpression: String, // e.g., "0 9 * * MON" (every Monday at 9am)
+      cronExpression: String,
     },
-
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
   },
   { timestamps: true },
 );

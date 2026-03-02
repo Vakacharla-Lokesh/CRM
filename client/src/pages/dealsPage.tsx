@@ -276,6 +276,7 @@ const DealsPage = () => {
           name="Deals"
           searchColumn="dealName"
           onSelectionChange={(rows) =>
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setSelectedDealIds(rows.map((r: any) => r._id))
           }
           hasNextPage={hasNextPage}
@@ -296,6 +297,7 @@ const DealsPage = () => {
       />
 
       <DealModal
+        key={selectedDeal?._id ?? "new"}
         isOpen={isModalOpen}
         deal={selectedDeal}
         onClose={handleCloseModal}

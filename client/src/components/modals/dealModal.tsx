@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -34,24 +33,21 @@ interface DealModalProps {
 }
 
 const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
-  const [formData, setFormData] = useState<DealFormData>({
-    dealName: "",
-    dealValue: "",
-    dealStatus: "Prospecting",
-  });
-
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  useEffect(() => {
-    if (deal) {
-      setFormData({
-        dealName: deal.dealName || "",
-        dealValue: deal.dealValue?.toString() || "",
-        dealStatus: deal.dealStatus || "Prospecting",
-      });
-    }
-  }, [deal]);
+  const [formData, setFormData] = useState<DealFormData>(
+    deal
+      ? {
+          dealName: deal.dealName || "",
+          dealValue: deal.dealValue?.toString() || "",
+          dealStatus: deal.dealStatus || "Prospecting",
+        }
+      : {
+          dealName: "",
+          dealValue: "",
+          dealStatus: "Prospecting",
+        },
+  );
 
   const handleChange = (
     field: keyof DealFormData,

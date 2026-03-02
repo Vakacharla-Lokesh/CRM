@@ -149,6 +149,12 @@ function OrganizationModal({
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    // Guard: if not on the final step, advance instead of submitting
+    if (currentStep < totalSteps - 1) {
+      handleNext();
+      return;
+    }
+
     // Final validation
     const allErrors = validateOrganizationForm(formData);
     if (Object.keys(allErrors).length > 0) {
