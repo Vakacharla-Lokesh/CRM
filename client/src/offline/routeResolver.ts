@@ -29,7 +29,5 @@ export const resolveBulkRoute = (
     );
   }
 
-  // Matching exactly the backend routes defined in server/src/server.js and server/routes/bulkRoutes.js
-  // backend prefixes /api/bulk, so routes are /api/bulk/leads/create, etc.
   return `${API_BASE_URL}/bulk/${mappedEntity}/${mappedOperation}`;
 };
