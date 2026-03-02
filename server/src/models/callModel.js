@@ -5,8 +5,8 @@ const callsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "callId", auto: true },
     leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
-    callType: { type: String, required: true, enum: ["incoming", "outgoing"] },
-    callNotes: { type: String, maxLength: 250 },
+    type: { type: String, required: true, enum: ["incoming", "outgoing"] },
+    notes: { type: String, maxLength: 250 },
     status: {
       type: String,
       required: true,

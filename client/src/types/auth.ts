@@ -1,22 +1,11 @@
 import type { User } from "./user";
 
-export interface AuthUser extends User {
-  token: string;
-  refreshToken?: string;
-}
-
 export interface LoginRequest {
   userEmail: string;
   password: string;
 }
 
 export type LoginCredentials = LoginRequest;
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-  refreshToken?: string;
-}
 
 export interface RegisterRequest {
   firstName: string;
@@ -28,11 +17,19 @@ export interface RegisterRequest {
 
 export type SignupData = RegisterRequest;
 
-export interface AuthResponse {
+export interface LoginResponse {
+  message: string;
+  success: boolean;
   user: User;
-  token: string;
-  refreshToken?: string;
 }
+
+export interface AuthResponse {
+  message: string;
+  success: boolean;
+  user: User;
+}
+
+export interface AuthUser extends User {}
 
 export interface AuthError {
   code:

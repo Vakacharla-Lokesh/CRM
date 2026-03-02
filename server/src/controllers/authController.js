@@ -15,6 +15,30 @@ const RESET_TOKEN_EXPIRY_MINUTES = 15;
 const REFRESH_TOKEN_EXPIRY_DAYS = 7;
 const MAX_OTP_ATTEMPTS = 5;
 
+const IS_PROD = process.env.NODE_ENV === "production";
+
+function setAuthCookies(res, accessToken, refreshToken) {
+  res.cookie("auth_token", accessToken, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: IS_PROD ? "strict" : "lax",
+    maxAge: 15 * 60 * 1000,
+  });
+
+  res.cookie("refresh_token", refreshToken, {
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: IS_PROD ? "strict" : "lax",
+    maxAge: 7 * 24 * 60 * 60 * 1000,
+    path: "/api/auth/refresh",
+  });
+}
+
+function clearAuthCookies(res) {
+  res.clearCookie("auth_token");
+  res.clearCookie("refresh_token", { path: "/api/auth/refresh" });
+}
+
 const generateAccessToken = (user) => {
   const roleId =
     user.roleId?._id?.toString() ?? user.roleId?.toString() ?? null;
@@ -91,11 +115,11 @@ export const register = asyncCatch(async (req, res) => {
   const accessToken = generateAccessToken(user);
   const refreshToken = await generateAndStoreRefreshToken(user);
 
+  setAuthCookies(res, accessToken, refreshToken);
+
   res.status(201).json({
     message: "User registered successfully",
     success: true,
-    token: accessToken,
-    refreshToken,
     user: formatUser(user),
   });
 });
@@ -116,11 +140,11 @@ export const login = (req, res, next) => {
         const accessToken = generateAccessToken(user);
         const refreshToken = await generateAndStoreRefreshToken(user);
 
+        setAuthCookies(res, accessToken, refreshToken);
+
         return res.json({
           message: "Login successful",
           success: true,
-          token: accessToken,
-          refreshToken,
           user: formatUser(user),
         });
       } catch (err) {
@@ -131,16 +155,19 @@ export const login = (req, res, next) => {
 };
 
 export const logout = asyncCatch(async (req, res) => {
-  const { refreshToken } = req.body;
-  if (refreshToken) {
-    const tokenHash = RefreshToken.hashToken(refreshToken);
+  const rawRefreshToken = req.cookies?.refresh_token;
+
+  if (rawRefreshToken) {
+    const tokenHash = RefreshToken.hashToken(rawRefreshToken);
     await RefreshToken.findOneAndUpdate({ tokenHash }, { revoked: true });
   }
+
+  clearAuthCookies(res);
   res.json({ message: "User logged out successfully" });
 });
 
 export const refreshToken = asyncCatch(async (req, res) => {
-  const { refreshToken: rawToken } = req.body;
+  const rawToken = req.cookies?.refresh_token;
 
   if (!rawToken) throw new AppError("Refresh token is required", 401);
 
@@ -150,10 +177,12 @@ export const refreshToken = asyncCatch(async (req, res) => {
   if (!storedToken) throw new AppError("Invalid refresh token", 401);
 
   if (storedToken.revoked) {
+    // Token reuse detected — revoke the entire family for this user
     await RefreshToken.updateMany(
       { userId: storedToken.userId },
       { revoked: true },
     );
+    clearAuthCookies(res);
     throw new AppError(
       "Refresh token reuse detected. Please log in again.",
       401,
@@ -161,9 +190,11 @@ export const refreshToken = asyncCatch(async (req, res) => {
   }
 
   if (storedToken.expiresAt < new Date()) {
+    clearAuthCookies(res);
     throw new AppError("Refresh token expired", 401);
   }
 
+  // Rotate — revoke old token, issue new pair
   storedToken.revoked = true;
   await storedToken.save();
 
@@ -173,11 +204,9 @@ export const refreshToken = asyncCatch(async (req, res) => {
   const newAccessToken = generateAccessToken(user);
   const newRefreshToken = await generateAndStoreRefreshToken(user);
 
-  res.json({
-    message: "Token refreshed successfully",
-    token: newAccessToken,
-    refreshToken: newRefreshToken,
-  });
+  setAuthCookies(res, newAccessToken, newRefreshToken);
+
+  res.json({ message: "Token refreshed successfully" });
 });
 
 export const getProfile = asyncCatch(async (req, res) => {

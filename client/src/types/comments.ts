@@ -2,21 +2,21 @@
 export interface Comment {
   _id: string;
   leadId: string;
-  commentTitle: string;
-  commentDesc?: string;
+  title: string;
+  description?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface CreateCommentDTO {
   leadId: string;
-  commentTitle: string;
-  commentDesc?: string;
+  title: string;
+  description?: string;
 }
 
 export interface UpdateCommentDTO {
-  commentTitle?: string;
-  commentDesc?: string;
+  title?: string;
+  description?: string;
 }
 
 export interface CommentListResponse {

@@ -1,4 +1,4 @@
-import { get, post, getToken } from "./core";
+import { get, post } from "./core";
 import { API_BASE_URL } from "./core";
 
 interface BulkCreateResponse<T> {
@@ -27,10 +27,6 @@ export const bulkAPI = {
     formData.append("file", file);
 
     const headers: Record<string, string> = {};
-    const token = getToken();
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
 
     return fetch(`${API_BASE_URL}/bulk/import/${entityType}`, {
       method: "POST",

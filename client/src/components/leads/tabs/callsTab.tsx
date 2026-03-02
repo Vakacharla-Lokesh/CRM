@@ -24,7 +24,7 @@ function CallsTab({ leadId }: CallsTabProps) {
   const { calls, loading, error, createCall, deleteCall } = useCallData(leadId);
   const [isAdding, setIsAdding] = useState(false);
   const [formData, setFormData] = useState({
-    callType: "outgoing" as CallType,
+    type: "outgoing" as CallType,
     status: "completed" as CallStatus,
     duration: "",
     notes: "",
@@ -43,14 +43,14 @@ function CallsTab({ leadId }: CallsTabProps) {
       }
 
       await createCall({
-        callType: formData.callType,
+        type: formData.type,
         status: formData.status,
         duration: formData.duration ? Number(formData.duration) : undefined,
-        callNotes: formData.notes,
+        notes: formData.notes,
       });
 
       setFormData({
-        callType: "outgoing",
+        type: "outgoing",
         status: "completed",
         duration: "",
         notes: "",
@@ -116,18 +116,18 @@ function CallsTab({ leadId }: CallsTabProps) {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="callType">Call Type *</Label>
+              <Label htmlFor="type">Call Type *</Label>
               <Select
-                value={formData.callType}
+                value={formData.type}
                 onValueChange={(value) =>
                   setFormData({
                     ...formData,
-                    callType: value as CallType,
+                    type: value as CallType,
                   })
                 }
               >
                 <SelectTrigger
-                  id="callType"
+                  id="type"
                   disabled={isAdding}
                 >
                   <SelectValue />
@@ -248,10 +248,10 @@ function CallsTab({ leadId }: CallsTabProps) {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-2">
                       <Phone
-                        className={`w-4 h-4 ${getCallTypeColor(call.callType)}`}
+                        className={`w-4 h-4 ${getCallTypeColor(call.type)}`}
                       />
                       <span className="font-semibold text-gray-900 dark:text-white capitalize">
-                        {call.callType} Call
+                        {call.type} Call
                       </span>
                       <span
                         className={`text-xs font-semibold px-2 py-1 rounded ${getStatusColor(call.status)}`}
@@ -271,9 +271,9 @@ function CallsTab({ leadId }: CallsTabProps) {
                       </p>
                     )}
 
-                    {call.callNotes && (
+                    {call.notes && (
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2 whitespace-pre-wrap wrap-break-word">
-                        {call.callNotes}
+                        {call.notes}
                       </p>
                     )}
 

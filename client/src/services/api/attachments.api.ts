@@ -5,7 +5,7 @@ import type {
   PresignedUrlRequest,
   PresignedUrlResponse,
 } from "../../types";
-import { API_BASE_URL, getToken } from "./core";
+import { API_BASE_URL } from "./core";
 
 export const attachmentsAPI = {
   list: async (params?: { page?: number; limit?: number }) => {
@@ -39,7 +39,9 @@ export const attachmentsAPI = {
   },
 
   // Step 1: Ask the server for a presigned PUT URL
-  getPresignedUrl: async (data: PresignedUrlRequest): Promise<PresignedUrlResponse> => {
+  getPresignedUrl: async (
+    data: PresignedUrlRequest,
+  ): Promise<PresignedUrlResponse> => {
     return post<PresignedUrlResponse>("/attachments/presigned-url", data);
   },
 
@@ -51,7 +53,9 @@ export const attachmentsAPI = {
       body: file,
     });
     if (!response.ok) {
-      throw new Error(`S3 upload failed: ${response.status} ${response.statusText}`);
+      throw new Error(
+        `S3 upload failed: ${response.status} ${response.statusText}`,
+      );
     }
   },
 
@@ -68,14 +72,13 @@ export const attachmentsAPI = {
 
   // Returns a fresh presigned GET URL from the server
   download: async (id: string): Promise<string> => {
-    const token = getToken();
     const headers: Record<string, string> = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
 
-    const response = await fetch(
-      `${API_BASE_URL}/attachments/${id}/download`,
-      { method: "GET", headers, credentials: "include" },
-    );
+    const response = await fetch(`${API_BASE_URL}/attachments/${id}/download`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

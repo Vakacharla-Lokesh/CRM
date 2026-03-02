@@ -1,11 +1,4 @@
-export {
-  apiClient,
-  APIError,
-  setToken,
-  clearToken,
-  getToken,
-  API_BASE_URL,
-} from "./api/core";
+export { apiClient, APIError, API_BASE_URL } from "./api/core";
 
 export { authAPI } from "./api/auth.api";
 export { leadsAPI } from "./api/leads.api";
@@ -24,4 +17,3 @@ export { userAnalyticsAPI } from "./api/userAnalytics.api";
 export { statsAPI } from "./api/stats.api";
 
 export { API, API as default } from "./api/index";
-

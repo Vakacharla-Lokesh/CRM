@@ -130,8 +130,8 @@ export const bulkUpdateDealsSchema = z
 
 const bulkCommentItemSchema = z.object({
   leadId: z.string().min(1),
-  commentTitle: z.string().min(1),
-  commentDesc: z.string().optional(),
+  title: z.string().min(1),
+  description: z.string().optional(),
 });
 
 export const bulkCreateCommentsSchema = z
@@ -151,7 +151,7 @@ export const bulkCreateCommentsSchema = z
 
 const bulkCallItemSchema = z.object({
   leadId: z.string().min(1),
-  callType: z.enum(["incoming", "outgoing"]),
+  type: z.enum(["incoming", "outgoing"]),
   callNotes: z.string().max(250).optional(),
   status: z.enum(["completed", "missed", "no-answer", "voicemail"]),
   duration: z.number().int().min(1).max(1000).optional(),

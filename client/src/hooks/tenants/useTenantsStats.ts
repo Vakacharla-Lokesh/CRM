@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useAppContext } from "./useAppContext";
+import { useAppContext } from "@/hooks/useAppContext";
 import { statsAPI } from "@/services/api/stats.api";
 import type { TenantsStatsResponse } from "@/services/api/stats.api";
 

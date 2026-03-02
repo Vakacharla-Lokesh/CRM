@@ -52,7 +52,7 @@ export const createComment = asyncCatch(async (req, res) => {
     leadId: req.body.leadId,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.COMMENT_ADDED,
-    description: `Comment "${comment.commentTitle}" was added`,
+    description: `Comment "${comment.title}" was added`,
     metadata: { commentId: comment._id },
     userId: req.user.userId,
   });
@@ -115,7 +115,7 @@ export const deleteComment = asyncCatch(async (req, res) => {
     leadId,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.COMMENT_DELETED,
-    description: `Comment "${comment.commentTitle}" was deleted`,
+    description: `Comment "${comment.title}" was deleted`,
     metadata: { commentId: req.params.id },
     userId: req.user.userId,
   });

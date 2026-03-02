@@ -30,8 +30,8 @@ function CommentsTab({ leadId }: CommentsTabProps) {
       setIsAdding(true);
 
       await createComment({
-        commentTitle: formData.title,
-        commentDesc: formData.description,
+        title: formData.title,
+        description: formData.description,
       });
 
       setFormData({ title: "", description: "" });
@@ -143,11 +143,11 @@ function CommentsTab({ leadId }: CommentsTabProps) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900 dark:text-white wrap-break-word">
-                      {comment.commentTitle}
+                      {comment.title}
                     </h4>
-                    {comment.commentDesc && (
+                    {comment.description && (
                       <p className="text-gray-600 dark:text-gray-400 mt-2 whitespace-pre-wrap wrap-break-word">
-                        {comment.commentDesc}
+                        {comment.description}
                       </p>
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">

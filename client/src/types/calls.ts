@@ -17,8 +17,8 @@ export const CALL_STATUSES: CallStatus[] = [
 export interface Call {
   _id: string;
   leadId: string;
-  callType: CallType;
-  callNotes?: string;
+  type: CallType;
+  notes?: string;
   status: CallStatus;
   duration?: number;
   createdAt: string;
@@ -27,16 +27,16 @@ export interface Call {
 
 export interface CreateCallDTO {
   leadId: string;
-  callType: CallType;
+  type: CallType;
   status: CallStatus;
-  callNotes?: string;
+  notes?: string;
   duration?: number;
 }
 
 export interface UpdateCallDTO {
-  callType?: CallType;
+  type?: CallType;
   status?: CallStatus;
-  callNotes?: string;
+  notes?: string;
   duration?: number;
 }
 

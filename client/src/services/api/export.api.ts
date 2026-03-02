@@ -1,4 +1,4 @@
-import { API_BASE_URL, getToken, APIError } from "./core";
+import { API_BASE_URL, APIError } from "./core";
 import { downloadCsv } from "../../utils";
 
 function timestamp(): string {
@@ -10,11 +10,9 @@ async function downloadExport(
   ids?: string[],
   filename?: string,
 ): Promise<void> {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   const body: { ids?: string[] } = {};
   if (ids?.length) body.ids = ids;
@@ -44,11 +42,9 @@ async function emailExport(
   ids?: string[],
   email?: string,
 ): Promise<void> {
-  const token = getToken();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
   };
-  if (token) headers.Authorization = `Bearer ${token}`;
 
   const body: { ids?: string[]; email?: string } = {};
   if (ids?.length) body.ids = ids;

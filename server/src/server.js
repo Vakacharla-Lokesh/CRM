@@ -5,6 +5,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import path from "path";
 import { fileURLToPath } from "url";
+import cookieParser from "cookie-parser";
 
 import { config } from "dotenv";
 config();
@@ -60,6 +61,10 @@ app.use(
   }),
 );
 
+// cookie parser
+app.use(cookieParser());
+
+// uuid generator middleware
 app.use(requestContextMiddleware);
 
 // Custom Morgan tokens

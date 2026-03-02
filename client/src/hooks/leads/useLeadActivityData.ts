@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { leadActivitiesAPI } from "../services";
-import type { LeadActivity } from "../types";
+import { leadActivitiesAPI } from "@/services/api/";
+import type { LeadActivity } from "@/types";
 
 export const useLeadActivityData = (leadId: string, enabled: boolean = true) => {
   const queryKey = ["leadActivities", leadId];

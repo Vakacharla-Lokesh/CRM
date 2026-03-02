@@ -17,9 +17,9 @@ export const initializeSocketServer = (httpServer) => {
   // Authentication middleware for socket connections
   io.use(async (socket, next) => {
     try {
-      const token =
-        socket.handshake.auth.token ||
-        socket.handshake.headers.authorization?.replace("Bearer ", "");
+      const cookieHeader = socket.handshake.headers.cookie || "";
+      const tokenMatch = cookieHeader.match(/(?:^|;\s*)auth_token=([^;]+)/);
+      const token = tokenMatch ? decodeURIComponent(tokenMatch[1]) : null;
 
       if (!token) {
         return next(new Error("Authentication error: No token provided"));
@@ -136,7 +136,10 @@ export const initializeSocketServer = (httpServer) => {
         }
 
         // Broadcast to all users in the same tenant
-        io.to(socket.tenantRoom).emit("notification:received", notificationData);
+        io.to(socket.tenantRoom).emit(
+          "notification:received",
+          notificationData,
+        );
 
         console.log(
           `[Socket] Broadcast notification to room ${socket.tenantRoom}`,

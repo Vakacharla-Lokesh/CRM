@@ -27,14 +27,6 @@ export const loginSchema = z
     message: "Either email or mobile is required",
   });
 
-export const logoutSchema = z
-  .object({
-    refreshToken: z.string().min(1).optional(),
-  })
-  .strict();
+export const logoutSchema = z.object({}).strict();
 
-export const refreshTokenSchema = z
-  .object({
-    refreshToken: z.string().min(1, "Refresh token is required"),
-  })
-  .strict();
+export const refreshTokenSchema = z.object({}).strict();

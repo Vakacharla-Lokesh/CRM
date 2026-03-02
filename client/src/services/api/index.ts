@@ -1,11 +1,4 @@
-export {
-  apiClient,
-  APIError,
-  setToken,
-  clearToken,
-  getToken,
-  API_BASE_URL,
-} from "./core";
+export { apiClient, APIError, API_BASE_URL } from "./core";
 
 import { authAPI } from "./auth.api";
 import { leadsAPI } from "./leads.api";

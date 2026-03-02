@@ -5,9 +5,8 @@ const commentsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "commentId", auto: true },
     leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
-    commentTitle: { type: String, required: true },
-    commentDesc: { type: String },
-    // Used for offline-sync deduplication — enforced unique when present
+    title: { type: String, required: true },
+    description: { type: String },
     idempotencyKey: { type: String, default: null },
   },
   { timestamps: true },

@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { analyticsAPI } from "../services";
+import { analyticsAPI } from "@/services";
 import type {
   DashboardStats,
   DashboardChanges,

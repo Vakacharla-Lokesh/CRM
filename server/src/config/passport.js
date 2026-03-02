@@ -59,7 +59,9 @@ passport.use(
 passport.use(
   new JwtStrategy(
     {
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: ExtractJwt.fromExtractors([
+        (req) => req?.cookies?.auth_token ?? null,
+      ]),
       secretOrKey: process.env.JWT_SECRET,
     },
     async (jwtPayload, done) => {

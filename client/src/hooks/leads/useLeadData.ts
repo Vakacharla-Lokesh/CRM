@@ -4,10 +4,10 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import leadService from "../services/leadService";
-import type { Lead } from "../types";
-import { useIndexedDB } from "./useIndexedDB";
-import { useOfflineMutation } from "./useOfllineMutation";
+import leadService from "@/services/leadService";
+import type { Lead } from "@/types";
+import { useIndexedDB } from "@/hooks/useIndexedDB";
+import { useOfflineMutation } from "@/hooks/useOfllineMutation";
 
 interface LeadFilters {
   search?: string;
