@@ -163,3 +163,27 @@ export const formatDuration = (seconds: number | null | undefined): string => {
 
   return parts.join(" ");
 };
+
+export const formatCompactCurrency = (
+  amount: number | null | undefined,
+  currency: string = "USD",
+): string => {
+  if (amount === null || amount === undefined) return "-";
+
+  const symbol = currency === "USD" ? "$" : currency;
+
+  const abs = Math.abs(amount);
+  const sign = amount < 0 ? "-" : "";
+
+  if (abs >= 1_000_000_000) {
+    return `${sign}${symbol}${(abs / 1_000_000_000).toFixed(1)}B`;
+  }
+  if (abs >= 1_000_000) {
+    return `${sign}${symbol}${(abs / 1_000_000).toFixed(1)}M`;
+  }
+  if (abs >= 1_000) {
+    return `${sign}${symbol}${(abs / 1_000).toFixed(1)}K`;
+  }
+
+  return `${sign}${symbol}${abs.toFixed(2)}`;
+};

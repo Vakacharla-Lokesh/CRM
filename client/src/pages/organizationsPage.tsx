@@ -30,7 +30,10 @@ import type {
 import { Search } from "lucide-react";
 import { useDebounce, useOrganizationData } from "@/hooks";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
-import { exportOrganizations } from "@/services/exportService";
+import {
+  exportEmailOrganizations,
+  exportOrganizations,
+} from "@/services/exportService";
 import { BulkActionBar } from "@/components/bulk/BulkActionBar";
 
 // offline handling
@@ -39,6 +42,7 @@ import { useOfflineManager } from "@/hooks/useOfflineManager";
 
 // notification imports
 import { useNotifications } from "@/hooks";
+import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
 
 const OrganizationsPage = () => {
   const {
@@ -94,6 +98,11 @@ const OrganizationsPage = () => {
 
   // notifications
   const { notifyEvent } = useNotifications();
+
+  // export dialog state
+  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
+  const [exportEmail, setExportEmail] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -207,6 +216,30 @@ const OrganizationsPage = () => {
     await exportOrganizations(selectedOrganizationIds);
     setSelectedOrganizationIds([]);
     setSelectionResetKey((k) => k + 1);
+  };
+
+  const handleEmailExport = async () => {
+    if (!exportEmail) return;
+
+    try {
+      setIsSending(true);
+
+      await exportEmailOrganizations(selectedOrganizationIds, exportEmail);
+
+      toast.success("Export emailed successfully!", {
+        description: "Check your inbox for the exported organizations.",
+      });
+
+      setSelectedOrganizationIds([]);
+      setSelectionResetKey((k) => k + 1);
+      setExportEmail("");
+      setIsExportDialogOpen(false);
+    } catch (error) {
+      console.error("Error emailing export:", error);
+      toast.error("Failed to email export. Please try again.");
+    } finally {
+      setIsSending(false);
+    }
   };
 
   // handle search and filters
@@ -389,6 +422,7 @@ const OrganizationsPage = () => {
           setSelectionResetKey((k) => k + 1);
         }}
         exportHandler={handleExport}
+        exportMailHandler={() => setIsExportDialogOpen(true)}
         onDeleteSuccess={fetchOrganizations}
       />
 
@@ -408,6 +442,15 @@ const OrganizationsPage = () => {
         description="Are you sure you want to delete this organization? This action cannot be undone."
         confirmText="Delete"
         variant="destructive"
+      />
+
+      <EmailExportDialogBox
+        isExportDialogOpen={isExportDialogOpen}
+        setIsExportDialogOpen={setIsExportDialogOpen}
+        exportEmail={exportEmail}
+        setExportEmail={setExportEmail}
+        handleEmailExport={handleEmailExport}
+        isSending={isSending}
       />
     </div>
   );

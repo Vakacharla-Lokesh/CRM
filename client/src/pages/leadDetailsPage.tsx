@@ -224,6 +224,7 @@ function LeadDetailsPage() {
             className="p-6 mt-0"
           >
             <EditLeadTab
+              key={lead.updatedAt.toString()} // force remount when lead updates to reset internal state
               lead={lead}
               onUpdate={handleLeadUpdate}
             />

@@ -14,12 +14,32 @@ export async function exportDeals(selectedIds?: string[]): Promise<void> {
   await exportAPI.deals(selectedIds);
 }
 
-export async function exportEmailLeads(selectedIds?: string[], email?: string): Promise<void> {
+export async function exportEmailLeads(
+  selectedIds?: string[],
+  email?: string,
+): Promise<void> {
   await exportAPI.emailLeads(selectedIds, email);
+}
+
+export async function exportEmailOrganizations(
+  selectedIds?: string[],
+  email?: string,
+): Promise<void> {
+  await exportAPI.emailOrganizations(selectedIds, email);
+}
+
+export async function exportEmailDeals(
+  selectedIds?: string[],
+  email?: string,
+): Promise<void> {
+  await exportAPI.emailDeals(selectedIds, email);
 }
 
 export default {
   exportLeads,
   exportOrganizations,
   exportDeals,
+  exportEmailLeads,
+  exportEmailOrganizations,
+  exportEmailDeals,
 };

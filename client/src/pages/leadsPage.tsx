@@ -25,16 +25,6 @@ import { ConfirmDialog } from "@/components/common/confirmDialog";
 import LeadStatistics from "@/components/leads/leadStatistics";
 import { toast } from "sonner";
 
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogCancel,
-} from "@/components/ui/alert-dialog";
-
 // other imports
 import { exportEmailLeads, exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
@@ -45,6 +35,7 @@ import { useOfflineManager } from "@/hooks/useOfflineManager";
 
 // notification imports
 import { useNotifications } from "@/hooks";
+import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
 
 const LeadsPage = () => {
   const {
@@ -445,45 +436,14 @@ const LeadsPage = () => {
       />
 
       {/* Dialog */}
-      <AlertDialog
-        open={isExportDialogOpen}
-        onOpenChange={setIsExportDialogOpen}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Email Export</AlertDialogTitle>
-            <AlertDialogDescription>
-              Enter the email address where you'd like the exported leads sent.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-
-          <div className="py-4">
-            <Input
-              type="email"
-              placeholder="you@example.com"
-              value={exportEmail}
-              onChange={(e) => setExportEmail(e.target.value)}
-            />
-          </div>
-
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setExportEmail("");
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
-
-            <Button
-              onClick={handleEmailExport}
-              disabled={!exportEmail || isSending}
-            >
-              {isSending ? "Sending..." : "Send"}
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <EmailExportDialogBox
+        isExportDialogOpen={isExportDialogOpen}
+        setIsExportDialogOpen={setIsExportDialogOpen}
+        exportEmail={exportEmail}
+        setExportEmail={setExportEmail}
+        handleEmailExport={handleEmailExport}
+        isSending={isSending}
+      />
     </div>
   );
 };

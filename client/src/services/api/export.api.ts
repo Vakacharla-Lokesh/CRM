@@ -83,4 +83,10 @@ export const exportAPI = {
 
   emailLeads: (ids?: string[], email?: string): Promise<void> =>
     emailExport("leads/toemail", ids, email),
+
+  emailOrganizations: (ids?: string[], email?: string): Promise<void> =>
+    emailExport("organizations/toemail", ids, email),
+
+  emailDeals: (ids?: string[], email?: string): Promise<void> =>
+    emailExport("deals/toemail", ids, email),
 };

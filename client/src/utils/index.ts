@@ -14,6 +14,7 @@ export {
 // Format utilities
 export {
   formatCurrency,
+  formatCompactCurrency,
   formatDate,
   formatDateTime,
   formatRelativeDate,
