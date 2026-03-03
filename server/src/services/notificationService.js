@@ -197,7 +197,7 @@ export const notifyUserEvent = (
       entityId: userData._id,
       entityType: "user",
       userName: userData.firstName,
-      userEmail: userData.userEmail,
+      email: userData.email,
     },
   });
 };

@@ -4,7 +4,7 @@ import type { LoginCredentials, SignupData, AuthResponse } from "../types";
 const authService = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     return apiClient.post<AuthResponse>("/auth/login", {
-      userEmail: credentials.userEmail,
+      email: credentials.email,
       password: credentials.password,
     });
   },
@@ -13,9 +13,9 @@ const authService = {
     return apiClient.post<AuthResponse>("/auth/register", {
       firstName: userData.firstName,
       lastName: userData.lastName,
-      userEmail: userData.userEmail,
+      email: userData.email,
       password: userData.password,
-      tenantName: userData.tenantName,
+      name: userData.name,
       role: "user",
     });
   },

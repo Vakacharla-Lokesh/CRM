@@ -200,7 +200,7 @@ const emailTemplates = {
 
   adminMail: (tenant, randomPassword) => ({
     from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
-    to: tenant.userEmail,
+    to: tenant.email,
     subject: "Your Admin Account Credentials have been created",
     html: `
       <div style="margin:0;padding:0;background-color:#f4f6fb;font-family:Arial,Helvetica,sans-serif;">
@@ -230,7 +230,7 @@ const emailTemplates = {
                       Your tenant has been created. Here are your admin credentials:
                     </p>
                     <div style="margin:20px 0;padding:20px;background:#eef2ff;border-radius:10px;text-align:center;">
-                      <p><strong>Email:</strong> ${tenant.userEmail}</p>
+                      <p><strong>Email:</strong> ${tenant.email}</p>
                       <p><strong>Password:</strong> ${randomPassword}</p>
                     </div>
                     <p style="color:#6b7280;font-size:13px;text-align:center;">

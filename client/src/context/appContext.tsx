@@ -81,7 +81,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(async (email: string, password: string) => {
     const response = await authService.login({
-      userEmail: email,
+      email: email,
       password: password,
     });
 

@@ -42,8 +42,8 @@ export const GROUP_BY_OPTIONS: Record<
   { value: GroupByField; label: string }[]
 > = {
   leads: [
-    { value: "leadStatus", label: "Lead Status" },
-    { value: "leadSource", label: "Lead Source" },
+    { value: "status", label: "Lead Status" },
+    { value: "source", label: "Lead Source" },
     { value: "createdAt", label: "Created Month" },
   ],
   deals: [

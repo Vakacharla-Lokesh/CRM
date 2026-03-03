@@ -86,12 +86,12 @@ export async function seedLeads(tenants, users, organizations) {
         tenantId: tenant._id,
         userId: randomUser._id,
         organizationId: randomOrg._id,
-        leadFirstName: firstName,
-        leadLastName: lastName,
-        leadEmail: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`,
-        leadSource: randomSource,
-        leadScore: Math.floor(Math.random() * 100),
-        leadStatus: randomStatus,
+        firstName: firstName,
+        lastName: lastName,
+        email: `${firstName.toLowerCase()}.${lastName.toLowerCase()}${i}@example.com`,
+        source: randomSource,
+        score: Math.floor(Math.random() * 100),
+        status: randomStatus,
         // idempotencyKey is omitted - it's optional for seeding
       });
     }

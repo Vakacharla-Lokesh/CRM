@@ -89,8 +89,8 @@ const LeadsPage = () => {
 
   // Analytics stats (all-time, from server aggregation)
   const leadStatsQuery = useQuery({
-    queryKey: ["analytics", "leadStatusBreakdown"],
-    queryFn: () => analyticsAPI.leadStatusBreakdown(),
+    queryKey: ["analytics", "statusBreakdown"],
+    queryFn: () => analyticsAPI.statusBreakdown(),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -146,7 +146,7 @@ const LeadsPage = () => {
       notifyEvent({
         type: "lead_created",
         title: "New Lead Created",
-        message: `Lead "${leadData.leadFirstName}" was created.`,
+        message: `Lead "${leadData.firstName}" was created.`,
         entityId: "",
         entityType: "lead",
       });
@@ -394,7 +394,7 @@ const LeadsPage = () => {
           })}
           data={filteredLeads}
           name="Leads"
-          searchColumn="leadEmail"
+          searchColumn="email"
           onSelectionChange={(rows) =>
             setSelectedLeadIds(rows.map((r) => r._id))
           }

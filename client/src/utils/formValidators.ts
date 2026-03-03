@@ -104,18 +104,18 @@ export function validateDealForm(
 // Signup
 
 export interface SignupFormData {
-  tenantName: string;
+  name: string;
   firstName: string;
-  userEmail: string;
+  email: string;
   password: string;
   confirmPassword: string;
   agreeToTerms: boolean;
 }
 
 export interface SignupFormErrors {
-  tenantName?: string;
+  name?: string;
   firstName?: string;
-  userEmail?: string;
+  email?: string;
   password?: string;
   confirmPassword?: string;
   agreeToTerms?: string;
@@ -125,18 +125,18 @@ export interface SignupFormErrors {
 export function validateSignupForm(formData: SignupFormData): SignupFormErrors {
   const errors: SignupFormErrors = {};
 
-  if (!formData.tenantName.trim()) {
-    errors.tenantName = "Organization name is required";
+  if (!formData.name.trim()) {
+    errors.name = "Organization name is required";
   }
 
   if (!formData.firstName.trim()) {
     errors.firstName = "Your name is required";
   }
 
-  if (!formData.userEmail) {
-    errors.userEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.userEmail)) {
-    errors.userEmail = "Please enter a valid email";
+  if (!formData.email) {
+    errors.email = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Please enter a valid email";
   }
 
   if (!formData.password) {
@@ -189,13 +189,13 @@ export const getPasswordStrength = (password: string): PasswordStrength => {
 // Login
 
 export interface LoginFormData {
-  userEmail: string;
+  email: string;
   password: string;
   rememberMe: boolean;
 }
 
 export interface LoginFormErrors {
-  userEmail?: string;
+  email?: string;
   password?: string;
   submit?: string;
 }
@@ -203,10 +203,10 @@ export interface LoginFormErrors {
 export function validateLoginForm(formData: LoginFormData): LoginFormErrors {
   const errors: LoginFormErrors = {};
 
-  if (!formData.userEmail) {
-    errors.userEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.userEmail)) {
-    errors.userEmail = "Please enter a valid email";
+  if (!formData.email) {
+    errors.email = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Please enter a valid email";
   }
 
   if (!formData.password) {
@@ -276,10 +276,10 @@ export function validateUserForm(
     errors.firstName = "First name is required";
   }
 
-  if (!formData.userEmail.trim()) {
-    errors.userEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.userEmail)) {
-    errors.userEmail = "Invalid email format";
+  if (!formData.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Invalid email format";
   }
 
   if (!isExistingUser && !formData.password.trim()) {
@@ -306,8 +306,8 @@ export function validateUserForm(
 export function validateTenantForm(formData: TenantFormData): TenantFormErrors {
   const errors: TenantFormErrors = {};
 
-  if (!formData.tenantName.trim()) {
-    errors.tenantName = "Tenant name is required";
+  if (!formData.name.trim()) {
+    errors.name = "Tenant name is required";
   }
 
   if (!formData.email.trim()) {
@@ -333,14 +333,14 @@ export function validateLeadForm(
 ): LeadFormErrors {
   const errors: LeadFormErrors = {};
 
-  if (!formData.leadFirstName.trim()) {
-    errors.leadFirstName = "First name is required";
+  if (!formData.firstName.trim()) {
+    errors.firstName = "First name is required";
   }
 
-  if (!formData.leadEmail.trim()) {
-    errors.leadEmail = "Email is required";
-  } else if (!EMAIL_REGEX.test(formData.leadEmail)) {
-    errors.leadEmail = "Invalid email format";
+  if (!formData.email.trim()) {
+    errors.email = "Email is required";
+  } else if (!EMAIL_REGEX.test(formData.email)) {
+    errors.email = "Invalid email format";
   }
 
   if (organizationMode === "create") {

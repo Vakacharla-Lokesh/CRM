@@ -78,7 +78,7 @@ roleSchema.index({ tenantId: 1, name: 1 }, { unique: true });
 
 const tenantSchema = new mongoose.Schema(
   {
-    tenantName: { type: String, required: true },
+    name: { type: String, required: true },
     email: { type: String, required: true },
     mobile: { type: String, required: true },
     isActive: { type: Boolean, default: true },
@@ -229,7 +229,7 @@ async function seedRoles() {
       )) {
         allRoles.push({
           name: roleName,
-          description: `Default ${roleName.replace("_", " ")} role for ${tenant.tenantName}`,
+          description: `Default ${roleName.replace("_", " ")} role for ${tenant.name}`,
           permissions,
           tenantId: tenant._id,
           isSystemRole: true,

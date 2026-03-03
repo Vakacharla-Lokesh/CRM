@@ -155,14 +155,14 @@ export const analyticsAPI = {
     get<LeadTrendsResponse>("/analytics/leads/trends", params),
 
   /** GET /analytics/leads/status-breakdown?days=N */
-  leadStatusBreakdown: (params?: { days?: number }) =>
+  statusBreakdown: (params?: { days?: number }) =>
     get<LeadStatusBreakdownResponse>(
       "/analytics/leads/status-breakdown",
       params,
     ),
 
   /** GET /analytics/leads/score-distribution */
-  leadScoreDistribution: () =>
+  scoreDistribution: () =>
     get<LeadScoreDistributionResponse>("/analytics/leads/score-distribution"),
 
   /** GET /analytics/deals/pipeline */

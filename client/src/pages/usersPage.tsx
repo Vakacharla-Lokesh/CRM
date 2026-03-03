@@ -308,7 +308,7 @@ const UsersPage = () => {
           })}
           data={filteredUsers}
           name="Users"
-          searchColumn="userEmail"
+          searchColumn="email"
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}

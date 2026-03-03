@@ -105,7 +105,7 @@ function LeadDetailsPage() {
       notifyEvent({
         type: "lead_converted",
         title: "Lead Converted",
-        message: `Lead ${lead.leadFirstName} ${lead.leadLastName || ""} has been converted to a deal successfully.`,
+        message: `Lead ${lead.firstName} ${lead.lastName || ""} has been converted to a deal successfully.`,
         entityId: lead._id,
         entityType: "lead",
       });
@@ -171,7 +171,7 @@ function LeadDetailsPage() {
         </div>
 
         {/* Convert to Deal Button */}
-        {lead.leadStatus !== "Converted" && (
+        {lead.status !== "Converted" && (
           <Button
             onClick={handleConvertToDeal}
             disabled={isConverting}
@@ -268,7 +268,7 @@ function LeadDetailsPage() {
         onOpenChange={setConvertDialogOpen}
         onConfirm={confirmConvert}
         title="Convert to Deal"
-        description={`Are you sure you want to convert "${lead.leadFirstName} ${lead.leadLastName || ""}" to a deal?`}
+        description={`Are you sure you want to convert "${lead.firstName} ${lead.lastName || ""}" to a deal?`}
         confirmText="Convert"
       />
     </div>

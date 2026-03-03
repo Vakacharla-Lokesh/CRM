@@ -29,7 +29,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
   const [
     leadSummary,
     dealSummary,
-    leadSourceSummary,
+    sourceSummary,
     previousLeadSummary,
     previousDealSummary,
     previousLeadSourceSummary,
@@ -41,7 +41,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
         $facet: {
           total: [{ $count: "count" }],
           converted: [
-            { $match: { leadStatus: "Converted" } },
+            { $match: { status: "Converted" } },
             { $count: "count" },
           ],
           currentPeriod: [
@@ -95,7 +95,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
 
     leadModel.aggregate([
       { $match: matchFilter },
-      { $group: { _id: "$leadSource" } },
+      { $group: { _id: "$source" } },
       { $count: "count" },
     ]),
 
@@ -110,7 +110,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
         $facet: {
           total: [{ $count: "count" }],
           converted: [
-            { $match: { leadStatus: "Converted" } },
+            { $match: { status: "Converted" } },
             { $count: "count" },
           ],
         },
@@ -135,7 +135,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
           createdAt: { $gte: previousStart, $lt: previousEnd },
         },
       },
-      { $group: { _id: "$leadSource" } },
+      { $group: { _id: "$source" } },
       { $count: "count" },
     ]),
 
@@ -151,7 +151,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
   const totalDeals = dealSummary[0]?.totalDeals[0]?.count ?? 0;
   const openDeals = dealSummary[0]?.openDeals[0]?.count ?? 0;
 
-  const activeCampaigns = leadSourceSummary[0]?.count ?? 0;
+  const activeCampaigns = sourceSummary[0]?.count ?? 0;
 
   const previousPeriodLeads = previousLeadSummary[0]?.total[0]?.count ?? 0;
   const previousConvertedLeads =

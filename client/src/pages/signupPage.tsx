@@ -13,9 +13,9 @@ function SignupPage() {
   const navigate = useNavigate();
   const { signup } = useAppContext();
   const [formData, setFormData] = useState<SignupFormData>({
-    tenantName: "",
+    name: "",
     firstName: "",
-    userEmail: "",
+    email: "",
     password: "",
     confirmPassword: "",
     agreeToTerms: false,
@@ -58,9 +58,9 @@ function SignupPage() {
     try {
       await signup({
         firstName: formData.firstName,
-        userEmail: formData.userEmail,
+        email: formData.email,
         password: formData.password,
-        tenantName: formData.tenantName,
+        name: formData.name,
       });
 
       navigate("/dashboard");
@@ -116,27 +116,27 @@ function SignupPage() {
           {/* Tenant Name Field */}
           <div>
             <label
-              htmlFor="tenantName"
+              htmlFor="name"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Organization Name
             </label>
             <input
               type="text"
-              id="tenantName"
-              name="tenantName"
-              value={formData.tenantName}
+              id="name"
+              name="name"
+              value={formData.name}
               onChange={handleChange}
               placeholder="Your Company Inc."
               className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.tenantName
+                errors.name
                   ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                   : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
               } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             />
-            {errors.tenantName && (
+            {errors.name && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.tenantName}
+                {errors.name}
               </p>
             )}
           </div>
@@ -172,27 +172,27 @@ function SignupPage() {
           {/* Email Field */}
           <div>
             <label
-              htmlFor="userEmail"
+              htmlFor="email"
               className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
             >
               Email Address
             </label>
             <input
               type="email"
-              id="userEmail"
-              name="userEmail"
-              value={formData.userEmail}
+              id="email"
+              name="email"
+              value={formData.email}
               onChange={handleChange}
               placeholder="you@example.com"
               className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.userEmail
+                errors.email
                   ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
                   : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
               } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
             />
-            {errors.userEmail && (
+            {errors.email && (
               <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.userEmail}
+                {errors.email}
               </p>
             )}
           </div>

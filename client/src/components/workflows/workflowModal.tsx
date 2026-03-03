@@ -350,7 +350,7 @@ const WorkflowModal = ({
                 {action.type === "update_field" && (
                   <div className="space-y-2">
                     <Input
-                      placeholder="Target field (e.g. leadStatus)"
+                      placeholder="Target field (e.g. status)"
                       value={action.targetField ?? ""}
                       onChange={(e) =>
                         updateAction(i, { targetField: e.target.value })

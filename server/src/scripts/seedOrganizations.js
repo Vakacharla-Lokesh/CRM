@@ -51,7 +51,7 @@ export async function seedOrganizations(tenants, users) {
     for (let i = 0; i < numOrgs; i++) {
       const randomUser =
         tenantUsers[Math.floor(Math.random() * tenantUsers.length)];
-      const orgName = `${orgNames[i % orgNames.length]} - ${tenant.tenantName.substring(0, 3)}`;
+      const orgName = `${orgNames[i % orgNames.length]} - ${tenant.name.substring(0, 3)}`;
       const city = cities[Math.floor(Math.random() * cities.length)];
       const country = countries[Math.floor(Math.random() * countries.length)];
 

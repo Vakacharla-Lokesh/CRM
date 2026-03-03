@@ -10,16 +10,16 @@ const leadsSchema = new Schema(
     },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
     tenantId: { type: Schema.Types.ObjectId, rel: "Tenants" },
-    leadFirstName: { type: String, required: true },
-    leadLastName: { type: String, default: null },
-    leadEmail: {
+    firstName: { type: String, required: true },
+    lastName: { type: String, default: null },
+    email: {
       type: String,
       match: [
         /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/,
         "Please provide a valid email address",
       ],
     },
-    leadSource: {
+    source: {
       type: String,
       enum: [
         "API",
@@ -38,8 +38,8 @@ const leadsSchema = new Schema(
       ],
       default: "API",
     },
-    leadScore: { type: Number, min: 0, max: 100, default: 0 },
-    leadStatus: {
+    score: { type: Number, min: 0, max: 100, default: 0 },
+    status: {
       type: String,
       enum: ["New", "Converted", "Dead", "Follow-Up"],
       required: true,
@@ -61,9 +61,9 @@ leadsSchema.index({ organizationId: 1 });
 
 // search index
 leadsSchema.index({
-  leadFirstName: "text",
-  leadLastName: "text",
-  leadEmail: "text",
+  firstName: "text",
+  lastName: "text",
+  email: "text",
 });
 
 export default model("Leads", leadsSchema);

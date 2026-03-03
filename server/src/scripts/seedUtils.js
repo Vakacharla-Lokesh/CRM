@@ -32,7 +32,7 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 // ─────────────────────────────────────────────────────────────
 
 const tenantSchema = new mongoose.Schema({
-  tenantName: String,
+  name: String,
   email: String,
   mobile: String,
   isActive: Boolean,
@@ -49,7 +49,7 @@ const roleSchema = new mongoose.Schema({
 const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
-  userEmail: String,
+  email: String,
   tenantId: mongoose.Schema.Types.ObjectId,
   role: String,
   roleId: mongoose.Schema.Types.ObjectId,
@@ -186,7 +186,7 @@ async function verifyRBAC() {
         message: "Users missing roleId assignment",
         details: usersWithoutRoleId
           .slice(0, 3)
-          .map((u) => `${u.userEmail} (role: ${u.role})`),
+          .map((u) => `${u.email} (role: ${u.role})`),
       });
     }
 
@@ -210,7 +210,7 @@ async function verifyRBAC() {
         message: "Users with invalid roleId (role not found)",
         details: usersWithInvalidRoleId
           .slice(0, 3)
-          .map((u) => `${u.userEmail}`),
+          .map((u) => `${u.email}`),
       });
     }
 
@@ -241,7 +241,7 @@ async function verifyRBAC() {
         level: "ERROR",
         count: invalidTenantUsers.length,
         message: "Users assigned to non-existent tenants",
-        details: invalidTenantUsers.slice(0, 3).map((u) => u.userEmail),
+        details: invalidTenantUsers.slice(0, 3).map((u) => u.email),
       });
     }
 

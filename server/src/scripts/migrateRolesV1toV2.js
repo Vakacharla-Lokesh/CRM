@@ -83,7 +83,7 @@ const migrateRoles = async () => {
             totalUsersUpdated++;
           } else {
             console.warn(
-              `  ⚠️  No roleId mapping for user ${user.userEmail} with role ${user.role}`,
+              `  ⚠️  No roleId mapping for user ${user.email} with role ${user.role}`,
             );
           }
         }

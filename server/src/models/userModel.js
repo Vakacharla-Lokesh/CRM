@@ -8,7 +8,7 @@ const userSchema = new Schema(
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     firstName: { type: String, required: true },
     lastName: { type: String },
-    userEmail: {
+    email: {
       type: String,
       unique: true,
       match: [
@@ -64,7 +64,7 @@ userSchema.index({ tenantId: 1, roleId: 1 });
 userSchema.index({
   firstName: "text",
   lastName: "text",
-  userEmail: "text",
+  email: "text",
 });
 
 export default model("Users", userSchema);

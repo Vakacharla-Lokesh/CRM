@@ -30,7 +30,7 @@ export const getAllUsers = asyncCatch(async (req, res) => {
     filter.$or = [
       { firstName: searchRegex },
       { lastName: searchRegex },
-      { userEmail: searchRegex },
+      { email: searchRegex },
     ];
   }
 
@@ -70,7 +70,7 @@ export const createUser = asyncCatch(async (req, res) => {
 
   // Check if user already exists
   const existingUser = await userModel.findOne({
-    userEmail: userData.userEmail,
+    email: userData.email,
   });
 
   if (existingUser) {
@@ -200,7 +200,7 @@ export const searchUsers = asyncCatch(async (req, res) => {
     $or: [
       { firstName: searchRegex },
       { lastName: searchRegex },
-      { userEmail: searchRegex },
+      { email: searchRegex },
       { mobile: searchRegex },
     ],
   });
@@ -269,7 +269,7 @@ export const updatePassword = asyncCatch(async (req, res) => {
 export const sendPasswordReset = asyncCatch(async (req, res) => {
   const { email } = req.body;
 
-  const user = await userModel.findOne({ userEmail: email });
+  const user = await userModel.findOne({ email: email });
 
   if (!user) {
     // Don't reveal if user exists or not for security
@@ -308,7 +308,7 @@ export const updateProfile = asyncCatch(async (req, res) => {
     }
   }
 
-  if (email) updateData.userEmail = email;
+  if (email) updateData.email = email;
   if (phone) updateData.mobile = phone;
   if (department) updateData.department = department;
   if (position) updateData.position = position;
@@ -452,7 +452,7 @@ export const assignRoleToUser = async (req, res, next) => {
           _id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
-          userEmail: user.userEmail,
+          email: user.email,
           role: user.roleId,
           tenantId: user.tenantId,
         },

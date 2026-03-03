@@ -16,8 +16,8 @@ import type {
 interface UseAnalyticsDataReturn {
   // Leads
   leadTrends: LeadTrendDay[];
-  leadStatusBreakdown: LeadStatusEntry[];
-  leadScoreDistribution: ScoreBucket[];
+  statusBreakdown: LeadStatusEntry[];
+  scoreDistribution: ScoreBucket[];
   // Deals
   dealPipeline: DealPipelineStage[];
   dealPipelineSummary: DealPipelineSummary;
@@ -49,13 +49,13 @@ export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["analytics", "leadStatusBreakdown", days],
-        queryFn: () => analyticsAPI.leadStatusBreakdown({ days }),
+        queryKey: ["analytics", "statusBreakdown", days],
+        queryFn: () => analyticsAPI.statusBreakdown({ days }),
         staleTime: 1000 * 60 * 5,
       },
       {
-        queryKey: ["analytics", "leadScoreDistribution"],
-        queryFn: () => analyticsAPI.leadScoreDistribution(),
+        queryKey: ["analytics", "scoreDistribution"],
+        queryFn: () => analyticsAPI.scoreDistribution(),
         staleTime: 1000 * 60 * 5,
       },
       {
@@ -83,8 +83,8 @@ export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
 
   const [
     leadTrendsQ,
-    leadStatusQ,
-    leadScoreQ,
+    statusQ,
+    scoreQ,
     dealPipelineQ,
     dealTrendsQ,
     orgStatsQ,
@@ -109,8 +109,8 @@ export const useAnalyticsData = (days: number = 30): UseAnalyticsDataReturn => {
 
   return {
     leadTrends: leadTrendsQ.data?.trends ?? [],
-    leadStatusBreakdown: leadStatusQ.data?.breakdown ?? [],
-    leadScoreDistribution: leadScoreQ.data?.distribution ?? [],
+    statusBreakdown: statusQ.data?.breakdown ?? [],
+    scoreDistribution: scoreQ.data?.distribution ?? [],
     dealPipeline: pipelineData?.pipeline ?? [],
     dealPipelineSummary: pipelineData?.summary ?? defaultPipelineSummary,
     dealPipelineMonthlyTrends: pipelineData?.trends ?? [],

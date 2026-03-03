@@ -71,7 +71,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "userEmail",
+    accessorKey: "email",
     header: ({ column }) => {
       return (
         <Button
@@ -84,7 +84,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const email = row.getValue("userEmail") as string | undefined;
+      const email = row.getValue("email") as string | undefined;
       return email ? (
         <a
           href={`mailto:${email}?subject=Regarding%20Campaign%20Flux&body=Hi%20there,%0D%0A`}

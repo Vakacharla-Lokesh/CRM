@@ -126,10 +126,10 @@ export function useLeadData() {
     const bySource: Record<string, number> = {};
 
     filteredLeads.forEach((lead) => {
-      if (lead.leadStatus)
-        byStatus[lead.leadStatus] = (byStatus[lead.leadStatus] ?? 0) + 1;
-      if (lead.leadSource)
-        bySource[lead.leadSource] = (bySource[lead.leadSource] ?? 0) + 1;
+      if (lead.status)
+        byStatus[lead.status] = (byStatus[lead.status] ?? 0) + 1;
+      if (lead.source)
+        bySource[lead.source] = (bySource[lead.source] ?? 0) + 1;
     });
 
     const converted = byStatus["Converted"] ?? 0;

@@ -3,7 +3,7 @@ export interface User {
   userId?: string;
   firstName: string;
   lastName?: string;
-  userEmail: string;
+  email: string;
   mobile?: string;
   role: UserRole;
   roleId?: string;
@@ -19,7 +19,7 @@ export interface User {
 export interface CreateUserDTO {
   firstName: string;
   lastName?: string;
-  userEmail: string;
+  email: string;
   password: string;
   mobile?: string;
   role?: UserRole;
@@ -30,7 +30,7 @@ export interface CreateUserDTO {
 export interface UpdateUserDTO {
   firstName?: string;
   lastName?: string;
-  userEmail?: string;
+  email?: string;
   mobile?: string;
   role?: UserRole;
   isActive?: boolean;
@@ -63,7 +63,7 @@ export function isUser(obj: any): obj is User {
   return (
     obj &&
     typeof obj._id === "string" &&
-    typeof obj.userEmail === "string" &&
+    typeof obj.email === "string" &&
     typeof obj.role === "string"
   );
 }

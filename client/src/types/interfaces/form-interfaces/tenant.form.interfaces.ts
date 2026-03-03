@@ -1,13 +1,13 @@
 import type { CreateTenantDto, Tenant } from "@/types";
 
 export interface TenantFormData {
-  tenantName: string;
+  name: string;
   email: string;
   mobile: string;
 }
 
 export interface FormErrors {
-  tenantName?: string;
+  name?: string;
   email?: string;
   mobile?: string;
 }

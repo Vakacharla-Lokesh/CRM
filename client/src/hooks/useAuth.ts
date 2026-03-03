@@ -51,7 +51,7 @@ export const useAuth = () => {
   };
 
   const getUserEmail = (): string | null => {
-    return user?.userEmail ?? null;
+    return user?.email ?? null;
   };
 
   return {

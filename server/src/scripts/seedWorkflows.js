@@ -30,7 +30,7 @@ export async function seedWorkflows(tenants, users) {
           action: "create",
           conditions: [
             {
-              field: "leadScore",
+              field: "score",
               operator: "gte",
               value: 80,
             },
@@ -56,7 +56,7 @@ export async function seedWorkflows(tenants, users) {
           action: "update",
           conditions: [
             {
-              field: "leadStatus",
+              field: "status",
               operator: "equals",
               value: "New",
             },
@@ -65,7 +65,7 @@ export async function seedWorkflows(tenants, users) {
         actions: [
           {
             type: "update_field",
-            targetField: "leadStatus",
+            targetField: "status",
             value: "Follow-Up",
           },
         ],

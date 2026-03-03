@@ -22,7 +22,7 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
             {user?.firstName} {user?.lastName}
           </p>
           <p className="text-sm text-muted-foreground">
-            {user?.userEmail}
+            {user?.email}
           </p>
           <span className="inline-block mt-1 text-xs text-blue-700 dark:text-blue-300 rounded px-2 py-0.5 font-medium capitalize">
             {user?.role?.replace("_", " ")}
@@ -35,7 +35,7 @@ function InfoTab({ user, initials }: { user: User; initials: string }) {
         {[
           { label: "First Name", value: user?.firstName },
           { label: "Last Name", value: user?.lastName },
-          { label: "Email", value: user?.userEmail },
+          { label: "Email", value: user?.email },
           { label: "Role", value: user?.role?.replace("_", " ") },
         ].map((field) => (
           <div

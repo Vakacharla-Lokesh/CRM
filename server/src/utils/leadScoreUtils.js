@@ -67,16 +67,16 @@ export async function updateLeadScore(leadId) {
     const leadData = {
       comments: commentsCount,
       organization_size: organizationSize,
-      lead_email: lead.leadEmail,
+      lead_email: lead.email,
       calls: callsCount,
       attachments: attachmentsCount,
-      lead_status: lead.leadStatus,
+      lead_status: lead.status,
       created_on: lead.createdAt,
     };
 
     const newScore = scoreLead(leadData);
 
-    await leadModel.findByIdAndUpdate(leadId, { leadScore: newScore });
+    await leadModel.findByIdAndUpdate(leadId, { score: newScore });
 
     return newScore;
   } catch (error) {

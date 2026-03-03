@@ -28,19 +28,19 @@ function LoginPage() {
     handleSubmit: onSubmit,
   } = useForm<LoginFormData>(
     {
-      userEmail: "",
+      email: "",
       password: "",
       rememberMe: false,
     },
     async (values: LoginFormData) => {
       try {
-        await login(values.userEmail, values.password);
+        await login(values.email, values.password);
 
         if (values.rememberMe) {
           localStorage.setItem(
             "rememberMe",
             JSON.stringify({
-              email: values.userEmail,
+              email: values.email,
               timestamp: Date.now(),
             }),
           );
@@ -105,25 +105,25 @@ function LoginPage() {
             {/* Email Field */}
             <div className="space-y-2">
               <Label
-                htmlFor="userEmail"
+                htmlFor="email"
                 className="text-sm font-semibold"
               >
                 Email Address
               </Label>
               <Input
                 type="email"
-                id="userEmail"
-                name="userEmail"
-                value={values.userEmail}
+                id="email"
+                name="email"
+                value={values.email}
                 onChange={handleChange}
                 onBlur={handleBlur}
                 placeholder="stanley@gmail.com"
-                aria-invalid={!!errors.userEmail}
+                aria-invalid={!!errors.email}
                 className="h-11 rounded-lg border border-input bg-card hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors"
               />
-              {errors.userEmail && (
+              {errors.email && (
                 <p className="text-sm text-red-600 dark:text-red-400 font-medium">
-                  {errors.userEmail}
+                  {errors.email}
                 </p>
               )}
             </div>

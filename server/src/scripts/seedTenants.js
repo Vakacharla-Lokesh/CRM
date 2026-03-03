@@ -33,7 +33,7 @@ const tenantSchema = new mongoose.Schema(
       alias: "tenantId",
       auto: true,
     },
-    tenantName: { type: String, required: true },
+    name: { type: String, required: true },
     email: {
       type: String,
       required: true,
@@ -53,7 +53,7 @@ const tenantSchema = new mongoose.Schema(
 );
 
 tenantSchema.index({
-  tenantName: "text",
+  name: "text",
   email: "text",
 });
 
@@ -175,7 +175,7 @@ function generateActiveStatus() {
  */
 function generateTenant(index) {
   return {
-    tenantName: generateCompanyName(),
+    name: generateCompanyName(),
     email: generateEmail(index),
     mobile: generateMobile(),
     isActive: generateActiveStatus(),
@@ -239,7 +239,7 @@ async function seedTenants() {
     console.log("─".repeat(70));
     tenants.slice(0, 3).forEach((tenant, idx) => {
       console.log(`\n#${idx + 1}`);
-      console.log(`  Tenant Name: ${tenant.tenantName}`);
+      console.log(`  Tenant Name: ${tenant.name}`);
       console.log(`  Email:       ${tenant.email}`);
       console.log(`  Mobile:      ${tenant.mobile}`);
       console.log(`  Active:      ${tenant.isActive ? "✅ Yes" : "❌ No"}`);

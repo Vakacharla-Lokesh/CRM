@@ -21,7 +21,7 @@ export const getLeadTrends = asyncCatch(async (req, res) => {
           date: {
             $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
           },
-          status: "$leadStatus",
+          status: "$status",
         },
         count: { $sum: 1 },
       },
@@ -67,9 +67,9 @@ export const getLeadStatusBreakdown = asyncCatch(async (req, res) => {
     },
     {
       $group: {
-        _id: "$leadStatus",
+        _id: "$status",
         count: { $sum: 1 },
-        avgScore: { $avg: "$leadScore" },
+        avgScore: { $avg: "$score" },
       },
     },
     {
@@ -101,12 +101,12 @@ export const getLeadScoreDistribution = asyncCatch(async (req, res) => {
     { $match: filter },
     {
       $bucket: {
-        groupBy: "$leadScore",
+        groupBy: "$score",
         boundaries: [0, 20, 40, 60, 80, 101],
         default: "Unknown",
         output: {
           count: { $sum: 1 },
-          leads: { $push: { status: "$leadStatus" } },
+          leads: { $push: { status: "$status" } },
         },
       },
     },
