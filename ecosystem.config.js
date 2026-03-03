@@ -56,6 +56,37 @@ module.exports = {
       min_uptime: "30s",
       kill_timeout: 5000,
     },
+
+    {
+      name: "worker",
+      cwd: "./server",
+      script: "npm",
+      args: "run worker:dev",
+      interpreter: "cmd",
+      interpreter_args: "/c",
+      env: {
+        NODE_ENV: "development",
+      },
+      env_file: "./server/.env",
+      instances: 1,
+      exec_mode: "fork",
+      watch: false,
+      ignore_watch: [
+        "node_modules",
+        "dist",
+        ".git",
+        "logs",
+      ],
+      max_memory_restart: "300M",
+      error_file: "~/.pm2/logs/worker-error.log",
+      out_file: "~/.pm2/logs/worker-out.log",
+      log_date_format: "YYYY-MM-DD HH:mm:ss Z",
+      merge_logs: true,
+      autorestart: true,
+      max_restarts: 5,
+      min_uptime: "30s",
+      kill_timeout: 5000,
+    },
   ],
 
   deploy: {
