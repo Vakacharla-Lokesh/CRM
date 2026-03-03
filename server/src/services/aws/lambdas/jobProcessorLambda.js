@@ -21,7 +21,12 @@ import * as leadReminderWorker from "./leadReminderLambda.js";
 let _initialized = false;
 
 async function initialize() {
-  if (_initialized) return;
+  if (_initialized) {
+    console.log("[JobProcessor] ℹ Already initialized, skipping...");
+    return;
+  }
+
+  console.log("[JobProcessor] 🔧 Initializing...");
 
   // Connect to MongoDB
   const uri = process.env.DB_URI || process.env.MONGODB_URI;
@@ -31,20 +36,39 @@ async function initialize() {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri);
     logger.info("[Lambda] Connected to MongoDB");
+    console.log("[JobProcessor] ✓ MongoDB connected");
   }
 
   // Initialize AWS resources
   await ensureAwsInitialized();
+  console.log("[JobProcessor] ✓ AWS resources initialized");
+  
   queueService.bootstrap();
+  console.log("[JobProcessor] ✓ Queue service bootstrapped");
 
   // Register workers
-  jobRegistry.register(workflowWorker.jobType, workflowWorker.handler);
-  jobRegistry.register(exportWorker.jobType, exportWorker.handler);
-  jobRegistry.register(leadReminderWorker.jobType, leadReminderWorker.handler);
+  try {
+    console.log("[JobProcessor] 📝 Registering workers...");
+    jobRegistry.register(workflowWorker.jobType, workflowWorker.handler);
+    console.log("[JobProcessor] ✓ Workflow worker registered:", workflowWorker.jobType);
+    
+    jobRegistry.register(exportWorker.jobType, exportWorker.handler);
+    console.log("[JobProcessor] ✓ Export worker registered:", exportWorker.jobType);
+    
+    jobRegistry.register(leadReminderWorker.jobType, leadReminderWorker.handler);
+    console.log("[JobProcessor] ✓ Lead reminder worker registered:", leadReminderWorker.jobType);
+  } catch (regError) {
+    console.error("[JobProcessor] ❌ Worker registration failed:", {
+      error: regError.message,
+      stack: regError.stack,
+    });
+    throw regError;
+  }
 
   logger.info(
     `[Lambda] Initialized with ${jobRegistry.getAllTypes().length} worker(s)`,
   );
+  console.log("[JobProcessor] ✅ Initialization complete");
 
   _initialized = true;
 }
@@ -53,6 +77,11 @@ export const handler = async (event, _context) => {
   await initialize();
 
   const records = event.Records || [];
+
+  console.log("[JobProcessor] 📨 Lambda handler called with", {
+    recordCount: records.length,
+    timestamp: new Date().toISOString(),
+  });
 
   if (records.length === 0) {
     logger.info("[Lambda] No records in event, skipping.");
@@ -86,6 +115,14 @@ export const handler = async (event, _context) => {
         traceId: body.payload?._meta?.traceId || null,
       };
 
+      console.log("[JobProcessor] 🔄 Processing record", {
+        jobType,
+        messageId,
+        tenantId: context.tenantId,
+        workerExists: !!workerHandler,
+        handlerName: workerHandler?.name || "unknown",
+      });
+
       const jobStoreContext = {
         requestId: context.requestId,
         traceId: context.traceId,
@@ -102,9 +139,20 @@ export const handler = async (event, _context) => {
 
       const result = await new Promise((resolve, reject) => {
         requestStore.run(jobStoreContext, () => {
+          console.log("[JobProcessor] 🚀 Executing worker handler for:", jobType);
           workerHandler(body.payload || body, context)
-            .then(resolve)
-            .catch(reject);
+            .then((res) => {
+              console.log("[JobProcessor] ✓ Worker handler resolved");
+              resolve(res);
+            })
+            .catch((err) => {
+              console.error("[JobProcessor] ❌ Worker handler rejected:", {
+                jobType,
+                error: err.message,
+                stack: err.stack,
+              });
+              reject(err);
+            });
         });
       });
 
@@ -114,8 +162,18 @@ export const handler = async (event, _context) => {
           messageId,
           message: result.message,
         });
+        console.log("[JobProcessor] ✅ Job succeeded", {
+          jobType,
+          messageId,
+          message: result.message,
+        });
       } else if (result.shouldRetry) {
         logger.warn(`[Lambda] Job needs retry`, {
+          jobType,
+          messageId,
+          message: result.message,
+        });
+        console.log("[JobProcessor] ⚠️ Job needs retry", {
           jobType,
           messageId,
           message: result.message,
@@ -127,12 +185,22 @@ export const handler = async (event, _context) => {
           messageId,
           message: result.message,
         });
+        console.log("[JobProcessor] ❌ Job failed (no retry)", {
+          jobType,
+          messageId,
+          message: result.message,
+        });
       }
     } catch (error) {
       logger.error(`[Lambda] Failed to process message`, {
         messageId,
         error: error.message,
         stack: error.stack,
+      });
+      console.error("[JobProcessor] ❌ Error processing message", {
+        messageId,
+        error: error.message,
+        errorStack: error.stack,
       });
       batchItemFailures.push({ itemIdentifier: messageId });
     }

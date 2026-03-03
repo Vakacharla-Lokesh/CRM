@@ -5,18 +5,10 @@ import {
 } from "@aws-sdk/client-s3";
 
 import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
-import {
-  CreateTableCommand,
-  DescribeTableCommand,
-} from "@aws-sdk/client-dynamodb";
 
-import { s3, sqs, dynamoDb } from "./awsClient.js";
+import { s3, sqs } from "./awsClient.js";
 
 const REGION = process.env.AWS_REGION || "us-east-1";
-
-const TABLES = {
-  jobs: "jobs",
-};
 
 const BUCKETS = {
   leads: "crm-leads",
@@ -112,35 +104,6 @@ async function ensureQueue(queueName) {
   }
 }
 
-async function ensureDynamoTable(tableName) {
-  try {
-    await dynamoDb.send(new DescribeTableCommand({ TableName: tableName }));
-    console.log(`[AWS] DynamoDB table already exists: ${tableName}`);
-  } catch (err) {
-    if (err.name === "ResourceNotFoundException") {
-      console.log(`[AWS] Creating DynamoDB table: ${tableName}`);
-
-      const params = {
-        TableName: tableName,
-        AttributeDefinitions: [
-          { AttributeName: "jobId", AttributeType: "S" },
-          { AttributeName: "tenantId", AttributeType: "S" },
-        ],
-        KeySchema: [
-          { AttributeName: "jobId", KeyType: "HASH" },
-          { AttributeName: "tenantId", KeyType: "RANGE" },
-        ],
-        BillingMode: "PAY_PER_REQUEST",
-      };
-
-      await dynamoDb.send(new CreateTableCommand(params));
-      console.log(`[AWS] DynamoDB table created: ${tableName}`);
-    } else {
-      console.error(`[AWS] Error checking DynamoDB table ${tableName}:`, err);
-      throw err;
-    }
-  }
-}
 
 export async function ensureAwsInitialized() {
   if (_initPromise) return _initPromise;
@@ -158,9 +121,6 @@ export async function ensureAwsInitialized() {
     // SQS Queues — store resolved URLs
     queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites);
     queueUrls.exportData = await ensureQueue(QUEUES.exportData);
-
-    // DynamoDB Table
-    await ensureDynamoTable(TABLES.jobs);
 
     // EventBridge Rules (best-effort)
     try {
@@ -186,4 +146,4 @@ export async function ensureAwsInitialized() {
   return _initPromise;
 }
 
-export { BUCKETS, QUEUES, TABLES };
+export { BUCKETS, QUEUES };

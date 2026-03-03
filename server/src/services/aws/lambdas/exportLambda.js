@@ -11,11 +11,18 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../../../../../.env") });
 
-// ─── Job registry shape ──────────────────────────────────────────────────────
 export const jobType = JOB_TYPES.EXPORT_DATA;
 
 export async function handler(payload, context) {
   const { tenantId } = context;
+
+  console.log("[ExportLambda] 🚀 Handler called", {
+    tenantId,
+    payloadKeys: Object.keys(payload),
+    entityType: payload.entity?.type,
+    email: payload.email,
+    idCount: payload.ids?.length,
+  });
 
   if (payload._meta?.tenantId && payload._meta.tenantId !== tenantId) {
     throw new Error(
@@ -24,6 +31,7 @@ export async function handler(payload, context) {
   }
 
   const entityType = payload.entity?.type;
+  console.log("[ExportLambda] Processing export", { entityType, tenantId });
   logger.info("[ExportWorker] Processing export", { entityType });
 
   let result;
@@ -42,6 +50,12 @@ export async function handler(payload, context) {
       throw new Error(`[ExportWorker] Unknown entity type: ${entityType}`);
   }
 
+  console.log("[ExportLambda] ✓ Export completed", {
+    entityType,
+    count: result.count || 0,
+    success: result.success,
+  });
+
   logger.info("[ExportWorker] Export completed", {
     entityType,
     count: result.count || 0,
@@ -54,7 +68,6 @@ export async function handler(payload, context) {
   };
 }
 
-// ─── Standalone Lambda handler ───────────────────────────────────────────────
 let _dbConnected = false;
 
 async function ensureDb() {

@@ -352,13 +352,40 @@ const emailController = {
   },
 
   sendEmail: async ({ to, subject, html, text }) => {
-    return await getTransport().sendMail({
-      from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
+    console.log("[EmailController] 📧 sendEmail called", {
       to,
       subject,
-      html,
-      text,
+      htmlLength: html?.length,
+      hasText: !!text,
+      timestamp: new Date().toISOString(),
     });
+
+    try {
+      const result = await getTransport().sendMail({
+        from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,
+        to,
+        subject,
+        html,
+        text,
+      });
+
+      console.log("[EmailController] ✓ Email sent successfully", {
+        to,
+        response: result?.response,
+        messageId: result?.messageId,
+      });
+
+      return result;
+    } catch (error) {
+      console.error("[EmailController] ❌ sendMail failed", {
+        to,
+        subject,
+        error: error.message,
+        errorCode: error.code,
+        errorStack: error.stack,
+      });
+      throw error;
+    }
   },
 
   sendLeadReminderMail: async ({ _id, to, userName, leadName }) => {

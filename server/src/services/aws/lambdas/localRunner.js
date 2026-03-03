@@ -10,7 +10,7 @@ config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { ensureAwsInitialized } from "../initAwsResources.js";
 import { queueService } from "../queue/queue.service.js";
-import { handler } from "./jobProcessor.lambda.js";
+import { handler } from "./jobProcessorLambda.js";
 
 const POLL_INTERVAL_MS = 5000;
 const BATCH_SIZE = 10;
@@ -43,12 +43,21 @@ async function shutdown() {
 
 async function pollQueue(queueName) {
   try {
+    console.log(`[LocalRunner] 🔍 Polling start for queue: ${queueName}`);
     const messages = await queueService.poll(queueName, BATCH_SIZE);
 
-    if (messages.length === 0) return;
+    console.log(`[LocalRunner] 📊 Poll result for ${queueName}:`, {
+      messageCount: messages.length,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (messages.length === 0) {
+      console.log(`[LocalRunner] ⏭ No messages in ${queueName}, skipping...`);
+      return;
+    }
 
     console.log(
-      `[LocalRunner] 📨 Received ${messages.length} message(s) from "${queueName}"`,
+      `[LocalRunner] 📨 Received ${messages.length} message(s) from "${queueName}" at ${new Date().toISOString()}`,
     );
 
     const sqsEvent = {
@@ -60,7 +69,29 @@ async function pollQueue(queueName) {
       })),
     };
 
-    const result = await handler(sqsEvent, {});
+    console.log("[LocalRunner] 🔄 Invoking handler for messages", {
+      queueName,
+      messageCount: messages.length,
+      jobTypes: messages.map((m) => m.body?.jobType),
+    });
+
+    let result;
+    try {
+      result = await handler(sqsEvent, {});
+    } catch (handlerError) {
+      console.error("[LocalRunner] ❌ Handler threw error:", {
+        queueName,
+        error: handlerError.message,
+        stack: handlerError.stack,
+      });
+      throw handlerError;
+    }
+
+    console.log("[LocalRunner] ✓ Handler completed", {
+      queueName,
+      processed: messages.length - (result.batchItemFailures || []).length,
+      failed: (result.batchItemFailures || []).length,
+    });
 
     const failedIds = new Set(
       (result.batchItemFailures || []).map((f) => f.itemIdentifier),
@@ -69,10 +100,16 @@ async function pollQueue(queueName) {
     for (const msg of messages) {
       if (!failedIds.has(msg.messageId)) {
         await queueService.ack(queueName, msg.receiptHandle);
+        console.log("[LocalRunner] ✓ ACK'd message:", msg.messageId);
+      } else {
+        console.log("[LocalRunner] ⚠ Message failed, not ACK'd:", msg.messageId);
       }
     }
   } catch (error) {
-    console.error(`[LocalRunner] Error polling "${queueName}":`, error);
+    console.error(`[LocalRunner] ❌ Error polling "${queueName}":`, {
+      error: error.message,
+      stack: error.stack,
+    });
   }
 }
 
@@ -81,8 +118,13 @@ async function main() {
 
   try {
     await connectDatabase();
+    console.log("[LocalRunner] ✓ Database connected");
+    
     await ensureAwsInitialized();
+    console.log("[LocalRunner] ✓ AWS initialized");
+    
     queueService.bootstrap();
+    console.log("[LocalRunner] ✓ Queue service bootstrapped");
 
     console.log(
       `[LocalRunner] ✓ Ready. Polling ${QUEUE_NAMES.length} queue(s): ${QUEUE_NAMES.join(", ")}\n`,
@@ -93,9 +135,18 @@ async function main() {
   }
 
   while (!signal.aborted) {
+    console.log("[LocalRunner] 🔄 Poll cycle starting...", {
+      timestamp: new Date().toISOString(),
+    });
+    
     for (const queueName of QUEUE_NAMES) {
       if (signal.aborted) break;
-      await pollQueue(queueName);
+      console.log(`[LocalRunner] 📌 Polling queue: ${queueName}`);
+      try {
+        await pollQueue(queueName);
+      } catch (err) {
+        console.error(`[LocalRunner] ❌ Error in pollQueue for ${queueName}:`, err);
+      }
     }
 
     if (!signal.aborted) {

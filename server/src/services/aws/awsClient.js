@@ -4,9 +4,6 @@ import path from "path";
 
 import { S3Client } from "@aws-sdk/client-s3";
 import { SQSClient } from "@aws-sdk/client-sqs";
-import { SNSClient } from "@aws-sdk/client-sns";
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { EventBridgeClient } from "@aws-sdk/client-eventbridge";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -33,15 +30,5 @@ export const s3 = new S3Client({
 });
 
 export const sqs = new SQSClient(baseConfig);
-
-export const sns = new SNSClient(baseConfig);
-
-export const dynamoDb = new DynamoDBClient(baseConfig);
-
-export const docClient = DynamoDBDocumentClient.from(dynamoDb, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-  },
-});
 
 export const eventBridge = new EventBridgeClient(baseConfig);

@@ -39,10 +39,11 @@ class ExportCsvEngine {
   async exportLeads(message) {
     const { tenantId, ids, email } = message;
 
-    console.log("[ExportLeads] Processing export request:", {
+    console.log("[ExportLeads] 🚀 Starting export job", {
       tenantId,
       idCount: ids?.length,
       email,
+      messageKeys: Object.keys(message),
     });
 
     if (!email) throw new Error("Recipient email is required for export");
@@ -69,7 +70,7 @@ class ExportCsvEngine {
       throw new Error(`Invalid lead IDs provided: ${error.message}`);
     }
 
-    console.log("[ExportLeads] Converted IDs:", {
+    console.log("[ExportLeads] ✓ Converted IDs:", {
       count: objectIds.length,
       sample: objectIds[0]?.toString(),
     });
@@ -86,7 +87,7 @@ class ExportCsvEngine {
       throw new Error(`Database query failed: ${dbError.message}`);
     }
 
-    console.log("[ExportLeads] Query results:", {
+    console.log("[ExportLeads] ✓ Query results:", {
       found: docs.length,
       requested: objectIds.length,
       missing: objectIds.length - docs.length,
@@ -104,8 +105,8 @@ class ExportCsvEngine {
     }
 
     // Verify structure
-    console.log("[ExportLeads] First document fields:", Object.keys(docs[0]));
-    console.log("[ExportLeads] Expected export columns:", EXPORT_COLUMNS.leads);
+    console.log("[ExportLeads] ✓ First document fields:", Object.keys(docs[0]));
+    console.log("[ExportLeads] ✓ Expected export columns:", EXPORT_COLUMNS.leads);
 
     // Build CSV
     let csv;
@@ -117,7 +118,7 @@ class ExportCsvEngine {
     }
 
     const csvLines = csv.split("\n");
-    console.log("[ExportLeads] CSV generated successfully:", {
+    console.log("[ExportLeads] ✓ CSV generated successfully:", {
       lines: csvLines.length,
       headerLine: csvLines[0],
       size: `${csv.length} bytes`,
@@ -130,7 +131,7 @@ class ExportCsvEngine {
     const key = `exports/${tenantId || "global"}/${timestamp}-leads.csv`;
     const fileName = `leads-${timestamp}.csv`;
 
-    console.log("[ExportLeads] Uploading to S3:", { bucket, key });
+    console.log("[ExportLeads] 📤 Uploading to S3:", { bucket, key });
 
     let signed;
     try {
@@ -140,13 +141,15 @@ class ExportCsvEngine {
       throw new Error(`S3 upload failed: ${s3Error.message}`);
     }
 
-    console.log("[ExportLeads] S3 upload successful, sending email:", email);
+    console.log("[ExportLeads] ✓ S3 upload successful", { key, fileName });
+    console.log("[ExportLeads] 📧 Sending email to:", email);
 
     // Send email
     try {
       await this.sendExportEmail(email, "leads", signed, docs.length);
+      console.log("[ExportLeads] ✅ Export job completed successfully");
     } catch (emailError) {
-      console.error("[ExportLeads] Email send failed:", emailError);
+      console.error("[ExportLeads] ❌ Email send failed, but export was created:", emailError);
       // Don't throw - export succeeded, just email failed
     }
 
@@ -161,7 +164,7 @@ class ExportCsvEngine {
   async exportDeals(message) {
     const { tenantId, ids, email } = message;
 
-    console.log("[ExportDeals] Processing export request:", {
+    console.log("[ExportDeals] 🚀 Starting export job", {
       tenantId,
       idCount: ids?.length,
       email,
@@ -199,7 +202,7 @@ class ExportCsvEngine {
       throw new Error(`Database query failed: ${dbError.message}`);
     }
 
-    console.log("[ExportDeals] Query results:", {
+    console.log("[ExportDeals] ✓ Query results:", {
       found: docs.length,
       requested: objectIds.length,
     });
@@ -234,8 +237,9 @@ class ExportCsvEngine {
 
     try {
       await this.sendExportEmail(email, "deals", signed, docs.length);
+      console.log("[ExportDeals] ✅ Export job completed successfully");
     } catch (emailError) {
-      console.error("[ExportDeals] Email send failed:", emailError);
+      console.error("[ExportDeals] ❌ Email send failed:", emailError);
     }
 
     return {
@@ -249,7 +253,7 @@ class ExportCsvEngine {
   async exportOrganizations(message) {
     const { tenantId, ids, email } = message;
 
-    console.log("[ExportOrganizations] Processing export request:", {
+    console.log("[ExportOrganizations] 🚀 Starting export job", {
       tenantId,
       idCount: ids?.length,
       email,
@@ -287,7 +291,7 @@ class ExportCsvEngine {
       throw new Error(`Database query failed: ${dbError.message}`);
     }
 
-    console.log("[ExportOrganizations] Query results:", {
+    console.log("[ExportOrganizations] ✓ Query results:", {
       found: docs.length,
       requested: objectIds.length,
     });
@@ -322,8 +326,9 @@ class ExportCsvEngine {
 
     try {
       await this.sendExportEmail(email, "organizations", signed, docs.length);
+      console.log("[ExportOrganizations] ✅ Export job completed successfully");
     } catch (emailError) {
-      console.error("[ExportOrganizations] Email send failed:", emailError);
+      console.error("[ExportOrganizations] ❌ Email send failed:", emailError);
     }
 
     return {
@@ -342,7 +347,33 @@ class ExportCsvEngine {
       <p>This link will expire shortly.</p>
     `;
 
-    await emailController.sendEmail({ to: email, subject, html });
+    console.log(`[SendExportEmail] Starting email send`, {
+      email,
+      entityType,
+      subject,
+      count,
+      fileName: signedFile?.fileName,
+    });
+
+    try {
+      const result = await emailController.sendEmail({ to: email, subject, html });
+      console.log(`[SendExportEmail] Email sent successfully`, {
+        email,
+        entityType,
+        messageId: result?.messageId || result?.response,
+        timestamp: new Date().toISOString(),
+      });
+      return result;
+    } catch (emailError) {
+      console.error(`[SendExportEmail] Email send failed`, {
+        email,
+        entityType,
+        error: emailError.message,
+        errorStack: emailError.stack,
+        timestamp: new Date().toISOString(),
+      });
+      throw emailError;
+    }
   }
 }
 
