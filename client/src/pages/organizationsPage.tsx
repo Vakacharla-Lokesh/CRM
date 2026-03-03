@@ -130,7 +130,7 @@ const OrganizationsPage = () => {
       notifyEvent({
         type: "organization_created",
         title: "Organization Created",
-        message: `Organization "${organizationData.organizationName}" has been created.`,
+        message: `Organization "${organizationData.name}" has been created.`,
         entityId: "", // you can pass the new organization's ID here if available
         entityType: "organization",
       });
@@ -160,7 +160,7 @@ const OrganizationsPage = () => {
       notifyEvent({
         type: "organization_updated",
         title: "Organization Updated",
-        message: `Organization "${organizationData.organizationName}" has been updated.`,
+        message: `Organization "${organizationData.name}" has been updated.`,
         entityId: id,
         entityType: "organization",
       });
@@ -403,7 +403,7 @@ const OrganizationsPage = () => {
           })}
           data={filteredOrganizations}
           name="Organizations"
-          searchColumn="organizationName"
+          searchColumn="name"
           onSelectionChange={(rows) =>
             setSelectedOrganizationIds(rows.map((r) => r._id))
           }

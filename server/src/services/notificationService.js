@@ -149,12 +149,12 @@ export const notifyDealEvent = (
   additionalMessage = "",
 ) => {
   const messages = {
-    [notificationTypes.DEAL_CREATED]: `New deal created: ${dealData.dealName}`,
-    [notificationTypes.DEAL_UPDATED]: `Deal updated: ${dealData.dealName}`,
-    [notificationTypes.DEAL_DELETED]: `Deal deleted: ${dealData.dealName}`,
-    [notificationTypes.DEAL_WON]: `Deal won: ${dealData.dealName}`,
-    [notificationTypes.DEAL_LOST]: `Deal lost: ${dealData.dealName}`,
-    [notificationTypes.DEAL_ASSIGNED]: `Deal assigned: ${dealData.dealName}`,
+    [notificationTypes.DEAL_CREATED]: `New deal created: ${dealData.name}`,
+    [notificationTypes.DEAL_UPDATED]: `Deal updated: ${dealData.name}`,
+    [notificationTypes.DEAL_DELETED]: `Deal deleted: ${dealData.name}`,
+    [notificationTypes.DEAL_WON]: `Deal won: ${dealData.name}`,
+    [notificationTypes.DEAL_LOST]: `Deal lost: ${dealData.name}`,
+    [notificationTypes.DEAL_ASSIGNED]: `Deal assigned: ${dealData.name}`,
   };
 
   const title = eventType.replace(/_/g, " ").toUpperCase();
@@ -167,8 +167,8 @@ export const notifyDealEvent = (
     metadata: {
       entityId: dealData._id,
       entityType: "deal",
-      dealName: dealData.dealName,
-      dealValue: dealData.dealValue,
+      name: dealData.name,
+      value: dealData.value,
     },
   });
 };

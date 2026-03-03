@@ -9,8 +9,8 @@ export type WidgetMetric = "count" | "sum" | "avg";
 export type GroupByField =
   | "status"
   | "source"
-  | "dealStatus"
-  | "organizationIndustry"
+  | "status"
+  | "industry"
   | "createdAt";
 
 export interface WidgetPosition {

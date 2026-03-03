@@ -210,8 +210,8 @@ const {
   handleChange, handleBlur, handleSubmit,
   setFieldValue, setFieldError, resetForm, getFieldProps, getFieldMeta,
 } = useForm<LoginFormData>(
-  { userEmail: '', password: '', rememberMe: false },
-  async (values) => { await login(values.userEmail, values.password); },
+  { email: '', password: '', rememberMe: false },
+  async (values) => { await login(values.email, values.password); },
   validateLoginForm,
 );
 ```
@@ -360,14 +360,14 @@ const {
 
 **Statistics computed from local `leads` array (no extra network request):**
 - `total` — total count of loaded leads
-- `byStatus: Record<string, number>` — count per `leadStatus` value
-- `bySource: Record<string, number>` — count per `leadSource` value
+- `byStatus: Record<string, number>` — count per `status` value
+- `bySource: Record<string, number>` — count per `source` value
 - `conversionRate` — `(Converted count / total * 100).toFixed(1)` as a string
 
 **Filters applied client-side against the in-memory array:**
-- `status` — exact match on `leadStatus`
-- `source` — exact match on `leadSource`
-- `search` — case-insensitive substring match on `leadFirstName`, `leadLastName`, `leadEmail`
+- `status` — exact match on `status`
+- `source` — exact match on `source`
+- `search` — case-insensitive substring match on `firstName`, `lastName`, `email`
 - `dateFrom` / `dateTo` — timestamp range on `createdAt`
 
 `updateFilter(key, value)` updates a single filter key and immediately re-runs `applyFilters`. `resetFilters()` clears all filters and restores `filteredLeads = leads`. No re-fetch occurs on filter changes.
@@ -456,7 +456,7 @@ const {
 } = useTenantData();
 ```
 
-**Filters (computed via `useMemo`):** `search` (tenantName, email, mobile), `dateFrom`, `dateTo`
+**Filters (computed via `useMemo`):** `search` (name, email, mobile), `dateFrom`, `dateTo`
 
 ---
 
@@ -610,7 +610,7 @@ Fetches all chart data for the dashboard in a single `Promise.all`. Accepts a `d
 
 ```ts
 const {
-  leadTrends, leadStatusBreakdown, leadScoreDistribution,
+  leadTrends, statusBreakdown, scoreDistribution,
   dealPipeline, dealPipelineSummary, dealPipelineMonthlyTrends, dealTrends,
   organizationStats, topOrganizations,
   loading, error, refreshData,
@@ -622,12 +622,12 @@ const {
 | Returned Field | API Endpoint | Shape |
 |---|---|---|
 | `leadTrends` | `GET /api/analytics/leads/trends?days=N` | `{ date, total, byStatus[] }[]` |
-| `leadStatusBreakdown` | `GET /api/analytics/leads/status-breakdown?days=N` | `{ status, count, avgScore, percentage }[]` |
-| `leadScoreDistribution` | `GET /api/analytics/leads/score-distribution` | `{ bucket, count, convertedCount }[]` |
+| `statusBreakdown` | `GET /api/analytics/leads/status-breakdown?days=N` | `{ status, count, avgScore, percentage }[]` |
+| `scoreDistribution` | `GET /api/analytics/leads/score-distribution` | `{ bucket, count, convertedCount }[]` |
 | `dealPipeline` + `dealPipelineSummary` + `dealPipelineMonthlyTrends` | `GET /api/analytics/deals/pipeline` | pipeline per stage + summary totals + monthly trend |
 | `dealTrends` | `GET /api/analytics/deals/trends?days=N` | `{ date, count, value }[]` |
 | `organizationStats` | `GET /api/analytics/organizations/stats` | `{ industry, organizationCount, totalLeads, convertedLeads, conversionRate }[]` |
-| `topOrganizations` | `GET /api/analytics/organizations/top?limit=10` | `{ name, dealValue, ... }[]` |
+| `topOrganizations` | `GET /api/analytics/organizations/top?limit=10` | `{ name, value, ... }[]` |
 
 All data is fed directly into Recharts line/bar chart components and progress-bar rows on the dashboard page. `refreshData()` re-runs the full `Promise.all`.
 
@@ -666,7 +666,7 @@ index.html
 LoginPage
   useForm validates email + password client-side
   handleSubmit → AppContext.login(email, password)
-    → authService.login({ userEmail, password })
+    → authService.login({ email, password })
         → POST /api/auth/login
     ← { user, token }
     → setUser, setToken, setIsAuthenticated(true)
@@ -796,7 +796,7 @@ DashboardPage mounts
        → Promise.all([7 analytics endpoints fired simultaneously])
        ← all data resolved at once
        → leadTrends.slice(-10) fed into line chart (last 10 days)
-       → leadStatusBreakdown fed into status progress bars
+       → statusBreakdown fed into status progress bars
        → dealPipeline fed into bar chart (value per stage)
        → dealPipelineSummary feeds total pipeline value / avg deal value KPIs
        → organizationStats fed into industry breakdown table
@@ -844,7 +844,7 @@ The services layer sits between hooks and the network. Each service file imports
 | `userService` | `getAllUsers`, `createUser`, `updateUser`, `deleteUser`, `updateUserRole`, `updatePassword` |
 | `tenantService` | `getAllTenants({ cursor, limit })`, `createTenant`, `updateTenant`, `deleteTenant` |
 | `exportService` | `exportLeadsToCSV(leads)` — generates and downloads a `.csv` file client-side without a server call |
-| `analyticsAPI` | `dashboard`, `leadTrends`, `leadStatusBreakdown`, `leadScoreDistribution`, `dealPipeline`, `dealTrends`, `organizationStats`, `topOrganizations` |
+| `analyticsAPI` | `dashboard`, `leadTrends`, `statusBreakdown`, `scoreDistribution`, `dealPipeline`, `dealTrends`, `organizationStats`, `topOrganizations` |
 
 ---
 

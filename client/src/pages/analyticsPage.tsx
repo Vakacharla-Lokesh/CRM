@@ -3,10 +3,13 @@ import { useState, useCallback } from "react";
 import { Plus, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useUserAnalyticsData } from "@/hooks/users/useUserAnalyticsData";
-import AnalyticsGrid, { WidgetSkeleton } from "../components/analytics/AnalyticsGrid";
+import AnalyticsGrid, {
+  WidgetSkeleton,
+} from "../components/analytics/AnalyticsGrid";
 import AnalyticsEmptyState from "../components/analytics/AnalyticsEmptyState";
 import ChartConfigModal from "../components/analytics/ChartConfigModal";
 import type { Widget } from "../services/api/userAnalytics.api";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 
 function AnalyticsPage() {
   const { widgets, loading, error, saveDashboard, saving, refresh } =
@@ -39,16 +42,11 @@ function AnalyticsPage() {
       if (editingWidget?._id) {
         // Replace existing widget
         updatedLayout = widgets.map((w: Widget) =>
-          w._id === editingWidget._id
-            ? { ...w, ...widgetData }
-            : { ...w },
+          w._id === editingWidget._id ? { ...w, ...widgetData } : { ...w },
         );
       } else {
         // Append new widget (no _id or data yet)
-        updatedLayout = [
-          ...widgets,
-          { ...widgetData } as Widget,
-        ];
+        updatedLayout = [...widgets, { ...widgetData } as Widget];
       }
 
       // Strip computed data before persisting
@@ -69,6 +67,23 @@ function AnalyticsPage() {
     [widgets, saveDashboard],
   );
 
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [widgetToDelete, setWidgetToDelete] = useState<string | null>(null);
+
+  const openDeleteDialog = useCallback((widgetId: string) => {
+    setWidgetToDelete(widgetId);
+    setDeleteDialogOpen(true);
+  }, []);
+
+  const confirmDelete = useCallback(async () => {
+    if (!widgetToDelete) return;
+
+    await handleDeleteWidget(widgetToDelete);
+
+    setDeleteDialogOpen(false);
+    setWidgetToDelete(null);
+  }, [widgetToDelete, handleDeleteWidget]);
+
   return (
     <div className="space-y-6">
       {/* Page Header */}
@@ -87,7 +102,8 @@ function AnalyticsPage() {
             className="mt-1 text-sm"
             style={{ color: "var(--muted-foreground)" }}
           >
-            Your personalised analytics workspace — customise charts and metrics.
+            Your personalised analytics workspace — customise charts and
+            metrics.
           </p>
         </div>
 
@@ -119,7 +135,8 @@ function AnalyticsPage() {
         <div
           className="px-4 py-3 rounded-lg border text-sm"
           style={{
-            backgroundColor: "color-mix(in srgb, var(--destructive) 10%, transparent)",
+            backgroundColor:
+              "color-mix(in srgb, var(--destructive) 10%, transparent)",
             borderColor: "var(--destructive)",
             color: "var(--destructive)",
           }}
@@ -134,7 +151,8 @@ function AnalyticsPage() {
         <div
           className="px-4 py-2 rounded-lg text-sm flex items-center gap-2"
           style={{
-            backgroundColor: "color-mix(in srgb, var(--primary) 10%, transparent)",
+            backgroundColor:
+              "color-mix(in srgb, var(--primary) 10%, transparent)",
             color: "var(--primary)",
           }}
         >
@@ -156,7 +174,7 @@ function AnalyticsPage() {
         <AnalyticsGrid
           widgets={widgets}
           onEdit={openEditModal}
-          onDelete={handleDeleteWidget}
+          onDelete={openDeleteDialog}
         />
       )}
 
@@ -166,6 +184,16 @@ function AnalyticsPage() {
         onClose={closeModal}
         onSave={handleSaveWidget}
         initialWidget={editingWidget}
+      />
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Widget"
+        description="Are you sure you want to delete this widget? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
       />
     </div>
   );

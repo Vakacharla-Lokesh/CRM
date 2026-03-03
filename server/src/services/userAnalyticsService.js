@@ -12,14 +12,14 @@ const ENTITY_MODEL_MAP = {
 
 const ALLOWED_GROUP_BY = {
   leads: ["status", "source", "createdAt"],
-  deals: ["dealStatus", "createdAt"],
-  organizations: ["organizationIndustry", "createdAt"],
+  deals: ["status", "createdAt"],
+  organizations: ["industry", "createdAt"],
 };
 
 const ALLOWED_METRIC_FIELDS = {
   leads: { sum: "score", avg: "score" },
-  deals: { sum: "dealValue", avg: "dealValue" },
-  organizations: { sum: "organizationSize", avg: "organizationSize" },
+  deals: { sum: "value", avg: "value" },
+  organizations: { sum: "size", avg: "size" },
 };
 
 export const getUserDashboard = async (userId, tenantId) => {
@@ -69,8 +69,8 @@ export const computeChartData = async (widgetConfig, tenantId) => {
 
   const SAFE_FILTER_KEYS = {
     leads: ["status", "source"],
-    deals: ["dealStatus"],
-    organizations: ["organizationIndustry"],
+    deals: ["status"],
+    organizations: ["industry"],
   };
 
   const safeKeys = SAFE_FILTER_KEYS[entity] || [];

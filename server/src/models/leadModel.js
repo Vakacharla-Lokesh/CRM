@@ -54,10 +54,10 @@ const leadsSchema = new Schema(
 leadsSchema.index({ userId: 1, createdAt: -1 });
 leadsSchema.index({ tenantId: 1 });
 leadsSchema.index({ organizationId: 1 });
-// leadsSchema.index(
-//   { idempotencyKey: 1 },
-//   { unique: true, sparse: true, name: "idempotency_key_unique" },
-// );
+leadsSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: "idempotency_key_unique" },
+);
 
 // search index
 leadsSchema.index({

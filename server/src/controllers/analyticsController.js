@@ -61,23 +61,23 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       {
         $facet: {
           wonRevenue: [
-            { $match: { dealStatus: "Won" } },
-            { $group: { _id: null, total: { $sum: "$dealValue" } } },
+            { $match: { status: "Won" } },
+            { $group: { _id: null, total: { $sum: "$value" } } },
           ],
           currentPeriodWon: [
             {
               $match: {
-                dealStatus: "Won",
+                status: "Won",
                 updatedAt: { $gte: currentStart, $lte: currentEnd },
               },
             },
-            { $group: { _id: null, total: { $sum: "$dealValue" } } },
+            { $group: { _id: null, total: { $sum: "$value" } } },
           ],
           totalDeals: [{ $count: "count" }],
           openDeals: [
             {
               $match: {
-                dealStatus: {
+                status: {
                   $in: [
                     "Prospecting",
                     "Qualification",
@@ -121,11 +121,11 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       {
         $match: {
           ...matchFilter,
-          dealStatus: "Won",
+          status: "Won",
           updatedAt: { $gte: previousStart, $lt: previousEnd },
         },
       },
-      { $group: { _id: null, total: { $sum: "$dealValue" } } },
+      { $group: { _id: null, total: { $sum: "$value" } } },
     ]),
 
     leadModel.aggregate([

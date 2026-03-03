@@ -101,7 +101,7 @@ export async function seedWorkflows(tenants, users) {
           action: "update",
           conditions: [
             {
-              field: "dealStatus",
+              field: "status",
               operator: "equals",
               value: "Won",
             },
@@ -146,7 +146,7 @@ export async function seedWorkflows(tenants, users) {
           action: "update",
           conditions: [
             {
-              field: "dealValue",
+              field: "value",
               operator: "gte",
               value: 50000,
             },

@@ -5,19 +5,19 @@ import type {
 } from "@/types";
 
 export interface OrganizationFormData {
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize: number;
-  organizationIndustry: string;
+  name: string;
+  website: string;
+  size: number;
+  industry: string;
   city: string;
   country: string;
 }
 
 export interface FormErrors {
-  organizationName?: string;
-  organizationWebsite?: string;
-  organizationSize?: string;
-  organizationIndustry?: string;
+  name?: string;
+  website?: string;
+  size?: string;
+  industry?: string;
   city?: string;
   country?: string;
 }

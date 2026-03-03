@@ -21,10 +21,10 @@ export interface Organization {
   organizationId?: string;
   tenantId: string;
   userId: string;
-  organizationName: string;
-  organizationSize?: number;
-  organizationWebsite: string;
-  organizationIndustry: OrganizationIndustry;
+  name: string;
+  size?: number;
+  website: string;
+  industry: OrganizationIndustry;
   city?: string;
   country?: string;
   createdAt: Date;
@@ -33,19 +33,19 @@ export interface Organization {
 
 export interface CreateOrganizationDTO {
   tenantId: string;
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize?: number;
-  organizationIndustry: OrganizationIndustry;
+  name: string;
+  website: string;
+  size?: number;
+  industry: OrganizationIndustry;
   city?: string;
   country?: string;
 }
 
 export interface UpdateOrganizationDTO {
-  organizationName?: string;
-  organizationWebsite?: string;
-  organizationSize?: number;
-  organizationIndustry?: OrganizationIndustry;
+  name?: string;
+  website?: string;
+  size?: number;
+  industry?: OrganizationIndustry;
   city?: string;
   country?: string;
 }
@@ -62,7 +62,7 @@ export function isOrganization(obj: unknown): obj is Organization {
     typeof obj === "object" &&
     obj !== null &&
     typeof (obj as Organization)._id === "string" &&
-    typeof (obj as Organization).organizationName === "string" &&
-    typeof (obj as Organization).organizationIndustry === "string"
+    typeof (obj as Organization).name === "string" &&
+    typeof (obj as Organization).industry === "string"
   );
 }

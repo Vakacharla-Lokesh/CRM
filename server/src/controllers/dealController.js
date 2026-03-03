@@ -16,10 +16,10 @@ export const getAllDeals = asyncCatch(async (req, res) => {
 
   // Server-side filters
   if (req.query.status) {
-    filter.dealStatus = req.query.status;
+    filter.status = req.query.status;
   }
   if (req.query.stage) {
-    filter.dealStatus = req.query.stage;
+    filter.status = req.query.stage;
   }
 
   if (cursor) {
@@ -217,7 +217,7 @@ export const searchDeals = asyncCatch(async (req, res) => {
 
   const searchRegex = new RegExp(q.trim(), "i");
 
-  filter.$or = [{ dealName: searchRegex }];
+  filter.$or = [{ name: searchRegex }];
 
   const deals = await dealModel
     .find(filter)
@@ -229,7 +229,7 @@ export const searchDeals = asyncCatch(async (req, res) => {
 
 // Update deal status
 export const updateDealStatus = asyncCatch(async (req, res) => {
-  const { dealStatus } = req.body;
+  const { status } = req.body;
   const deal = await dealModel.findById(req.params.id);
 
   if (!deal) throw new AppError("Deal not found", 404);
@@ -241,7 +241,7 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
 
-  deal.dealStatus = dealStatus;
+  deal.status = status;
   await deal.save();
 
   await fireWorkflowTrigger(req, "deal", "update", deal._id, deal.toObject());

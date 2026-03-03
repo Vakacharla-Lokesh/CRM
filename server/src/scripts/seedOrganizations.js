@@ -58,10 +58,10 @@ export async function seedOrganizations(tenants, users) {
       tenantOrgs.push({
         tenantId: tenant._id,
         userId: randomUser._id,
-        organizationName: orgName,
-        organizationSize: Math.floor(Math.random() * 5000) + 50,
-        organizationWebsite: `https://${orgName.toLowerCase().replace(/\s+/g, "")}.com`,
-        organizationIndustry:
+        name: orgName,
+        size: Math.floor(Math.random() * 5000) + 50,
+        website: `https://${orgName.toLowerCase().replace(/\s+/g, "")}.com`,
+        industry:
           industries[Math.floor(Math.random() * industries.length)],
         city: city,
         country: country,

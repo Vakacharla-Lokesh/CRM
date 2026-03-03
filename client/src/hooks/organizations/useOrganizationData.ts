@@ -96,9 +96,9 @@ export const useOrganizationData = () => {
     const byIndustry: Record<string, number> = {};
 
     allOrganizations.forEach((org) => {
-      if (org.organizationIndustry) {
-        byIndustry[org.organizationIndustry] =
-          (byIndustry[org.organizationIndustry] ?? 0) + 1;
+      if (org.industry) {
+        byIndustry[org.industry] =
+          (byIndustry[org.industry] ?? 0) + 1;
       }
     });
 
@@ -114,9 +114,9 @@ export const useOrganizationData = () => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matches =
-          org.organizationName?.toLowerCase().includes(searchLower) ||
-          org.organizationWebsite?.toLowerCase().includes(searchLower) ||
-          org.organizationIndustry?.toLowerCase().includes(searchLower);
+          org.name?.toLowerCase().includes(searchLower) ||
+          org.website?.toLowerCase().includes(searchLower) ||
+          org.industry?.toLowerCase().includes(searchLower);
         if (!matches) return false;
       }
 

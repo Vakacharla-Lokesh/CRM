@@ -126,10 +126,10 @@ export const useDealData = () => {
     let forecastValue = 0;
 
     allDeals.forEach((deal) => {
-      if (deal.dealStatus) {
-        byStatus[deal.dealStatus] = (byStatus[deal.dealStatus] || 0) + 1;
+      if (deal.status) {
+        byStatus[deal.status] = (byStatus[deal.status] || 0) + 1;
 
-        const stageKey = deal.dealStatus.toLowerCase().replace(/ /g, "_");
+        const stageKey = deal.status.toLowerCase().replace(/ /g, "_");
         if (stageKey === "won") {
           byStage.closed_won = (byStage.closed_won || 0) + 1;
         } else if (stageKey === "lost") {
@@ -141,10 +141,10 @@ export const useDealData = () => {
         }
       }
 
-      totalValue += deal.dealValue || 0;
+      totalValue += deal.value || 0;
 
-      if (deal.dealStatus !== "Won" && deal.dealStatus !== "Lost") {
-        forecastValue += deal.dealValue || 0;
+      if (deal.status !== "Won" && deal.status !== "Lost") {
+        forecastValue += deal.value || 0;
       }
     });
 
@@ -162,15 +162,15 @@ export const useDealData = () => {
       if (filters.search) {
         const searchLower = filters.search.toLowerCase();
         const matches =
-          deal.dealName?.toLowerCase().includes(searchLower) ||
+          deal.name?.toLowerCase().includes(searchLower) ||
           deal.organizationId?.toString().includes(searchLower);
         if (!matches) return false;
       }
 
-      const dealValue = deal.dealValue || 0;
-      if (filters.minValue !== null && dealValue < filters.minValue)
+      const value = deal.value || 0;
+      if (filters.minValue !== null && value < filters.minValue)
         return false;
-      if (filters.maxValue !== null && dealValue > filters.maxValue)
+      if (filters.maxValue !== null && value > filters.maxValue)
         return false;
 
       if (filters.dateFrom || filters.dateTo) {

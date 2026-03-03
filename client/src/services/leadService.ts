@@ -82,7 +82,7 @@ const leadService = {
 
   convertLead: async (
     leadId: string,
-    dealData?: { dealValue?: number; dealStatus?: string },
+    dealData?: { value?: number; status?: string },
   ): Promise<{ message: string; deal: Deal; lead: Lead }> => {
     return apiClient.post<{ message: string; deal: Deal; lead: Lead }>(
       `/leads/${leadId}/convert`,

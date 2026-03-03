@@ -37,10 +37,10 @@ function OrganizationModal({
 }: OrganizationModalProps) {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<OrganizationFormData>({
-    organizationName: "",
-    organizationWebsite: "",
-    organizationSize: 10,
-    organizationIndustry: "Software",
+    name: "",
+    website: "",
+    size: 10,
+    industry: "Software",
     city: "",
     country: "",
   });
@@ -57,22 +57,22 @@ function OrganizationModal({
   useEffect(() => {
     if (organization) {
       setFormData({
-        organizationName: organization.organizationName,
-        organizationWebsite: organization.organizationWebsite || "",
-        organizationSize:
-          typeof organization.organizationSize === "string"
-            ? parseInt(organization.organizationSize)
-            : organization.organizationSize || 10,
-        organizationIndustry: organization.organizationIndustry,
+        name: organization.name,
+        website: organization.website || "",
+        size:
+          typeof organization.size === "string"
+            ? parseInt(organization.size)
+            : organization.size || 10,
+        industry: organization.industry,
         city: organization.city || "",
         country: organization.country || "",
       });
     } else {
       setFormData({
-        organizationName: "",
-        organizationWebsite: "",
-        organizationSize: 10,
-        organizationIndustry: "Software",
+        name: "",
+        website: "",
+        size: 10,
+        industry: "Software",
         city: "",
         country: "",
       });
@@ -96,28 +96,28 @@ function OrganizationModal({
 
     if (currentStep === 0) {
       // Step 1: Basic Information
-      if (!formData.organizationName.trim()) {
-        stepErrors.organizationName = "Organization name is required";
+      if (!formData.name.trim()) {
+        stepErrors.name = "Organization name is required";
       }
 
-      if (!formData.organizationWebsite.trim()) {
-        stepErrors.organizationWebsite = "Website is required";
+      if (!formData.website.trim()) {
+        stepErrors.website = "Website is required";
       } else if (
-        !/^(ftp|http|https):\/\/[^ "]+$/.test(formData.organizationWebsite)
+        !/^(ftp|http|https):\/\/[^ "]+$/.test(formData.website)
       ) {
-        stepErrors.organizationWebsite = "Please provide a valid website URL";
+        stepErrors.website = "Please provide a valid website URL";
       }
 
-      if (!formData.organizationIndustry) {
-        stepErrors.organizationIndustry = "Industry is required";
+      if (!formData.industry) {
+        stepErrors.industry = "Industry is required";
       }
     } else if (currentStep === 1) {
       // Step 2: Company Details
       if (
-        formData.organizationSize < 1 ||
-        formData.organizationSize > 10_000_000
+        formData.size < 1 ||
+        formData.size > 10_000_000
       ) {
-        stepErrors.organizationSize =
+        stepErrors.size =
           "Organization size must be between 1 and 10,000,000";
       }
 
@@ -169,11 +169,11 @@ function OrganizationModal({
       if (organization && onUpdate) {
         const updateData = {
           id: organization._id,
-          organizationName: formData.organizationName,
-          organizationWebsite: formData.organizationWebsite,
-          organizationSize: formData.organizationSize,
-          organizationIndustry:
-            formData.organizationIndustry as OrganizationIndustry,
+          name: formData.name,
+          website: formData.website,
+          size: formData.size,
+          industry:
+            formData.industry as OrganizationIndustry,
           city: formData.city || undefined,
           country: formData.country || undefined,
         };
@@ -191,11 +191,11 @@ function OrganizationModal({
         );
       } else {
         const createData: CreateOrganizationDTO = {
-          organizationName: formData.organizationName,
-          organizationWebsite: formData.organizationWebsite,
-          organizationSize: formData.organizationSize,
-          organizationIndustry:
-            formData.organizationIndustry as OrganizationIndustry,
+          name: formData.name,
+          website: formData.website,
+          size: formData.size,
+          industry:
+            formData.industry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
           city: formData.city || undefined,
           country: formData.country || undefined,
@@ -222,22 +222,22 @@ function OrganizationModal({
     try {
       if (organization && onUpdate) {
         const updateData: UpdateOrganizationDTO = {
-          organizationName: formData.organizationName,
-          organizationWebsite: formData.organizationWebsite,
-          organizationSize: formData.organizationSize,
-          organizationIndustry:
-            formData.organizationIndustry as OrganizationIndustry,
+          name: formData.name,
+          website: formData.website,
+          size: formData.size,
+          industry:
+            formData.industry as OrganizationIndustry,
           city: formData.city || undefined,
           country: formData.country || undefined,
         };
         await onUpdate(organization._id, updateData);
       } else {
         const createData: CreateOrganizationDTO = {
-          organizationName: formData.organizationName,
-          organizationWebsite: formData.organizationWebsite,
-          organizationSize: formData.organizationSize,
-          organizationIndustry:
-            formData.organizationIndustry as OrganizationIndustry,
+          name: formData.name,
+          website: formData.website,
+          size: formData.size,
+          industry:
+            formData.industry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
           city: formData.city || undefined,
           country: formData.country || undefined,
@@ -279,38 +279,38 @@ function OrganizationModal({
               Step 1: Basic Information
             </h3>
             <FormField
-              id="organizationName"
+              id="name"
               label="Organization Name"
-              value={formData.organizationName}
-              onChange={(value) => handleInputChange("organizationName", value)}
+              value={formData.name}
+              onChange={(value) => handleInputChange("name", value)}
               placeholder="Acme Corporation"
               required
-              error={errors.organizationName}
+              error={errors.name}
             />
 
             <FormField
-              id="organizationWebsite"
+              id="website"
               label="Website"
               type="url"
-              value={formData.organizationWebsite}
+              value={formData.website}
               onChange={(value) =>
-                handleInputChange("organizationWebsite", value)
+                handleInputChange("website", value)
               }
               placeholder="https://www.acme.com"
               required
-              error={errors.organizationWebsite}
+              error={errors.website}
             />
 
             <FormSelect
-              id="organizationIndustry"
+              id="industry"
               label="Industry"
-              value={formData.organizationIndustry}
+              value={formData.industry}
               onChange={(value) =>
-                handleInputChange("organizationIndustry", value)
+                handleInputChange("industry", value)
               }
               placeholder="Select industry"
               required
-              error={errors.organizationIndustry}
+              error={errors.industry}
               options={industryOptions}
             />
           </div>
@@ -323,16 +323,16 @@ function OrganizationModal({
               Step 2: Company Details
             </h3>
             <FormField
-              id="organizationSize"
+              id="size"
               label="Organization Size"
               type="number"
-              value={formData.organizationSize.toString()}
+              value={formData.size.toString()}
               onChange={(value) =>
-                handleInputChange("organizationSize", parseInt(value) || 1)
+                handleInputChange("size", parseInt(value) || 1)
               }
               placeholder="50"
               required
-              error={errors.organizationSize}
+              error={errors.size}
               min={1}
               max={10000000}
             />

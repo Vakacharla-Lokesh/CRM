@@ -88,9 +88,9 @@ const bulkDealItemSchema = z.object({
   organizationId: z.string().min(1),
   tenantId: z.string().min(1).optional(),
   userId: z.string().min(1).optional(),
-  dealName: z.string().min(1).max(100),
-  dealValue: z.number().min(0).max(1_000_000).optional(),
-  dealStatus: z.enum(DEAL_STATUSES),
+  name: z.string().min(1).max(100),
+  value: z.number().min(0).max(1_000_000).optional(),
+  status: z.enum(DEAL_STATUSES),
 });
 
 export const bulkCreateDealsSchema = z
@@ -108,9 +108,9 @@ export const bulkCreateDealsSchema = z
 
 const bulkDealUpdateItemSchema = z.object({
   id: z.string().min(1, "Deal id is required"),
-  dealName: z.string().min(1).max(100).optional(),
-  dealValue: z.number().min(0).max(1_000_000).optional(),
-  dealStatus: z.enum(DEAL_STATUSES).optional(),
+  name: z.string().min(1).max(100).optional(),
+  value: z.number().min(0).max(1_000_000).optional(),
+  status: z.enum(DEAL_STATUSES).optional(),
 });
 
 export const bulkUpdateDealsSchema = z
@@ -175,10 +175,10 @@ export const bulkCreateCallsSchema = z
 const bulkOrganizationItemSchema = z.object({
   tenantId: z.string().min(1).optional(),
   userId: z.string().min(1).optional(),
-  organizationName: z.string().min(1),
-  organizationSize: z.number().int().min(1).max(10_000_000).optional(),
-  organizationWebsite: z.url("Please provide a valid website link"),
-  organizationIndustry: z.enum(ORG_INDUSTRIES),
+  name: z.string().min(1),
+  size: z.number().int().min(1).max(10_000_000).optional(),
+  website: z.url("Please provide a valid website link"),
+  industry: z.enum(ORG_INDUSTRIES),
 });
 
 export const bulkCreateOrganizationsSchema = z
@@ -196,10 +196,10 @@ export const bulkCreateOrganizationsSchema = z
 
 const bulkOrganizationUpdateItemSchema = z.object({
   id: z.string().min(1, "Organization id is required"),
-  organizationName: z.string().min(1).optional(),
-  organizationSize: z.number().int().min(1).max(10_000_000).optional(),
-  organizationWebsite: z.url("Please provide a valid url").optional(),
-  organizationIndustry: z.enum(ORG_INDUSTRIES).optional(),
+  name: z.string().min(1).optional(),
+  size: z.number().int().min(1).max(10_000_000).optional(),
+  website: z.url("Please provide a valid url").optional(),
+  industry: z.enum(ORG_INDUSTRIES).optional(),
 });
 
 export const bulkUpdateOrganizationsSchema = z

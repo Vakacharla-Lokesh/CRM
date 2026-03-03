@@ -132,9 +132,9 @@ export interface OrganizationStatsResponse {
 
 export interface TopOrganization {
   _id: string;
-  organizationName: string;
-  organizationIndustry: string;
-  organizationSize: number;
+  name: string;
+  industry: string;
+  size: number;
   totalLeads: number;
   convertedLeads: number;
   totalDeals: number;

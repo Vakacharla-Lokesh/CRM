@@ -11,7 +11,7 @@ export const getAllOrganizations = asyncCatch(async (req, res) => {
 
   // Server-side filters
   if (req.query.industry) {
-    filter.organizationIndustry = req.query.industry;
+    filter.industry = req.query.industry;
   }
 
   if (cursor) {
@@ -197,9 +197,9 @@ export const searchOrganizations = asyncCatch(async (req, res) => {
   const searchRegex = new RegExp(q.trim(), "i");
 
   filter.$or = [
-    { organizationName: searchRegex },
-    { organizationWebsite: searchRegex },
-    { organizationIndustry: searchRegex },
+    { name: searchRegex },
+    { website: searchRegex },
+    { industry: searchRegex },
   ];
 
   const organizations = await organizationModel

@@ -6,7 +6,7 @@ export type DealStatus =
   | "Won"
   | "Lost";
 
-export const dealStatuses: DealStatus[] = [
+export const statuses: DealStatus[] = [
   "Prospecting",
   "Qualification",
   "Negotiation",
@@ -22,9 +22,9 @@ export interface Deal {
   organizationId: string;
   tenantId: string;
   userId: string;
-  dealName: string;
-  dealValue: number;
-  dealStatus: DealStatus;
+  name: string;
+  value: number;
+  status: DealStatus;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,13 +32,13 @@ export interface Deal {
 export interface CreateDealDTO {
   leadId: string;
   organizationId: string;
-  dealName: string;
-  dealValue?: number;
-  dealStatus?: DealStatus;
+  name: string;
+  value?: number;
+  status?: DealStatus;
 }
 
 export type UpdateDealDTO = Partial<
-  Pick<Deal, "dealName" | "dealValue" | "dealStatus">
+  Pick<Deal, "name" | "value" | "status">
 >;
 
 export interface DealListResponse {
@@ -53,8 +53,8 @@ export function isDeal(obj: unknown): obj is Deal {
     typeof obj === "object" &&
     obj !== null &&
     typeof (obj as Deal)._id === "string" &&
-    typeof (obj as Deal).dealName === "string" &&
-    typeof (obj as Deal).dealValue === "number"
+    typeof (obj as Deal).name === "string" &&
+    typeof (obj as Deal).value === "number"
   );
 }
 
@@ -77,6 +77,6 @@ export interface DealWithMetadata extends Deal {
 export function enrichDeal(deal: Deal): DealWithMetadata {
   return {
     ...deal,
-    statusColor: getDealStatusColor(deal.dealStatus),
+    statusColor: getDealStatusColor(deal.status),
   };
 }

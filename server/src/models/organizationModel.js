@@ -6,9 +6,9 @@ const organizationsSchema = new Schema(
     _id: { type: Schema.Types.ObjectId, alias: "organizationId", auto: true },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
-    organizationName: { type: String, required: true },
-    organizationSize: { type: Number, min: 1, max: 10000000 },
-    organizationWebsite: {
+    name: { type: String, required: true },
+    size: { type: Number, min: 1, max: 10000000 },
+    website: {
       type: String,
       match: [
         /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\/-]))?/,
@@ -16,7 +16,7 @@ const organizationsSchema = new Schema(
       ],
       required: true,
     },
-    organizationIndustry: {
+    industry: {
       type: String,
       enum: ["Software", "Textile", "Foods", "Others"],
       required: true,
@@ -46,9 +46,9 @@ organizationsSchema.index(
 // search index
 // search index
 organizationsSchema.index({
-  organizationName: "text",
-  organizationWebsite: "text",
-  organizationIndustry: "text",
+  name: "text",
+  website: "text",
+  industry: "text",
   city: "text",
   country: "text",
 });
