@@ -15,17 +15,17 @@ import {
 } from "@/types";
 
 interface OrganizationFormData {
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize: number;
-  organizationIndustry: string;
+  name: string;
+  website: string;
+  size: number;
+  industry: string;
 }
 
 interface FormErrors {
-  organizationName?: string;
-  organizationWebsite?: string;
-  organizationSize?: string;
-  organizationIndustry?: string;
+  name?: string;
+  website?: string;
+  size?: string;
+  industry?: string;
 }
 
 interface OrganizationSectionProps {
@@ -69,10 +69,10 @@ export function OrganizationSection({
   const handleCancel = () => {
     setOrganizationMode("select");
     onModeChange?.("select");
-    onNewOrgChange("organizationName", "");
-    onNewOrgChange("organizationWebsite", "");
-    onNewOrgChange("organizationSize", 10);
-    onNewOrgChange("organizationIndustry", "Software");
+    onNewOrgChange("name", "");
+    onNewOrgChange("website", "");
+    onNewOrgChange("size", 10);
+    onNewOrgChange("industry", "Software");
   };
 
   return (
@@ -104,9 +104,9 @@ export function OrganizationSection({
                 value={org._id}
               >
                 <div className="flex flex-col">
-                  <span>{org.organizationName}</span>
+                  <span>{org.name}</span>
                   <span className="text-xs text-gray-500">
-                    {org.organizationIndustry} • {org.organizationSize}
+                    {org.industry} • {org.size}
                   </span>
                 </div>
               </SelectItem>
@@ -153,47 +153,47 @@ export function OrganizationSection({
 
           <div className="space-y-2">
             <Label
-              htmlFor="organizationName"
+              htmlFor="name"
               className="text-sm font-semibold"
             >
               Organization Name <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="organizationName"
-              value={newOrgData.organizationName}
+              id="name"
+              value={newOrgData.name}
               onChange={(e) =>
-                onNewOrgChange("organizationName", e.target.value)
+                onNewOrgChange("name", e.target.value)
               }
               placeholder="Acme Corporation"
-              className={`transition-all duration-200 ${errors.organizationName ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+              className={`transition-all duration-200 ${errors.name ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
             />
-            {errors.organizationName && (
+            {errors.name && (
               <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
-                {errors.organizationName}
+                {errors.name}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
             <Label
-              htmlFor="organizationWebsite"
+              htmlFor="website"
               className="text-sm font-semibold"
             >
               Website <span className="text-red-500">*</span>
             </Label>
             <Input
-              id="organizationWebsite"
+              id="website"
               type="url"
-              value={newOrgData.organizationWebsite}
+              value={newOrgData.website}
               onChange={(e) =>
-                onNewOrgChange("organizationWebsite", e.target.value)
+                onNewOrgChange("website", e.target.value)
               }
               placeholder="https://www.acme.com"
-              className={`transition-all duration-200 ${errors.organizationWebsite ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+              className={`transition-all duration-200 ${errors.website ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
             />
-            {errors.organizationWebsite && (
+            {errors.website && (
               <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
-                {errors.organizationWebsite}
+                {errors.website}
               </p>
             )}
           </div>
@@ -201,50 +201,50 @@ export function OrganizationSection({
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label
-                htmlFor="organizationSize"
+                htmlFor="size"
                 className="text-sm font-semibold"
               >
                 Organization Size <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="organizationSize"
+                id="size"
                 type="number"
                 min="1"
                 max="10000000"
-                value={newOrgData.organizationSize}
+                value={newOrgData.size}
                 onChange={(e) =>
                   onNewOrgChange(
-                    "organizationSize",
+                    "size",
                     parseInt(e.target.value) || 1,
                   )
                 }
                 placeholder="50"
-                className={`transition-all duration-200 ${errors.organizationSize ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+                className={`transition-all duration-200 ${errors.size ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
               />
-              {errors.organizationSize && (
+              {errors.size && (
                 <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
-                  {errors.organizationSize}
+                  {errors.size}
                 </p>
               )}
             </div>
 
             <div className="space-y-2">
               <Label
-                htmlFor="organizationIndustry"
+                htmlFor="industry"
                 className="text-sm font-semibold"
               >
                 Industry <span className="text-red-500">*</span>
               </Label>
               <Select
-                value={newOrgData.organizationIndustry}
+                value={newOrgData.industry}
                 onValueChange={(value) =>
-                  onNewOrgChange("organizationIndustry", value)
+                  onNewOrgChange("industry", value)
                 }
               >
                 <SelectTrigger
-                  id="organizationIndustry"
+                  id="industry"
                   className={`transition-all duration-200 ${
-                    errors.organizationIndustry
+                    errors.industry
                       ? "border-red-500 shake"
                       : "focus:ring-2 focus:ring-blue-500/20"
                   }`}
@@ -269,9 +269,9 @@ export function OrganizationSection({
                   )}
                 </SelectContent>
               </Select>
-              {errors.organizationIndustry && (
+              {errors.industry && (
                 <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
-                  {errors.organizationIndustry}
+                  {errors.industry}
                 </p>
               )}
             </div>

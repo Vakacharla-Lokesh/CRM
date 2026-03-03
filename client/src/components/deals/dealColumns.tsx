@@ -41,7 +41,7 @@ export const columns = ({
     enableHiding: false,
   },
   {
-    accessorKey: "dealName",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
@@ -55,7 +55,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "dealValue",
+    accessorKey: "value",
     header: ({ column }) => {
       return (
         <Button
@@ -68,7 +68,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const value = row.getValue("dealValue") as number;
+      const value = row.getValue("value") as number;
       return (
         <span className="font-medium">
           ${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}
@@ -77,7 +77,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "dealStatus",
+    accessorKey: "status",
     header: ({ column }) => {
       return (
         <Button
@@ -90,7 +90,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const status = row.getValue("dealStatus") as string;
+      const status = row.getValue("status") as string;
       const statusColors: Record<string, string> = {
         Prospecting:
           "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",

@@ -15,10 +15,10 @@ export interface FormErrors {
   lastName?: string;
   email?: string;
   score?: string;
-  organizationName?: string;
-  organizationWebsite?: string;
-  organizationSize?: string;
-  organizationIndustry?: string;
+  name?: string;
+  website?: string;
+  size?: string;
+  industry?: string;
 }
 
 export interface LeadModalProps {

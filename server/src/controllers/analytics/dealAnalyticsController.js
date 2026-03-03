@@ -9,10 +9,10 @@ export const getDealPipeline = asyncCatch(async (req, res) => {
       { $match: filter },
       {
         $group: {
-          _id: "$dealStatus",
+          _id: "$status",
           count: { $sum: 1 },
-          totalValue: { $sum: "$dealValue" },
-          avgValue: { $avg: "$dealValue" },
+          totalValue: { $sum: "$value" },
+          avgValue: { $avg: "$value" },
         },
       },
       {
@@ -43,7 +43,7 @@ export const getDealPipeline = asyncCatch(async (req, res) => {
             month: { $month: "$createdAt" },
           },
           count: { $sum: 1 },
-          totalValue: { $sum: "$dealValue" },
+          totalValue: { $sum: "$value" },
         },
       },
       { $sort: { "_id.year": 1, "_id.month": 1 } },
@@ -104,10 +104,10 @@ export const getDealTrends = asyncCatch(async (req, res) => {
           date: {
             $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
           },
-          status: "$dealStatus",
+          status: "$status",
         },
         count: { $sum: 1 },
-        value: { $sum: "$dealValue" },
+        value: { $sum: "$value" },
       },
     },
     {

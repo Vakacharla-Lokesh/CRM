@@ -1,5 +1,5 @@
 import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/scoreUtils.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
@@ -308,9 +308,9 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     organizationId: lead.organizationId,
     tenantId: lead.tenantId,
     userId: lead.userId,
-    dealName: `${lead.firstName} ${lead.lastName || ""}`.trim(),
-    dealValue: req.body.dealValue || 0,
-    dealStatus: req.body.dealStatus || "Prospecting",
+    name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
+    value: req.body.value || 0,
+    status: req.body.status || "Prospecting",
   };
 
   const deal = await dealModel.create(dealData);

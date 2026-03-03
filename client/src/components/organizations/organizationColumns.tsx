@@ -43,7 +43,7 @@ export const columns = ({
     enableHiding: false,
   },
   {
-    accessorKey: "organizationName",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
@@ -57,7 +57,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "organizationIndustry",
+    accessorKey: "industry",
     header: ({ column }) => {
       return (
         <Button
@@ -71,7 +71,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "organizationSize",
+    accessorKey: "size",
     header: ({ column }) => {
       return (
         <Button
@@ -84,12 +84,12 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const size = row.getValue("organizationSize") as number;
+      const size = row.getValue("size") as number;
       return size;
     },
   },
   {
-    accessorKey: "organizationWebsite",
+    accessorKey: "website",
     header: ({ column }) => {
       return (
         <Button
@@ -102,7 +102,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const website = row.getValue("organizationWebsite") as string | undefined;
+      const website = row.getValue("website") as string | undefined;
       return website ? (
         <a
           href={website}

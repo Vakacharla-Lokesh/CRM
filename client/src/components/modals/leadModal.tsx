@@ -64,10 +64,10 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     "select",
   );
   const [newOrgData, setNewOrgData] = useState({
-    organizationName: "",
-    organizationWebsite: "",
-    organizationSize: 10,
-    organizationIndustry: "Software",
+    name: "",
+    website: "",
+    size: 10,
+    industry: "Software",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -141,11 +141,11 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
 
       if (organizationMode === "create") {
         const organizationData: CreateOrganizationDTO = {
-          organizationName: newOrgData.organizationName,
-          organizationWebsite: newOrgData.organizationWebsite,
-          organizationSize: newOrgData.organizationSize,
-          organizationIndustry:
-            newOrgData.organizationIndustry as OrganizationIndustry,
+          name: newOrgData.name,
+          website: newOrgData.website,
+          size: newOrgData.size,
+          industry:
+            newOrgData.industry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
 

@@ -22,7 +22,7 @@ import {
   type Deal,
   type UpdateDealDTO,
   type DealStatus,
-  dealStatuses,
+  statuses,
 } from "@/types";
 import DealStatistics from "@/components/deals/dealStatistics";
 import { toast } from "sonner";
@@ -139,7 +139,7 @@ const DealsPage = () => {
       notifyEvent({
         type: "deal_updated",
         title: "Deal Updated",
-        message: `The deal "${dealData.dealName}" has been updated.`,
+        message: `The deal "${dealData.name}" has been updated.`,
         entityId: selectedDeal._id,
         entityType: "deal",
       });
@@ -243,7 +243,7 @@ const DealsPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Stages</SelectItem>
-              {dealStatuses.map((status) => (
+              {statuses.map((status) => (
                 <SelectItem
                   key={status}
                   value={status}
@@ -304,7 +304,7 @@ const DealsPage = () => {
           columns={columns({ onEdit: handleEdit, onDelete: handleDeleteDeal })}
           data={filteredDeals}
           name="Deals"
-          searchColumn="dealName"
+          searchColumn="name"
           onSelectionChange={(rows) =>
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             setSelectedDealIds(rows.map((r: any) => r._id))

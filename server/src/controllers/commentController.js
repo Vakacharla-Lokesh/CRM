@@ -1,6 +1,6 @@
 import commentModel from "../models/commentModel.js";
 import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/scoreUtils.js";
+import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { logActivity } from "../services/leadActivityService.js";

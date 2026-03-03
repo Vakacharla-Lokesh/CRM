@@ -6,9 +6,9 @@ export const createDealSchema = z
     organizationId: z.string().min(1),
     tenantId: z.string().min(1),
     userId: z.string().min(1),
-    dealName: z.string().min(1).max(100),
-    dealValue: z.number().min(0).max(1_000_000).optional(),
-    dealStatus: z.enum([
+    name: z.string().min(1).max(100),
+    value: z.number().min(0).max(1_000_000).optional(),
+    status: z.enum([
       "Prospecting",
       "Qualification",
       "Negotiation",
@@ -21,9 +21,9 @@ export const createDealSchema = z
 
 export const updateDealSchema = z
   .object({
-    dealName: z.string().min(1).max(100).optional(),
-    dealValue: z.number().min(0).max(1_000_000).optional(),
-    dealStatus: z
+    name: z.string().min(1).max(100).optional(),
+    value: z.number().min(0).max(1_000_000).optional(),
+    status: z
       .enum([
         "Prospecting",
         "Qualification",
@@ -38,7 +38,7 @@ export const updateDealSchema = z
 
 export const updateDealStatusSchema = z
   .object({
-    dealStatus: z.enum([
+    status: z.enum([
       "Prospecting",
       "Qualification",
       "Negotiation",

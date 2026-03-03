@@ -50,13 +50,13 @@ export async function updateLeadScore(leadId) {
       throw new Error("Lead not found");
     }
 
-    let organizationSize = 0;
+    let size = 0;
     if (lead.organizationId) {
       const organization = await organizationModel.findById(
         lead.organizationId,
       );
       if (organization) {
-        organizationSize = organization.organizationSize || 0;
+        size = organization.size || 0;
       }
     }
 
@@ -66,7 +66,7 @@ export async function updateLeadScore(leadId) {
 
     const leadData = {
       comments: commentsCount,
-      organization_size: organizationSize,
+      organization_size: size,
       lead_email: lead.email,
       calls: callsCount,
       attachments: attachmentsCount,

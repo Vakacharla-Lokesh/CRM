@@ -75,9 +75,9 @@ export function validateSettingsForm(
 // Deal
 
 export interface DealFormData {
-  dealName: string;
-  dealValue: string;
-  dealStatus: string;
+  name: string;
+  value: string;
+  status: string;
 }
 
 export function validateDealForm(
@@ -85,16 +85,16 @@ export function validateDealForm(
 ): Record<string, string> {
   const errors: Record<string, string> = {};
 
-  if (!formData.dealName.trim()) {
-    errors.dealName = "Deal name is required";
+  if (!formData.name.trim()) {
+    errors.name = "Deal name is required";
   }
 
-  if (!formData.dealValue.trim()) {
-    errors.dealValue = "Deal value is required";
+  if (!formData.value.trim()) {
+    errors.value = "Deal value is required";
   } else {
-    const value = parseFloat(formData.dealValue);
+    const value = parseFloat(formData.value);
     if (isNaN(value) || value < 0) {
-      errors.dealValue = "Deal value must be a positive number";
+      errors.value = "Deal value must be a positive number";
     }
   }
 
@@ -221,10 +221,10 @@ export function validateLoginForm(formData: LoginFormData): LoginFormErrors {
 // New Org (used inside Lead form)
 
 interface NewOrgData {
-  organizationName: string;
-  organizationWebsite: string;
-  organizationSize: number;
-  organizationIndustry: string;
+  name: string;
+  website: string;
+  size: number;
+  industry: string;
 }
 
 // Organization
@@ -233,23 +233,23 @@ export function validateOrganizationForm(
 ): OrgFormErrors {
   const errors: OrgFormErrors = {};
 
-  if (!formData.organizationName.trim()) {
-    errors.organizationName = "Organization name is required";
+  if (!formData.name.trim()) {
+    errors.name = "Organization name is required";
   }
 
-  if (!formData.organizationWebsite.trim()) {
-    errors.organizationWebsite = "Website is required";
-  } else if (!URL_REGEX.test(formData.organizationWebsite)) {
-    errors.organizationWebsite = "Please provide a valid website URL";
+  if (!formData.website.trim()) {
+    errors.website = "Website is required";
+  } else if (!URL_REGEX.test(formData.website)) {
+    errors.website = "Please provide a valid website URL";
   }
 
-  if (formData.organizationSize < 1 || formData.organizationSize > 10_000_000) {
-    errors.organizationSize =
+  if (formData.size < 1 || formData.size > 10_000_000) {
+    errors.size =
       "Organization size must be between 1 and 10,000,000";
   }
 
-  if (!formData.organizationIndustry) {
-    errors.organizationIndustry = "Industry is required";
+  if (!formData.industry) {
+    errors.industry = "Industry is required";
   }
 
   // Optional fields - only validate if provided
@@ -344,26 +344,26 @@ export function validateLeadForm(
   }
 
   if (organizationMode === "create") {
-    if (!newOrgData.organizationName.trim()) {
-      errors.organizationName = "Organization name is required";
+    if (!newOrgData.name.trim()) {
+      errors.name = "Organization name is required";
     }
 
-    if (!newOrgData.organizationWebsite.trim()) {
-      errors.organizationWebsite = "Website is required";
-    } else if (!URL_REGEX.test(newOrgData.organizationWebsite)) {
-      errors.organizationWebsite = "Please provide a valid website URL";
+    if (!newOrgData.website.trim()) {
+      errors.website = "Website is required";
+    } else if (!URL_REGEX.test(newOrgData.website)) {
+      errors.website = "Please provide a valid website URL";
     }
 
     if (
-      newOrgData.organizationSize < 1 ||
-      newOrgData.organizationSize > 10_000_000
+      newOrgData.size < 1 ||
+      newOrgData.size > 10_000_000
     ) {
-      errors.organizationSize =
+      errors.size =
         "Organization size must be between 1 and 10,000,000";
     }
 
-    if (!newOrgData.organizationIndustry) {
-      errors.organizationIndustry = "Industry is required";
+    if (!newOrgData.industry) {
+      errors.industry = "Industry is required";
     }
   }
 

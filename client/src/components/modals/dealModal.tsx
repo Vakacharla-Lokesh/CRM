@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  dealStatuses,
+  statuses,
   type Deal,
   type UpdateDealDTO,
   type DealStatus,
@@ -38,14 +38,14 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   const [formData, setFormData] = useState<DealFormData>(
     deal
       ? {
-          dealName: deal.dealName || "",
-          dealValue: deal.dealValue?.toString() || "",
-          dealStatus: deal.dealStatus || "Prospecting",
+          name: deal.name || "",
+          value: deal.value?.toString() || "",
+          status: deal.status || "Prospecting",
         }
       : {
-          dealName: "",
-          dealValue: "",
-          dealStatus: "Prospecting",
+          name: "",
+          value: "",
+          status: "Prospecting",
         },
   );
 
@@ -80,9 +80,9 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
 
     try {
       const dealData: UpdateDealDTO = {
-        dealName: formData.dealName.trim(),
-        dealValue: parseFloat(formData.dealValue),
-        dealStatus: formData.dealStatus as DealStatus,
+        name: formData.name.trim(),
+        value: parseFloat(formData.value),
+        status: formData.status as DealStatus,
       };
 
       await onSave(dealData);
@@ -103,9 +103,9 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
   const handleClose = () => {
     if (!isSubmitting) {
       setFormData({
-        dealName: "",
-        dealValue: "",
-        dealStatus: "Prospecting",
+        name: "",
+        value: "",
+        status: "Prospecting",
       });
       setErrors({});
       onClose();
@@ -131,56 +131,56 @@ const DealModal = ({ isOpen, deal, onClose, onSave }: DealModalProps) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Deal Name */}
             <div className="space-y-2">
-              <Label htmlFor="dealName">
+              <Label htmlFor="name">
                 Deal Name <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="dealName"
-                value={formData.dealName}
-                onChange={(e) => handleChange("dealName", e.target.value)}
+                id="name"
+                value={formData.name}
+                onChange={(e) => handleChange("name", e.target.value)}
                 placeholder="Enter deal name"
-                className={errors.dealName ? "border-red-500" : ""}
+                className={errors.name ? "border-red-500" : ""}
               />
-              {errors.dealName && (
-                <p className="text-sm text-red-500">{errors.dealName}</p>
+              {errors.name && (
+                <p className="text-sm text-red-500">{errors.name}</p>
               )}
             </div>
 
             {/* Deal Value */}
             <div className="space-y-2">
-              <Label htmlFor="dealValue">
+              <Label htmlFor="value">
                 Deal Value <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="dealValue"
+                id="value"
                 type="number"
                 step="1"
                 min={1}
                 max={10_00_00_000}
-                value={formData.dealValue}
-                onChange={(e) => handleChange("dealValue", e.target.value)}
+                value={formData.value}
+                onChange={(e) => handleChange("value", e.target.value)}
                 placeholder="Enter deal value"
-                className={errors.dealValue ? "border-red-500" : ""}
+                className={errors.value ? "border-red-500" : ""}
               />
-              {errors.dealValue && (
-                <p className="text-sm text-red-500">{errors.dealValue}</p>
+              {errors.value && (
+                <p className="text-sm text-red-500">{errors.value}</p>
               )}
             </div>
 
             {/* Deal Status */}
             <div className="space-y-2">
-              <Label htmlFor="dealStatus">Deal Status</Label>
+              <Label htmlFor="status">Deal Status</Label>
               <Select
-                value={formData.dealStatus}
+                value={formData.status}
                 onValueChange={(value) =>
-                  handleChange("dealStatus", value as DealStatus)
+                  handleChange("status", value as DealStatus)
                 }
               >
-                <SelectTrigger id="dealStatus">
+                <SelectTrigger id="status">
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {dealStatuses.map((status) => (
+                  {statuses.map((status) => (
                     <SelectItem
                       key={status}
                       value={status}

@@ -11,9 +11,9 @@ const dealsSchema = new Schema(
     },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
     userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
-    dealName: { type: String, minLength: 1, maxLength: 100, required: true },
-    dealValue: { type: Number, min: 0, max: 10_00_000, default: 0 },
-    dealStatus: {
+    name: { type: String, minLength: 1, maxLength: 100, required: true },
+    value: { type: Number, min: 0, max: 10_00_000, default: 0 },
+    status: {
       type: String,
       enum: [
         "Prospecting",
@@ -33,14 +33,14 @@ const dealsSchema = new Schema(
 // Indexes
 dealsSchema.index({ leadId: 1, createdAt: -1 });
 dealsSchema.index({ tenantId: 1 });
-// dealsSchema.index(
-//   { idempotencyKey: 1 },
-//   { unique: true, sparse: true, name: "idempotency_key_unique" },
-// );
+dealsSchema.index(
+  { idempotencyKey: 1 },
+  { unique: true, sparse: true, name: "idempotency_key_unique" },
+);
 
 // search index
 dealsSchema.index({
-  dealName: "text",
+  name: "text",
 });
 
 export default model("Deals", dealsSchema);

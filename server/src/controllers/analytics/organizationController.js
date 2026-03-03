@@ -16,10 +16,10 @@ export const getOrganizationStats = asyncCatch(async (req, res) => {
     },
     {
       $group: {
-        _id: "$organizationIndustry",
+        _id: "$industry",
         organizationCount: { $sum: 1 },
-        totalSize: { $sum: "$organizationSize" },
-        avgSize: { $avg: "$organizationSize" },
+        totalSize: { $sum: "$size" },
+        avgSize: { $avg: "$size" },
         totalLeads: { $sum: { $size: "$leads" } },
         convertedLeads: {
           $sum: {
@@ -92,9 +92,9 @@ export const getTopOrganizations = asyncCatch(async (req, res) => {
     },
     {
       $project: {
-        organizationName: 1,
-        organizationIndustry: 1,
-        organizationSize: 1,
+        name: 1,
+        industry: 1,
+        size: 1,
         totalLeads: { $size: "$leads" },
         convertedLeads: {
           $size: {
@@ -106,7 +106,7 @@ export const getTopOrganizations = asyncCatch(async (req, res) => {
           },
         },
         totalDeals: { $size: "$deals" },
-        totalDealValue: { $sum: "$deals.dealValue" },
+        totalDealValue: { $sum: "$deals.value" },
         wonDealValue: {
           $sum: {
             $map: {
@@ -114,11 +114,11 @@ export const getTopOrganizations = asyncCatch(async (req, res) => {
                 $filter: {
                   input: "$deals",
                   as: "d",
-                  cond: { $eq: ["$$d.dealStatus", "Won"] },
+                  cond: { $eq: ["$$d.status", "Won"] },
                 },
               },
               as: "wd",
-              in: "$$wd.dealValue",
+              in: "$$wd.value",
             },
           },
         },

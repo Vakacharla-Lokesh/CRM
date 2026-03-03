@@ -5,7 +5,7 @@ export async function seedDeals(tenants, users, leads, organizations) {
   await Deal.deleteMany({});
 
   const allDeals = [];
-  const dealStatuses = [
+  const statuses = [
     "Prospecting",
     "Qualification",
     "Negotiation",
@@ -13,7 +13,7 @@ export async function seedDeals(tenants, users, leads, organizations) {
     "Won",
     "Lost",
   ];
-  const dealNames = [
+  const names = [
     "Q1 Licensing Agreement",
     "Enterprise Support Contract",
     "Custom Development",
@@ -56,16 +56,16 @@ export async function seedDeals(tenants, users, leads, organizations) {
       const randomUser =
         tenantUsers[Math.floor(Math.random() * tenantUsers.length)];
       const randomStatus =
-        dealStatuses[Math.floor(Math.random() * dealStatuses.length)];
+        statuses[Math.floor(Math.random() * statuses.length)];
 
       tenantDeals.push({
         tenantId: tenant._id,
         leadId: randomLead._id,
         organizationId: randomOrg._id,
         userId: randomUser._id,
-        dealName: `${dealNames[i % dealNames.length]} - ${randomOrg.organizationName}`,
-        dealValue: (Math.floor(Math.random() * 100) + 10) * 1000, // $10k - $110k
-        dealStatus: randomStatus,
+        name: `${names[i % names.length]} - ${randomOrg.name}`,
+        value: (Math.floor(Math.random() * 100) + 10) * 1000, // $10k - $110k
+        status: randomStatus,
         // idempotencyKey is omitted - it's optional for seeding
       });
     }

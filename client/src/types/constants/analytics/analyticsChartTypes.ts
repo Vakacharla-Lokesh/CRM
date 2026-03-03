@@ -47,11 +47,11 @@ export const GROUP_BY_OPTIONS: Record<
     { value: "createdAt", label: "Created Month" },
   ],
   deals: [
-    { value: "dealStatus", label: "Deal Status" },
+    { value: "status", label: "Deal Status" },
     { value: "createdAt", label: "Created Month" },
   ],
   organizations: [
-    { value: "organizationIndustry", label: "Industry" },
+    { value: "industry", label: "Industry" },
     { value: "createdAt", label: "Created Month" },
   ],
 };
