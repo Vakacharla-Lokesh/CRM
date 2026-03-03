@@ -76,7 +76,7 @@ function formatUser(user) {
     _id: user._id,
     firstName: user.firstName,
     lastName: user.lastName,
-    userEmail: user.userEmail,
+    email: user.email,
     mobile: user.mobile,
     role: user.role,
     roleId: user.roleId?._id,
@@ -87,20 +87,20 @@ function formatUser(user) {
 }
 
 export const register = asyncCatch(async (req, res) => {
-  const { password, tenantName, ...userData } = req.body;
+  const { password, name, ...userData } = req.body;
 
   const existingUser = await userModel.findOne({
-    userEmail: userData.userEmail,
+    email: userData.email,
   });
   if (existingUser) {
     throw new AppError("User with this email already exists", 409);
   }
 
   let tenantId = userData.tenantId;
-  if (tenantName && !tenantId) {
+  if (name && !tenantId) {
     const tenant = await tenantModel.create({
-      tenantName,
-      email: userData.userEmail,
+      name,
+      email: userData.email,
       mobile: userData.mobile || "0000000000",
     });
     tenantId = tenant._id;
@@ -217,7 +217,7 @@ export const getProfile = asyncCatch(async (req, res) => {
       id: user._id,
       firstName: user.firstName,
       lastName: user.lastName,
-      userEmail: user.userEmail,
+      email: user.email,
       mobile: user.mobile,
       role: user.role,
     },
@@ -242,7 +242,7 @@ export const checkToken = (req, res) => {
 export const requestPasswordResetOTP = asyncCatch(async (req, res) => {
   const { email } = req.body;
 
-  const user = await userModel.findOne({ userEmail: email });
+  const user = await userModel.findOne({ email: email });
   if (!user) {
     return res.json({
       message: "If an account exists, an OTP has been sent to your email",
@@ -334,7 +334,7 @@ export const resetPassword = asyncCatch(async (req, res) => {
     throw new AppError("Invalid reset token.", 400);
   }
 
-  const user = await userModel.findOne({ userEmail: decoded.email });
+  const user = await userModel.findOne({ email: decoded.email });
   if (!user) throw new AppError("User not found.", 404);
 
   user.password = newPassword;

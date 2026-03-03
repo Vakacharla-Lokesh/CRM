@@ -1,7 +1,7 @@
 import type { User } from "./user";
 
 export interface LoginRequest {
-  userEmail: string;
+  email: string;
   password: string;
 }
 
@@ -10,9 +10,9 @@ export type LoginCredentials = LoginRequest;
 export interface RegisterRequest {
   firstName: string;
   lastName?: string;
-  userEmail: string;
+  email: string;
   password: string;
-  tenantName: string;
+  name: string;
 }
 
 export type SignupData = RegisterRequest;

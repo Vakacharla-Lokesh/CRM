@@ -41,22 +41,22 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
       setError(null);
       setSuccess(false);
 
-      if (!formData.leadFirstName.trim()) {
+      if (!formData.firstName.trim()) {
         setError("First name is required");
         return;
       }
 
-      if (!formData.leadEmail.trim()) {
+      if (!formData.email.trim()) {
         setError("Email is required");
         return;
       }
 
       updateLead(lead._id, {
-        leadFirstName: formData.leadFirstName,
-        leadLastName: formData.leadLastName || "",
-        leadEmail: formData.leadEmail,
-        leadSource: formData.leadSource,
-        leadStatus: formData.leadStatus,
+        firstName: formData.firstName,
+        lastName: formData.lastName || "",
+        email: formData.email,
+        source: formData.source,
+        status: formData.status,
       });
 
       onUpdate(formData);
@@ -95,8 +95,8 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           <Label htmlFor="firstName">First Name *</Label>
           <Input
             id="firstName"
-            value={formData.leadFirstName}
-            onChange={(e) => handleInputChange("leadFirstName", e.target.value)}
+            value={formData.firstName}
+            onChange={(e) => handleInputChange("firstName", e.target.value)}
             placeholder="Enter first name"
             className="border-gray-300 dark:border-gray-600"
           />
@@ -106,8 +106,8 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           <Label htmlFor="lastName">Last Name</Label>
           <Input
             id="lastName"
-            value={formData.leadLastName || ""}
-            onChange={(e) => handleInputChange("leadLastName", e.target.value)}
+            value={formData.lastName || ""}
+            onChange={(e) => handleInputChange("lastName", e.target.value)}
             placeholder="Enter last name"
             className="border-gray-300 dark:border-gray-600"
           />
@@ -118,8 +118,8 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           <Input
             id="email"
             type="email"
-            value={formData.leadEmail}
-            onChange={(e) => handleInputChange("leadEmail", e.target.value)}
+            value={formData.email}
+            onChange={(e) => handleInputChange("email", e.target.value)}
             placeholder="Enter email address"
             className="border-gray-300 dark:border-gray-600"
           />
@@ -128,8 +128,8 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         <div className="space-y-2">
           <Label htmlFor="source">Lead Source</Label>
           <Select
-            value={formData.leadSource}
-            onValueChange={(value) => handleInputChange("leadSource", value)}
+            value={formData.source}
+            onValueChange={(value) => handleInputChange("source", value)}
           >
             <SelectTrigger
               id="source"
@@ -152,12 +152,12 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           </Select>
         </div>
 
-        {formData.leadStatus != "Converted" && (
+        {formData.status != "Converted" && (
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select
-              value={formData.leadStatus}
-              onValueChange={(value) => handleInputChange("leadStatus", value)}
+              value={formData.status}
+              onValueChange={(value) => handleInputChange("status", value)}
             >
               <SelectTrigger
                 id="status"
@@ -184,13 +184,13 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             </p>
           </div>
           <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-            {formData.leadScore}
+            {formData.score}
           </span>
         </div>
         <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
-            style={{ width: `${formData.leadScore}%` }}
+            style={{ width: `${formData.score}%` }}
           />
         </div>
         <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">

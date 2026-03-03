@@ -7,14 +7,14 @@ import { Progress } from "../ui/progress";
 
 function PipelineSection({
   analyticsLoading,
-  leadStatusBreakdown,
+  statusBreakdown,
   orgStatsData,
   maxOrgCount,
   maxLeadCount,
   maxConvertedCount,
 }: {
   analyticsLoading: boolean;
-  leadStatusBreakdown: { status: string; count: number; percentage: number }[];
+  statusBreakdown: { status: string; count: number; percentage: number }[];
   orgStatsData: {
     industry: string;
     organizations: number;
@@ -68,7 +68,7 @@ function PipelineSection({
 
         {analyticsLoading ? (
           <SkeletonRows count={4} />
-        ) : leadStatusBreakdown.length === 0 ? (
+        ) : statusBreakdown.length === 0 ? (
           <EmptyState
             icon={<Users className="w-12 h-12" />}
             message="No status data"
@@ -76,7 +76,7 @@ function PipelineSection({
           />
         ) : (
           <div className="space-y-4">
-            {leadStatusBreakdown.map((item) => (
+            {statusBreakdown.map((item) => (
               <div
                 key={item.status}
                 className="space-y-1.5"

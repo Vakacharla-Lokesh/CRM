@@ -42,7 +42,7 @@ const userSchema = new mongoose.Schema(
     tenantId: { type: mongoose.Schema.Types.ObjectId, required: true },
     firstName: { type: String, required: true },
     lastName: { type: String },
-    userEmail: {
+    email: {
       type: String,
       unique: true,
       match: [
@@ -81,7 +81,7 @@ userSchema.index({ tenantId: 1, roleId: 1 });
 userSchema.index({
   firstName: "text",
   lastName: "text",
-  userEmail: "text",
+  email: "text",
 });
 
 const roleSchema = new mongoose.Schema(
@@ -102,7 +102,7 @@ const roleSchema = new mongoose.Schema(
 
 const tenantSchema = new mongoose.Schema(
   {
-    tenantName: { type: String, required: true },
+    name: { type: String, required: true },
     email: { type: String, required: true },
     mobile: { type: String, required: true },
     isActive: { type: Boolean, default: true },
@@ -269,7 +269,7 @@ async function generateUsersForTenant(tenantId, tenantIndex, roleMap) {
       tenantId,
       firstName,
       lastName,
-      userEmail: generateEmail(firstName, lastName, tenantIndex),
+      email: generateEmail(firstName, lastName, tenantIndex),
       mobile: generateMobile(),
       role,
       roleId,
@@ -362,7 +362,7 @@ async function seedUsers() {
       tenantId: tenants[0]._id, // Associate with first tenant for reference
       firstName: "System",
       lastName: "Administrator",
-      userEmail: "admin@crmsystem.com",
+      email: "admin@crmsystem.com",
       mobile: "9999999999",
       role: "super_admin",
       roleId: null, // Super admin doesn't need roleId
@@ -381,7 +381,7 @@ async function seedUsers() {
         `\n#${idx + 1}${isSuperAdmin ? " 🔐 GLOBAL SUPER ADMIN" : ""}`,
       );
       console.log(`  Name:    ${user.firstName} ${user.lastName}`);
-      console.log(`  Email:   ${user.userEmail}`);
+      console.log(`  Email:   ${user.email}`);
       console.log(`  Mobile:  ${user.mobile}`);
       console.log(
         `  Role:    ${user.role}${isSuperAdmin ? " (System-wide access)" : ""}`,

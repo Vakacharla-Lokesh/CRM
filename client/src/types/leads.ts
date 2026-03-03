@@ -21,36 +21,36 @@ export interface Lead {
   organizationId?: string;
   userId: string;
   tenantId: string;
-  leadFirstName: string;
-  leadLastName?: string | null;
-  leadEmail: string;
-  leadSource: LeadSource;
+  firstName: string;
+  lastName?: string | null;
+  email: string;
+  source: LeadSource;
   /** 0 – 100 */
-  leadScore: number;
-  leadStatus: LeadStatus;
+  score: number;
+  status: LeadStatus;
   createdAt: Date;
   updatedAt: Date;
 }
 
 export interface CreateLeadDTO {
   organizationId?: string;
-  leadFirstName: string;
-  leadLastName?: string;
-  leadEmail: string;
-  leadSource?: LeadSource;
-  leadScore?: number;
-  leadStatus: LeadStatus;
+  firstName: string;
+  lastName?: string;
+  email: string;
+  source?: LeadSource;
+  score?: number;
+  status: LeadStatus;
   tenantId: string;
 }
 
 export interface UpdateLeadDTO {
   organizationId?: string;
-  leadFirstName?: string;
-  leadLastName?: string;
-  leadEmail?: string;
-  leadSource?: LeadSource;
-  leadScore?: number;
-  leadStatus?: LeadStatus;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  source?: LeadSource;
+  score?: number;
+  status?: LeadStatus;
   userId?: string;
 }
 
@@ -76,8 +76,8 @@ export function isLead(obj: unknown): obj is Lead {
     typeof obj === "object" &&
     obj !== null &&
     typeof (obj as Lead)._id === "string" &&
-    typeof (obj as Lead).leadEmail === "string" &&
-    typeof (obj as Lead).leadStatus === "string"
+    typeof (obj as Lead).email === "string" &&
+    typeof (obj as Lead).status === "string"
   );
 }
 
@@ -111,8 +111,8 @@ export interface LeadWithComputed extends Lead {
 export function enrichLead(lead: Lead): LeadWithComputed {
   return {
     ...lead,
-    fullName: `${lead.leadFirstName} ${lead.leadLastName ?? ""}`.trim(),
-    statusColor: getLeadStatusColor(lead.leadStatus),
-    scoreColor: getLeadScoreColor(lead.leadScore),
+    fullName: `${lead.firstName} ${lead.lastName ?? ""}`.trim(),
+    statusColor: getLeadStatusColor(lead.status),
+    scoreColor: getLeadScoreColor(lead.score),
   };
 }

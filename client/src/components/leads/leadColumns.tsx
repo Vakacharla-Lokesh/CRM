@@ -41,7 +41,7 @@ export const columns = ({
     enableHiding: false,
   },
   {
-    accessorKey: "leadFirstName",
+    accessorKey: "firstName",
     header: ({ column }) => {
       return (
         <Button
@@ -55,7 +55,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "leadLastName",
+    accessorKey: "lastName",
     header: ({ column }) => {
       return (
         <Button
@@ -69,7 +69,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "leadEmail",
+    accessorKey: "email",
     header: ({ column }) => {
       return (
         <Button
@@ -82,7 +82,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const email = row.getValue("leadEmail") as string | undefined;
+      const email = row.getValue("email") as string | undefined;
       return email ? (
         <a
           href={`mailto:${email}?subject=Regarding%20Campaign%20Flux&body=Hi%20there,%0D%0A`}
@@ -98,7 +98,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "leadScore",
+    accessorKey: "score",
     header: ({ column }) => {
       return (
         <Button
@@ -111,7 +111,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const score = row.getValue("leadScore") as number;
+      const score = row.getValue("score") as number;
       const getScoreColor = (score: number) => {
         if (score >= 80) return "text-green-600 dark:text-green-400";
         if (score >= 60) return "text-blue-600 dark:text-blue-400";
@@ -124,7 +124,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "leadStatus",
+    accessorKey: "status",
     header: ({ column }) => {
       return (
         <Button
@@ -137,7 +137,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const status = row.getValue("leadStatus") as string;
+      const status = row.getValue("status") as string;
       const getStatusColor = (status: string) => {
         const colors: Record<string, string> = {
           New: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
@@ -159,7 +159,7 @@ export const columns = ({
     },
   },
   {
-    accessorKey: "leadSource",
+    accessorKey: "source",
     header: ({ column }) => {
       return (
         <Button

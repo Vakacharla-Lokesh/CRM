@@ -9,7 +9,7 @@ function DashboardPage() {
 
   const {
     leadTrends,
-    leadStatusBreakdown,
+    statusBreakdown,
     organizationStats,
     dealPipeline,
     dealPipelineSummary,
@@ -130,7 +130,7 @@ function DashboardPage() {
 
       <PipelineSection
         analyticsLoading={analyticsLoading}
-        leadStatusBreakdown={leadStatusBreakdown}
+        statusBreakdown={statusBreakdown}
         orgStatsData={orgStatsData}
         maxOrgCount={maxOrgCount}
         maxLeadCount={maxLeadCount}

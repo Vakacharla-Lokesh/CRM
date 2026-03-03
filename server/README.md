@@ -109,7 +109,7 @@ Most routes apply a chain of three middleware functions before the controller:
 
 Two strategies are registered in `config/passport.js`:
 
-- **`LocalStrategy`** — Used at login. Looks up user by `userEmail`, compares password with `bcryptjs`. Username field is `userEmail`.
+- **`LocalStrategy`** — Used at login. Looks up user by `email`, compares password with `bcryptjs`. Username field is `email`.
 - **`JwtStrategy`** — Used on all protected routes. Extracts the bearer token, verifies it with `JWT_SECRET`, and hydrates `req.user` from the DB.
 
 Tokens are signed with `jsonwebtoken` and expire after 24 hours.
@@ -132,7 +132,7 @@ Base path: `/api`
 
 | Method | Path | Auth | Roles | Description |
 |---|---|---|---|---|
-| POST | `/register` | None | — | Creates a new user and tenant (if `tenantName` provided). Returns JWT. |
+| POST | `/register` | None | — | Creates a new user and tenant (if `name` provided). Returns JWT. |
 | POST | `/login` | None | — | Authenticates with email + password via LocalStrategy. Returns JWT. |
 | POST | `/logout` | None | — | Stateless logout (client discards token). Returns success message. |
 | POST | `/refresh` | JWT | — | Issues a new JWT using the existing valid token. |

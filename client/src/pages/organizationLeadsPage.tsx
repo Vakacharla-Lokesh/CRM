@@ -122,7 +122,7 @@ const OrganizationLeadsPage = () => {
             })}
             data={leads}
             name="Leads"
-            searchColumn="leadFirstName"
+            searchColumn="firstName"
           />
         </>
       )}

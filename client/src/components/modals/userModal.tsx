@@ -35,7 +35,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       ? {
           firstName: user.firstName,
           lastName: user.lastName || "",
-          userEmail: user.userEmail,
+          email: user.email,
           mobile: user.mobile || "",
           role: user.role,
           roleId: user.roleId ?? "",
@@ -45,7 +45,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       : {
           firstName: "",
           lastName: "",
-          userEmail: "",
+          email: "",
           mobile: "",
           role: "user",
           roleId: "",
@@ -90,7 +90,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       const userData: CreateUserDTO = {
         firstName: formData.firstName,
         lastName: formData.lastName || undefined,
-        userEmail: formData.userEmail,
+        email: formData.email,
         password: formData.password,
         mobile: formData.mobile || undefined,
         role: formData.role,
@@ -119,7 +119,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
       const userData: CreateUserDTO = {
         firstName: formData.firstName,
         lastName: formData.lastName || undefined,
-        userEmail: formData.userEmail,
+        email: formData.email,
         password: formData.password,
         mobile: formData.mobile || undefined,
         role: formData.role,
@@ -191,14 +191,14 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
           </div>
 
           <FormField
-            id="userEmail"
+            id="email"
             label="Email"
             type="email"
-            value={formData.userEmail}
-            onChange={(value) => handleInputChange("userEmail", value)}
+            value={formData.email}
+            onChange={(value) => handleInputChange("email", value)}
             placeholder="john.doe@example.com"
             required
-            error={errors.userEmail}
+            error={errors.email}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

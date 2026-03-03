@@ -86,7 +86,7 @@ const TenantsPage = () => {
         notifyEvent({
           type: "tenant_updated",
           title: "Tenant Updated",
-          message: `Tenant ${tenantData.tenantName} has been updated successfully.`,
+          message: `Tenant ${tenantData.name} has been updated successfully.`,
           entityId: selectedTenant._id,
           entityType: "tenant",
         });
@@ -98,7 +98,7 @@ const TenantsPage = () => {
         notifyEvent({
           type: "tenant_created",
           title: "Tenant Created",
-          message: `Tenant ${tenantData.tenantName} has been created successfully.`,
+          message: `Tenant ${tenantData.name} has been created successfully.`,
           entityId: "",
           entityType: "tenant",
         });
@@ -254,7 +254,7 @@ const TenantsPage = () => {
           })}
           data={filteredTenants}
           name="Tenants"
-          searchColumn="tenantName"
+          searchColumn="name"
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}

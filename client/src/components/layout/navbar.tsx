@@ -102,7 +102,7 @@ function Navbar({
             >
               <div className="p-4 border-b border-border">
                 <p className="text-sm font-medium truncate">
-                  {user?.userEmail || "guest@example.com"}
+                  {user?.email || "guest@example.com"}
                 </p>
               </div>
 

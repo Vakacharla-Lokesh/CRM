@@ -19,7 +19,7 @@ import { validateTenantForm } from "@/utils/formValidators";
 
 function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   const [formData, setFormData] = useState<TenantFormData>({
-    tenantName: "",
+    name: "",
     email: "",
     mobile: "",
   });
@@ -43,7 +43,7 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
 
     try {
       const tenantData: CreateTenantDto = {
-        tenantName: formData.tenantName,
+        name: formData.name,
         email: formData.email,
         mobile: formData.mobile.replace(/[^0-9]/g, ""),
       };
@@ -93,13 +93,13 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
           className="space-y-6 py-4"
         >
           <FormField
-            id="tenantName"
+            id="name"
             label="Tenant Name"
-            value={formData.tenantName}
-            onChange={(value) => handleInputChange("tenantName", value)}
+            value={formData.name}
+            onChange={(value) => handleInputChange("name", value)}
             placeholder="Acme Corporation"
             required
-            error={errors.tenantName}
+            error={errors.name}
           />
 
           <FormField

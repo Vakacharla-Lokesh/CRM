@@ -32,13 +32,13 @@ const migrateSuperAdminGlobalTenant = async () => {
 
     // 1. Create or find GLOBAL_SYSTEM tenant
     let globalTenant = await Tenant.findOne({
-      tenantName: GLOBAL_TENANT_NAME,
+      name: GLOBAL_TENANT_NAME,
       isSystemTenant: true,
     });
 
     if (!globalTenant) {
       globalTenant = await Tenant.create({
-        tenantName: GLOBAL_TENANT_NAME,
+        name: GLOBAL_TENANT_NAME,
         email: "system@global.com",
         mobile: "9999999999",
         isActive: true,
@@ -91,9 +91,9 @@ const migrateSuperAdminGlobalTenant = async () => {
         user.roleId = systemRole._id;
         await user.save();
         updated++;
-        console.log(`  ✅ Updated: ${user.userEmail}`);
+        console.log(`  ✅ Updated: ${user.email}`);
       } else {
-        console.log(`  ⏭️  Already migrated: ${user.userEmail}`);
+        console.log(`  ⏭️  Already migrated: ${user.email}`);
       }
     }
 

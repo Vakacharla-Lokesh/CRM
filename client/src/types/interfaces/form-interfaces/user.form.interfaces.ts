@@ -3,7 +3,7 @@ import type { CreateUserDTO, User, UserRole } from "@/types";
 export interface UserFormData {
   firstName: string;
   lastName: string;
-  userEmail: string;
+  email: string;
   mobile: string;
   role: UserRole;
   roleId?: string;
@@ -14,7 +14,7 @@ export interface UserFormData {
 export interface FormErrors {
   firstName?: string;
   lastName?: string;
-  userEmail?: string;
+  email?: string;
   mobile?: string;
   password?: string;
   tenantId?: string;

@@ -16,7 +16,7 @@ export const getAllTenants = asyncCatch(async (req, res) => {
   if (req.query.search) {
     const searchRegex = new RegExp(req.query.search, "i");
     filter.$or = [
-      { tenantName: searchRegex },
+      { name: searchRegex },
       { email: searchRegex },
       { mobile: searchRegex },
     ];
@@ -66,7 +66,7 @@ export const createTenant = asyncCatch(async (req, res) => {
       [
         {
           firstName: "admin",
-          userEmail: tenant[0].email,
+          email: tenant[0].email,
           password: randomPassword,
           tenantId: tenant[0]._id,
           role: "admin",
@@ -177,7 +177,7 @@ export const searchTenants = asyncCatch(async (req, res) => {
             {
               text: {
                 query: q.trim(),
-                path: ["tenantName", "email"],
+                path: ["name", "email"],
                 fuzzy: {
                   maxEdits: 1,
                   prefixLength: 2,
@@ -217,7 +217,7 @@ export const searchTenants = asyncCatch(async (req, res) => {
     },
     {
       $project: {
-        tenantName: 1,
+        name: 1,
         email: 1,
         mobile: 1,
         isActive: 1,

@@ -7,8 +7,8 @@ export type WidgetEntity = "leads" | "deals" | "organizations";
 export type WidgetMetric = "count" | "sum" | "avg";
 
 export type GroupByField =
-  | "leadStatus"
-  | "leadSource"
+  | "status"
+  | "source"
   | "dealStatus"
   | "organizationIndustry"
   | "createdAt";

@@ -11,13 +11,13 @@ const ENTITY_MODEL_MAP = {
 };
 
 const ALLOWED_GROUP_BY = {
-  leads: ["leadStatus", "leadSource", "createdAt"],
+  leads: ["status", "source", "createdAt"],
   deals: ["dealStatus", "createdAt"],
   organizations: ["organizationIndustry", "createdAt"],
 };
 
 const ALLOWED_METRIC_FIELDS = {
-  leads: { sum: "leadScore", avg: "leadScore" },
+  leads: { sum: "score", avg: "score" },
   deals: { sum: "dealValue", avg: "dealValue" },
   organizations: { sum: "organizationSize", avg: "organizationSize" },
 };
@@ -68,7 +68,7 @@ export const computeChartData = async (widgetConfig, tenantId) => {
   }
 
   const SAFE_FILTER_KEYS = {
-    leads: ["leadStatus", "leadSource"],
+    leads: ["status", "source"],
     deals: ["dealStatus"],
     organizations: ["organizationIndustry"],
   };

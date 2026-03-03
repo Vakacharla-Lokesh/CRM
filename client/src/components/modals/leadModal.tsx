@@ -42,21 +42,21 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const [formData, setFormData] = useState<LeadFormData>(
     lead
       ? {
-          leadFirstName: lead.leadFirstName,
-          leadLastName: lead.leadLastName || "",
-          leadEmail: lead.leadEmail,
-          leadSource: lead.leadSource,
-          leadStatus: lead.leadStatus,
-          leadScore: lead.leadScore,
+          firstName: lead.firstName,
+          lastName: lead.lastName || "",
+          email: lead.email,
+          source: lead.source,
+          status: lead.status,
+          score: lead.score,
           organizationId: lead.organizationId || "",
         }
       : {
-          leadFirstName: "",
-          leadLastName: "",
-          leadEmail: "",
-          leadSource: "API",
-          leadStatus: "New",
-          leadScore: 0,
+          firstName: "",
+          lastName: "",
+          email: "",
+          source: "API",
+          status: "New",
+          score: 0,
           organizationId: "",
         },
   );
@@ -73,8 +73,8 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const leadSourceOptions = mapToSelectOptions(LEAD_SOURCES);
-  const leadStatusOptions = mapToSelectOptions(LEAD_STATUSES);
+  const sourceOptions = mapToSelectOptions(LEAD_SOURCES);
+  const statusOptions = mapToSelectOptions(LEAD_STATUSES);
 
   useEffect(() => {
     if (isOpen) {
@@ -109,11 +109,11 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       }
 
       const leadData: CreateLeadDTO = {
-        leadFirstName: formData.leadFirstName,
-        leadLastName: formData.leadLastName || undefined,
-        leadEmail: formData.leadEmail,
-        leadSource: formData.leadSource,
-        leadStatus: formData.leadStatus,
+        firstName: formData.firstName,
+        lastName: formData.lastName || undefined,
+        email: formData.email,
+        source: formData.source,
+        status: formData.status,
         organizationId: formData.organizationId || undefined,
         tenantId: user?.tenantId || "tenant-1",
       };
@@ -155,11 +155,11 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       }
 
       const leadData: CreateLeadDTO = {
-        leadFirstName: formData.leadFirstName,
-        leadLastName: formData.leadLastName || undefined,
-        leadEmail: formData.leadEmail,
-        leadSource: formData.leadSource,
-        leadStatus: formData.leadStatus,
+        firstName: formData.firstName,
+        lastName: formData.lastName || undefined,
+        email: formData.email,
+        source: formData.source,
+        status: formData.status,
         organizationId: organizationId || undefined,
         tenantId: user?.tenantId || "tenant-1",
       };
@@ -238,52 +238,52 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           <div className="overflow-y-auto px-6 py-4 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
-                id="leadFirstName"
+                id="firstName"
                 label="First Name"
-                value={formData.leadFirstName}
-                onChange={(value) => handleInputChange("leadFirstName", value)}
+                value={formData.firstName}
+                onChange={(value) => handleInputChange("firstName", value)}
                 placeholder="John"
                 required
-                error={errors.leadFirstName}
+                error={errors.firstName}
               />
 
               <FormField
-                id="leadLastName"
+                id="lastName"
                 label="Last Name"
-                value={formData.leadLastName}
-                onChange={(value) => handleInputChange("leadLastName", value)}
+                value={formData.lastName}
+                onChange={(value) => handleInputChange("lastName", value)}
                 placeholder="Doe"
               />
             </div>
 
             <FormField
-              id="leadEmail"
+              id="email"
               label="Email"
               type="email"
-              value={formData.leadEmail}
-              onChange={(value) => handleInputChange("leadEmail", value)}
+              value={formData.email}
+              onChange={(value) => handleInputChange("email", value)}
               placeholder="john.doe@example.com"
               required
-              error={errors.leadEmail}
+              error={errors.email}
             />
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormSelect
-                id="leadSource"
+                id="source"
                 label="Lead Source"
-                value={formData.leadSource}
-                onChange={(value) => handleInputChange("leadSource", value)}
+                value={formData.source}
+                onChange={(value) => handleInputChange("source", value)}
                 placeholder="Select source"
-                options={leadSourceOptions}
+                options={sourceOptions}
               />
 
               <FormSelect
-                id="leadStatus"
+                id="status"
                 label="Lead Status"
-                value={formData.leadStatus}
-                onChange={(value) => handleInputChange("leadStatus", value)}
+                value={formData.status}
+                onChange={(value) => handleInputChange("status", value)}
                 placeholder="Select status"
-                options={leadStatusOptions}
+                options={statusOptions}
               />
             </div>
 
@@ -297,12 +297,12 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                     <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                       <div
                         className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
-                        style={{ width: `${formData.leadScore}%` }}
+                        style={{ width: `${formData.score}%` }}
                       />
                     </div>
                   </div>
                   <span className="text-lg font-bold text-blue-600 dark:text-blue-400 min-w-12 text-right">
-                    {formData.leadScore}
+                    {formData.score}
                   </span>
                 </div>
                 <p className="text-xs text-gray-500 dark:text-gray-400">

@@ -4,7 +4,7 @@ import { Schema, model } from "mongoose";
 const tenantSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "tenantId", auto: true },
-    tenantName: { type: String, required: true },
+    name: { type: String, required: true },
     email: {
       type: String,
       required: true,
@@ -26,7 +26,7 @@ const tenantSchema = new Schema(
 
 // search index
 tenantSchema.index({
-  tenantName: "text",
+  name: "text",
   email: "text",
 });
 

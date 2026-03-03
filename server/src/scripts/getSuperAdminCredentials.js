@@ -22,7 +22,7 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
-  userEmail: String,
+  email: String,
   tenantId: mongoose.Schema.Types.ObjectId,
   role: String,
   roleId: mongoose.Schema.Types.ObjectId,
@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const tenantSchema = new mongoose.Schema({
-  tenantName: String,
+  name: String,
   email: String,
 });
 
@@ -80,17 +80,17 @@ async function getSuperAdminCredentials() {
 
     // Get tenant name for reference
     const tenant = await TenantModel.findById(admin.tenantId);
-    const tenantName = tenant?.tenantName || "Unknown";
+    const name = tenant?.name || "Unknown";
 
     console.log(`Name:        ${admin.firstName} ${admin.lastName}`);
     console.log(`────────────────────────────────────────────────────`);
-    console.log(`Email:       ${admin.userEmail}`);
+    console.log(`Email:       ${admin.email}`);
     console.log(`Password:    TestPassword123!`);
     console.log(`Role:        ${admin.role.toUpperCase()}`);
     console.log(`Access:      🌍 GLOBAL (entire system)`);
     console.log(`Status:      ${admin.isActive ? "✅ Active" : "❌ Inactive"}`);
     console.log(`User ID:     ${admin._id}`);
-    console.log(`Ref Tenant:  ${tenantName}`);
+    console.log(`Ref Tenant:  ${name}`);
     console.log("");
 
     console.log("═".repeat(70));
@@ -98,7 +98,7 @@ async function getSuperAdminCredentials() {
     console.log("═".repeat(70) + "\n");
 
     console.log("1. Go to login page: http://localhost:3000/login");
-    console.log(`2. Email:    ${superAdmins[0].userEmail}`);
+    console.log(`2. Email:    ${superAdmins[0].email}`);
     console.log("3. Password: TestPassword123!");
     console.log("4. Click Login");
     console.log("");

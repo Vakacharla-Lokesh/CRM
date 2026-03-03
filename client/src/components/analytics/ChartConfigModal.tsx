@@ -56,7 +56,7 @@ function ChartConfigModal({
     initialWidget?.metric ?? "count",
   );
   const [groupBy, setGroupBy] = useState<GroupByField>(
-    initialWidget?.groupBy ?? "leadStatus",
+    initialWidget?.groupBy ?? "status",
   );
 
   const handleEntityChange = (val: WidgetEntity) => {

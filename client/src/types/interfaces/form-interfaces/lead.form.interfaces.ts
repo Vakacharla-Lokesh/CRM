@@ -1,20 +1,20 @@
 import type { CreateLeadDTO, Lead, LeadSource, LeadStatus } from "../../leads";
 
 export interface LeadFormData {
-  leadFirstName: string;
-  leadLastName: string;
-  leadEmail: string;
-  leadSource: LeadSource;
-  leadStatus: LeadStatus;
-  leadScore: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+  source: LeadSource;
+  status: LeadStatus;
+  score: number;
   organizationId: string;
 }
 
 export interface FormErrors {
-  leadFirstName?: string;
-  leadLastName?: string;
-  leadEmail?: string;
-  leadScore?: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  score?: string;
   organizationName?: string;
   organizationWebsite?: string;
   organizationSize?: string;

@@ -17,12 +17,12 @@ import tenantModel from "../models/tenantModel.js";
 passport.use(
   new LocalStrategy(
     {
-      usernameField: "userEmail",
+      usernameField: "email",
       passwordField: "password",
     },
-    async (userEmail, password, done) => {
+    async (email, password, done) => {
       try {
-        const user = await userModel.findOne({ userEmail }).select("+password");
+        const user = await userModel.findOne({ email }).select("+password");
 
         if (!user) {
           return done(null, false, { message: "Invalid credentials" });

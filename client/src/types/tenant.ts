@@ -1,7 +1,7 @@
 export interface Tenant {
   _id: string;
   tenantId: string;
-  tenantName: string;
+  name: string;
   email: string;
   mobile: string;
   createdAt: string;
@@ -9,13 +9,13 @@ export interface Tenant {
 }
 
 export interface CreateTenantDto {
-  tenantName: string;
+  name: string;
   email: string;
   mobile: string;
 }
 
 export interface UpdateTenantDto {
-  tenantName?: string;
+  name?: string;
   email?: string;
   mobile?: string;
 }

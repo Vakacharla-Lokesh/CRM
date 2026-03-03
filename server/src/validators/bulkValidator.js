@@ -37,12 +37,12 @@ const bulkLeadItemSchema = z.object({
   organizationId: z.string().min(1).optional(),
   userId: z.string().min(1).optional(),
   tenantId: z.string().min(1).optional(),
-  leadFirstName: z.string().min(1),
-  leadLastName: z.string().nullable().optional(),
-  leadEmail: z.email("Invalid email format").optional(),
-  leadSource: z.enum(LEAD_SOURCES).optional(),
-  leadScore: z.number().min(0).max(100).optional(),
-  leadStatus: z.enum(LEAD_STATUSES),
+  firstName: z.string().min(1),
+  lastName: z.string().nullable().optional(),
+  email: z.email("Invalid email format").optional(),
+  source: z.enum(LEAD_SOURCES).optional(),
+  score: z.number().min(0).max(100).optional(),
+  status: z.enum(LEAD_STATUSES),
 });
 
 export const bulkCreateLeadsSchema = z
@@ -60,12 +60,12 @@ export const bulkCreateLeadsSchema = z
 
 const bulkLeadUpdateItemSchema = z.object({
   id: z.string().min(1, "Lead id is required"),
-  leadFirstName: z.string().min(1).optional(),
-  leadLastName: z.string().optional(),
-  leadEmail: z.email().optional(),
-  leadSource: z.enum(LEAD_SOURCES).optional(),
-  leadScore: z.number().min(0).max(100).optional(),
-  leadStatus: z.enum(LEAD_STATUSES).optional(),
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().optional(),
+  email: z.email().optional(),
+  source: z.enum(LEAD_SOURCES).optional(),
+  score: z.number().min(0).max(100).optional(),
+  status: z.enum(LEAD_STATUSES).optional(),
 });
 
 export const bulkUpdateLeadsSchema = z

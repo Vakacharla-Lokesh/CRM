@@ -43,7 +43,7 @@ export const columns = ({
     enableHiding: false,
   },
   {
-    accessorKey: "tenantName",
+    accessorKey: "name",
     header: ({ column }) => {
       return (
         <Button
@@ -56,7 +56,7 @@ export const columns = ({
       );
     },
     cell: ({ row }) => {
-      const name = row.getValue("tenantName") as string;
+      const name = row.getValue("name") as string;
       return <span className="font-medium">{name}</span>;
     },
   },

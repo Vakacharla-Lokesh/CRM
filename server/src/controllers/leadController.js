@@ -1,5 +1,5 @@
 import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import { updateLeadScore } from "../utils/scoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/AppError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
@@ -19,10 +19,10 @@ export const getAllLeads = asyncCatch(async (req, res) => {
 
   // Server-side filters
   if (req.query.status) {
-    filter.leadStatus = req.query.status;
+    filter.status = req.query.status;
   }
   if (req.query.source) {
-    filter.leadSource = req.query.source;
+    filter.source = req.query.source;
   }
 
   if (cursor) {
@@ -98,7 +98,7 @@ export const createLead = asyncCatch(async (req, res) => {
     leadId: lead._id,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.CREATED,
-    description: `Lead "${lead.leadFirstName} ${lead.leadLastName || ""}" was created`,
+    description: `Lead "${lead.firstName} ${lead.lastName || ""}" was created`,
     userId: req.user.userId,
   });
 
@@ -150,7 +150,7 @@ export const updateLead = asyncCatch(async (req, res) => {
     leadId: req.params.id,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.UPDATED,
-    description: `Lead "${leadWithScore.leadFirstName} ${leadWithScore.leadLastName || ""}" was updated`,
+    description: `Lead "${leadWithScore.firstName} ${leadWithScore.lastName || ""}" was updated`,
     metadata: { changes: Object.keys(req.body) },
     userId: req.user.userId,
   });
@@ -221,7 +221,7 @@ export const getLeadsByOrganization = asyncCatch(async (req, res) => {
 });
 
 export const updateLeadStatus = asyncCatch(async (req, res) => {
-  const { leadStatus } = req.body;
+  const { status } = req.body;
   const lead = await leadModel.findById(req.params.id);
 
   if (!lead) throw new AppError("Lead not found", 404);
@@ -233,8 +233,8 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
 
-  const previousStatus = lead.leadStatus;
-  lead.leadStatus = leadStatus;
+  const previousStatus = lead.status;
+  lead.status = status;
   await lead.save();
 
   // Recalculate lead score after status change
@@ -255,8 +255,8 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
     leadId: req.params.id,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.STATUS_CHANGED,
-    description: `Lead status changed from "${previousStatus}" to "${leadStatus}"`,
-    metadata: { from: previousStatus, to: leadStatus },
+    description: `Lead status changed from "${previousStatus}" to "${status}"`,
+    metadata: { from: previousStatus, to: status },
     userId: req.user.userId,
   });
 
@@ -267,7 +267,7 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
 });
 
 export const updateLeadScoreManually = asyncCatch(async (req, res) => {
-  const { leadScore } = req.body;
+  const { score } = req.body;
   const lead = await leadModel.findById(req.params.id);
 
   if (!lead) throw new AppError("Lead not found", 404);
@@ -279,7 +279,7 @@ export const updateLeadScoreManually = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot update this lead", 403);
   }
 
-  lead.leadScore = leadScore;
+  lead.score = score;
   await lead.save();
 
   res.json({ message: "Lead score updated successfully", lead });
@@ -297,7 +297,7 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot convert this lead", 403);
   }
 
-  if (lead.leadStatus === "Converted") {
+  if (lead.status === "Converted") {
     throw new AppError("Lead has already been converted to a deal", 400);
   }
 
@@ -308,14 +308,14 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     organizationId: lead.organizationId,
     tenantId: lead.tenantId,
     userId: lead.userId,
-    dealName: `${lead.leadFirstName} ${lead.leadLastName || ""}`.trim(),
+    dealName: `${lead.firstName} ${lead.lastName || ""}`.trim(),
     dealValue: req.body.dealValue || 0,
     dealStatus: req.body.dealStatus || "Prospecting",
   };
 
   const deal = await dealModel.create(dealData);
 
-  lead.leadStatus = "Converted";
+  lead.status = "Converted";
   await lead.save();
 
   await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
@@ -324,7 +324,7 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     leadId: lead._id,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.CONVERTED_TO_DEAL,
-    description: `Lead "${lead.leadFirstName} ${lead.leadLastName || ""}" was converted to a deal`,
+    description: `Lead "${lead.firstName} ${lead.lastName || ""}" was converted to a deal`,
     metadata: { dealId: deal._id },
     userId: req.user.userId,
   });
@@ -350,13 +350,13 @@ export const searchLeads = asyncCatch(async (req, res) => {
   const searchRegex = new RegExp(q.trim(), "i");
 
   filter.$or = [
-    { leadFirstName: searchRegex },
-    { leadLastName: searchRegex },
-    { leadEmail: searchRegex },
+    { firstName: searchRegex },
+    { lastName: searchRegex },
+    { email: searchRegex },
   ];
 
-  if (status) filter.leadStatus = status;
-  if (source) filter.leadSource = source;
+  if (status) filter.status = status;
+  if (source) filter.source = source;
 
   const leads = await leadModel
     .find(filter)

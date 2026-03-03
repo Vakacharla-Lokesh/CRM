@@ -27,7 +27,7 @@ export const getOrganizationStats = asyncCatch(async (req, res) => {
               $filter: {
                 input: "$leads",
                 as: "lead",
-                cond: { $eq: ["$$lead.leadStatus", "Converted"] },
+                cond: { $eq: ["$$lead.status", "Converted"] },
               },
             },
           },
@@ -101,7 +101,7 @@ export const getTopOrganizations = asyncCatch(async (req, res) => {
             $filter: {
               input: "$leads",
               as: "l",
-              cond: { $eq: ["$$l.leadStatus", "Converted"] },
+              cond: { $eq: ["$$l.status", "Converted"] },
             },
           },
         },

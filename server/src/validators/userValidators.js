@@ -4,7 +4,7 @@ export const createUserSchema = z
   .object({
     firstName: z.string().min(1),
     lastName: z.string().optional(),
-    userEmail: z.email("Please provide a valid email address").optional(),
+    email: z.email("Please provide a valid email address").optional(),
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
@@ -19,7 +19,7 @@ export const updateUserSchema = z
   .object({
     firstName: z.string().min(1).optional(),
     lastName: z.string().optional(),
-    userEmail: z.email().optional(),
+    email: z.email().optional(),
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/)

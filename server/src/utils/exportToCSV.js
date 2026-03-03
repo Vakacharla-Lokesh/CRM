@@ -5,12 +5,12 @@ import AppError from "../utils/AppError.js";
 
 export const EXPORT_COLUMNS = {
   leads: [
-    "leadFirstName",
-    "leadLastName",
-    "leadEmail",
-    "leadSource",
-    "leadStatus",
-    "leadScore",
+    "firstName",
+    "lastName",
+    "email",
+    "source",
+    "status",
+    "score",
     "createdAt",
     "updatedAt",
   ],

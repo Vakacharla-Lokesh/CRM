@@ -23,7 +23,7 @@ export function useBulkDeleteLeads() {
       // Invalidate leads-related query caches
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
       await queryClient.invalidateQueries({
-        queryKey: ["analytics", "leadStatusBreakdown"],
+        queryKey: ["analytics", "statusBreakdown"],
       });
 
       return result;
