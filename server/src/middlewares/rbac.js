@@ -1,5 +1,5 @@
 import rolePermissionCache from "../config/cache.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import mongoose from "mongoose";
 
 export const requirePermission = (...requiredPermissions) => {

@@ -5,9 +5,8 @@ import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
 import RefreshToken from "../models/refreshTokenModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
-
-import redis from "../config/redis.js";
+import AppError from "../utils/appError.js";
+import { otpCache } from "../config/cache.js";
 import emailController from "./emailController.js";
 
 const OTP_EXPIRY_MINUTES = 5;
@@ -253,15 +252,13 @@ export const requestPasswordResetOTP = asyncCatch(async (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const redisKey = `otp:${email}`;
 
-  await redis.set(redisKey, JSON.stringify({ otp, attempts: 0 }), {
-    ex: OTP_EXPIRY_MINUTES * 60,
-  });
+  await otpCache.set(redisKey, JSON.stringify({ otp, attempts: 0 }), OTP_EXPIRY_MINUTES * 60);
 
   try {
     await emailController.sendOTPEmail(email, otp);
   } catch (emailError) {
     console.error("Email sending failed:", emailError);
-    await redis.del(redisKey);
+    await otpCache.delete(redisKey);
     throw new AppError("Failed to send OTP. Please try again.", 500);
   }
 
@@ -275,7 +272,7 @@ export const verifyPasswordResetOTP = asyncCatch(async (req, res) => {
   const { email, otp } = req.body;
 
   const redisKey = `otp:${email}`;
-  const raw = await redis.get(redisKey);
+  const raw = await otpCache.get(redisKey);
 
   if (!raw) {
     throw new AppError(
@@ -287,7 +284,7 @@ export const verifyPasswordResetOTP = asyncCatch(async (req, res) => {
   const record = typeof raw === "string" ? JSON.parse(raw) : raw;
 
   if (record.attempts >= MAX_OTP_ATTEMPTS) {
-    await redis.del(redisKey);
+    await otpCache.delete(redisKey);
     throw new AppError(
       "Too many failed attempts. Please request a new OTP.",
       429,
@@ -296,13 +293,13 @@ export const verifyPasswordResetOTP = asyncCatch(async (req, res) => {
 
   if (record.otp !== otp) {
     record.attempts += 1;
-    await redis.set(redisKey, JSON.stringify(record), { keepttl: true });
+    await otpCache.set(redisKey, JSON.stringify(record), OTP_EXPIRY_MINUTES * 60);
     const attemptsLeft = MAX_OTP_ATTEMPTS - record.attempts;
     throw new AppError(`Invalid OTP. ${attemptsLeft} attempts remaining.`, 400);
   }
 
   // Valid — delete OTP immediately
-  await redis.del(redisKey);
+  await otpCache.delete(redisKey);
 
   const resetToken = jwt.sign(
     { email, type: "password-reset" },
@@ -340,7 +337,7 @@ export const resetPassword = asyncCatch(async (req, res) => {
   user.password = newPassword;
   await user.save();
 
-  await redis.del(`otp:${decoded.email}`);
+  await otpCache.delete(`otp:${decoded.email}`);
 
   try {
     await emailController.sendPasswordResetConfirmation(decoded.email);

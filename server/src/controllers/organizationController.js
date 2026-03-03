@@ -1,6 +1,6 @@
 import organizationModel from "../models/organizationModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { bulkDeleteOrganizations } from "../services/bulkDeleteService.js";
 

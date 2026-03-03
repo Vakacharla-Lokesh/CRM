@@ -1,7 +1,7 @@
 import leadModel from "../models/leadModel.js";
 import { getActivitiesByLead } from "../services/leadActivityService.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 
 export const getLeadActivities = asyncCatch(async (req, res) => {
   const lead = await leadModel.findById(req.params.id).lean();

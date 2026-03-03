@@ -1,7 +1,7 @@
 import Role from "../models/roleModel.js";
 import rolePermissionCache from "../config/cache.js";
 import passport from "../config/passport.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { requestStore } from "../utils/requestContext.js";
 
 export const authenticateRequest = (req, res, next) => {

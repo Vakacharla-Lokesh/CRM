@@ -1,7 +1,7 @@
 import userModel from "../models/userModel.js";
 import bcrypt from "bcryptjs";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import Role from "../models/roleModel.js";
 
 // Get all users
@@ -59,7 +59,8 @@ export const getAllUsers = asyncCatch(async (req, res) => {
 export const getUserById = asyncCatch(async (req, res) => {
   const user = await userModel.findById(req.params.id);
 
-  if (!user || user.role === "super_admin") throw new AppError("User not found", 404);
+  if (!user || user.role === "super_admin")
+    throw new AppError("User not found", 404);
 
   res.json({ user });
 });

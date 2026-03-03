@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import Role from "../models/roleModel.js";
 import User from "../models/userModel.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { invalidateRoleCache } from "../middlewares/rbac.js";
 
 export const validateRoleOwnership = async (roleId, tenantId) => {

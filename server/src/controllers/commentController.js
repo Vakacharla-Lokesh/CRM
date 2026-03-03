@@ -2,7 +2,7 @@ import commentModel from "../models/commentModel.js";
 import leadModel from "../models/leadModel.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 

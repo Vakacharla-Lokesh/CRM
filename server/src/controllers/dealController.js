@@ -1,6 +1,6 @@
 import dealModel from "../models/dealModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 
 import { bulkDeleteDeals } from "../services/bulkDeleteService.js";

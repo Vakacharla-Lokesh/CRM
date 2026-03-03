@@ -1,7 +1,7 @@
 import leadModel from "../models/leadModel.js";
 import organizationModel from "../models/organizationModel.js";
 import dealModel from "../models/dealModel.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 
 export const EXPORT_COLUMNS = {
   leads: [

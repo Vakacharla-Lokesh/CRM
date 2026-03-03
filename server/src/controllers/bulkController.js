@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import commentModel from "../models/commentModel.js";

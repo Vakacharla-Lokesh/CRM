@@ -1,7 +1,7 @@
 import workflowModel from "../models/workflows/workflowModel.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 
 export const getAllWorkflows = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};

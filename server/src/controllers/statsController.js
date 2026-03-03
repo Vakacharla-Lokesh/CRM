@@ -1,5 +1,5 @@
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import {
   getUsersStatsService,
   getTenantsStatsService,
