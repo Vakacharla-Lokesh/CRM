@@ -38,7 +38,7 @@ class RedisCache {
   async clear() {
     try {
       await redis.flushdb();
-      console.log(`[Cache Clear]:`)
+      console.log(`[Cache Clear]:`);
     } catch (err) {
       console.error("Cache CLEAR error:", err);
     }
@@ -66,5 +66,7 @@ class RedisCache {
 }
 
 export const rolePermissionCache = new RedisCache();
+
+export const otpCache = new RedisCache();
 
 export default rolePermissionCache;

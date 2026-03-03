@@ -15,16 +15,10 @@ export const captureRequestContext = (req, res, next) => {
   next();
 };
 
-export async function fireWorkflowTrigger(
-  req,
-  entityType,
-  action,
-  entityId,
-  newData,
-) {
-  if (!req.user?.userId) return;
+export const fireWorkflowTrigger = asyncCatch(
+  async (req, entityType, action, entityId, newData) => {
+    if (!req.user?.userId) return;
 
-  try {
     const matchingWorkflows = await workflowModel.find({
       createdBy: req.user.userId,
       isActive: true,
@@ -49,10 +43,8 @@ export async function fireWorkflowTrigger(
         newData,
       );
     }
-  } catch (error) {
-    console.error("Workflow trigger error:", error);
-  }
-}
+  },
+);
 
 function evaluateTriggerConditions(conditions, data) {
   if (!Array.isArray(conditions) || conditions.length === 0) {
@@ -95,14 +87,8 @@ function getNestedValue(obj, path) {
   return path.split(".").reduce((current, part) => current?.[part], obj);
 }
 
-async function queueWorkflowExecution(
-  tenantId,
-  workflow,
-  entityType,
-  entityId,
-  entityData,
-) {
-  try {
+const queueWorkflowExecution = asyncCatch(
+  async (tenantId, workflow, entityType, entityId, entityData) => {
     const executionLog = await workflowExecutionLogModel.create({
       tenantId,
       workflowId: workflow._id,
@@ -148,10 +134,8 @@ async function queueWorkflowExecution(
       $inc: { totalExecutions: 1 },
       lastExecuted: new Date(),
     });
-  } catch (error) {
-    console.error("Failed to queue workflow:", error);
-  }
-}
+  },
+);
 
 export default {
   captureRequestContext,

@@ -4,7 +4,7 @@ import userModel from "../models/userModel.js";
 import tenantModel from "../models/tenantModel.js";
 import emailController from "./emailController.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 
 // Get all tenants
 export const getAllTenants = asyncCatch(async (req, res) => {

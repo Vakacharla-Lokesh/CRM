@@ -1,5 +1,5 @@
 import { asyncCatch } from "../utils/asyncCatch.js";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 import exportService, { EXPORT_COLUMNS } from "../utils/exportToCSV.js";
 import { format } from "fast-csv";
 import { jobDispatcher } from "../services/jobs/jobDispatcher.js";

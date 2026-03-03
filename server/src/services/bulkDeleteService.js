@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import AppError from "../utils/AppError.js";
+import AppError from "../utils/appError.js";
 
 import leadModel from "../models/leadModel.js";
 import organizationModel from "../models/organizationModel.js";

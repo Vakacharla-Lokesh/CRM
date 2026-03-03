@@ -177,3 +177,7 @@ TODO 02/03/2026
 webhook connections to other projects?
 
 >>>otp logic to redis
+
+pm2 start ecosystem.config.js
+
+pm2 stop ecosystem.config.js
