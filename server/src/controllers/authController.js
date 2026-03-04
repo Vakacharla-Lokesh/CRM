@@ -11,7 +11,8 @@ import emailController from "./emailController.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
-const REFRESH_TOKEN_EXPIRY_DAYS = 7;
+const AUTH_TOKEN_EXPIRY_MINUTES = 30;
+const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 const MAX_OTP_ATTEMPTS = 5;
 
 const IS_PROD = process.env.NODE_ENV === "production";
@@ -21,14 +22,14 @@ function setAuthCookies(res, accessToken, refreshToken) {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: IS_PROD ? "strict" : "lax",
-    maxAge: 15 * 60 * 1000,
+    maxAge: AUTH_TOKEN_EXPIRY_MINUTES * 60 * 1000,
   });
 
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: IS_PROD ? "strict" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    maxAge: REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
     path: "/api/auth/refresh",
   });
 }
@@ -39,18 +40,14 @@ function clearAuthCookies(res) {
 }
 
 const generateAccessToken = (user) => {
-  const roleId =
-    user.roleId?._id?.toString() ?? user.roleId?.toString() ?? null;
-
   return jwt.sign(
     {
-      userId: user._id,
-      roleId,
+      userId: user._id ?? user.userId,
       tenantId: user.tenantId,
       role: user.role,
     },
     process.env.JWT_SECRET,
-    { expiresIn: "15m" },
+    { expiresIn: `${AUTH_TOKEN_EXPIRY_MINUTES}m` },
   );
 };
 
@@ -71,16 +68,23 @@ async function generateAndStoreRefreshToken(payload) {
 }
 
 function formatUser(user) {
+  const permissions = user.permissions
+    ? Object.entries(
+        user.permissions instanceof Map
+          ? Object.fromEntries(user.permissions)
+          : user.permissions,
+      )
+        .filter(([, v]) => v === true)
+        .map(([k]) => k)
+    : [];
+
   return {
-    _id: user._id,
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
     mobile: user.mobile,
     role: user.role,
-    roleId: user.roleId?._id,
-    roleName: user.roleId?.name,
-    permissions: user.roleId?.permissions || [],
+    permissions,
     tenantId: user.tenantId,
   };
 }
@@ -209,17 +213,10 @@ export const refreshToken = asyncCatch(async (req, res) => {
 });
 
 export const getProfile = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.user.userId);
+  const user = await userModel.findById(req.user.email).populate("roleId");
   if (!user) throw new AppError("User not found", 404);
   res.json({
-    user: {
-      id: user._id,
-      firstName: user.firstName,
-      lastName: user.lastName,
-      email: user.email,
-      mobile: user.mobile,
-      role: user.role,
-    },
+    user: formatUser(user),
   });
 });
 
@@ -252,7 +249,11 @@ export const requestPasswordResetOTP = asyncCatch(async (req, res) => {
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const redisKey = `otp:${email}`;
 
-  await otpCache.set(redisKey, JSON.stringify({ otp, attempts: 0 }), OTP_EXPIRY_MINUTES * 60);
+  await otpCache.set(
+    redisKey,
+    JSON.stringify({ otp, attempts: 0 }),
+    OTP_EXPIRY_MINUTES * 60,
+  );
 
   try {
     await emailController.sendOTPEmail(email, otp);
@@ -293,7 +294,11 @@ export const verifyPasswordResetOTP = asyncCatch(async (req, res) => {
 
   if (record.otp !== otp) {
     record.attempts += 1;
-    await otpCache.set(redisKey, JSON.stringify(record), OTP_EXPIRY_MINUTES * 60);
+    await otpCache.set(
+      redisKey,
+      JSON.stringify(record),
+      OTP_EXPIRY_MINUTES * 60,
+    );
     const attemptsLeft = MAX_OTP_ATTEMPTS - record.attempts;
     throw new AppError(`Invalid OTP. ${attemptsLeft} attempts remaining.`, 400);
   }

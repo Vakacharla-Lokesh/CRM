@@ -104,7 +104,6 @@ async function ensureQueue(queueName) {
   }
 }
 
-
 export async function ensureAwsInitialized() {
   if (_initPromise) return _initPromise;
 
@@ -122,7 +121,6 @@ export async function ensureAwsInitialized() {
     queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites);
     queueUrls.exportData = await ensureQueue(QUEUES.exportData);
 
-    // EventBridge Rules (best-effort)
     try {
       const { eventBridgeAdapter } =
         await import("./queue/eventbridge.adapter.js");
@@ -131,13 +129,60 @@ export async function ensureAwsInitialized() {
         process.env.LAMBDA_JOB_PROCESSOR_ARN ||
         "arn:aws:lambda:us-east-1:000000000000:function:crm-job-processor";
 
+      const eventBridgeRoleArn =
+        process.env.EVENTBRIDGE_ROLE_ARN ||
+        "arn:aws:iam::000000000000:role/eventbridge-lambda-role";
+
+      console.log("[AWS] Setting up EventBridge-to-Lambda dispatching...");
+
+      const offlineWritesPattern = {
+        source: ["aws.sqs"],
+        detail: {
+          eventSource: ["aws:sqs"],
+          eventSourceARN: [
+            `arn:aws:sqs:${REGION}:000000000000:${QUEUES.offlineWrites}`,
+          ],
+        },
+      };
+
+      await eventBridgeAdapter.ensureEventPatternRule(
+        "crm-offline-writes-dispatcher",
+        offlineWritesPattern,
+        lambdaArn,
+        eventBridgeRoleArn,
+      );
+
+      const exportDataPattern = {
+        source: ["aws.sqs"],
+        detail: {
+          eventSource: ["aws:sqs"],
+          eventSourceARN: [
+            `arn:aws:sqs:${REGION}:000000000000:${QUEUES.exportData}`,
+          ],
+        },
+      };
+
+      await eventBridgeAdapter.ensureEventPatternRule(
+        "crm-export-data-dispatcher",
+        exportDataPattern,
+        lambdaArn,
+        eventBridgeRoleArn,
+      );
+
       await eventBridgeAdapter.ensureScheduleRule(
         "crm-lead-reminder-schedule",
         "cron(0 10 * * ? *)",
         lambdaArn,
       );
+
+      console.log(
+        "[AWS] ✓ EventBridge dispatchers configured (replaces localRunner polling)",
+      );
     } catch (err) {
-      console.warn("[AWS] EventBridge setup skipped:", err.message);
+      console.warn("[AWS] EventBridge setup incomplete:", err.message);
+      console.warn(
+        "[AWS] Job processing may require local queue polling fallback.",
+      );
     }
 
     console.log("[AWS] All resources ready.");

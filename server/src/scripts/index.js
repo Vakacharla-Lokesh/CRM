@@ -8,15 +8,11 @@ import { seedWorkflows } from "./seedWorkflows.js";
 
 import tenantModel from "../../src/models/tenantModel.js";
 import userModel from "../../src/models/userModel.js";
-import roleModel from "../../src/models/roleModel.js";
 
 dotenv.config({ path: "../../.env" });
 
 const MONGODB_URI = process.env.DB_URI || "mongodb://localhost:27017/crm";
 
-/**
- * Main seed orchestrator
- */
 async function seed() {
   try {
     console.log(chalk.blue.bold("\n🌱 Starting database seed...\n"));

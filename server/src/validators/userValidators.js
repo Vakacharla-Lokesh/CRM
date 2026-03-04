@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ALL_PERMISSIONS } from "../models/permissionPresets.js";
 
 export const createUserSchema = z
   .object({
@@ -60,3 +61,15 @@ export const updateProfileSchema = z
     position: z.string().optional(),
   })
   .strict();
+
+export const assignPermissionsSchema = z.object({
+  permissions: z
+    .array(
+      z.string().refine(
+        (p) => ALL_PERMISSIONS.includes(p),
+        (p) => ({ message: `Invalid permission: ${p}` }),
+      ),
+    )
+    .min(1, "At least one permission is required"),
+  role: z.enum(["user", "admin", "super_admin"]).optional(),
+});

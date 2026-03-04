@@ -3,6 +3,7 @@ import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import { periodDates, pctChange } from "../utils/dateFormat.js";
+import { dashboardCache } from "../config/cache.js";
 export {
   getLeadTrends,
   getLeadStatusBreakdown,
@@ -21,6 +22,14 @@ export {
 
 export const getDashboardStats = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
+  const cacheKey = `dashboard_stats_${JSON.stringify(filter)}`;
+
+  // Check cache first
+  const cachedData = await dashboardCache.get(cacheKey);
+  if (cachedData) {
+    return res.json(JSON.parse(cachedData));
+  }
+
   const { currentStart, currentEnd, previousStart, previousEnd } =
     periodDates(30);
 
@@ -40,10 +49,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       {
         $facet: {
           total: [{ $count: "count" }],
-          converted: [
-            { $match: { status: "Converted" } },
-            { $count: "count" },
-          ],
+          converted: [{ $match: { status: "Converted" } }, { $count: "count" }],
           currentPeriod: [
             {
               $match: {
@@ -109,10 +115,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       {
         $facet: {
           total: [{ $count: "count" }],
-          converted: [
-            { $match: { status: "Converted" } },
-            { $count: "count" },
-          ],
+          converted: [{ $match: { status: "Converted" } }, { $count: "count" }],
         },
       },
     ]),
@@ -169,7 +172,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       ? (previousConvertedLeads / previousPeriodLeads) * 100
       : 0;
 
-  res.json({
+  const response = {
     stats: {
       totalLeads,
       convertedLeads,
@@ -193,5 +196,10 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       previousStart,
       previousEnd,
     },
-  });
+  };
+
+  // Cache the response for 5 minutes (300 seconds)
+  await dashboardCache.set(cacheKey, JSON.stringify(response), 300);
+
+  res.json(response);
 });

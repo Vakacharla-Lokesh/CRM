@@ -1,8 +1,13 @@
-import emailController from "../controllers/emailController.js";
 import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
+
+import emailController from "../controllers/emailController.js";
+import {
+  sendSlackMessageWithRetry,
+  buildSlackVariables,
+} from "./slackService.js";
 
 class WorkflowExecutionEngine {
   constructor() {}
@@ -91,6 +96,9 @@ class WorkflowExecutionEngine {
       case "create_task":
         return await this.executeCreateTask(action, entity, tenantId);
 
+      case "webhook":
+        return await this.executeWebhook(action, entity);
+
       default:
         throw new Error(`Unknown action type: ${action.type}`);
     }
@@ -146,6 +154,39 @@ class WorkflowExecutionEngine {
 
     return {
       message: `Task created: "${resolvedTitle}" assigned to ${resolvedAssignee}`,
+    };
+  }
+
+  async executeWebhook(action, entity) {
+    const { webhookUrl, messageTemplate } = action;
+
+    // Validate
+    if (!webhookUrl) {
+      throw new Error("Webhook action missing webhookUrl");
+    }
+    if (!messageTemplate) {
+      throw new Error("Webhook action missing messageTemplate");
+    }
+
+    // Build variables for Slack message
+    const variables = buildSlackVariables(entity.data, entity.type, null);
+
+    // Send with retry
+    const result = await sendSlackMessageWithRetry(
+      webhookUrl,
+      messageTemplate,
+      variables,
+      2, // max retries
+    );
+
+    if (!result.success) {
+      throw new Error(`Slack webhook failed: ${result.error}`);
+    }
+
+    console.log(`✓ Slack sent (${result.attempts} attempt(s))`);
+
+    return {
+      message: `Slack notification sent (${result.attempts} attempt(s))`,
     };
   }
 

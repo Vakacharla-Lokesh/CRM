@@ -30,7 +30,6 @@ import bulkRoutes from "./routes/bulkRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
 import workflowRoutes from "./routes/workflowRoutes.js";
 import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
-import roleRoutes from "./routes/roleRoutes.js";
 import statsRoutes from "./routes/statsRoutes.js";
 
 // error handler middlewares
@@ -40,7 +39,7 @@ import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 import "./config/initDb.js";
 
 // rate limiter function
-import { limiter } from "./utils/rateLimit.js";
+import { globalLimiter } from "./middlewares/rateLimit.js";
 
 // redis caching file
 import "./config/redis.js";
@@ -97,7 +96,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(passport.initialize());
 
 // rate limiter package for express
-app.use(limiter);
+app.use(globalLimiter);
 
 // health check
 app.get("/health", (req, res) => {
@@ -119,7 +118,6 @@ app.use("/api/bulk", bulkRoutes);
 app.use("/api/export", exportRoutes);
 app.use("/api/workflows", workflowRoutes);
 app.use("/api/user-analytics", userAnalyticsRoutes);
-app.use("/api/roles", roleRoutes);
 app.use("/api/stats", statsRoutes);
 
 // unknown route handler

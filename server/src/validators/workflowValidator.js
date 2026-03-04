@@ -15,13 +15,7 @@ const conditionSchema = z.object({
 });
 
 const actionSchema = z.object({
-  type: z.enum([
-    "send_email",
-    "update_field",
-    "create_task",
-    "webhook",
-    "export_s3",
-  ]),
+  type: z.enum(["send_email", "update_field", "create_task", "webhook"]),
   // send_email fields
   emailTemplate: z.string().optional(),
   recipient: z.string().optional(),
@@ -30,14 +24,11 @@ const actionSchema = z.object({
   // update_field fields
   targetField: z.string().optional(),
   value: z.unknown().optional(),
-  // webhook fields
+  // webhook fields (Slack integration)
   webhookUrl: z.string().url().optional(),
   method: z.enum(["POST", "PUT"]).optional(),
   payload: z.unknown().optional(),
-  // export_s3 fields
-  format: z.enum(["csv", "json"]).optional(),
-  bucket: z.string().optional(),
-  prefix: z.string().optional(),
+  messageTemplate: z.string().optional(),
 });
 
 export const createWorkflowSchema = z.object({

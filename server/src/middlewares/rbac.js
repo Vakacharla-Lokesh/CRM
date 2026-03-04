@@ -1,4 +1,3 @@
-import rolePermissionCache from "../config/cache.js";
 import AppError from "../utils/appError.js";
 import mongoose from "mongoose";
 
@@ -37,7 +36,10 @@ export const injectTenantContext = (req, res, next) => {
   const permissions = req.auth?.permissions || [];
 
   // Super admins always get global scope (mirrors frontend behaviour)
-  if (permissions.includes("system:manage") || req.auth?.role === "super_admin") {
+  if (
+    permissions.includes("system:manage") ||
+    req.auth?.role === "super_admin"
+  ) {
     req.tenantContext = { scope: "global" };
     req.tenantFilter = {};
   } else {
@@ -52,12 +54,4 @@ export const injectTenantContext = (req, res, next) => {
   }
 
   next();
-};
-
-export const invalidateRoleCache = (roleId) => {
-  rolePermissionCache.delete(`role:${roleId}`);
-};
-
-export const clearAllRoleCache = () => {
-  rolePermissionCache.clear();
 };

@@ -1,4 +1,3 @@
-import React from "react";
 import ChartRenderer from "./ChartRenderer";
 import type { Widget } from "@/services/api/index";
 import {

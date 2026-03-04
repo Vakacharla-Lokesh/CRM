@@ -28,7 +28,6 @@ import {
   passwordResetSchema,
   updateProfileSchema,
 } from "../validators/userValidators.js";
-import { assignRoleSchema } from "../validators/roleValidator.js";
 
 const router = Router();
 
@@ -101,7 +100,6 @@ router.patch(
   authenticateRequest,
   requirePermission("users:manage_roles"),
   injectTenantContext,
-  validate(assignRoleSchema),
   assignRoleToUser,
 );
 router.put(

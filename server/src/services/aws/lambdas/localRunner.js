@@ -9,12 +9,10 @@ const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { ensureAwsInitialized } from "../initAwsResources.js";
-import { queueService } from "../queue/queue.service.js";
+import { eventBridgeService } from "../eventbridge/eventbridge.service.js";
 import { handler } from "./jobProcessorLambda.js";
 
-const POLL_INTERVAL_MS = 5000;
 const BATCH_SIZE = 10;
-const QUEUE_NAMES = ["offlineWrites", "exportData"];
 
 const controller = new AbortController();
 const { signal } = controller;
@@ -27,6 +25,7 @@ async function connectDatabase() {
   await mongoose.connect(uri);
   console.log("[LocalRunner] ✓ Connected to MongoDB");
 }
+
 async function shutdown() {
   console.log("\n[LocalRunner] ⏸  Shutting down...");
   controller.abort();
@@ -41,23 +40,18 @@ async function shutdown() {
   process.exit(0);
 }
 
-async function pollQueue(queueName) {
+async function pollQueueLegacy(queueService, queueName) {
   try {
-    console.log(`[LocalRunner] 🔍 Polling start for queue: ${queueName}`);
+    console.log(`[LocalRunner] 🔍 Legacy polling (development only): ${queueName}`);
     const messages = await queueService.poll(queueName, BATCH_SIZE);
 
-    console.log(`[LocalRunner] 📊 Poll result for ${queueName}:`, {
-      messageCount: messages.length,
-      timestamp: new Date().toISOString(),
-    });
-
     if (messages.length === 0) {
-      console.log(`[LocalRunner] ⏭ No messages in ${queueName}, skipping...`);
+      console.log(`[LocalRunner] ⏭ No messages in ${queueName}`);
       return;
     }
 
     console.log(
-      `[LocalRunner] 📨 Received ${messages.length} message(s) from "${queueName}" at ${new Date().toISOString()}`,
+      `[LocalRunner] 📨 Received ${messages.length} message(s) from "${queueName}"`,
     );
 
     const sqsEvent = {
@@ -69,26 +63,15 @@ async function pollQueue(queueName) {
       })),
     };
 
-    console.log("[LocalRunner] 🔄 Invoking handler for messages", {
-      queueName,
-      messageCount: messages.length,
-      jobTypes: messages.map((m) => m.body?.jobType),
-    });
-
     let result;
     try {
       result = await handler(sqsEvent, {});
     } catch (handlerError) {
-      console.error("[LocalRunner] ❌ Handler threw error:", {
-        queueName,
-        error: handlerError.message,
-        stack: handlerError.stack,
-      });
+      console.error("[LocalRunner] ❌ Handler threw error:", handlerError.message);
       throw handlerError;
     }
 
     console.log("[LocalRunner] ✓ Handler completed", {
-      queueName,
       processed: messages.length - (result.batchItemFailures || []).length,
       failed: (result.batchItemFailures || []).length,
     });
@@ -106,46 +89,48 @@ async function pollQueue(queueName) {
       }
     }
   } catch (error) {
-    console.error(`[LocalRunner] ❌ Error polling "${queueName}":`, {
-      error: error.message,
-      stack: error.stack,
-    });
+    console.error(`[LocalRunner] ❌ Error polling "${queueName}":`, error);
   }
 }
 
 async function main() {
-  console.log("[LocalRunner] 🚀 Starting local worker runner...");
+  console.log("[LocalRunner] 🚀 Starting local runner (development/testing mode)...");
 
   try {
     await connectDatabase();
     console.log("[LocalRunner] ✓ Database connected");
-    
+
     await ensureAwsInitialized();
-    console.log("[LocalRunner] ✓ AWS initialized");
-    
+    console.log("[LocalRunner] ✓ AWS resources initialized");
+
+    // Setup EventBridge as the primary mechanism
+    const { queueService } = await import("../queue/queue.service.js");
     queueService.bootstrap();
     console.log("[LocalRunner] ✓ Queue service bootstrapped");
 
     console.log(
-      `[LocalRunner] ✓ Ready. Polling ${QUEUE_NAMES.length} queue(s): ${QUEUE_NAMES.join(", ")}\n`,
+      "[LocalRunner] ℹ EventBridge is configured for production job processing",
+    );
+    console.log(
+      "[LocalRunner] ℹ This local runner uses legacy polling for development only\n",
     );
   } catch (error) {
     console.error("[LocalRunner] ✗ Bootstrap failed:", error);
     process.exit(1);
   }
 
+  // For development: poll queues manually if EventBridge is not available
+  const { queueService } = await import("../queue/queue.service.js");
+  const QUEUE_NAMES = ["offlineWrites", "exportData"];
+  const POLL_INTERVAL_MS = 5000;
+
   while (!signal.aborted) {
-    console.log("[LocalRunner] 🔄 Poll cycle starting...", {
-      timestamp: new Date().toISOString(),
-    });
-    
     for (const queueName of QUEUE_NAMES) {
       if (signal.aborted) break;
-      console.log(`[LocalRunner] 📌 Polling queue: ${queueName}`);
       try {
-        await pollQueue(queueName);
+        await pollQueueLegacy(queueService, queueName);
       } catch (err) {
-        console.error(`[LocalRunner] ❌ Error in pollQueue for ${queueName}:`, err);
+        console.error(`[LocalRunner] ❌ Error in polling ${queueName}:`, err);
       }
     }
 

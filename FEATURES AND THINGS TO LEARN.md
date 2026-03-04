@@ -178,6 +178,50 @@ webhook connections to other projects?
 
 >>>otp logic to redis
 
+
+>>> commands
 pm2 start ecosystem.config.js
 
 pm2 stop ecosystem.config.js
+
+
+TODO 03/03/2026
+
+test website to track lead activity
+
+assign leads to users
+
+>>>permissions fix of users and their roles
+
+webhook integration
+
+tickets section is mentioned in crms?
+
+tasks or notes section
+
+campaign and email templates section to send emails based on template to the lead (use markdown editor for html body of emails).
+
+tenant based settings to enable customizations
+
+leaderboards tab to show which user is closing most deals or leads (but implemented in custom analytics dashboard where user can create custom dashboards)
+
+invoice creation on deal won or lead converted
+
+>>>add redis for dashboard analytics to prevent db calls
+
+snapshots of all the analytics data and then merge them with latest data to provide aggregated data
+
+job process tracking using a redis pub sub
+
+since pm2 is being used a separate redis pub sub for socket connections for live data display or notifications
+
+move rate limiter to redis instead of in memory
+
+multi currency support
+
+move dashboard analytics to cache and refresh button for sse when a new event occurs
+
+
+
+PACKAGES - 
+https://www.npmjs.com/package/@hello-pangea/dnd
