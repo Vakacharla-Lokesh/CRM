@@ -38,19 +38,26 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initAuth = async () => {
+      const cachedUser = getFromLocalStorage<User>("user_data");
+
+      if (cachedUser) {
+        setUser(cachedUser);
+      }
+
       try {
-        const cachedUser = getFromLocalStorage<User>("user_data");
-
-        if (cachedUser) {
-          setUser(cachedUser);
-        }
-
         const response = await authService.getProfile();
         setUser(response.user);
         saveToLocalStorage("user_data", response.user);
-      } catch {
-        setUser(null);
-        removeFromLocalStorage("user_data");
+      } catch (error) {
+        const isAuthError =
+          error instanceof Error &&
+          "statusCode" in error &&
+          (error as { statusCode: number }).statusCode === 401;
+
+        if (isAuthError || !cachedUser) {
+          setUser(null);
+          removeFromLocalStorage("user_data");
+        }
       } finally {
         setLoading(false);
       }

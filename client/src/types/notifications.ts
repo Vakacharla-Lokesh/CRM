@@ -4,6 +4,7 @@ export type NotificationEventType =
   | "lead_updated"
   | "lead_deleted"
   | "lead_converted"
+  | "lead_assigned"
   // Deal events
   | "deal_created"
   | "deal_updated"

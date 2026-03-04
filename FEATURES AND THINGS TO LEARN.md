@@ -193,7 +193,7 @@ assign leads to users
 
 >>>permissions fix of users and their roles
 
-webhook integration
+>>>webhook integration
 
 tickets section is mentioned in crms?
 
@@ -215,11 +215,11 @@ job process tracking using a redis pub sub
 
 since pm2 is being used a separate redis pub sub for socket connections for live data display or notifications
 
-move rate limiter to redis instead of in memory
+>>>move rate limiter to redis instead of in memory
 
 multi currency support
 
-move dashboard analytics to cache and refresh button for sse when a new event occurs
+>>>move dashboard analytics to cache and refresh button for sse when a new event occurs
 
 
 

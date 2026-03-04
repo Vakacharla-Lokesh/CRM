@@ -6,7 +6,9 @@ import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 import { bulkDeleteLeads } from "../services/bulkDeleteService.js";
-import notificationService, { notificationTypes } from "../services/notificationService.js";
+import notificationService, {
+  notificationTypes,
+} from "../services/notificationService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const filter =
@@ -69,9 +71,15 @@ export const getLeadById = asyncCatch(async (req, res) => {
 });
 
 export const createLead = asyncCatch(async (req, res) => {
+  const canAssign =
+    req.user.permissions?.["leads:assign"] === true ||
+    req.user.role === "super_admin";
+
   const leadData = {
     ...req.body,
-    userId: req.user.userId,
+    createdBy: req.user.userId,
+    assignedTo:
+      canAssign && req.body.assignedTo ? req.body.assignedTo : req.user.userId,
   };
 
   if (req.tenantContext?.scope === "tenant") {
@@ -197,7 +205,7 @@ export const getLeadsByTenant = asyncCatch(async (req, res) => {
 });
 
 export const getLeadsByUser = asyncCatch(async (req, res) => {
-  const filter = { userId: req.params.userId };
+  const filter = { assignedTo: req.params.userId };
 
   if (req.tenantContext?.scope === "tenant") {
     filter.tenantId = req.tenantContext.tenantId;
@@ -380,5 +388,52 @@ export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
   res.json({
     message: "Bulk delete completed",
     ...result,
+  });
+});
+
+export const assignLead = asyncCatch(async (req, res) => {
+  const { assignedTo } = req.body;
+
+  if (!assignedTo) throw new AppError("assignedTo userId is required", 400);
+
+  const lead = await leadModel.findById(req.params.id);
+  if (!lead) throw new AppError("Lead not found", 404);
+
+  if (
+    req.tenantContext?.scope === "tenant" &&
+    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot assign this lead", 403);
+  }
+
+  const previousAssignee = lead.assignedTo?.toString() || null;
+  lead.assignedTo = assignedTo;
+  await lead.save();
+
+  await logActivity({
+    leadId: lead._id,
+    tenantId: lead.tenantId,
+    type: LEAD_ACTIVITY_TYPES.ASSIGNED,
+    description: `Lead "${lead.firstName} ${lead.lastName || ""}" assigned to user ${assignedTo}`,
+    metadata: { from: previousAssignee, to: assignedTo },
+    userId: req.user.userId,
+  });
+
+  // Notify the assigned user via their personal socket room
+  notificationService.notifyUser(assignedTo, {
+    type: notificationTypes.LEAD_ASSIGNED,
+    title: "Lead Assigned to You",
+    message: `You have been assigned lead: ${lead.firstName} ${lead.lastName || ""}`,
+    metadata: {
+      leadId: lead._id.toString(),
+      leadName: `${lead.firstName} ${lead.lastName || ""}`,
+      assignedBy: req.user.userId,
+      action: "lead:assigned", // ← client uses this to trigger refetch
+    },
+  });
+
+  res.json({
+    message: "Lead assigned successfully",
+    lead,
   });
 });
