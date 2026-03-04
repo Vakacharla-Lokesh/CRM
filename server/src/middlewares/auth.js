@@ -1,5 +1,3 @@
-import Role from "../models/roleModel.js";
-import rolePermissionCache from "../config/cache.js";
 import passport from "../config/passport.js";
 import AppError from "../utils/appError.js";
 import { requestStore } from "../utils/requestContext.js";
@@ -10,33 +8,9 @@ export const authenticateRequest = (req, res, next) => {
     if (!user) return next(new AppError("Unauthorized", 401));
 
     try {
-      const { userId, role, roleId, tenantId } = user;
+      const { userId, role, tenantId, permissions } = user;
 
-      let permissions = [];
-      if (roleId) {
-        const cacheKey = `role:${roleId}`;
-        let roleDoc = await rolePermissionCache.get(cacheKey);
-
-        if (!roleDoc) {
-          roleDoc = await Role.findById(roleId).lean();
-          if (roleDoc && roleDoc.isActive) {
-            await rolePermissionCache.set(cacheKey, roleDoc, 300);
-          }
-        }
-
-        if (roleDoc && roleDoc.isActive) {
-          permissions = roleDoc.permissions || [];
-        }
-      }
-
-      req.auth = {
-        userId,
-        role,
-        roleId,
-        tenantId,
-        permissions,
-      };
-
+      req.auth = { userId, role, tenantId, permissions: permissions || [] };
       req.user = req.auth;
 
       const store = requestStore.getStore();

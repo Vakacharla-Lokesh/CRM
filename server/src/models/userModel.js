@@ -1,7 +1,7 @@
-import { Schema, model, mongoose } from "mongoose";
+import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
+import { ALL_PERMISSIONS } from "./permissionPresets.js";
 
-// MongoDB collection schema
 const userSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "userId", auto: true },
@@ -26,17 +26,19 @@ const userSchema = new Schema(
       enum: ["user", "admin", "super_admin"],
       required: true,
     },
-    roleId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Role",
-      index: true,
+    permissions: {
+      type: Map,
+      of: Boolean,
+      default: {},
       validate: {
-        validator: function () {
-          return !!this.roleId;
+        validator: function (map) {
+          for (const key of map.keys()) {
+            if (!ALL_PERMISSIONS.includes(key)) return false;
+          }
+          return true;
         },
-        message: "roleId is required for all users",
+        message: "One or more permissions are invalid",
       },
-      comment: "Reference to dynamic Role document (RBAC v2)",
     },
     password: { type: String, select: false },
     isActive: { type: Boolean, default: true },
@@ -44,10 +46,8 @@ const userSchema = new Schema(
   { timestamps: true },
 );
 
-// Pre hook used for hashing pasword before saving to collection
 userSchema.pre("save", async function () {
   if (!this.isModified("password")) return;
-
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
@@ -56,11 +56,13 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
-// Indexes
-userSchema.index({ tenantId: 1 });
-userSchema.index({ tenantId: 1, roleId: 1 });
+userSchema.methods.getPermissionsArray = function () {
+  return [...(this.permissions?.keys() ?? [])].filter(
+    (k) => this.permissions.get(k) === true,
+  );
+};
 
-// search index
+userSchema.index({ tenantId: 1 });
 userSchema.index({
   firstName: "text",
   lastName: "text",

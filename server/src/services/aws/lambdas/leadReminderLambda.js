@@ -13,7 +13,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 config({ path: path.resolve(__dirname, "../../../../../.env") });
 
-// ─── Job registry shape ──────────────────────────────────────────────────────
 export const jobType = JOB_TYPES.LEAD_REMINDER;
 
 export async function handler(_payload, context) {
@@ -58,7 +57,6 @@ export async function handler(_payload, context) {
   };
 }
 
-// ─── Standalone Lambda handler (EventBridge cron trigger) ────────────────────
 let _dbConnected = false;
 
 async function ensureDb() {
@@ -75,8 +73,6 @@ async function ensureDb() {
 export const lambdaHandler = async (event, _context) => {
   await ensureDb();
 
-  // This worker is typically fired by EventBridge on a schedule
-  // but can also be dispatched via SQS for manual/backfill runs
   const records = event.Records;
 
   const context = {
@@ -128,7 +124,6 @@ export const lambdaHandler = async (event, _context) => {
     return { batchItemFailures };
   }
 
-  // EventBridge schedule invocation
   const result = await new Promise((resolve, reject) => {
     requestStore.run(
       { ...context, tenantId: context.tenantId?.toString(), jobType },

@@ -1,7 +1,5 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import Role from "../models/roleModel.js";
-import rolePermissionCache from "./cache.js";
 
 let io;
 

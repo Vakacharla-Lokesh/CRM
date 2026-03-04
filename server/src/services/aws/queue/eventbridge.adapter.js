@@ -41,6 +41,48 @@ async function ensureScheduleRule(ruleName, scheduleExpression, targetArn) {
   }
 }
 
+async function ensureEventPatternRule(ruleName, eventPattern, targetArn, roleArn) {
+  try {
+    await eventBridge.send(
+      new PutRuleCommand({
+        Name: ruleName,
+        EventPattern: typeof eventPattern === "string" ? eventPattern : JSON.stringify(eventPattern),
+        State: "ENABLED",
+        Description: `Event-driven rule for: ${ruleName}`,
+      }),
+    );
+    console.log(`[EventBridge] Event pattern rule created/updated: ${ruleName}`);
+
+    const targets = [
+      {
+        Id: `${ruleName}-target`,
+        Arn: targetArn,
+      },
+    ];
+
+    // Add RoleArn if provided (needed for service-to-service invocation)
+    if (roleArn) {
+      targets[0].RoleArn = roleArn;
+    }
+
+    await eventBridge.send(
+      new PutTargetsCommand({
+        Rule: ruleName,
+        Targets: targets,
+      }),
+    );
+    console.log(`[EventBridge] Target set for event pattern rule: ${ruleName}`);
+  } catch (error) {
+    console.warn(
+      `[EventBridge] Failed to create event pattern rule "${ruleName}":`,
+      error.message,
+    );
+    console.warn(
+      "[EventBridge] Event pattern rules may need manual configuration.",
+    );
+  }
+}
+
 async function putEvent(source, detailType, detail) {
   try {
     const response = await eventBridge.send(
@@ -96,6 +138,7 @@ async function removeRule(ruleName) {
 
 export const eventBridgeAdapter = {
   ensureScheduleRule,
+  ensureEventPatternRule,
   putEvent,
   removeRule,
 };

@@ -65,8 +65,7 @@ class RedisCache {
   }
 }
 
-export const rolePermissionCache = new RedisCache();
-
 export const otpCache = new RedisCache();
 
-export default rolePermissionCache;
+export const dashboardCache = new RedisCache();
+

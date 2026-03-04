@@ -1582,23 +1582,56 @@ node src/services/aws/initAwsResources.js
 
 ## Background Jobs
 
-### Job Worker Pattern
+### Job Processing Architecture
+
+**PRODUCTION**: EventBridge-driven (zero-polling)  
+**DEVELOPMENT**: LocalRunner polling (fallback)
 
 ```
 Controller → queueService.enqueue(jobType, payload)
     ↓
 SQS Queue
     ↓
-Lambda Triggered (or local polling)
+[PRODUCTION] EventBridge detects message & triggers Lambda
+[DEVELOPMENT] LocalRunner polls & manually invokes handler
+    ↓
+jobProcessorLambda.handler()
     ↓
 jobRegistry.getHandler(jobType)
     ↓
 Worker Function Executes
     ↓
 Result Stored (S3, DB, Email)
-    ↓
-Job Status Updated in DynamoDB
 ```
+
+### EventBridge-Based Job Delegation
+
+In production, **EventBridge automatically listens** to SQS queues and invokes Lambda when messages arrive. This replaces the polling mechanism entirely.
+
+**Configuration**: See [EVENTBRIDGE.md](./src/services/aws/EVENTBRIDGE.md) for complete setup details.
+
+**Environment Requirements**:
+
+```bash
+LAMBDA_JOB_PROCESSOR_ARN=arn:aws:lambda:us-east-1:000000000000:function:crm-job-processor
+EVENTBRIDGE_ROLE_ARN=arn:aws:iam::000000000000:role/eventbridge-lambda-role
+```
+
+**Automatic Rules Created**:
+- `crm-offline-writes-dispatcher` → Listens to `crm-offline-writes` queue
+- `crm-export-data-dispatcher` → Listens to `crm-export-data` queue
+- `crm-lead-reminder-schedule` → Cron-triggered daily at 10 AM
+
+### LocalRunner (Development-Only)
+
+For local development without full AWS setup:
+
+```bash
+npm run worker:dev          # With auto-reload
+npm run worker             # Standard run
+```
+
+⚠️ **Note**: LocalRunner uses legacy polling. Only use for development/testing.
 
 ### Example: Export Worker
 

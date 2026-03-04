@@ -51,6 +51,7 @@ export interface WorkflowAction {
   webhookUrl?: string;
   method?: "POST" | "PUT";
   payload?: unknown;
+  messageTemplate?: string;
   // export_s3
   format?: "csv" | "json";
   bucket?: string;

@@ -28,8 +28,6 @@ passport.use(
           return done(null, false, { message: "Invalid credentials" });
         }
 
-        await user.populate("roleId");
-
         const isMatch = await user.comparePassword(password);
 
         if (!isMatch) {
@@ -66,17 +64,19 @@ passport.use(
     },
     async (jwtPayload, done) => {
       try {
-        const user = await userModel.findById(jwtPayload.userId);
-
-        if (!user) {
-          return done(null, false);
-        }
+        const user = await userModel.findById(jwtPayload.userId).lean();
+        if (!user) return done(null, false);
+        const permissions = user.permissions
+          ? Object.entries(user.permissions)
+              .filter(([, v]) => v === true)
+              .map(([k]) => k)
+          : [];
 
         return done(null, {
           userId: user._id,
           role: user.role,
-          roleId: user.roleId?.toString() ?? jwtPayload.roleId ?? null,
-          tenantId: jwtPayload.tenantId,
+          tenantId: user.tenantId,
+          permissions,
         });
       } catch (err) {
         return done(err);
