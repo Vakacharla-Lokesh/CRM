@@ -19,7 +19,8 @@ export interface Lead {
   _id: string;
   leadId?: string;
   organizationId?: string;
-  userId: string;
+  createdBy: string;
+  assignedTo?: string | null;
   tenantId: string;
   firstName: string;
   lastName?: string | null;
@@ -41,6 +42,7 @@ export interface CreateLeadDTO {
   score?: number;
   status: LeadStatus;
   tenantId: string;
+  assignedTo?: string;
 }
 
 export interface UpdateLeadDTO {
@@ -51,7 +53,7 @@ export interface UpdateLeadDTO {
   source?: LeadSource;
   score?: number;
   status?: LeadStatus;
-  userId?: string;
+  assignedTo?: string;
 }
 
 export interface LeadListResponse {

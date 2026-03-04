@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,7 +19,7 @@ import type {
 } from "@/types/interfaces/form-interfaces/lead.form.interfaces";
 import { useOrganizationData } from "@/hooks";
 import { organizationService } from "@/services";
-import { FormField, FormSelect } from "./form-fields";
+import { FormField, FormSelect, UserCombobox } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
 import { OrganizationSection } from "./sections";
 
@@ -28,7 +28,8 @@ import {
   LEAD_STATUSES,
 } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
-import { useAppContext } from "@/hooks";
+import { useAppContext, useUserData } from "@/hooks";
+import { useHasPermission } from "@/hooks/usePermissions";
 import { validateLeadForm } from "@/utils/formValidators";
 import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
@@ -49,6 +50,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           status: lead.status,
           score: lead.score,
           organizationId: lead.organizationId || "",
+          assignedTo: lead.assignedTo || undefined,
         }
       : {
           firstName: "",
@@ -58,6 +60,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           status: "New",
           score: 0,
           organizationId: "",
+          assignedTo: undefined,
         },
   );
   const [organizationMode, setOrganizationMode] = useState<"select" | "create">(
@@ -144,8 +147,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           name: newOrgData.name,
           website: newOrgData.website,
           size: newOrgData.size,
-          industry:
-            newOrgData.industry as OrganizationIndustry,
+          industry: newOrgData.industry as OrganizationIndustry,
           tenantId: user?.tenantId || "tenant-1",
         };
 
@@ -162,6 +164,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         status: formData.status,
         organizationId: organizationId || undefined,
         tenantId: user?.tenantId || "tenant-1",
+        assignedTo: canAssign ? formData.assignedTo || undefined : undefined,
       };
 
       await onSave(leadData);
@@ -211,6 +214,24 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
       }));
     }
   };
+
+  const canAssign = useHasPermission("leads:assign");
+  const { users, loading: usersLoading, fetchUsers } = useUserData();
+
+  useEffect(() => {
+    if (canAssign) fetchUsers();
+  }, [canAssign, fetchUsers]);
+
+  const tenantUsers = useMemo<{ value: string; label: string }[]>(() => {
+    if (!canAssign || !user?._id) return [];
+    const others = users
+      .filter((u) => u._id !== user._id)
+      .map((u) => ({
+        value: u._id,
+        label: `${u.firstName} ${u.lastName ?? ""}`.trim(),
+      }));
+    return [{ value: user._id, label: "Assign to self" }, ...others];
+  }, [canAssign, users, user]);
 
   return (
     <Dialog
@@ -285,6 +306,20 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                 placeholder="Select status"
                 options={statusOptions}
               />
+
+              {canAssign && (
+                <UserCombobox
+                  id="assignedTo"
+                  label="Assign To"
+                  value={formData.assignedTo}
+                  onChange={(value) => handleInputChange("assignedTo", value)}
+                  placeholder={
+                    usersLoading ? "Loading users..." : "Select user to assign"
+                  }
+                  options={tenantUsers}
+                  disabled={usersLoading}
+                />
+              )}
             </div>
 
             {lead && (

@@ -8,6 +8,7 @@ export interface LeadFormData {
   status: LeadStatus;
   score: number;
   organizationId: string;
+  assignedTo?: string;
 }
 
 export interface FormErrors {

@@ -32,6 +32,7 @@ const NOTIFICATION_ICONS: Record<
   lead_updated: { icon: UserCog, color: "text-blue-500" },
   lead_deleted: { icon: UserX, color: "text-red-500" },
   lead_converted: { icon: ArrowUpRight, color: "text-purple-500" },
+  lead_assigned: { icon: UserPlus, color: "text-emerald-500" },
   // deal events
   deal_created: { icon: Briefcase, color: "text-emerald-500" },
   deal_updated: { icon: Briefcase, color: "text-blue-500" },

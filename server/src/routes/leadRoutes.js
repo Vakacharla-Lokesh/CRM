@@ -13,6 +13,7 @@ import {
   updateLeadScoreManually,
   searchLeads,
   bulkDeleteLeadsController,
+  assignLead,
 } from "../controllers/leadController.js";
 import { getLeadActivities } from "../controllers/leadActivityController.js";
 import { validate } from "../middlewares/validate.js";
@@ -130,6 +131,14 @@ router.post(
   injectTenantContext,
   validate(convertLeadSchema),
   convertLeadToDeal,
+);
+
+router.patch(
+  "/:id/assign",
+  authenticateRequest,
+  requirePermission("leads:assign"),
+  injectTenantContext,
+  assignLead,
 );
 
 export default router;

@@ -3,6 +3,7 @@ import { io, Socket } from "socket.io-client";
 import { useAppContext } from "./useAppContext";
 import { useNotifications } from "../context/useNotificationContext";
 import type { NotificationEventType } from "@/types";
+import { useQueryClient } from "@tanstack/react-query";
 
 const SOCKET_SERVER_URL =
   import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
@@ -19,6 +20,8 @@ export function useSocket() {
   const reconnectTimeoutRef = useRef<number | null>(null);
   const { user } = useAppContext();
   const { notifyEvent } = useNotifications();
+
+  const queryClient = useQueryClient();
 
   const initializeSocket = useCallback(() => {
     if (socketRef.current?.connected) return;
@@ -57,6 +60,10 @@ export function useSocket() {
       socketRef.current.on(
         "notification:received",
         (notification: NotificationPayload) => {
+          if (notification.metadata?.action === "lead:assigned") {
+            queryClient.invalidateQueries({ queryKey: ["leads"] });
+          }
+
           notifyEvent({
             type: (notification.type || "message") as NotificationEventType,
             title: notification.title || "New Notification",
@@ -92,6 +99,15 @@ export function useSocket() {
           });
         }
       });
+
+      socketRef.current.on(
+        "notification:received",
+        (notification: NotificationPayload) => {
+          if (notification.metadata?.action === "lead:assigned") {
+            queryClient.invalidateQueries({ queryKey: ["leads"] });
+          }
+        },
+      );
 
       socketRef.current.on("connect_error", (error) => {
         console.error("[Socket] Connection error:", error);

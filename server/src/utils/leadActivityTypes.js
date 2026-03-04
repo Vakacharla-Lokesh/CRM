@@ -1,8 +1,3 @@
-/**
- * Lead Activity Type Constants
- * All activity types must be defined here.
- * Do NOT use magic strings anywhere else.
- */
 export const LEAD_ACTIVITY_TYPES = {
   CREATED: "CREATED",
   UPDATED: "UPDATED",
@@ -15,4 +10,5 @@ export const LEAD_ACTIVITY_TYPES = {
   ATTACHMENT_ADDED: "ATTACHMENT_ADDED",
   ATTACHMENT_REMOVED: "ATTACHMENT_REMOVED",
   CONVERTED_TO_DEAL: "CONVERTED_TO_DEAL",
+  ASSIGNED: "assigned",
 };

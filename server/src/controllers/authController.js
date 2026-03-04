@@ -22,14 +22,14 @@ function setAuthCookies(res, accessToken, refreshToken) {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: IS_PROD ? "strict" : "lax",
-    maxAge: AUTH_TOKEN_EXPIRY_MINUTES * 60 * 1000,
+    maxAge: 15 * 60 * 1000,
   });
 
   res.cookie("refresh_token", refreshToken, {
     httpOnly: true,
     secure: IS_PROD,
     sameSite: IS_PROD ? "strict" : "lax",
-    maxAge: REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
+    maxAge: 7 * 24 * 60 * 60 * 1000,
     path: "/api/auth/refresh",
   });
 }
@@ -79,13 +79,15 @@ function formatUser(user) {
     : [];
 
   return {
+    _id: user._id?.toString() ?? user.id?.toString(),
+    roleId: user.roleId?.toString(),
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
     mobile: user.mobile,
     role: user.role,
     permissions,
-    tenantId: user.tenantId,
+    tenantId: user.tenantId?.toString(),
   };
 }
 

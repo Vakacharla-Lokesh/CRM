@@ -39,7 +39,7 @@ import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 import "./config/initDb.js";
 
 // rate limiter function
-import { globalLimiter } from "./middlewares/rateLimit.js";
+import { rateLimitMiddleware } from "./middlewares/rateLimit.js";
 
 // redis caching file
 import "./config/redis.js";
@@ -96,7 +96,7 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(passport.initialize());
 
 // rate limiter package for express
-app.use(globalLimiter);
+app.use(rateLimitMiddleware);
 
 // health check
 app.get("/health", (req, res) => {

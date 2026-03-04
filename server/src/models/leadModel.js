@@ -8,7 +8,8 @@ const leadsSchema = new Schema(
       type: Schema.Types.ObjectId,
       rel: "Organizations",
     },
-    userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
+    createdBy: { type: Schema.Types.ObjectId, required: true, ref: "Users" },
+    assignedTo: { type: Schema.Types.ObjectId, ref: "Users", default: null },
     tenantId: { type: Schema.Types.ObjectId, rel: "Tenants" },
     firstName: { type: String, required: true },
     lastName: { type: String, default: null },
@@ -51,7 +52,8 @@ const leadsSchema = new Schema(
 );
 
 // Indexes
-leadsSchema.index({ userId: 1, createdAt: -1 });
+leadsSchema.index({ createdBy: 1, createdAt: -1 });
+leadsSchema.index({ assignedTo: 1, createdAt: -1 });
 leadsSchema.index({ tenantId: 1 });
 leadsSchema.index({ organizationId: 1 });
 leadsSchema.index(
