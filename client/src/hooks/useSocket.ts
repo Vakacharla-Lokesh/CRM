@@ -199,6 +199,19 @@ export function useSocket() {
     return () => disconnect();
   }, [disconnect]);
 
+  // Disconnect socket on logout
+  useEffect(() => {
+    const handleLogout = () => {
+      disconnect();
+    };
+
+    window.addEventListener("auth:logout", handleLogout);
+
+    return () => {
+      window.removeEventListener("auth:logout", handleLogout);
+    };
+  }, [disconnect]);
+
   return {
     get socket() {
       return socketRef.current;

@@ -11,10 +11,18 @@ import notificationService, {
 } from "../services/notificationService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+
   const filter =
     req.tenantContext?.scope === "tenant"
       ? { tenantId: req.tenantContext.tenantId }
       : {};
+
+  if (!canViewAll) {
+    filter.assignedTo = req.auth.userId;
+  }
 
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
@@ -71,15 +79,10 @@ export const getLeadById = asyncCatch(async (req, res) => {
 });
 
 export const createLead = asyncCatch(async (req, res) => {
-  const canAssign =
-    req.user.permissions?.["leads:assign"] === true ||
-    req.user.role === "super_admin";
-
   const leadData = {
     ...req.body,
     createdBy: req.user.userId,
-    assignedTo:
-      canAssign && req.body.assignedTo ? req.body.assignedTo : req.user.userId,
+    assignedTo: req.body.assignedTo || req.user.userId,
   };
 
   if (req.tenantContext?.scope === "tenant") {
@@ -315,7 +318,7 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     leadId: lead._id,
     organizationId: lead.organizationId,
     tenantId: lead.tenantId,
-    userId: lead.userId,
+    userId: lead.assignedTo || lead.createdBy || req.auth.userId,
     name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
     value: req.body.value || 0,
     status: req.body.status || "Prospecting",

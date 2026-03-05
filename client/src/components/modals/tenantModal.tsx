@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,12 +19,24 @@ import { validateTenantForm } from "@/utils/formValidators";
 
 function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   const [formData, setFormData] = useState<TenantFormData>({
-    name: "",
-    email: "",
-    mobile: "",
+    name: tenant?.name || "",
+    email: tenant?.email || "",
+    mobile: tenant?.mobile || "",
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData({
+        name: tenant?.name || "",
+        email: tenant?.email || "",
+        mobile: tenant?.mobile || "",
+      });
+      setErrors({});
+    }
+  }, [isOpen, tenant]);
 
   const validateForm = (): boolean => {
     const newErrors = validateTenantForm(formData);
