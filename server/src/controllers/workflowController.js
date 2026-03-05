@@ -4,7 +4,16 @@ import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
 
 export const getAllWorkflows = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("workflows:view_all"));
+
   const filter = req.tenantFilter || {};
+
+  if (!canViewAll) {
+    filter.createdBy = req.auth.userId;
+  }
 
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
@@ -34,6 +43,11 @@ export const getAllWorkflows = asyncCatch(async (req, res) => {
 });
 
 export const getWorkflowById = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("workflows:view_all"));
+
   const workflow = await workflowModel
     .findById(req.params.id)
     .populate("createdBy", "firstName lastName email");
@@ -43,6 +57,13 @@ export const getWorkflowById = asyncCatch(async (req, res) => {
   if (
     req.tenantFilter.tenantId &&
     workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot access this workflow", 403);
+  }
+
+  if (
+    !canViewAll &&
+    workflow.createdBy._id.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot access this workflow", 403);
   }
@@ -72,6 +93,11 @@ export const createWorkflow = asyncCatch(async (req, res) => {
 });
 
 export const updateWorkflow = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("workflows:view_all"));
+
   const workflow = await workflowModel.findById(req.params.id);
 
   if (!workflow) throw new AppError("Workflow not found", 404);
@@ -79,6 +105,13 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
   if (
     req.tenantFilter.tenantId &&
     workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot update this workflow", 403);
+  }
+
+  if (
+    !canViewAll &&
+    workflow.createdBy.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this workflow", 403);
   }
@@ -94,6 +127,11 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
 });
 
 export const deleteWorkflow = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("workflows:view_all"));
+
   const workflow = await workflowModel.findById(req.params.id);
 
   if (!workflow) throw new AppError("Workflow not found", 404);
@@ -105,12 +143,24 @@ export const deleteWorkflow = asyncCatch(async (req, res) => {
     throw new AppError("Forbidden: You cannot delete this workflow", 403);
   }
 
+  if (
+    !canViewAll &&
+    workflow.createdBy.toString() !== req.auth.userId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot delete this workflow", 403);
+  }
+
   await workflowModel.findByIdAndDelete(req.params.id);
 
   res.json({ message: "Workflow deleted successfully" });
 });
 
 export const toggleWorkflow = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("workflows:view_all"));
+
   const workflow = await workflowModel.findById(req.params.id);
 
   if (!workflow) throw new AppError("Workflow not found", 404);
@@ -118,6 +168,13 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
   if (
     req.tenantFilter.tenantId &&
     workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot modify this workflow", 403);
+  }
+
+  if (
+    !canViewAll &&
+    workflow.createdBy.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot modify this workflow", 403);
   }

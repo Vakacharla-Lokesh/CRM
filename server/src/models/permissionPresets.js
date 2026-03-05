@@ -58,7 +58,7 @@ export const PERMISSION_MAP = {
   BULK: ["bulk:import", "bulk:export", "bulk:delete"],
 
   // Settings
-  SETTINGS: ["settings:read", "settings:write"],
+  SETTINGS: ["settings:read", "settings:write", "workflows:view_all"],
 
   // System-wide access (super_admin / global tenant only)
   SYSTEM: ["system:manage"],
@@ -87,6 +87,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "bulk:import",
     "bulk:export",
     "settings:read",
+    "workflows:view_all",
   ],
 
   user: [

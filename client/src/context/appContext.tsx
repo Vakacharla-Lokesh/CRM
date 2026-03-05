@@ -12,6 +12,7 @@ import {
   getFromLocalStorage,
 } from "../hooks/useLocalStorage";
 import type { User, SignupData, AuthResponse } from "../types";
+import { queryClient } from "@/queryClient";
 
 export interface AppContextType {
   user: User | null;
@@ -38,16 +39,49 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initAuth = async () => {
+      // Read cached user data from localStorage
       const cachedUser = getFromLocalStorage<User>("user_data");
 
       if (cachedUser) {
+        // Restore from cache immediately for faster UI
         setUser(cachedUser);
       }
 
       try {
+        // Fetch current user from backend
         const response = await authService.getProfile();
-        setUser(response.user);
-        saveToLocalStorage("user_data", response.user);
+        const currentUser = response.user;
+
+        // Check if the logged-in user is different from the cached user
+        const isDifferentUser =
+          !cachedUser || cachedUser._id !== currentUser._id;
+
+        if (isDifferentUser) {
+          // Different user login — clear cache and reset query client
+          console.log("Different user detected. Clearing old cache...");
+          removeFromLocalStorage("user_data");
+
+          // Clear TanStack Query cache for this new user
+          queryClient.clear();
+
+          // Clear all TanStack Query persisted data in localStorage
+          Object.keys(window.localStorage).forEach((key) => {
+            if (
+              key.includes("REACT_QUERY") ||
+              key.includes("persist") ||
+              key.includes("tanstack")
+            ) {
+              window.localStorage.removeItem(key);
+            }
+          });
+        } else {
+          // Same user — keep the cache, just update the user data
+          console.log("Same user. Keeping cache...");
+        }
+
+        // Save/update the current user
+        setUser(currentUser);
+        saveToLocalStorage("user_data", currentUser);
       } catch (error) {
         const isAuthError =
           error instanceof Error &&
@@ -55,6 +89,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
           (error as { statusCode: number }).statusCode === 401;
 
         if (isAuthError || !cachedUser) {
+          // No valid auth — clear everything
           setUser(null);
           removeFromLocalStorage("user_data");
         }
@@ -109,12 +144,30 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
+      // Signal that we're about to logout — gives OfflineProvider a chance to sync
+      const syncEvent = new CustomEvent("app:prepare-logout", {
+        detail: { timestamp: Date.now() },
+      });
+      window.dispatchEvent(syncEvent);
+
+      // Wait a moment for offline sync to happen (max 3 seconds)
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+
+      // Call backend logout endpoint
       await authService.logout();
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
+      // Clear only the user state, NOT the cache
       setUser(null);
       removeFromLocalStorage("user_data");
+
+      // Dispatch logout events (socket cleanup, notifications, etc)
+      window.dispatchEvent(new Event("auth:logout"));
+      window.dispatchEvent(new Event("app:user-changed"));
+
+      // localStorage + TanStack Query cache PERSIST
+      // They will be refreshed when new user logs in via initAuth
     }
   }, []);
 

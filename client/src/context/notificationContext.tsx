@@ -1,4 +1,4 @@
-import { useState, useCallback, type ReactNode } from "react";
+import { useState, useCallback, type ReactNode, useEffect } from "react";
 import { NotificationContext } from "./useNotificationContext";
 import type {
   AppNotification,
@@ -15,6 +15,18 @@ const MAX_NOTIFICATIONS = 10;
 export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [soundTrigger, setSoundTrigger] = useState(false);
+
+  useEffect(() => {
+    const handleUserChanged = () => {
+      console.log("User changed. Clearing notifications...");
+      setNotifications([]);
+    };
+
+    window.addEventListener("app:user-changed", handleUserChanged);
+    return () => {
+      window.removeEventListener("app:user-changed", handleUserChanged);
+    };
+  }, []);
 
   const notifyEvent = useCallback((payload: NotifyEventPayload) => {
     const notification: AppNotification = {

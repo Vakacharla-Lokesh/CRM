@@ -82,8 +82,41 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
   useEffect(() => {
     if (isOpen) {
       fetchOrganizations();
+    } else {
+      // Reset form data when modal closes
+      setFormData(
+        lead
+          ? {
+              firstName: lead.firstName,
+              lastName: lead.lastName || "",
+              email: lead.email,
+              source: lead.source,
+              status: lead.status,
+              score: lead.score,
+              organizationId: lead.organizationId || "",
+              assignedTo: lead.assignedTo || undefined,
+            }
+          : {
+              firstName: "",
+              lastName: "",
+              email: "",
+              source: "API",
+              status: "New",
+              score: 0,
+              organizationId: "",
+              assignedTo: undefined,
+            },
+      );
+      setNewOrgData({
+        name: "",
+        website: "",
+        size: 10,
+        industry: "Software",
+      });
+      setErrors({});
+      setSubmitError(null);
     }
-  }, [isOpen, fetchOrganizations]);
+  }, [isOpen, fetchOrganizations, lead]);
 
   const validateForm = (): boolean => {
     const newErrors = validateLeadForm(formData, organizationMode, newOrgData);

@@ -189,7 +189,7 @@ TODO 03/03/2026
 
 test website to track lead activity
 
-assign leads to users
+>>>assign leads to users
 
 >>>permissions fix of users and their roles
 
@@ -205,7 +205,7 @@ tenant based settings to enable customizations
 
 leaderboards tab to show which user is closing most deals or leads (but implemented in custom analytics dashboard where user can create custom dashboards)
 
-invoice creation on deal won or lead converted
+>>>invoice creation on deal won or lead converted
 
 >>>add redis for dashboard analytics to prevent db calls
 

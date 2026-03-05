@@ -3,10 +3,14 @@ import { z } from "zod";
 export const createLeadSchema = z.object({
   organizationId: z.string().min(1).optional(),
   tenantId: z.string().min(1).optional(),
-  userId: z.string().min(1).optional(),
+  createdBy: z.string().min(1).optional(),
   firstName: z.string().min(1),
   lastName: z.string().nullable().optional(),
-  email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format").or(z.literal("")).optional(),
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
+    .or(z.literal(""))
+    .optional(),
   source: z
     .enum([
       "API",
@@ -26,33 +30,40 @@ export const createLeadSchema = z.object({
     .optional(),
   score: z.number().min(0).max(100).optional(),
   status: z.enum(["New", "Converted", "Dead", "Follow-Up"]),
+  assignedTo: z.string().min(1).optional(),
 });
 
-export const updateLeadSchema = z
-  .object({
-    firstName: z.string().min(1).optional(),
-    lastName: z.string().optional(),
-    email: z.string().regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format").or(z.literal("")).optional(),
-    source: z
-      .enum([
-        "API",
-        "Outsource",
-        "Phone",
-        "Website",
-        "Facebook Ads",
-        "Google Ads",
-        "Instagram",
-        "LinkedIn",
-        "Email Marketing",
-        "Referral",
-        "Cold Call",
-        "WhatsApp",
-        "Other",
-      ])
-      .optional(),
-    score: z.number().min(0).max(100).optional(),
-    status: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
-  });
+export const updateLeadSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().optional(),
+  email: z
+    .string()
+    .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Invalid email format")
+    .or(z.literal(""))
+    .optional(),
+  source: z
+    .enum([
+      "API",
+      "Outsource",
+      "Phone",
+      "Website",
+      "Facebook Ads",
+      "Google Ads",
+      "Instagram",
+      "LinkedIn",
+      "Email Marketing",
+      "Referral",
+      "Cold Call",
+      "WhatsApp",
+      "Other",
+    ])
+    .optional(),
+  score: z.number().min(0).max(100).optional(),
+  status: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
+  assignedTo: z.string().min(1).optional(),
+  assignedTo: z.string().min(1).optional(),
+  createdBy: z.string().min(1).optional(),
+});
 
 export const updateLeadStatusSchema = z
   .object({

@@ -21,8 +21,19 @@ export {
 } from "./analytics/organizationController.js";
 
 export const getDashboardStats = asyncCatch(async (req, res) => {
-  const filter = req.tenantFilter || {};
-  const cacheKey = `dashboard_stats_${JSON.stringify(filter)}`;
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+
+  const leadFilter = req.tenantFilter || {};
+  const dealFilter = req.tenantFilter || {};
+  
+  if (!canViewAll) {
+    leadFilter.assignedTo = req.auth.userId;
+    dealFilter.userId = req.auth.userId;
+  }
+
+  const cacheKey = `dashboard_stats_${req.auth.userId}`;
 
   // Check cache first
   const cachedData = await dashboardCache.get(cacheKey);
@@ -33,7 +44,8 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
   const { currentStart, currentEnd, previousStart, previousEnd } =
     periodDates(30);
 
-  const matchFilter = { ...filter };
+  const leadMatchFilter = { ...leadFilter };
+  const dealMatchFilter = { ...dealFilter };
 
   const [
     leadSummary,
@@ -45,7 +57,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     orgCount,
   ] = await Promise.all([
     leadModel.aggregate([
-      { $match: matchFilter },
+      { $match: leadMatchFilter },
       {
         $facet: {
           total: [{ $count: "count" }],
@@ -63,7 +75,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     ]),
 
     dealModel.aggregate([
-      { $match: matchFilter },
+      { $match: dealMatchFilter },
       {
         $facet: {
           wonRevenue: [
@@ -100,7 +112,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     ]),
 
     leadModel.aggregate([
-      { $match: matchFilter },
+      { $match: leadMatchFilter },
       { $group: { _id: "$source" } },
       { $count: "count" },
     ]),
@@ -108,7 +120,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     leadModel.aggregate([
       {
         $match: {
-          ...matchFilter,
+          ...leadMatchFilter,
           createdAt: { $gte: previousStart, $lt: previousEnd },
         },
       },
@@ -123,7 +135,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     dealModel.aggregate([
       {
         $match: {
-          ...matchFilter,
+          ...dealMatchFilter,
           status: "Won",
           updatedAt: { $gte: previousStart, $lt: previousEnd },
         },
@@ -134,7 +146,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     leadModel.aggregate([
       {
         $match: {
-          ...matchFilter,
+          ...leadMatchFilter,
           createdAt: { $gte: previousStart, $lt: previousEnd },
         },
       },
@@ -142,7 +154,7 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
       { $count: "count" },
     ]),
 
-    organizationModel.countDocuments(matchFilter),
+    organizationModel.countDocuments(dealMatchFilter),
   ]);
 
   const totalLeads = leadSummary[0]?.total[0]?.count ?? 0;

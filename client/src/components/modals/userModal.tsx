@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import {
   Dialog,
@@ -59,6 +59,37 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const [showPassword, setShowPassword] = useState(false);
 
   const { data: tenantRoles = [] } = useRoles();
+
+  // Reset form when modal closes
+  useEffect(() => {
+    if (!isOpen) {
+      setFormData(
+        user
+          ? {
+              firstName: user.firstName,
+              lastName: user.lastName || "",
+              email: user.email,
+              mobile: user.mobile || "",
+              role: user.role,
+              roleId: user.roleId ?? "",
+              password: "",
+              tenantId: user.tenantId,
+            }
+          : {
+              firstName: "",
+              lastName: "",
+              email: "",
+              mobile: "",
+              role: "user",
+              roleId: "",
+              password: "",
+              tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
+            },
+      );
+      setErrors({});
+      setShowPassword(false);
+    }
+  }, [isOpen, user, isSuperAdmin, id, currentUser?.tenantId]);
 
   const validateForm = (): boolean => {
     const newErrors = validateUserForm(formData, {

@@ -5,7 +5,17 @@ import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { bulkDeleteOrganizations } from "../services/bulkDeleteService.js";
 
 export const getAllOrganizations = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("organizations:view_all"));
+
   const filter = req.tenantFilter || {};
+
+  if (!canViewAll) {
+    filter.userId = req.auth.userId;
+  }
+
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
@@ -43,13 +53,25 @@ export const getAllOrganizations = asyncCatch(async (req, res) => {
 });
 
 export const getOrganizationById = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("organizations:view_all"));
+
   const organization = await organizationModel.findById(req.params.id);
 
   if (!organization) throw new AppError("Organization not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    organization.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot access this organization", 403);
+  }
+
+  if (
+    !canViewAll &&
+    organization.userId.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot access this organization", 403);
   }
@@ -87,14 +109,25 @@ export const createOrganization = asyncCatch(async (req, res) => {
 
 // Update organization
 export const updateOrganization = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("organizations:view_all"));
+
   const organization = await organizationModel.findById(req.params.id);
 
   if (!organization) throw new AppError("Organization not found", 404);
 
-  // Check tenant access for non-super_admin
   if (
-    req.user.role !== "super_admin" &&
-    organization.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot update this organization", 403);
+  }
+
+  if (
+    !canViewAll &&
+    organization.userId.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot update this organization", 403);
   }
@@ -122,13 +155,25 @@ export const updateOrganization = asyncCatch(async (req, res) => {
 
 // Delete organization
 export const deleteOrganization = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("organizations:view_all"));
+
   const organization = await organizationModel.findById(req.params.id);
 
   if (!organization) throw new AppError("Organization not found", 404);
 
   if (
-    req.user.role !== "super_admin" &&
-    organization.tenantId.toString() !== req.user.tenantId
+    req.tenantContext?.scope === "tenant" &&
+    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
+  ) {
+    throw new AppError("Forbidden: You cannot delete this organization", 403);
+  }
+
+  if (
+    !canViewAll &&
+    organization.userId.toString() !== req.auth.userId.toString()
   ) {
     throw new AppError("Forbidden: You cannot delete this organization", 403);
   }
@@ -187,8 +232,17 @@ export const getOrganizationsByUser = asyncCatch(async (req, res) => {
 });
 
 export const searchOrganizations = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("organizations:view_all"));
+
   const filter = req.tenantFilter || {};
   const { q, status, source, limit = 25 } = req.query;
+
+  if (!canViewAll) {
+    filter.userId = req.auth.userId;
+  }
 
   if (!q || q.trim() === "") {
     throw new AppError("Search query 'q' is required", 400);

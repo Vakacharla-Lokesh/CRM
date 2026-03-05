@@ -46,7 +46,7 @@ export function FormSelect({
         {required && <span className="text-red-500"> *</span>}
       </Label>
       <Select
-        value={value}
+        value={value === "" ? undefined : value}
         onValueChange={onChange}
         disabled={disabled}
       >

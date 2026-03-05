@@ -2,7 +2,14 @@ import leadModel from "../../models/leadModel.js";
 import asyncCatch from "../../utils/asyncCatch.js";
 
 export const getLeadTrends = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    req.auth?.role === "admin" ||
+    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
   const filter = req.tenantFilter || {};
+  if (!canViewAll) {
+    filter.assignedTo = req.auth.userId;
+  }
   const days = Math.min(parseInt(req.query.days ?? "30"), 90);
 
   const startDate = new Date();
@@ -50,7 +57,14 @@ export const getLeadTrends = asyncCatch(async (req, res) => {
 });
 
 export const getLeadStatusBreakdown = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    req.auth?.role === "admin" ||
+    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
   const filter = req.tenantFilter || {};
+  if (!canViewAll) {
+    filter.assignedTo = req.auth.userId;
+  }
   const days = req.query.days !== undefined ? parseInt(req.query.days) : null;
 
   const matchFilter =
@@ -95,7 +109,14 @@ export const getLeadStatusBreakdown = asyncCatch(async (req, res) => {
 });
 
 export const getLeadScoreDistribution = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    req.auth?.role === "admin" ||
+    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
   const filter = req.tenantFilter || {};
+  if (!canViewAll) {
+    filter.assignedTo = req.auth.userId;
+  }
 
   const distribution = await leadModel.aggregate([
     { $match: filter },

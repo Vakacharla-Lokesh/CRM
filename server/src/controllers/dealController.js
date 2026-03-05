@@ -7,10 +7,20 @@ import { bulkDeleteDeals } from "../services/bulkDeleteService.js";
 
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("deals:view_all"));
+
   const filter =
     req.tenantContext?.scope === "tenant"
       ? { tenantId: req.tenantContext.tenantId }
       : {};
+
+  if (!canViewAll) {
+    filter.userId = req.auth.userId;
+  }
+
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
@@ -45,6 +55,11 @@ export const getAllDeals = asyncCatch(async (req, res) => {
 
 // Get deal by ID
 export const getDealById = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("deals:view_all"));
+
   const deal = await dealModel.findById(req.params.id);
 
   if (!deal) throw new AppError("Deal not found", 404);
@@ -53,6 +68,10 @@ export const getDealById = asyncCatch(async (req, res) => {
     req.tenantContext?.scope === "tenant" &&
     deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
+    throw new AppError("Forbidden: You cannot access this deal", 403);
+  }
+
+  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
     throw new AppError("Forbidden: You cannot access this deal", 403);
   }
 
@@ -83,6 +102,11 @@ export const createDeal = asyncCatch(async (req, res) => {
 
 // Update deal
 export const updateDeal = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("deals:view_all"));
+
   const deal = await dealModel.findById(req.params.id);
 
   if (!deal) throw new AppError("Deal not found", 404);
@@ -91,6 +115,10 @@ export const updateDeal = asyncCatch(async (req, res) => {
     req.tenantContext?.scope === "tenant" &&
     deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
+    throw new AppError("Forbidden: You cannot update this deal", 403);
+  }
+
+  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
 
@@ -117,6 +145,11 @@ export const updateDeal = asyncCatch(async (req, res) => {
 
 // Delete deal
 export const deleteDeal = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("deals:view_all"));
+
   const deal = await dealModel.findById(req.params.id);
 
   if (!deal) throw new AppError("Deal not found", 404);
@@ -125,6 +158,10 @@ export const deleteDeal = asyncCatch(async (req, res) => {
     req.tenantContext?.scope === "tenant" &&
     deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
   ) {
+    throw new AppError("Forbidden: You cannot delete this deal", 403);
+  }
+
+  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
     throw new AppError("Forbidden: You cannot delete this deal", 403);
   }
 
@@ -205,10 +242,20 @@ export const getDealsByOrganization = asyncCatch(async (req, res) => {
 
 // Search deals
 export const searchDeals = asyncCatch(async (req, res) => {
+  const canViewAll =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("deals:view_all"));
+
   const filter =
     req.tenantContext?.scope === "tenant"
       ? { tenantId: req.tenantContext.tenantId }
       : {};
+
+  if (!canViewAll) {
+    filter.userId = req.auth.userId;
+  }
+
   const { q, limit = 25 } = req.query;
 
   if (!q || q.trim() === "") {
