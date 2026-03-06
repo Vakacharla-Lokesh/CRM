@@ -32,6 +32,7 @@ import workflowRoutes from "./routes/workflowRoutes.js";
 import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
 import statsRoutes from "./routes/statsRoutes.js";
 import taskRoutes from "./routes/taskRoutes.js";
+import jobRoutes from "./routes/jobRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
@@ -121,6 +122,7 @@ app.use("/api/workflows", workflowRoutes);
 app.use("/api/user-analytics", userAnalyticsRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/tasks", taskRoutes);
+app.use("/api/jobs", jobRoutes);
 
 // unknown route handler
 app.use(notFound);

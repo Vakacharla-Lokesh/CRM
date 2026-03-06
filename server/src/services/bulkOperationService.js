@@ -42,7 +42,11 @@ async function runInTransaction(fn) {
   }
 }
 
-export const bulkCreateLeads = async (leads, defaultUserId, defaultTenantId) => {
+export const bulkCreateLeads = async (
+  leads,
+  defaultUserId,
+  defaultTenantId,
+) => {
   if (!Array.isArray(leads) || leads.length === 0) {
     throw new AppError("Invalid leads array", 400);
   }
@@ -65,7 +69,11 @@ export const bulkCreateLeads = async (leads, defaultUserId, defaultTenantId) => 
         ? await leadModel.insertMany(newItems, { session, ordered: true })
         : [];
 
-    return { created: createdLeads.length, skipped: skippedCount, items: createdLeads };
+    return {
+      created: createdLeads.length,
+      skipped: skippedCount,
+      items: createdLeads,
+    };
   });
 };
 
@@ -98,7 +106,11 @@ export const bulkUpdateLeads = async (updates) => {
   });
 };
 
-export const bulkCreateDeals = async (deals, defaultUserId, defaultTenantId) => {
+export const bulkCreateDeals = async (
+  deals,
+  defaultUserId,
+  defaultTenantId,
+) => {
   if (!Array.isArray(deals) || deals.length === 0) {
     throw new AppError("Invalid deals array", 400);
   }
@@ -121,7 +133,11 @@ export const bulkCreateDeals = async (deals, defaultUserId, defaultTenantId) => 
         ? await dealModel.insertMany(newItems, { session, ordered: true })
         : [];
 
-    return { created: createdDeals.length, skipped: skippedCount, items: createdDeals };
+    return {
+      created: createdDeals.length,
+      skipped: skippedCount,
+      items: createdDeals,
+    };
   });
 };
 
@@ -171,7 +187,11 @@ export const bulkCreateComments = async (comments) => {
         ? await commentModel.insertMany(newItems, { session, ordered: true })
         : [];
 
-    return { created: createdComments.length, skipped: skippedCount, items: createdComments };
+    return {
+      created: createdComments.length,
+      skipped: skippedCount,
+      items: createdComments,
+    };
   });
 };
 
@@ -192,11 +212,19 @@ export const bulkCreateCalls = async (calls) => {
         ? await callModel.insertMany(newItems, { session, ordered: true })
         : [];
 
-    return { created: createdCalls.length, skipped: skippedCount, items: createdCalls };
+    return {
+      created: createdCalls.length,
+      skipped: skippedCount,
+      items: createdCalls,
+    };
   });
 };
 
-export const bulkCreateOrganizations = async (organizations, defaultUserId, defaultTenantId) => {
+export const bulkCreateOrganizations = async (
+  organizations,
+  defaultUserId,
+  defaultTenantId,
+) => {
   if (!Array.isArray(organizations) || organizations.length === 0) {
     throw new AppError("Invalid organizations array", 400);
   }

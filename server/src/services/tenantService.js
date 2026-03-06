@@ -95,11 +95,7 @@ export const deleteTenant = async (id) => {
       throw new AppError("Tenant is already inactive", 400);
     }
 
-    await tenantModel.findByIdAndUpdate(
-      id,
-      { isActive: false },
-      { session },
-    );
+    await tenantModel.findByIdAndUpdate(id, { isActive: false }, { session });
 
     await userModel.updateMany(
       { tenantId: id },
@@ -116,7 +112,10 @@ export const deleteTenant = async (id) => {
   }
 };
 
-export const searchTenants = async (tenantFilter, { q, isActive, limit = 25 }) => {
+export const searchTenants = async (
+  tenantFilter,
+  { q, isActive, limit = 25 },
+) => {
   if (!q || q.trim() === "") {
     throw new AppError("Search query 'q' is required", 400);
   }

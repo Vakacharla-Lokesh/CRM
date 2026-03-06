@@ -225,9 +225,7 @@ export const assignRoleToUser = async (id, permissions, role) => {
     throw new AppError(`Invalid permissions: ${invalid.join(", ")}`, 400);
   }
 
-  const permissionsMap = Object.fromEntries(
-    permissions.map((p) => [p, true]),
-  );
+  const permissionsMap = Object.fromEntries(permissions.map((p) => [p, true]));
 
   const updateData = { permissions: permissionsMap };
   if (role) updateData.role = role;

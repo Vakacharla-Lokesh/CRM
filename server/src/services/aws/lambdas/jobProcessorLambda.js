@@ -18,6 +18,8 @@ import * as workflowWorker from "./workflowLambda.js";
 import * as exportWorker from "./exportLambda.js";
 import * as leadReminderWorker from "./leadReminderLambda.js";
 
+import { jobService } from "../../services/jobService.js";
+
 let _initialized = false;
 
 async function initialize() {
@@ -42,7 +44,7 @@ async function initialize() {
   // Initialize AWS resources
   await ensureAwsInitialized();
   console.log("[JobProcessor] ✓ AWS resources initialized");
-  
+
   queueService.bootstrap();
   console.log("[JobProcessor] ✓ Queue service bootstrapped");
 
@@ -50,13 +52,25 @@ async function initialize() {
   try {
     console.log("[JobProcessor] 📝 Registering workers...");
     jobRegistry.register(workflowWorker.jobType, workflowWorker.handler);
-    console.log("[JobProcessor] ✓ Workflow worker registered:", workflowWorker.jobType);
-    
+    console.log(
+      "[JobProcessor] ✓ Workflow worker registered:",
+      workflowWorker.jobType,
+    );
+
     jobRegistry.register(exportWorker.jobType, exportWorker.handler);
-    console.log("[JobProcessor] ✓ Export worker registered:", exportWorker.jobType);
-    
-    jobRegistry.register(leadReminderWorker.jobType, leadReminderWorker.handler);
-    console.log("[JobProcessor] ✓ Lead reminder worker registered:", leadReminderWorker.jobType);
+    console.log(
+      "[JobProcessor] ✓ Export worker registered:",
+      exportWorker.jobType,
+    );
+
+    jobRegistry.register(
+      leadReminderWorker.jobType,
+      leadReminderWorker.handler,
+    );
+    console.log(
+      "[JobProcessor] ✓ Lead reminder worker registered:",
+      leadReminderWorker.jobType,
+    );
   } catch (regError) {
     console.error("[JobProcessor] ❌ Worker registration failed:", {
       error: regError.message,
@@ -139,7 +153,10 @@ export const handler = async (event, _context) => {
 
       const result = await new Promise((resolve, reject) => {
         requestStore.run(jobStoreContext, () => {
-          console.log("[JobProcessor] 🚀 Executing worker handler for:", jobType);
+          console.log(
+            "[JobProcessor] 🚀 Executing worker handler for:",
+            jobType,
+          );
           workerHandler(body.payload || body, context)
             .then((res) => {
               console.log("[JobProcessor] ✓ Worker handler resolved");
@@ -156,40 +173,69 @@ export const handler = async (event, _context) => {
         });
       });
 
+      const jobId = body.payload?._meta?.jobId || null;
+      const jobTenantId = context.tenantId;
+
       if (result.success) {
-        logger.info(`[Lambda] Job completed`, {
-          jobType,
-          messageId,
-          message: result.message,
-        });
-        console.log("[JobProcessor] ✅ Job succeeded", {
-          jobType,
-          messageId,
-          message: result.message,
-        });
+        logger.info(`[Lambda] Job completed`, { jobType, messageId });
+        console.log("[JobProcessor] ✅ Job succeeded", { jobType, messageId });
+
+        if (jobId && jobTenantId) {
+          await jobService
+            .updateJob(jobId, jobTenantId, {
+              status: "completed",
+              progress: 100,
+              result: { message: result.message },
+            })
+            .catch((e) =>
+              console.warn(
+                "[JobProcessor] Failed to update job status:",
+                e.message,
+              ),
+            );
+        }
       } else if (result.shouldRetry) {
-        logger.warn(`[Lambda] Job needs retry`, {
-          jobType,
-          messageId,
-          message: result.message,
-        });
+        logger.warn(`[Lambda] Job needs retry`, { jobType, messageId });
         console.log("[JobProcessor] ⚠️ Job needs retry", {
           jobType,
           messageId,
-          message: result.message,
         });
+
+        if (jobId && jobTenantId) {
+          await jobService
+            .updateJob(jobId, jobTenantId, {
+              status: "retrying",
+              result: { message: result.message },
+            })
+            .catch((e) =>
+              console.warn(
+                "[JobProcessor] Failed to update job status:",
+                e.message,
+              ),
+            );
+        }
+
         batchItemFailures.push({ itemIdentifier: messageId });
       } else {
-        logger.error(`[Lambda] Job failed (no retry)`, {
-          jobType,
-          messageId,
-          message: result.message,
-        });
+        logger.error(`[Lambda] Job failed (no retry)`, { jobType, messageId });
         console.log("[JobProcessor] ❌ Job failed (no retry)", {
           jobType,
           messageId,
-          message: result.message,
         });
+
+        if (jobId && jobTenantId) {
+          await jobService
+            .updateJob(jobId, jobTenantId, {
+              status: "failed",
+              error: { message: result.message },
+            })
+            .catch((e) =>
+              console.warn(
+                "[JobProcessor] Failed to update job status:",
+                e.message,
+              ),
+            );
+        }
       }
     } catch (error) {
       logger.error(`[Lambda] Failed to process message`, {
@@ -202,6 +248,31 @@ export const handler = async (event, _context) => {
         error: error.message,
         errorStack: error.stack,
       });
+
+      const failedJobId = (() => {
+        try {
+          return JSON.parse(record.body)?.payload?._meta?.jobId || null;
+        } catch {
+          return null;
+        }
+      })();
+      const failedTenantId = (() => {
+        try {
+          return JSON.parse(record.body)?.tenantId || null;
+        } catch {
+          return null;
+        }
+      })();
+
+      if (failedJobId && failedTenantId) {
+        await jobService
+          .updateJob(failedJobId, failedTenantId, {
+            status: "failed",
+            error: { message: error.message },
+          })
+          .catch(() => {});
+      }
+
       batchItemFailures.push({ itemIdentifier: messageId });
     }
   }

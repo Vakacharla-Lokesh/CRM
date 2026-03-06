@@ -97,7 +97,7 @@ function createEmailExportHandler(entityType) {
       timestamp: new Date().toISOString(),
     };
 
-    const { messageId } = await jobDispatcher.dispatch({
+    const { messageId, jobId } = await jobDispatcher.dispatch({
       jobType: JOB_TYPES.EXPORT_DATA,
       payload: message,
       tenantId,
@@ -105,10 +105,8 @@ function createEmailExportHandler(entityType) {
 
     res.status(202).json({
       success: true,
-      message: `Export queued successfully. You will receive an email at ${email} when ready.`,
-      messageId,
-      entityType,
-      count: ids.length,
+      jobId,
+      message: `Export queued successfully. You will receive an email at ${email} when complete.`,
     });
   });
 }

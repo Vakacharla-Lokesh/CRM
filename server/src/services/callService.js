@@ -13,11 +13,18 @@ export const getCallById = async (id) => {
   return call;
 };
 
-export const verifyLeadTenantAccess = async (leadId, userRole, userTenantId) => {
+export const verifyLeadTenantAccess = async (
+  leadId,
+  userRole,
+  userTenantId,
+) => {
   const lead = await leadModel.findById(leadId);
   if (!lead) throw new AppError("Lead not found", 404);
 
-  if (userRole !== "super_admin" && lead.tenantId.toString() !== userTenantId?.toString()) {
+  if (
+    userRole !== "super_admin" &&
+    lead.tenantId.toString() !== userTenantId?.toString()
+  ) {
     throw new AppError(
       "Forbidden: You cannot access resources from other tenants",
       403,
