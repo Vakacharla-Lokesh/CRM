@@ -1,98 +1,55 @@
-import { randomUUID } from "crypto";
-
-import attachmentModel from "../models/attachmentModel.js";
-import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import * as attachmentService from "../services/attachmentService.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
-import { s3Manager } from "../services/aws/s3Manager.js";
-import { BUCKETS } from "../services/aws/initAwsResources.js";
-
-function toPublic(att) {
-  return {
-    _id: att._id,
-    leadId: att.leadId,
-    fileName: att.fileName,
-    fileSize: att.fileSize,
-    fileType: att.fileType,
-    s3Key: att.s3Key,
-    s3Url: att.s3Url,
-    createdAt: att.createdAt,
-    updatedAt: att.updatedAt,
-  };
-}
 
 // GET /attachments — list all (admin use)
 export const getAllAttachments = asyncCatch(async (req, res) => {
-  const attachments = await attachmentModel.find().select("-__v");
+  const attachments = await attachmentService.getAllAttachments();
 
   res.json({
     count: attachments.length,
-    attachments: attachments.map(toPublic),
+    attachments,
   });
 });
 
 // GET /attachments/:id
 export const getAttachmentById = asyncCatch(async (req, res) => {
-  const attachment = await attachmentModel.findById(req.params.id);
+  const attachment = await attachmentService.getAttachmentById(req.params.id);
 
-  if (!attachment) throw new AppError("Attachment not found", 404);
-
-  res.json({ attachment: toPublic(attachment) });
+  res.json({ attachment: attachmentService.toPublic(attachment) });
 });
 
 // POST /attachments/presigned-url
 export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize } = req.body;
 
-  const lead = await leadModel.findById(leadId);
-  if (!lead) throw new AppError("Lead not found", 404);
+  await attachmentService.verifyLeadTenantAccess(
+    leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot upload attachments to leads from other tenants",
-      403,
-    );
-  }
-
-  const uuid = randomUUID();
-  const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
-
-  // Presigned PUT URL valid for 5 minutes
-  const presignedUrl = await s3Manager.getPresignedUploadUrl(
-    BUCKETS.leads,
-    s3Key,
+  const result = await attachmentService.getPresignedUploadUrl(
+    leadId,
+    fileName,
     fileSize,
   );
-  const s3Url = s3Manager.buildS3Url(BUCKETS.leads, s3Key);
 
-  res.json({ presignedUrl, s3Key, s3Url });
+  res.json(result);
 });
 
 // POST /attachments
 export const createAttachment = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize, s3Key, s3Url } = req.body;
 
-  const lead = await leadModel.findById(leadId);
-  if (!lead) throw new AppError("Lead not found", 404);
+  const lead = await attachmentService.verifyLeadTenantAccess(
+    leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot add attachments to leads from other tenants",
-      403,
-    );
-  }
-
-  const attachment = await attachmentModel.create({
+  const attachment = await attachmentService.createAttachment({
     leadId,
     fileName,
     fileType,
@@ -100,8 +57,6 @@ export const createAttachment = asyncCatch(async (req, res) => {
     s3Key,
     s3Url,
   });
-
-  await updateLeadScore(leadId);
 
   await logActivity({
     leadId,
@@ -114,31 +69,23 @@ export const createAttachment = asyncCatch(async (req, res) => {
 
   res.status(201).json({
     message: "Attachment created successfully",
-    attachment: toPublic(attachment),
+    attachment: attachmentService.toPublic(attachment),
   });
 });
 
 // DELETE /attachments/:id — removes the DB record and the S3 object
 export const deleteAttachment = asyncCatch(async (req, res) => {
-  const attachment = await attachmentModel.findById(req.params.id);
+  const existing = await attachmentService.getAttachmentById(req.params.id);
 
-  if (!attachment) throw new AppError("Attachment not found", 404);
+  const lead = await attachmentService.verifyLeadTenantAccess(
+    existing.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  const lead = await leadModel.findById(attachment.leadId);
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError("Forbidden: You cannot delete this attachment", 403);
-  }
-
-  // Remove the object from S3
-  await s3Manager.deleteFile(BUCKETS.leads, attachment.s3Key);
-
-  const leadId = attachment.leadId;
-  await attachmentModel.findByIdAndDelete(req.params.id);
-
-  await updateLeadScore(leadId);
+  const { attachment, leadId } = await attachmentService.deleteAttachment(
+    req.params.id,
+  );
 
   await logActivity({
     leadId,
@@ -154,50 +101,35 @@ export const deleteAttachment = asyncCatch(async (req, res) => {
 
 // GET /attachments/lead/:leadId
 export const getAttachmentsByLead = asyncCatch(async (req, res) => {
-  const lead = await leadModel.findById(req.params.leadId);
+  await attachmentService.verifyLeadTenantAccess(
+    req.params.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot access attachments from other tenants",
-      403,
-    );
-  }
-
-  const attachments = await attachmentModel.find({
-    leadId: req.params.leadId,
-  });
+  const attachments = await attachmentService.getAttachmentsByLead(
+    req.params.leadId,
+  );
 
   res.json({
     count: attachments.length,
-    attachments: attachments.map(toPublic),
+    attachments,
   });
 });
 
 // GET /attachments/:id/download
 export const downloadAttachment = asyncCatch(async (req, res) => {
-  const attachment = await attachmentModel.findById(req.params.id);
+  const existing = await attachmentService.getAttachmentById(req.params.id);
 
-  if (!attachment) throw new AppError("Attachment not found", 404);
-
-  const lead = await leadModel.findById(attachment.leadId);
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError("Forbidden: You cannot download this attachment", 403);
-  }
-
-  const result = await s3Manager.downloadFile(
-    BUCKETS.leads,
-    attachment.s3Key,
-    attachment.fileName,
+  await attachmentService.verifyLeadTenantAccess(
+    existing.leadId,
+    req.user.role,
+    req.user.tenantId,
   );
-  const url = result.url;
 
-  res.json({ url, fileName: attachment.fileName });
+  const { url, fileName } = await attachmentService.downloadAttachment(
+    req.params.id,
+  );
+
+  res.json({ url, fileName });
 });

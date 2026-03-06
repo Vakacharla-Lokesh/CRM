@@ -1,6 +1,6 @@
-import organizationModel from "../models/organizationModel.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
+import * as organizationService from "../services/organizationService.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { bulkDeleteOrganizations } from "../services/bulkDeleteService.js";
 
@@ -16,33 +16,15 @@ export const getAllOrganizations = asyncCatch(async (req, res) => {
     filter.userId = req.auth.userId;
   }
 
-  const limit = parseInt(req.query.limit) || 20;
-  const cursor = req.query.cursor;
-
-  // Server-side filters
   if (req.query.industry) {
     filter.industry = req.query.industry;
   }
 
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
-  }
+  const limit = parseInt(req.query.limit) || 20;
+  const cursor = req.query.cursor;
 
-  const organizations = await organizationModel
-    .find(filter)
-    .sort({ _id: 1 })
-    .limit(limit + 1);
-
-  const hasNextPage = organizations.length > limit;
-  if (hasNextPage) organizations.pop();
-
-  const nextCursor =
-    hasNextPage && organizations.length > 0
-      ? Buffer.from(
-          organizations[organizations.length - 1]._id.toString(),
-        ).toString("base64")
-      : null;
+  const { organizations, nextCursor, hasNextPage } =
+    await organizationService.getAllOrganizations(filter, { limit, cursor });
 
   res.json({
     count: organizations.length,
@@ -58,23 +40,17 @@ export const getOrganizationById = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("organizations:view_all"));
 
-  const organization = await organizationModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!organization) throw new AppError("Organization not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this organization", 403);
-  }
-
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this organization", 403);
-  }
+  const organization = await organizationService.getOrganizationById(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   res.json({ organization });
 });
@@ -91,7 +67,8 @@ export const createOrganization = asyncCatch(async (req, res) => {
     organizationData.tenantId = req.user.tenantId;
   }
 
-  const organization = await organizationModel.create(organizationData);
+  const organization =
+    await organizationService.createOrganization(organizationData);
 
   await fireWorkflowTrigger(
     req,
@@ -107,36 +84,23 @@ export const createOrganization = asyncCatch(async (req, res) => {
   });
 });
 
-// Update organization
 export const updateOrganization = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("organizations:view_all"));
 
-  const organization = await organizationModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!organization) throw new AppError("Organization not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this organization", 403);
-  }
-
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this organization", 403);
-  }
-
-  // Update organization
-  const updatedOrganization = await organizationModel.findByIdAndUpdate(
+  const updatedOrganization = await organizationService.updateOrganization(
     req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
     req.body,
-    { new: true, runValidators: true },
   );
 
   await fireWorkflowTrigger(
@@ -153,32 +117,23 @@ export const updateOrganization = asyncCatch(async (req, res) => {
   });
 });
 
-// Delete organization
 export const deleteOrganization = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("organizations:view_all"));
 
-  const organization = await organizationModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!organization) throw new AppError("Organization not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    organization.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this organization", 403);
-  }
-
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this organization", 403);
-  }
-
-  await organizationModel.findByIdAndDelete(req.params.id);
+  const organization = await organizationService.deleteOrganization(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   await fireWorkflowTrigger(
     req,
@@ -191,9 +146,7 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
   res.json({ message: "Organization deleted successfully" });
 });
 
-// Get organizations by tenant
 export const getOrganizationsByTenant = asyncCatch(async (req, res) => {
-  // Check tenant access
   if (
     req.user.role !== "super_admin" &&
     req.params.tenantId !== req.user.tenantId
@@ -204,9 +157,9 @@ export const getOrganizationsByTenant = asyncCatch(async (req, res) => {
     );
   }
 
-  const organizations = await organizationModel.find({
-    tenantId: req.params.tenantId,
-  });
+  const organizations = await organizationService.getOrganizationsByTenant(
+    req.params.tenantId,
+  );
 
   res.json({
     count: organizations.length,
@@ -214,16 +167,14 @@ export const getOrganizationsByTenant = asyncCatch(async (req, res) => {
   });
 });
 
-// Get organizations by user
 export const getOrganizationsByUser = asyncCatch(async (req, res) => {
-  const filter = { userId: req.params.userId };
+  const tenantId =
+    req.user.role !== "super_admin" ? req.user.tenantId : null;
 
-  // Add tenant filter for non-super_admin
-  if (req.user.role !== "super_admin") {
-    filter.tenantId = req.user.tenantId;
-  }
-
-  const organizations = await organizationModel.find(filter);
+  const organizations = await organizationService.getOrganizationsByUser(
+    req.params.userId,
+    tenantId,
+  );
 
   res.json({
     count: organizations.length,
@@ -238,28 +189,16 @@ export const searchOrganizations = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("organizations:view_all"));
 
   const filter = req.tenantFilter || {};
-  const { q, status, source, limit = 25 } = req.query;
+  const { q, limit = 25 } = req.query;
 
   if (!canViewAll) {
     filter.userId = req.auth.userId;
   }
 
-  if (!q || q.trim() === "") {
-    throw new AppError("Search query 'q' is required", 400);
-  }
-
-  const searchRegex = new RegExp(q.trim(), "i");
-
-  filter.$or = [
-    { name: searchRegex },
-    { website: searchRegex },
-    { industry: searchRegex },
-  ];
-
-  const organizations = await organizationModel
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(Math.min(parseInt(limit), 25));
+  const organizations = await organizationService.searchOrganizations(filter, {
+    q,
+    limit,
+  });
 
   res.json({ count: organizations.length, organizations });
 });

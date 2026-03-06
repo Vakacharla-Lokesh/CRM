@@ -159,7 +159,7 @@ widgets for dashboard and (rearrange widgets)
 
 >>>tenant based settings
 
-tasks new tab per user in kanban type page and create through workflows
+>>>tasks new tab per user in kanban type page and create through workflows
 
 start up login and flow on first login, send a link instead of password and credentials, reset password and take in profile data
 
@@ -197,7 +197,7 @@ test website to track lead activity
 
 tickets section is mentioned in crms?
 
-tasks or notes section
+>>>tasks or notes section
 
 campaign and email templates section to send emails based on template to the lead (use markdown editor for html body of emails).
 
@@ -235,7 +235,9 @@ if this goes out of business tomorrow? what it would need?
 
 transaction type configuration like snapshot, read concern, write concern
 
+job process tracking using a redis pub sub
 
+now when a job is added to a queue, i need to track the status
 
 PACKAGES - 
 https://www.npmjs.com/package/@hello-pangea/dnd

@@ -1,8 +1,5 @@
-import mongoose from "mongoose";
-import userModel from "../models/userModel.js";
-import bcrypt from "bcryptjs";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
+import * as userService from "../services/userService.js";
 
 // Get all users
 export const getAllUsers = asyncCatch(async (req, res) => {
@@ -15,7 +12,6 @@ export const getAllUsers = asyncCatch(async (req, res) => {
 
   // Server-side filters
   if (req.query.role) {
-    // Only apply role filter if it isn't trying to fetch super_admin
     if (req.query.role !== "super_admin") {
       filter.role = req.query.role;
     }
@@ -34,114 +30,49 @@ export const getAllUsers = asyncCatch(async (req, res) => {
     ];
   }
 
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
-  }
-
-  const users = await userModel
-    .find({ ...filter })
-    .sort({ _id: 1 })
-    .limit(limit + 1);
-
-  const hasNextPage = users.length > limit;
-  if (hasNextPage) users.pop();
-
-  const nextCursor =
-    hasNextPage && users.length > 0
-      ? Buffer.from(users[users.length - 1]._id.toString()).toString("base64")
-      : null;
+  const { users, nextCursor, hasNextPage } =
+    await userService.getAllUsers(filter, { limit, cursor });
 
   res.json({ count: users.length, users, nextCursor, hasNextPage });
 });
 
 // Get user by ID
 export const getUserById = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.params.id);
-
-  if (!user || user.role === "super_admin")
-    throw new AppError("User not found", 404);
+  const user = await userService.getUserById(req.params.id);
 
   res.json({ user });
 });
 
 // Create a new user
 export const createUser = asyncCatch(async (req, res) => {
-  const { password, ...userData } = req.body;
-
-  // Check if user already exists
-  const existingUser = await userModel.findOne({
-    email: userData.email,
-  });
-
-  if (existingUser) {
-    throw new AppError("User with this email already exists", 409);
-  }
-
-  // Create user
-  const user = await userModel.create({
-    ...userData,
-    password,
-  });
-
-  // Convert to plain object and remove password
-  const userObject = user.toObject();
-  delete userObject.password;
+  const user = await userService.createUser(req.body);
 
   res.status(201).json({
     message: "User created successfully",
-    user: userObject,
+    user,
   });
 });
 
 // Update user
 export const updateUser = asyncCatch(async (req, res) => {
-  const { password, ...updateData } = req.body;
-
-  // If password is being updated, hash it
-  if (password) {
-    updateData.password = await bcrypt.hash(password, 12);
-  }
-
-  const user = await userModel.findByIdAndUpdate(req.params.id, updateData, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!user) throw new AppError("User not found", 404);
-
-  // Convert to plain object and remove password
-  const userObject = user.toObject();
-  delete userObject.password;
+  const user = await userService.updateUser(req.params.id, req.body);
 
   res.json({
     message: "User updated successfully",
-    user: userObject,
+    user,
   });
 });
 
 // Delete user
 export const deleteUser = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.params.id);
-
-  if (!user) throw new AppError("User not found", 404);
-
-  if (!user.isActive) {
-    throw new AppError("User is already inactive", 400);
-  }
-
-  await userModel.findByIdAndUpdate(req.params.id, { isActive: false });
+  await userService.deleteUser(req.params.id);
 
   res.json({ message: "User deactivated successfully" });
 });
 
 // Get users by tenant
 export const getUsersByTenant = asyncCatch(async (req, res) => {
-  const users = await userModel.find({
-    tenantId: req.params.tenantId,
-    isActive: true,
-    role: { $ne: "super_admin" },
-  });
+  const users = await userService.getUsersByTenant(req.params.tenantId);
 
   res.json({
     count: users.length,
@@ -153,58 +84,27 @@ export const getUsersByTenant = asyncCatch(async (req, res) => {
 export const updateUserRole = asyncCatch(async (req, res) => {
   const { role } = req.body;
 
-  const user = await userModel.findByIdAndUpdate(
-    req.params.id,
-    { role },
-    { new: true, runValidators: true },
-  );
-
-  if (!user) throw new AppError("User not found", 404);
-
-  // Convert to plain object and remove password
-  const userObject = user.toObject();
-  delete userObject.password;
+  const user = await userService.updateUserRole(req.params.id, role);
 
   res.json({
     message: "User role updated successfully",
-    user: userObject,
+    user,
   });
 });
 
 // Get current user (authenticated user)
 export const getCurrentUser = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.user.userId);
+  const user = await userService.getCurrentUser(req.user.userId);
 
-  if (!user) throw new AppError("User not found", 404);
-
-  // Convert to plain object and remove password
-  const userObject = user.toObject();
-  delete userObject.password;
-
-  res.json({
-    user: userObject,
-  });
+  res.json({ user });
 });
 
 // Search users
 export const searchUsers = asyncCatch(async (req, res) => {
   const { q } = req.query;
-
-  if (!q) throw new AppError("Search query is required", 400);
-
   const filter = req.tenantFilter || {};
-  const searchRegex = new RegExp(q, "i");
 
-  const users = await userModel.find({
-    ...filter,
-    role: { $ne: "super_admin" },
-    $or: [
-      { firstName: searchRegex },
-      { lastName: searchRegex },
-      { email: searchRegex },
-      { mobile: searchRegex },
-    ],
-  });
+  const users = await userService.searchUsers(filter, q);
 
   res.json(users);
 });
@@ -213,32 +113,7 @@ export const searchUsers = asyncCatch(async (req, res) => {
 export const getUserStats = asyncCatch(async (req, res) => {
   const filter = req.tenantFilter || {};
 
-  const statsFilter = { ...filter, role: { $ne: "super_admin" } };
-
-  const totalUsers = await userModel.countDocuments(statsFilter);
-  const activeUsers = await userModel.countDocuments({
-    ...statsFilter,
-    // Add your active user criteria here
-  });
-
-  const usersByRole = await userModel.aggregate([
-    { $match: statsFilter },
-    {
-      $group: {
-        _id: "$role",
-        count: { $sum: 1 },
-      },
-    },
-  ]);
-
-  const stats = {
-    totalUsers,
-    activeUsers: activeUsers || totalUsers, // Fallback to total if no specific criteria
-    usersByRole: usersByRole.reduce((acc, item) => {
-      acc[item._id] = item.count;
-      return acc;
-    }, {}),
-  };
+  const stats = await userService.getUserStats(filter);
 
   res.json(stats);
 });
@@ -247,38 +122,13 @@ export const getUserStats = asyncCatch(async (req, res) => {
 export const updatePassword = asyncCatch(async (req, res) => {
   const { oldPassword, newPassword } = req.body;
 
-  const user = await userModel.findById(req.params.id).select("+password");
-
-  if (!user) throw new AppError("User not found", 404);
-
-  // Verify old password if provided
-  if (oldPassword && user.password) {
-    const isMatch = await user.comparePassword(oldPassword);
-    if (!isMatch) {
-      throw new AppError("Invalid old password", 401);
-    }
-  }
-
-  // Update password
-  user.password = newPassword;
-  await user.save();
+  await userService.updatePassword(req.params.id, oldPassword, newPassword);
 
   res.json({ message: "Password updated successfully" });
 });
 
 // Send password reset email
 export const sendPasswordReset = asyncCatch(async (req, res) => {
-  const { email } = req.body;
-
-  const user = await userModel.findOne({ email: email });
-
-  if (!user) {
-    // Don't reveal if user exists or not for security
-    return res.json({
-      message: "If an account exists, a password reset email has been sent",
-    });
-  }
-
   // TODO: Implement actual password reset token generation and email sending
   // For now, just return success message
   res.json({
@@ -288,44 +138,9 @@ export const sendPasswordReset = asyncCatch(async (req, res) => {
 
 // Update user profile
 export const updateProfile = asyncCatch(async (req, res) => {
-  const { name, firstName, lastName, email, phone, department, position } =
-    req.body;
-  const updateData = {};
+  const user = await userService.updateProfile(req.params.id, req.body);
 
-  // Handle firstName and lastName directly, or parse from name
-  if (firstName !== undefined) {
-    updateData.firstName = firstName;
-  } else if (name) {
-    const nameParts = name.split(" ");
-    updateData.firstName = nameParts[0];
-  }
-
-  if (lastName !== undefined) {
-    updateData.lastName = lastName;
-  } else if (name && !firstName) {
-    const nameParts = name.split(" ");
-    if (nameParts.length > 1) {
-      updateData.lastName = nameParts.slice(1).join(" ");
-    }
-  }
-
-  if (email) updateData.email = email;
-  if (phone) updateData.mobile = phone;
-  if (department) updateData.department = department;
-  if (position) updateData.position = position;
-
-  const user = await userModel.findByIdAndUpdate(req.params.id, updateData, {
-    new: true,
-    runValidators: true,
-  });
-
-  if (!user) throw new AppError("User not found", 404);
-
-  // Convert to plain object and remove password
-  const userObject = user.toObject();
-  delete userObject.password;
-
-  res.json(userObject);
+  res.json(user);
 });
 
 // Get user activity
@@ -336,59 +151,22 @@ export const getUserActivity = asyncCatch(async (req, res) => {
 });
 
 export const getUserPermissions = asyncCatch(async (req, res) => {
-  const user = await userModel.findById(req.params.id);
-  if (!user) throw new AppError("User not found", 404);
+  const { role, permissions } = await userService.getUserPermissions(
+    req.params.id,
+  );
 
-  const permissions = user.getPermissionsArray();
-
-  res.json({
-    role: user.role,
-    permissions,
-  });
+  res.json({ role, permissions });
 });
 
-export const assignRoleToUser = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-    const { permissions, role } = req.body;
+export const assignRoleToUser = asyncCatch(async (req, res) => {
+  const { id } = req.params;
+  const { permissions, role } = req.body;
 
-    if (!Array.isArray(permissions)) {
-      return next(new AppError("permissions must be an array of strings", 400));
-    }
+  const data = await userService.assignRoleToUser(id, permissions, role);
 
-    const { ALL_PERMISSIONS } = await import("../models/permissionPresets.js");
-    const invalid = permissions.filter((p) => !ALL_PERMISSIONS.includes(p));
-    if (invalid.length > 0) {
-      return next(
-        new AppError(`Invalid permissions: ${invalid.join(", ")}`, 400),
-      );
-    }
-
-    // Convert array → Map object
-    const permissionsMap = Object.fromEntries(
-      permissions.map((p) => [p, true]),
-    );
-
-    const updateData = { permissions: permissionsMap };
-    if (role) updateData.role = role;
-
-    const user = await userModel.findByIdAndUpdate(id, updateData, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!user) return next(new AppError("User not found", 404));
-
-    res.json({
-      success: true,
-      message: "Permissions updated successfully",
-      data: {
-        userId: user._id,
-        role: user.role,
-        permissions: user.getPermissionsArray(),
-      },
-    });
-  } catch (err) {
-    next(err);
-  }
-};
+  res.json({
+    success: true,
+    message: "Permissions updated successfully",
+    data,
+  });
+});
