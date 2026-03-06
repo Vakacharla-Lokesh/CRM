@@ -1,14 +1,11 @@
-import commentModel from "../models/commentModel.js";
-import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import * as commentService from "../services/commentService.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
 
 // Get all comments
 export const getAllComments = asyncCatch(async (req, res) => {
-  const comments = await commentModel.find();
+  const comments = await commentService.getAllComments();
 
   res.json({
     count: comments.length,
@@ -18,35 +15,20 @@ export const getAllComments = asyncCatch(async (req, res) => {
 
 // Get comment by ID
 export const getCommentById = asyncCatch(async (req, res) => {
-  const comment = await commentModel.findById(req.params.id);
-
-  if (!comment) throw new AppError("Comment not found", 404);
+  const comment = await commentService.getCommentById(req.params.id);
 
   res.json({ comment });
 });
 
 // Create a new comment
 export const createComment = asyncCatch(async (req, res) => {
-  // Verify lead exists and belongs to user's tenant
-  const lead = await leadModel.findById(req.body.leadId);
+  const lead = await commentService.verifyLeadTenantAccess(
+    req.body.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  // Check tenant access
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot add comments to leads from other tenants",
-      403,
-    );
-  }
-
-  const comment = await commentModel.create(req.body);
-
-  // Update lead score after adding comment
-  await updateLeadScore(req.body.leadId);
+  const comment = await commentService.createComment(req.body, req.body.leadId);
 
   await logActivity({
     leadId: req.body.leadId,
@@ -65,23 +47,17 @@ export const createComment = asyncCatch(async (req, res) => {
 
 // Update comment
 export const updateComment = asyncCatch(async (req, res) => {
-  const comment = await commentModel.findById(req.params.id);
+  const existing = await commentService.getCommentById(req.params.id);
 
-  if (!comment) throw new AppError("Comment not found", 404);
+  await commentService.verifyLeadTenantAccess(
+    existing.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  // Verify lead tenant access
-  const lead = await leadModel.findById(comment.leadId);
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError("Forbidden: You cannot update this comment", 403);
-  }
-
-  const updatedComment = await commentModel.findByIdAndUpdate(
+  const { updatedComment } = await commentService.updateComment(
     req.params.id,
     req.body,
-    { new: true, runValidators: true },
   );
 
   res.json({
@@ -92,24 +68,15 @@ export const updateComment = asyncCatch(async (req, res) => {
 
 // Delete comment
 export const deleteComment = asyncCatch(async (req, res) => {
-  const comment = await commentModel.findById(req.params.id);
+  const existing = await commentService.getCommentById(req.params.id);
 
-  if (!comment) throw new AppError("Comment not found", 404);
+  const lead = await commentService.verifyLeadTenantAccess(
+    existing.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  // Verify lead tenant access
-  const lead = await leadModel.findById(comment.leadId);
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError("Forbidden: You cannot delete this comment", 403);
-  }
-
-  const leadId = comment.leadId;
-  await commentModel.findByIdAndDelete(req.params.id);
-
-  // Update lead score after deleting comment
-  await updateLeadScore(leadId);
+  const { comment, leadId } = await commentService.deleteComment(req.params.id);
 
   await logActivity({
     leadId,
@@ -125,22 +92,13 @@ export const deleteComment = asyncCatch(async (req, res) => {
 
 // Get comments by lead
 export const getCommentsByLead = asyncCatch(async (req, res) => {
-  // Verify lead tenant access
-  const lead = await leadModel.findById(req.params.leadId);
+  await commentService.verifyLeadTenantAccess(
+    req.params.leadId,
+    req.user.role,
+    req.user.tenantId,
+  );
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.user.role !== "super_admin" &&
-    lead.tenantId.toString() !== req.user.tenantId
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot access comments from other tenants",
-      403,
-    );
-  }
-
-  const comments = await commentModel.find({ leadId: req.params.leadId });
+  const comments = await commentService.getCommentsByLead(req.params.leadId);
 
   res.json({
     count: comments.length,

@@ -1,4 +1,4 @@
-import dealModel from "../models/dealModel.js";
+import * as dealService from "../services/dealService.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
@@ -21,9 +21,6 @@ export const getAllDeals = asyncCatch(async (req, res) => {
     filter.userId = req.auth.userId;
   }
 
-  const limit = parseInt(req.query.limit) || 20;
-  const cursor = req.query.cursor;
-
   // Server-side filters
   if (req.query.status) {
     filter.status = req.query.status;
@@ -32,23 +29,13 @@ export const getAllDeals = asyncCatch(async (req, res) => {
     filter.status = req.query.stage;
   }
 
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
-  }
+  const limit = parseInt(req.query.limit) || 20;
+  const cursor = req.query.cursor;
 
-  const deals = await dealModel
-    .find(filter)
-    .sort({ _id: 1 })
-    .limit(limit + 1);
-
-  const hasNextPage = deals.length > limit;
-  if (hasNextPage) deals.pop();
-
-  const nextCursor =
-    hasNextPage && deals.length > 0
-      ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
-      : null;
+  const { deals, nextCursor, hasNextPage } = await dealService.getAllDeals(
+    filter,
+    { limit, cursor },
+  );
 
   res.json({ count: deals.length, deals, nextCursor, hasNextPage });
 });
@@ -60,27 +47,23 @@ export const getDealById = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("deals:view_all"));
 
-  const deal = await dealModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!deal) throw new AppError("Deal not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this deal", 403);
-  }
-
-  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
-    throw new AppError("Forbidden: You cannot access this deal", 403);
-  }
+  const deal = await dealService.getDealById(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   res.json({ deal });
 });
 
 // Create a new deal
 export const createDeal = asyncCatch(async (req, res) => {
-  // Ensure userId from authenticated user
   const dealData = {
     ...req.body,
     userId: req.user.userId,
@@ -90,7 +73,7 @@ export const createDeal = asyncCatch(async (req, res) => {
     dealData.tenantId = req.tenantContext.tenantId;
   }
 
-  const deal = await dealModel.create(dealData);
+  const deal = await dealService.createDeal(dealData);
 
   await fireWorkflowTrigger(req, "deal", "create", deal._id, deal.toObject());
 
@@ -107,26 +90,17 @@ export const updateDeal = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("deals:view_all"));
 
-  const deal = await dealModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!deal) throw new AppError("Deal not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  // Update deal
-  const updatedDeal = await dealModel.findByIdAndUpdate(
+  const updatedDeal = await dealService.updateDeal(
     req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
     req.body,
-    { new: true, runValidators: true },
   );
 
   await fireWorkflowTrigger(
@@ -150,22 +124,17 @@ export const deleteDeal = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("deals:view_all"));
 
-  const deal = await dealModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!deal) throw new AppError("Deal not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this deal", 403);
-  }
-
-  if (!canViewAll && deal.userId.toString() !== req.auth.userId.toString()) {
-    throw new AppError("Forbidden: You cannot delete this deal", 403);
-  }
-
-  await dealModel.findByIdAndDelete(req.params.id);
+  const deal = await dealService.deleteDeal(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   await fireWorkflowTrigger(req, "deal", "delete", deal._id, deal.toObject());
 
@@ -184,7 +153,7 @@ export const getDealsByTenant = asyncCatch(async (req, res) => {
     );
   }
 
-  const deals = await dealModel.find({ tenantId: req.params.tenantId });
+  const deals = await dealService.getDealsByTenant(req.params.tenantId);
 
   res.json({
     count: deals.length,
@@ -194,13 +163,12 @@ export const getDealsByTenant = asyncCatch(async (req, res) => {
 
 // Get deals by user
 export const getDealsByUser = asyncCatch(async (req, res) => {
-  const filter = { userId: req.params.userId };
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (req.tenantContext?.scope === "tenant") {
-    filter.tenantId = req.tenantContext.tenantId;
-  }
-
-  const deals = await dealModel.find(filter);
+  const deals = await dealService.getDealsByUser(req.params.userId, tenantId);
 
   res.json({
     count: deals.length,
@@ -210,13 +178,12 @@ export const getDealsByUser = asyncCatch(async (req, res) => {
 
 // Get deals by lead
 export const getDealsByLead = asyncCatch(async (req, res) => {
-  const filter = { leadId: req.params.leadId };
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (req.tenantContext?.scope === "tenant") {
-    filter.tenantId = req.tenantContext.tenantId;
-  }
-
-  const deals = await dealModel.find(filter);
+  const deals = await dealService.getDealsByLead(req.params.leadId, tenantId);
 
   res.json({
     count: deals.length,
@@ -226,13 +193,15 @@ export const getDealsByLead = asyncCatch(async (req, res) => {
 
 // Get deals by organization
 export const getDealsByOrganization = asyncCatch(async (req, res) => {
-  const filter = { organizationId: req.params.organizationId };
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (req.tenantContext?.scope === "tenant") {
-    filter.tenantId = req.tenantContext.tenantId;
-  }
-
-  const deals = await dealModel.find(filter);
+  const deals = await dealService.getDealsByOrganization(
+    req.params.organizationId,
+    tenantId,
+  );
 
   res.json({
     count: deals.length,
@@ -258,18 +227,7 @@ export const searchDeals = asyncCatch(async (req, res) => {
 
   const { q, limit = 25 } = req.query;
 
-  if (!q || q.trim() === "") {
-    throw new AppError("Search query 'q' is required", 400);
-  }
-
-  const searchRegex = new RegExp(q.trim(), "i");
-
-  filter.$or = [{ name: searchRegex }];
-
-  const deals = await dealModel
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(Math.min(parseInt(limit), 25));
+  const deals = await dealService.searchDeals(filter, { q, limit });
 
   res.json({ count: deals.length, deals });
 });
@@ -277,19 +235,17 @@ export const searchDeals = asyncCatch(async (req, res) => {
 // Update deal status
 export const updateDealStatus = asyncCatch(async (req, res) => {
   const { status } = req.body;
-  const deal = await dealModel.findById(req.params.id);
 
-  if (!deal) throw new AppError("Deal not found", 404);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    deal.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  deal.status = status;
-  await deal.save();
+  const deal = await dealService.updateDealStatus(
+    req.params.id,
+    tenantId,
+    status,
+  );
 
   await fireWorkflowTrigger(req, "deal", "update", deal._id, deal.toObject());
 

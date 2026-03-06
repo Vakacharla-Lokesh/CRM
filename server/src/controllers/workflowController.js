@@ -1,7 +1,5 @@
-import workflowModel from "../models/workflows/workflowModel.js";
-import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
+import * as workflowService from "../services/workflowService.js";
 import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
 
 export const getAllWorkflows = asyncCatch(async (req, res) => {
   const canViewAll =
@@ -18,26 +16,8 @@ export const getAllWorkflows = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
-  if (cursor) {
-    const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
-    filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
-  }
-
-  const workflows = await workflowModel
-    .find(filter)
-    .populate("createdBy", "firstName lastName email")
-    .sort({ updatedAt: -1 })
-    .limit(limit + 1);
-
-  const hasNextPage = workflows.length > limit;
-  if (hasNextPage) workflows.pop();
-
-  const nextCursor =
-    hasNextPage && workflows.length > 0
-      ? Buffer.from(
-          workflows[workflows.length - 1].updatedAt.toISOString(),
-        ).toString("base64")
-      : null;
+  const { workflows, nextCursor, hasNextPage } =
+    await workflowService.getAllWorkflows(filter, { limit, cursor });
 
   res.json({ count: workflows.length, workflows, nextCursor, hasNextPage });
 });
@@ -48,25 +28,14 @@ export const getWorkflowById = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("workflows:view_all"));
 
-  const workflow = await workflowModel
-    .findById(req.params.id)
-    .populate("createdBy", "firstName lastName email");
+  const tenantId = req.tenantFilter?.tenantId;
 
-  if (!workflow) throw new AppError("Workflow not found", 404);
-
-  if (
-    req.tenantFilter.tenantId &&
-    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this workflow", 403);
-  }
-
-  if (
-    !canViewAll &&
-    workflow.createdBy._id.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this workflow", 403);
-  }
+  const workflow = await workflowService.getWorkflowById(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   res.json({ workflow });
 });
@@ -77,19 +46,15 @@ export const createWorkflow = asyncCatch(async (req, res) => {
     createdBy: req.user.userId,
   };
 
-  if (req.tenantFilter.tenantId) {
+  if (req.tenantFilter?.tenantId) {
     workflowData.tenantId = req.tenantFilter.tenantId;
   }
 
-  const workflow = await workflowModel.create(workflowData);
-
-  const populated = await workflowModel
-    .findById(workflow._id)
-    .populate("createdBy", "firstName lastName email");
+  const workflow = await workflowService.createWorkflow(workflowData);
 
   res
     .status(201)
-    .json({ message: "Workflow created successfully", workflow: populated });
+    .json({ message: "Workflow created successfully", workflow });
 });
 
 export const updateWorkflow = asyncCatch(async (req, res) => {
@@ -98,30 +63,15 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("workflows:view_all"));
 
-  const workflow = await workflowModel.findById(req.params.id);
+  const tenantId = req.tenantFilter?.tenantId;
 
-  if (!workflow) throw new AppError("Workflow not found", 404);
-
-  if (
-    req.tenantFilter.tenantId &&
-    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this workflow", 403);
-  }
-
-  if (
-    !canViewAll &&
-    workflow.createdBy.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this workflow", 403);
-  }
-
-  const updated = await workflowModel
-    .findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    })
-    .populate("createdBy", "firstName lastName email");
+  const updated = await workflowService.updateWorkflow(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+    req.body,
+  );
 
   res.json({ message: "Workflow updated successfully", workflow: updated });
 });
@@ -132,25 +82,14 @@ export const deleteWorkflow = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("workflows:view_all"));
 
-  const workflow = await workflowModel.findById(req.params.id);
+  const tenantId = req.tenantFilter?.tenantId;
 
-  if (!workflow) throw new AppError("Workflow not found", 404);
-
-  if (
-    req.tenantFilter.tenantId &&
-    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this workflow", 403);
-  }
-
-  if (
-    !canViewAll &&
-    workflow.createdBy.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this workflow", 403);
-  }
-
-  await workflowModel.findByIdAndDelete(req.params.id);
+  await workflowService.deleteWorkflow(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   res.json({ message: "Workflow deleted successfully" });
 });
@@ -161,26 +100,14 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
     (Array.isArray(req.auth?.permissions) &&
       req.auth.permissions.includes("workflows:view_all"));
 
-  const workflow = await workflowModel.findById(req.params.id);
+  const tenantId = req.tenantFilter?.tenantId;
 
-  if (!workflow) throw new AppError("Workflow not found", 404);
-
-  if (
-    req.tenantFilter.tenantId &&
-    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot modify this workflow", 403);
-  }
-
-  if (
-    !canViewAll &&
-    workflow.createdBy.toString() !== req.auth.userId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot modify this workflow", 403);
-  }
-
-  workflow.isActive = !workflow.isActive;
-  await workflow.save();
+  const workflow = await workflowService.toggleWorkflow(
+    req.params.id,
+    tenantId,
+    req.auth.userId,
+    canViewAll,
+  );
 
   res.json({
     message: `Workflow ${workflow.isActive ? "activated" : "deactivated"}`,
@@ -189,23 +116,14 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
 });
 
 export const getWorkflowLogs = asyncCatch(async (req, res) => {
-  const workflow = await workflowModel.findById(req.params.id);
-
-  if (!workflow) throw new AppError("Workflow not found", 404);
-
-  if (
-    req.tenantFilter.tenantId &&
-    workflow.tenantId.toString() !== req.tenantFilter.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden", 403);
-  }
-
+  const tenantId = req.tenantFilter?.tenantId;
   const limit = parseInt(req.query.limit) || 50;
 
-  const logs = await workflowExecutionLogModel
-    .find({ workflowId: req.params.id })
-    .sort({ triggeredAt: -1 })
-    .limit(limit);
+  const logs = await workflowService.getWorkflowLogs(
+    req.params.id,
+    tenantId,
+    { limit },
+  );
 
   res.json({ count: logs.length, logs });
 });

@@ -1,7 +1,6 @@
-import leadModel from "../models/leadModel.js";
-import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
+import * as leadService from "../services/leadService.js";
 import { fireWorkflowTrigger } from "../middlewares/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../utils/leadActivityTypes.js";
@@ -24,10 +23,6 @@ export const getAllLeads = asyncCatch(async (req, res) => {
     filter.assignedTo = req.auth.userId;
   }
 
-  const limit = parseInt(req.query.limit) || 20;
-  const cursor = req.query.cursor;
-
-  // Server-side filters
   if (req.query.status) {
     filter.status = req.query.status;
   }
@@ -35,25 +30,11 @@ export const getAllLeads = asyncCatch(async (req, res) => {
     filter.source = req.query.source;
   }
 
-  if (cursor) {
-    const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
-    filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
-  }
+  const limit = parseInt(req.query.limit) || 20;
+  const cursor = req.query.cursor;
 
-  const leads = await leadModel
-    .find(filter)
-    .sort({ updatedAt: -1 })
-    .limit(limit + 1);
-
-  const hasNextPage = leads.length > limit;
-  if (hasNextPage) leads.pop();
-
-  const nextCursor =
-    hasNextPage && leads.length > 0
-      ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString(
-          "base64",
-        )
-      : null;
+  const { leads, nextCursor, hasNextPage } =
+    await leadService.getAllLeads(filter, { limit, cursor });
 
   res.json({
     count: leads.length,
@@ -64,16 +45,12 @@ export const getAllLeads = asyncCatch(async (req, res) => {
 });
 
 export const getLeadById = asyncCatch(async (req, res) => {
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot access this lead", 403);
-  }
+  const lead = await leadService.getLeadById(req.params.id, tenantId);
 
   res.json({ lead });
 });
@@ -89,20 +66,14 @@ export const createLead = asyncCatch(async (req, res) => {
     leadData.tenantId = req.tenantContext.tenantId;
   }
 
-  const lead = await leadModel.create(leadData);
-
-  // Calculate and update lead score
-  await updateLeadScore(lead._id);
-
-  // Fetch updated lead with score
-  const updatedLead = await leadModel.findById(lead._id);
+  const lead = await leadService.createLead(leadData);
 
   await fireWorkflowTrigger(
     req,
     "lead",
     "create",
-    updatedLead._id,
-    updatedLead.toObject(),
+    lead._id,
+    lead.toObject(),
   );
 
   await logActivity({
@@ -116,75 +87,53 @@ export const createLead = asyncCatch(async (req, res) => {
   notificationService.notifyLeadEvent(
     lead.tenantId,
     notificationTypes.LEAD_CREATED,
-    updatedLead.toObject(),
+    lead.toObject(),
   );
 
   res.status(201).json({
     message: "Lead created successfully",
-    lead: updatedLead,
+    lead,
   });
 });
 
 export const updateLead = asyncCatch(async (req, res) => {
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  const updatedLead = await leadModel.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true, runValidators: true },
-  );
-
-  // Recalculate lead score after update
-  await updateLeadScore(req.params.id);
-
-  // Fetch updated lead with new score
-  const leadWithScore = await leadModel.findById(req.params.id);
+  const lead = await leadService.updateLead(req.params.id, tenantId, req.body);
 
   await fireWorkflowTrigger(
     req,
     "lead",
     "update",
-    leadWithScore._id,
-    leadWithScore.toObject(),
+    lead._id,
+    lead.toObject(),
   );
 
   await logActivity({
     leadId: req.params.id,
     tenantId: lead.tenantId,
     type: LEAD_ACTIVITY_TYPES.UPDATED,
-    description: `Lead "${leadWithScore.firstName} ${leadWithScore.lastName || ""}" was updated`,
+    description: `Lead "${lead.firstName} ${lead.lastName || ""}" was updated`,
     metadata: { changes: Object.keys(req.body) },
     userId: req.user.userId,
   });
 
   res.json({
     message: "Lead updated successfully",
-    lead: leadWithScore,
+    lead,
   });
 });
 
 export const deleteLead = asyncCatch(async (req, res) => {
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot delete this lead", 403);
-  }
-
-  await leadModel.findByIdAndDelete(req.params.id);
+  const lead = await leadService.deleteLead(req.params.id, tenantId);
 
   await fireWorkflowTrigger(req, "lead", "delete", lead._id, lead.toObject());
 
@@ -202,57 +151,45 @@ export const getLeadsByTenant = asyncCatch(async (req, res) => {
     );
   }
 
-  const leads = await leadModel.find({ tenantId: req.params.tenantId });
+  const leads = await leadService.getLeadsByTenant(req.params.tenantId);
 
   res.json({ count: leads.length, leads });
 });
 
 export const getLeadsByUser = asyncCatch(async (req, res) => {
-  const filter = { assignedTo: req.params.userId };
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (req.tenantContext?.scope === "tenant") {
-    filter.tenantId = req.tenantContext.tenantId;
-  }
-
-  const leads = await leadModel.find(filter);
+  const leads = await leadService.getLeadsByUser(req.params.userId, tenantId);
 
   res.json({ count: leads.length, leads });
 });
 
 export const getLeadsByOrganization = asyncCatch(async (req, res) => {
-  const filter = { organizationId: req.params.organizationId };
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (req.tenantContext?.scope === "tenant") {
-    filter.tenantId = req.tenantContext.tenantId;
-  }
-
-  const leads = await leadModel.find(filter);
+  const leads = await leadService.getLeadsByOrganization(
+    req.params.organizationId,
+    tenantId,
+  );
 
   res.json({ count: leads.length, leads });
 });
 
 export const updateLeadStatus = asyncCatch(async (req, res) => {
   const { status } = req.body;
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  const previousStatus = lead.status;
-  lead.status = status;
-  await lead.save();
-
-  // Recalculate lead score after status change
-  await updateLeadScore(req.params.id);
-
-  // Fetch updated lead with new score
-  const updatedLead = await leadModel.findById(req.params.id);
+  const { updatedLead, previousStatus } =
+    await leadService.updateLeadStatus(req.params.id, tenantId, status);
 
   await fireWorkflowTrigger(
     req,
@@ -264,7 +201,7 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
 
   await logActivity({
     leadId: req.params.id,
-    tenantId: lead.tenantId,
+    tenantId: updatedLead.tenantId,
     type: LEAD_ACTIVITY_TYPES.STATUS_CHANGED,
     description: `Lead status changed from "${previousStatus}" to "${status}"`,
     metadata: { from: previousStatus, to: status },
@@ -279,55 +216,32 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
 
 export const updateLeadScoreManually = asyncCatch(async (req, res) => {
   const { score } = req.body;
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  lead.score = score;
-  await lead.save();
+  const lead = await leadService.updateLeadScoreManually(
+    req.params.id,
+    tenantId,
+    score,
+  );
 
   res.json({ message: "Lead score updated successfully", lead });
 });
 
 export const convertLeadToDeal = asyncCatch(async (req, res) => {
-  const lead = await leadModel.findById(req.params.id);
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId?.toString() !== req.tenantContext.tenantId?.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot convert this lead", 403);
-  }
-
-  if (lead.status === "Converted") {
-    throw new AppError("Lead has already been converted to a deal", 400);
-  }
-
-  const dealModel = (await import("../models/dealModel.js")).default;
-
-  const dealData = {
-    leadId: lead._id,
-    organizationId: lead.organizationId,
-    tenantId: lead.tenantId,
-    userId: lead.assignedTo || lead.createdBy || req.auth.userId,
-    name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
-    value: req.body.value || 0,
-    status: req.body.status || "Prospecting",
-  };
-
-  const deal = await dealModel.create(dealData);
-
-  lead.status = "Converted";
-  await lead.save();
+  const { deal, lead } = await leadService.convertLeadToDeal(
+    req.params.id,
+    tenantId,
+    req.body,
+    req.auth.userId,
+  );
 
   await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
 
@@ -354,25 +268,12 @@ export const searchLeads = asyncCatch(async (req, res) => {
       : {};
   const { q, status, source, limit = 25 } = req.query;
 
-  if (!q || q.trim() === "") {
-    throw new AppError("Search query 'q' is required", 400);
-  }
-
-  const searchRegex = new RegExp(q.trim(), "i");
-
-  filter.$or = [
-    { firstName: searchRegex },
-    { lastName: searchRegex },
-    { email: searchRegex },
-  ];
-
-  if (status) filter.status = status;
-  if (source) filter.source = source;
-
-  const leads = await leadModel
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(Math.min(parseInt(limit), 25));
+  const leads = await leadService.searchLeads(filter, {
+    q,
+    status,
+    source,
+    limit,
+  });
 
   res.json({ count: leads.length, leads });
 });
@@ -396,22 +297,16 @@ export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
 
 export const assignLead = asyncCatch(async (req, res) => {
   const { assignedTo } = req.body;
+  const tenantId =
+    req.tenantContext?.scope === "tenant"
+      ? req.tenantContext.tenantId
+      : null;
 
-  if (!assignedTo) throw new AppError("assignedTo userId is required", 400);
-
-  const lead = await leadModel.findById(req.params.id);
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (
-    req.tenantContext?.scope === "tenant" &&
-    lead.tenantId.toString() !== req.tenantContext.tenantId.toString()
-  ) {
-    throw new AppError("Forbidden: You cannot assign this lead", 403);
-  }
-
-  const previousAssignee = lead.assignedTo?.toString() || null;
-  lead.assignedTo = assignedTo;
-  await lead.save();
+  const { lead, previousAssignee } = await leadService.assignLead(
+    req.params.id,
+    tenantId,
+    assignedTo,
+  );
 
   await logActivity({
     leadId: lead._id,
@@ -422,7 +317,6 @@ export const assignLead = asyncCatch(async (req, res) => {
     userId: req.user.userId,
   });
 
-  // Notify the assigned user via their personal socket room
   notificationService.notifyUser(assignedTo, {
     type: notificationTypes.LEAD_ASSIGNED,
     title: "Lead Assigned to You",
@@ -431,7 +325,7 @@ export const assignLead = asyncCatch(async (req, res) => {
       leadId: lead._id.toString(),
       leadName: `${lead.firstName} ${lead.lastName || ""}`,
       assignedBy: req.user.userId,
-      action: "lead:assigned", // ← client uses this to trigger refetch
+      action: "lead:assigned",
     },
   });
 
