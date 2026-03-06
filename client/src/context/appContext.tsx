@@ -24,7 +24,6 @@ export interface AppContextType {
   logout: () => Promise<void>;
   updateUser: (updatedUser: User) => void;
   refreshSession: () => Promise<void>;
-  // Kept for any consumers that still reference token — always null now
   token: null;
 }
 
@@ -144,30 +143,23 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
-      // Signal that we're about to logout — gives OfflineProvider a chance to sync
       const syncEvent = new CustomEvent("app:prepare-logout", {
         detail: { timestamp: Date.now() },
       });
       window.dispatchEvent(syncEvent);
 
-      // Wait a moment for offline sync to happen (max 3 seconds)
       await new Promise((resolve) => setTimeout(resolve, 3000));
 
-      // Call backend logout endpoint
       await authService.logout();
     } catch (error) {
       console.error("Logout API call failed:", error);
     } finally {
-      // Clear only the user state, NOT the cache
       setUser(null);
       removeFromLocalStorage("user_data");
+      queryClient.clear();
 
-      // Dispatch logout events (socket cleanup, notifications, etc)
       window.dispatchEvent(new Event("auth:logout"));
       window.dispatchEvent(new Event("app:user-changed"));
-
-      // localStorage + TanStack Query cache PERSIST
-      // They will be refreshed when new user logs in via initAuth
     }
   }, []);
 

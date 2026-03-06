@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import type { OfflineRequest } from "../hooks/useOfflineManager";
+import type { OfflineRequest } from "@/types/interfaces/offlineInterfaces";
 import type { BatchExecutionResult } from "./batchTypes";
 import { executeWithRetry } from "./retryStrategy";
 import { resolveBulkRoute } from "./routeResolver";

@@ -205,7 +205,7 @@ tenant based settings to enable customizations
 
 leaderboards tab to show which user is closing most deals or leads (but implemented in custom analytics dashboard where user can create custom dashboards)
 
->>>invoice creation on deal won or lead converted
+invoice creation on deal won or lead converted
 
 >>>add redis for dashboard analytics to prevent db calls
 
@@ -220,6 +220,20 @@ since pm2 is being used a separate redis pub sub for socket connections for live
 multi currency support
 
 >>>move dashboard analytics to cache and refresh button for sse when a new event occurs
+
+
+TODO 05/03/2026
+
+
+complete start to finish workflow from lead creation to finished in deal, stream and how lead is created, track which user brings how much value to company, deadlines, pipeline stages for leads conversion, invoice generation for deal conversion, 
+
+what is value proposition of this?
+
+what is the need for this?
+
+if this goes out of business tomorrow? what it would need?
+
+transaction type configuration like snapshot, read concern, write concern
 
 
 

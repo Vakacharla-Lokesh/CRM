@@ -23,22 +23,24 @@ export {
 export const getDashboardStats = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
-    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+    req.auth?.permissions?.includes("analytics:view_all");
 
   const leadFilter = req.tenantFilter || {};
   const dealFilter = req.tenantFilter || {};
-  
+
   if (!canViewAll) {
     leadFilter.assignedTo = req.auth.userId;
     dealFilter.userId = req.auth.userId;
+    console.log(
+      `AssignedTo: ${JSON.stringify(leadFilter)}, DealFilter: ${JSON.stringify(dealFilter)}`,
+    );
   }
 
   const cacheKey = `dashboard_stats_${req.auth.userId}`;
 
-  // Check cache first
   const cachedData = await dashboardCache.get(cacheKey);
   if (cachedData) {
-    return res.json(JSON.parse(cachedData));
+    return res.json(cachedData);
   }
 
   const { currentStart, currentEnd, previousStart, previousEnd } =

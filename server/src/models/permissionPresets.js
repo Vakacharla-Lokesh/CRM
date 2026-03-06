@@ -60,6 +60,9 @@ export const PERMISSION_MAP = {
   // Settings
   SETTINGS: ["settings:read", "settings:write", "workflows:view_all"],
 
+  // Task Management
+  TASKS: ["tasks:read", "tasks:write", "tasks:delete", "tasks:view_all"],
+
   // System-wide access (super_admin / global tenant only)
   SYSTEM: ["system:manage"],
 };
@@ -78,6 +81,7 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     ...PERMISSION_MAP.CALLS,
     ...PERMISSION_MAP.COMMENTS,
     ...PERMISSION_MAP.ATTACHMENTS,
+    ...PERMISSION_MAP.TASKS,
     "users:read",
     "users:write",
     "users:view_all",
@@ -103,6 +107,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "attachments:read",
     "attachments:write",
     "analytics:read",
+    "tasks:read",
+    "tasks:write",
   ],
 };
 

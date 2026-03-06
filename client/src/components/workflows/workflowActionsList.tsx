@@ -12,6 +12,7 @@ import {
   EmailActionFields,
   UpdateFieldActionFields,
   WebhookActionFields,
+  CreateTaskActionFields,
 } from "./actionTypes";
 import { ACTION_TYPES } from "./workflowUtils";
 import type {
@@ -56,6 +57,15 @@ export const WorkflowActionsList: React.FC<WorkflowActionsListProps> = ({
       case "webhook":
         return (
           <WebhookActionFields
+            action={action}
+            onUpdate={(patch) => onUpdateAction(index, patch)}
+            triggerEntity={triggerEntity}
+            actionIndex={index}
+          />
+        );
+      case "create_task":
+        return (
+          <CreateTaskActionFields
             action={action}
             onUpdate={(patch) => onUpdateAction(index, patch)}
             triggerEntity={triggerEntity}

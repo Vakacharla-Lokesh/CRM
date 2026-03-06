@@ -47,7 +47,7 @@ export interface WorkflowAction {
   // update_field
   targetField?: string;
   value?: unknown;
-  // webhook
+  // webhook / slack
   webhookUrl?: string;
   method?: "POST" | "PUT";
   payload?: unknown;
@@ -56,6 +56,14 @@ export interface WorkflowAction {
   format?: "csv" | "json";
   bucket?: string;
   prefix?: string;
+  // create_task
+  taskTitle?: string;
+  taskDescription?: string;
+  taskPriority?: "low" | "medium" | "high" | "urgent";
+  taskAssignedTo?: string;
+  taskDueDate?: string;
+  taskRelationType?: "lead" | "deal" | "organization";
+  taskRelationFromTrigger?: boolean;
 }
 
 export interface WorkflowSchedule {

@@ -63,6 +63,7 @@ const workflowSchema = new Schema(
     },
 
     // Actions to execute
+    // Actions to execute
     actions: [
       {
         type: {
@@ -81,6 +82,29 @@ const workflowSchema = new Schema(
         recipient: String,
         subject: String,
         body: String,
+        // update_field
+        targetField: String,
+        value: Schema.Types.Mixed,
+        // webhook / slack
+        webhookUrl: String,
+        messageTemplate: String,
+        method: String,
+        // create_task
+        taskTitle: String,
+        taskDescription: String,
+        taskPriority: {
+          type: String,
+          enum: ["low", "medium", "high", "urgent"],
+          default: "medium",
+        },
+        taskAssignedTo: String, // userId or {{variable}}
+        taskDueDate: String, // ISO string or {{variable}}
+        taskRelationType: {
+          type: String,
+          enum: ["lead", "deal", "organization"],
+          default: null,
+        },
+        taskRelationFromTrigger: { type: Boolean, default: true },
         _id: false,
       },
     ],
