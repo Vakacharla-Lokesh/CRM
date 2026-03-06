@@ -53,7 +53,13 @@ export const createWorkflow = async (workflowData) => {
     .populate("createdBy", "firstName lastName email");
 };
 
-export const updateWorkflow = async (id, tenantId, userId, canViewAll, updates) => {
+export const updateWorkflow = async (
+  id,
+  tenantId,
+  userId,
+  canViewAll,
+  updates,
+) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
 

@@ -1,7 +1,10 @@
 import organizationModel from "../models/organizationModel.js";
 import AppError from "../utils/appError.js";
 
-export const getAllOrganizations = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllOrganizations = async (
+  filter,
+  { limit = 20, cursor } = {},
+) => {
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };
@@ -29,17 +32,11 @@ export const getOrganizationById = async (id, tenantId, userId, canViewAll) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
 
-  if (
-    tenantId &&
-    organization.tenantId.toString() !== tenantId.toString()
-  ) {
+  if (tenantId && organization.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot access this organization", 403);
   }
 
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== userId.toString()
-  ) {
+  if (!canViewAll && organization.userId.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot access this organization", 403);
   }
 
@@ -50,21 +47,21 @@ export const createOrganization = async (organizationData) => {
   return organizationModel.create(organizationData);
 };
 
-export const updateOrganization = async (id, tenantId, userId, canViewAll, updates) => {
+export const updateOrganization = async (
+  id,
+  tenantId,
+  userId,
+  canViewAll,
+  updates,
+) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
 
-  if (
-    tenantId &&
-    organization.tenantId.toString() !== tenantId.toString()
-  ) {
+  if (tenantId && organization.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot update this organization", 403);
   }
 
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== userId.toString()
-  ) {
+  if (!canViewAll && organization.userId.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot update this organization", 403);
   }
 
@@ -78,17 +75,11 @@ export const deleteOrganization = async (id, tenantId, userId, canViewAll) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
 
-  if (
-    tenantId &&
-    organization.tenantId.toString() !== tenantId.toString()
-  ) {
+  if (tenantId && organization.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot delete this organization", 403);
   }
 
-  if (
-    !canViewAll &&
-    organization.userId.toString() !== userId.toString()
-  ) {
+  if (!canViewAll && organization.userId.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot delete this organization", 403);
   }
 

@@ -149,7 +149,10 @@ export const convertLeadToDeal = async (id, tenantId, dealData, userId) => {
   return { deal, lead };
 };
 
-export const searchLeads = async (filter, { q, status, source, limit = 25 }) => {
+export const searchLeads = async (
+  filter,
+  { q, status, source, limit = 25 },
+) => {
   if (!q || q.trim() === "") {
     throw new AppError("Search query 'q' is required", 400);
   }

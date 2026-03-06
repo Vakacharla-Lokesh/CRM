@@ -1,19 +1,3 @@
-/**
- * Slack Webhook Service
- *
- * Handles sending messages to Slack via incoming webhooks.
- * Supports dynamic variable replacement and error handling.
- * Uses native fetch API - no external dependencies required.
- */
-
-/**
- * Send a message to Slack webhook
- * @param {string} webhookUrl - Slack incoming webhook URL
- * @param {string} messageTemplate - Message with optional variables like {{leadName}}
- * @param {object} variables - Key-value pairs for variable replacement
- * @param {object} options - Additional Slack message options
- * @returns {Promise<{success: boolean, response?: any, error?: string}>}
- */
 export const sendSlackMessage = async (
   webhookUrl,
   messageTemplate,
@@ -21,32 +5,28 @@ export const sendSlackMessage = async (
   options = {},
 ) => {
   try {
-    // Validate webhook URL
     if (!webhookUrl || !webhookUrl.startsWith("https://hooks.slack.com/")) {
       throw new Error("Invalid Slack webhook URL");
     }
 
-    // Replace variables in template
     let message = messageTemplate;
     Object.keys(variables).forEach((key) => {
       const regex = new RegExp(`{{${key}}}`, "g");
       message = message.replace(regex, variables[key] || "N/A");
     });
 
-    // Build Slack message payload
     const payload = {
       text: message,
-      ...options, // Allow custom blocks, attachments, etc.
+      ...options,
     };
 
-    // Send to Slack using native fetch
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(5000), // 5 second timeout
+      signal: AbortSignal.timeout(5000),
     });
 
     if (response.ok) {
@@ -73,14 +53,6 @@ export const sendSlackMessage = async (
   }
 };
 
-/**
- * Send a message with retry logic
- * @param {string} webhookUrl
- * @param {string} messageTemplate
- * @param {object} variables
- * @param {number} maxRetries
- * @returns {Promise<{success: boolean, attempts: number, error?: string}>}
- */
 export const sendSlackMessageWithRetry = async (
   webhookUrl,
   messageTemplate,
@@ -102,7 +74,6 @@ export const sendSlackMessageWithRetry = async (
 
     lastError = result.error;
 
-    // Wait before retry (exponential backoff)
     if (attempt < maxRetries) {
       await new Promise((resolve) =>
         setTimeout(resolve, 1000 * Math.pow(2, attempt)),
@@ -117,13 +88,6 @@ export const sendSlackMessageWithRetry = async (
   };
 };
 
-/**
- * Build variables object from workflow entity data
- * @param {object} entity - The entity that triggered the workflow (lead, deal, etc.)
- * @param {string} entityType - Type of entity (lead, deal, organization, etc.)
- * @param {object} user - User who triggered the action
- * @returns {object} Variables for template replacement
- */
 export const buildSlackVariables = (entity, entityType, user = null) => {
   const baseVars = {
     entityType: entityType,
@@ -200,12 +164,6 @@ export const buildSlackVariables = (entity, entityType, user = null) => {
   }
 };
 
-/**
- * Get available variables for a given entity type
- * Used in frontend to show suggestions
- * @param {string} entityType
- * @returns {string[]} Array of variable names
- */
 export const getAvailableVariables = (entityType) => {
   const common = [
     "entityType",

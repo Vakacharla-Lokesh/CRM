@@ -235,9 +235,7 @@ if this goes out of business tomorrow? what it would need?
 
 transaction type configuration like snapshot, read concern, write concern
 
-job process tracking using a redis pub sub
 
-now when a job is added to a queue, i need to track the status
 
 PACKAGES - 
 https://www.npmjs.com/package/@hello-pangea/dnd

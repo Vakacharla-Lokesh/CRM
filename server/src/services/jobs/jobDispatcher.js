@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { queueService } from "../aws/queue/queue.service.js";
 import { isValidJobType } from "../../utils/jobTypes.js";
+import { jobService } from "../jobService.js";
 
 async function dispatch({ jobType, payload, tenantId, userId }) {
   if (!jobType) {
@@ -15,6 +16,12 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
     throw new Error("[JobDispatcher] tenantId is required for job dispatch");
   }
 
+  const job = await jobService.createJob({
+    tenantId,
+    type: jobType,
+    status: "pending",
+  });
+
   const requestId = crypto.randomUUID();
   const traceId = crypto.randomUUID();
 
@@ -22,6 +29,7 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
     ...payload,
     _meta: {
       jobType,
+      jobId: job.jobId,
       tenantId,
       userId: userId || null,
       requestId,
@@ -37,10 +45,10 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
   );
 
   console.log(
-    `[JobDispatcher] Dispatched job: ${jobType} (message: ${messageId}, request: ${requestId})`,
+    `[JobDispatcher] Dispatched job: ${jobType} (jobId: ${job.jobId}, message: ${messageId})`,
   );
 
-  return { messageId, requestId, traceId };
+  return { messageId, requestId, traceId, jobId: job.jobId };
 }
 
 export const jobDispatcher = {

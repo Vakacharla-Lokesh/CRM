@@ -1,7 +1,6 @@
 import redis from "../config/redis.js";
 import crypto from "crypto";
 
-// TTL for job records in Redis (30 days in seconds)
 const JOB_TTL = 30 * 24 * 60 * 60;
 
 function getJobKey(jobId, tenantId) {
