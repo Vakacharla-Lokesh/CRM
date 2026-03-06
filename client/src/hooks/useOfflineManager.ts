@@ -1,39 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { processBatches } from "../offline/batchProcessor";
-
-export interface OfflineRequest {
-  id: string;
-  url: string;
-  method: "GET" | "POST" | "PUT" | "DELETE" | "PATCH";
-  headers?: Record<string, string>;
-  body?: unknown;
-  timestamp: number;
-  retries: number;
-  maxRetries: number;
-  idempotencyKey: string;
-  entityType:
-    | "leads"
-    | "deals"
-    | "comments"
-    | "calls"
-    | "attachments"
-    | "organizations"
-    | "users";
-  operationType: "create" | "update" | "delete";
-}
-
-interface QueueStats {
-  total: number;
-  pending: number;
-  failed: number;
-  byEntity: Record<string, number>;
-}
-
-interface SyncResult {
-  succeeded: number;
-  failed: number;
-  errors: Array<{ entityType: string; error: string }>;
-}
+import type {
+  OfflineRequest,
+  QueueStats,
+  SyncResult,
+} from "@/types/interfaces/offlineInterfaces";
 
 export const useOfflineManager = () => {
   const [queue, setQueue] = useState<OfflineRequest[]>([]);

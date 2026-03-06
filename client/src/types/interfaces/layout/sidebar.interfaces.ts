@@ -7,6 +7,7 @@ import {
   GitBranch,
   BarChart2,
   ShieldCheck,
+  CheckSquare,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -87,5 +88,11 @@ export const navItems: NavItem[] = [
     label: "Tenants",
     icon: Building,
     roles: ["super_admin"],
+  },
+  {
+    to: "/tasks",
+    label: "Tasks",
+    icon: CheckSquare,
+    permission: "tasks:read",
   },
 ];

@@ -1,4 +1,4 @@
-import type { OfflineRequest } from "../hooks/useOfflineManager";
+import type { OfflineRequest } from "@/types/interfaces/offlineInterfaces";
 
 export type MutationOperation = Record<string, any>;
 

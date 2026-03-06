@@ -5,8 +5,6 @@ module.exports = {
       cwd: "./client",
       script: "npm",
       args: "run dev",
-      interpreter: "cmd",
-      interpreter_args: "/c",
       env: {
         NODE_ENV: "development",
       },
@@ -30,8 +28,6 @@ module.exports = {
       cwd: "./server",
       script: "npm",
       args: "run dev",
-      interpreter: "cmd",
-      interpreter_args: "/c",
       env: {
         NODE_ENV: "development",
         PORT: 4000,
@@ -40,12 +36,7 @@ module.exports = {
       instances: 1,
       exec_mode: "fork",
       watch: false,
-      ignore_watch: [
-        "node_modules",
-        "dist",
-        ".git",
-        "logs",
-      ],
+      ignore_watch: ["node_modules", "dist", ".git", "logs"],
       max_memory_restart: "300M",
       error_file: "~/.pm2/logs/backend-error.log",
       out_file: "~/.pm2/logs/backend-out.log",
@@ -62,8 +53,6 @@ module.exports = {
       cwd: "./server",
       script: "npm",
       args: "run worker:dev",
-      interpreter: "cmd",
-      interpreter_args: "/c",
       env: {
         NODE_ENV: "development",
       },
@@ -71,12 +60,7 @@ module.exports = {
       instances: 1,
       exec_mode: "fork",
       watch: false,
-      ignore_watch: [
-        "node_modules",
-        "dist",
-        ".git",
-        "logs",
-      ],
+      ignore_watch: ["node_modules", "dist", ".git", "logs"],
       max_memory_restart: "300M",
       error_file: "~/.pm2/logs/worker-error.log",
       out_file: "~/.pm2/logs/worker-out.log",
@@ -88,27 +72,4 @@ module.exports = {
       kill_timeout: 5000,
     },
   ],
-
-  deploy: {
-    production: {
-      user: "node",
-      host: "your-server.com",
-      ref: "origin/main",
-      repo: "git@github.com:your-repo/project.git",
-      path: "/var/www/production",
-      "post-deploy":
-        "npm install && pm2 reload ecosystem.config.js --env production",
-    },
-  },
-
-  node_args: "--max-old-space-size=512",
-
-  // Graceful shutdown timeout (ms)
-  kill_timeout: 5000,
-
-  // Wait time before considering app as stopped
-  wait_ready: false,
-
-  // Listen for 'ready' message from app (optional, for custom ready signals)
-  listen_timeout: 3000,
 };

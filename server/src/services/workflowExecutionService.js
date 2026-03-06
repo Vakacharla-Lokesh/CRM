@@ -2,6 +2,7 @@ import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogM
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
+import taskModel from "../models/taskModel.js";
 
 import emailController from "../controllers/emailController.js";
 import {
@@ -143,17 +144,63 @@ class WorkflowExecutionEngine {
   }
 
   async executeCreateTask(action, entity, tenantId) {
-    const { title, description, assignee } = action;
+    const {
+      taskTitle,
+      taskDescription,
+      taskPriority = "medium",
+      taskAssignedTo,
+      taskDueDate,
+      taskRelationType,
+      taskRelationFromTrigger = true,
+    } = action;
 
-    const resolvedTitle = this.resolveTemplateValue(title, entity.data);
-    const resolvedDescription = this.resolveTemplateValue(
-      description,
-      entity.data,
+    // Build variables from entity for template resolution
+    const variables = buildSlackVariables(entity.data, entity.type, null);
+
+    const resolvedTitle = this.resolveTemplate(taskTitle, variables);
+    const resolvedDescription = this.resolveTemplate(
+      taskDescription,
+      variables,
     );
-    const resolvedAssignee = this.resolveTemplateValue(assignee, entity.data);
+    const resolvedPriority = this.resolveTemplate(taskPriority, variables);
+    const resolvedAssignedTo = this.resolveTemplate(taskAssignedTo, variables);
+    const resolvedDueDate = this.resolveTemplate(taskDueDate, variables);
+
+    if (!resolvedTitle) {
+      throw new Error("create_task action missing taskTitle");
+    }
+
+    // Determine relation — default to the triggering entity
+    let relationType = null;
+    let relationId = null;
+
+    if (taskRelationFromTrigger && entity.type && entity.id) {
+      // Only lead/deal/organization are valid task relation types
+      if (["lead", "deal", "organization"].includes(entity.type)) {
+        relationType = entity.type;
+        relationId = entity.id;
+      }
+    } else if (taskRelationType) {
+      relationType = taskRelationType;
+    }
+
+    const taskData = {
+      tenantId,
+      title: resolvedTitle,
+      description: resolvedDescription || undefined,
+      priority: resolvedPriority || "medium",
+      status: "todo",
+      relationType,
+      relationId,
+      dueDate: resolvedDueDate ? new Date(resolvedDueDate) : null,
+      assignedTo: resolvedAssignedTo || null,
+      createdBy: null, // system-created via workflow
+    };
+
+    const task = await taskModel.create(taskData);
 
     return {
-      message: `Task created: "${resolvedTitle}" assigned to ${resolvedAssignee}`,
+      message: `Task created: "${task.title}" (id: ${task._id})`,
     };
   }
 
@@ -171,10 +218,12 @@ class WorkflowExecutionEngine {
     // Build variables for Slack message
     const variables = buildSlackVariables(entity.data, entity.type, null);
 
+    const resolvedTemplate = this.resolveTemplate(messageTemplate, variables);
+
     // Send with retry
     const result = await sendSlackMessageWithRetry(
       webhookUrl,
-      messageTemplate,
+      resolvedTemplate,
       variables,
       2, // max retries
     );
@@ -190,6 +239,15 @@ class WorkflowExecutionEngine {
     };
   }
 
+  // Resolve {{variable}} templates against a flat variables object (Slack-style)
+  resolveTemplate(template, variables) {
+    if (!template || typeof template !== "string") return template ?? null;
+    return template.replace(/\{\{([^}]+)\}\}/g, (match, key) => {
+      return variables?.[key.trim()] ?? match;
+    });
+  }
+
+  // Legacy resolver for send_email / update_field that use raw entity.data paths
   resolveTemplateValue(template, data) {
     if (!template) return null;
 
@@ -206,10 +264,16 @@ class WorkflowExecutionEngine {
       return template;
     }
 
-    return template.replace(/\$\{([^}]+)\}/g, (match, path) => {
-      const value = this.getNestedValue(data, path);
-      return value ?? match;
-    });
+    // Support both {{var}} and ${var} syntax
+    return template
+      .replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+        const value = this.getNestedValue(data, path.trim());
+        return value ?? match;
+      })
+      .replace(/\$\{([^}]+)\}/g, (match, path) => {
+        const value = this.getNestedValue(data, path.trim());
+        return value ?? match;
+      });
   }
 
   getNestedValue(obj, path) {

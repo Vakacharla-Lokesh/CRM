@@ -1,5 +1,5 @@
 import { createContext, useContext } from "react";
-import type { OfflineContextType } from "./offlineContext";
+import type { OfflineContextType } from "@/types/interfaces/offlineInterfaces";
 
 export const useOffline = () => {
   const context = useContext(OfflineContext);

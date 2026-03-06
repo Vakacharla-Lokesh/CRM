@@ -40,11 +40,22 @@ function clearAuthCookies(res) {
 }
 
 const generateAccessToken = (user) => {
+  const permissions = user.permissions
+    ? Object.entries(
+        user.permissions instanceof Map
+          ? Object.fromEntries(user.permissions)
+          : user.permissions,
+      )
+        .filter(([, v]) => v === true)
+        .map(([k]) => k)
+    : [];
+
   return jwt.sign(
     {
       userId: user._id ?? user.userId,
       tenantId: user.tenantId,
       role: user.role,
+      permissions,
     },
     process.env.JWT_SECRET,
     { expiresIn: `${AUTH_TOKEN_EXPIRY_MINUTES}m` },

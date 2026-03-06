@@ -41,6 +41,7 @@ export const PERMISSION_MAP: Record<string, string[]> = {
   Attachments: ["attachments:read", "attachments:write", "attachments:delete"],
   Bulk: ["bulk:import", "bulk:export", "bulk:delete"],
   Settings: ["settings:read", "settings:write"],
+  Tasks: ["tasks:read", "tasks:write", "tasks:delete", "tasks:view_all"],
 };
 
 export const ALL_PERMISSIONS: string[] = Object.values(PERMISSION_MAP).flat();
@@ -48,7 +49,5 @@ export const ALL_PERMISSIONS: string[] = Object.values(PERMISSION_MAP).flat();
 /** Human-readable label for a permission key, e.g. "leads:view_all" → "View All" */
 export const permissionLabel = (permission: string): string => {
   const action = permission.split(":")[1] ?? permission;
-  return action
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+  return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 };
