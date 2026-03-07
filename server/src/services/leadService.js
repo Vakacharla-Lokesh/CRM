@@ -43,12 +43,24 @@ export const createLead = async (leadData) => {
   return leadModel.findById(lead._id);
 };
 
-export const updateLead = async (id, tenantId, updates) => {
+export const updateLead = async (id, tenantId, updates, lastKnownUpdatedAt) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(lead.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This lead was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   const updatedLead = await leadModel.findByIdAndUpdate(id, updates, {
@@ -88,12 +100,28 @@ export const getLeadsByOrganization = async (organizationId, tenantId) => {
   return leadModel.find(filter);
 };
 
-export const updateLeadStatus = async (id, tenantId, status) => {
+export const updateLeadStatus = async (
+  id,
+  tenantId,
+  status,
+  lastKnownUpdatedAt,
+) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(lead.updatedAt).getTime();
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This lead was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   const previousStatus = lead.status;
@@ -106,12 +134,28 @@ export const updateLeadStatus = async (id, tenantId, status) => {
   return { updatedLead, previousStatus };
 };
 
-export const updateLeadScoreManually = async (id, tenantId, score) => {
+export const updateLeadScoreManually = async (
+  id,
+  tenantId,
+  score,
+  lastKnownUpdatedAt,
+) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
   if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot update this lead", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(lead.updatedAt).getTime();
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This lead was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   lead.score = score;

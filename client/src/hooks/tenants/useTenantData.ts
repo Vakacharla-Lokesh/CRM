@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useIndexedDB } from "@/hooks";
 import tenantService from "@/services/tenantService";
 import type { Tenant, CreateTenantDto, UpdateTenantDto } from "@/types/tenant";
@@ -168,10 +169,12 @@ export const useTenantData = () => {
     mutationFn: ({
       tenantId,
       tenantData,
+      lastKnownUpdatedAt,
     }: {
       tenantId: string;
       tenantData: UpdateTenantDto;
-    }) => tenantService.updateTenant(tenantId, tenantData),
+      lastKnownUpdatedAt?: Date;
+    }) => tenantService.updateTenant(tenantId, tenantData, lastKnownUpdatedAt),
     onSuccess: async (updatedTenant) => {
       setAllTenants((prev) =>
         prev.map((t) => (t._id === updatedTenant._id ? updatedTenant : t)),
@@ -183,6 +186,13 @@ export const useTenantData = () => {
         console.error("Error updating tenant in IndexedDB:", err),
       );
       queryClient.invalidateQueries({ queryKey: ["tenants"] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This tenant was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["tenants"] });
+      }
     },
   });
 
@@ -203,9 +213,15 @@ export const useTenantData = () => {
   );
 
   const updateTenant = useCallback(
-    (tenantId: string, tenantData: UpdateTenantDto) =>
-      updateMutation.mutateAsync({ tenantId, tenantData }),
-    [updateMutation],
+    (tenantId: string, tenantData: UpdateTenantDto) => {
+      const cachedTenant = allTenants.find((t) => t._id === tenantId);
+      return updateMutation.mutateAsync({
+        tenantId,
+        tenantData,
+        lastKnownUpdatedAt: cachedTenant?.updatedAt ? new Date(cachedTenant.updatedAt) : undefined,
+      });
+    },
+    [updateMutation, allTenants],
   );
 
   const deleteTenant = useCallback(

@@ -25,105 +25,130 @@ export const getDashboardStats = async (userId, leadFilter, dealFilter) => {
     previousLeadSourceSummary,
     orgCount,
   ] = await Promise.all([
-    leadModel.aggregate([
-      { $match: leadMatchFilter },
-      {
-        $facet: {
-          total: [{ $count: "count" }],
-          converted: [{ $match: { status: "Converted" } }, { $count: "count" }],
-          currentPeriod: [
-            {
-              $match: {
-                createdAt: { $gte: currentStart, $lte: currentEnd },
+    leadModel.aggregate(
+      [
+        { $match: leadMatchFilter },
+        {
+          $facet: {
+            total: [{ $count: "count" }],
+            converted: [
+              { $match: { status: "Converted" } },
+              { $count: "count" },
+            ],
+            currentPeriod: [
+              {
+                $match: { createdAt: { $gte: currentStart, $lte: currentEnd } },
               },
-            },
-            { $count: "count" },
-          ],
+              { $count: "count" },
+            ],
+          },
         },
-      },
-    ]),
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    dealModel.aggregate([
-      { $match: dealMatchFilter },
-      {
-        $facet: {
-          wonRevenue: [
-            { $match: { status: "Won" } },
-            { $group: { _id: null, total: { $sum: "$value" } } },
-          ],
-          currentPeriodWon: [
-            {
-              $match: {
-                status: "Won",
-                updatedAt: { $gte: currentStart, $lte: currentEnd },
-              },
-            },
-            { $group: { _id: null, total: { $sum: "$value" } } },
-          ],
-          totalDeals: [{ $count: "count" }],
-          openDeals: [
-            {
-              $match: {
-                status: {
-                  $in: [
-                    "Prospecting",
-                    "Qualification",
-                    "Negotiation",
-                    "Ready to close",
-                  ],
+    dealModel.aggregate(
+      [
+        { $match: dealMatchFilter },
+        {
+          $facet: {
+            wonRevenue: [
+              { $match: { status: "Won" } },
+              { $group: { _id: null, total: { $sum: "$value" } } },
+            ],
+            currentPeriodWon: [
+              {
+                $match: {
+                  status: "Won",
+                  updatedAt: { $gte: currentStart, $lte: currentEnd },
                 },
               },
-            },
-            { $count: "count" },
-          ],
+              { $group: { _id: null, total: { $sum: "$value" } } },
+            ],
+            totalDeals: [{ $count: "count" }],
+            openDeals: [
+              {
+                $match: {
+                  status: {
+                    $in: [
+                      "Prospecting",
+                      "Qualification",
+                      "Negotiation",
+                      "Ready to close",
+                    ],
+                  },
+                },
+              },
+              { $count: "count" },
+            ],
+          },
         },
-      },
-    ]),
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    leadModel.aggregate([
-      { $match: leadMatchFilter },
-      { $group: { _id: "$source" } },
-      { $count: "count" },
-    ]),
+    leadModel.aggregate(
+      [
+        { $match: leadMatchFilter },
+        { $group: { _id: "$source" } },
+        { $count: "count" },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    leadModel.aggregate([
-      {
-        $match: {
-          ...leadMatchFilter,
-          createdAt: { $gte: previousStart, $lt: previousEnd },
+    leadModel.aggregate(
+      [
+        {
+          $match: {
+            ...leadMatchFilter,
+            createdAt: { $gte: previousStart, $lt: previousEnd },
+          },
         },
-      },
-      {
-        $facet: {
-          total: [{ $count: "count" }],
-          converted: [{ $match: { status: "Converted" } }, { $count: "count" }],
+        {
+          $facet: {
+            total: [{ $count: "count" }],
+            converted: [
+              { $match: { status: "Converted" } },
+              { $count: "count" },
+            ],
+          },
         },
-      },
-    ]),
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    dealModel.aggregate([
-      {
-        $match: {
-          ...dealMatchFilter,
-          status: "Won",
-          updatedAt: { $gte: previousStart, $lt: previousEnd },
+    dealModel.aggregate(
+      [
+        {
+          $match: {
+            ...dealMatchFilter,
+            status: "Won",
+            updatedAt: { $gte: previousStart, $lt: previousEnd },
+          },
         },
-      },
-      { $group: { _id: null, total: { $sum: "$value" } } },
-    ]),
+        { $group: { _id: null, total: { $sum: "$value" } } },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    leadModel.aggregate([
-      {
-        $match: {
-          ...leadMatchFilter,
-          createdAt: { $gte: previousStart, $lt: previousEnd },
+    leadModel.aggregate(
+      [
+        {
+          $match: {
+            ...leadMatchFilter,
+            createdAt: { $gte: previousStart, $lt: previousEnd },
+          },
         },
-      },
-      { $group: { _id: "$source" } },
-      { $count: "count" },
-    ]),
+        { $group: { _id: "$source" } },
+        { $count: "count" },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
 
-    organizationModel.countDocuments(dealMatchFilter),
+    organizationModel.aggregate(
+      [{ $match: dealMatchFilter }, { $count: "count" }],
+      { readPreference: "secondaryPreferred" },
+    ),
   ]);
 
   const totalLeads = leadSummary[0]?.total[0]?.count ?? 0;

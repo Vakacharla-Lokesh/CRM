@@ -65,12 +65,14 @@ export const updateWorkflow = asyncCatch(async (req, res) => {
 
   const tenantId = req.tenantFilter?.tenantId;
 
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const updated = await workflowService.updateWorkflow(
     req.params.id,
     tenantId,
     req.auth.userId,
     canViewAll,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
 
   res.json({ message: "Workflow updated successfully", workflow: updated });
@@ -101,12 +103,14 @@ export const toggleWorkflow = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("workflows:view_all"));
 
   const tenantId = req.tenantFilter?.tenantId;
+  const { lastKnownUpdatedAt } = req.body || {};
 
   const workflow = await workflowService.toggleWorkflow(
     req.params.id,
     tenantId,
     req.auth.userId,
     canViewAll,
+    lastKnownUpdatedAt,
   );
 
   res.json({

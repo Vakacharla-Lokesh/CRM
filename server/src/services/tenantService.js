@@ -35,7 +35,10 @@ export const getTenantById = async (id) => {
 };
 
 export const createTenant = async (tenantData) => {
-  const session = await mongoose.startSession();
+  const session = await mongoose.startSession({
+    readConcern: { level: "snapshot" },
+    writeConcern: { w: "majority", j: true },
+  });
 
   try {
     session.startTransaction();
@@ -67,17 +70,35 @@ export const createTenant = async (tenantData) => {
   }
 };
 
-export const updateTenant = async (id, updates) => {
-  const tenant = await tenantModel.findByIdAndUpdate(id, updates, {
+export const updateTenant = async (id, updates, lastKnownUpdatedAt) => {
+  const tenant = await tenantModel.findById(id);
+  if (!tenant) throw new AppError("Tenant not found", 404);
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(tenant.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This tenant was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
+  }
+
+  const updatedTenant = await tenantModel.findByIdAndUpdate(id, updates, {
     new: true,
     runValidators: true,
   });
-  if (!tenant) throw new AppError("Tenant not found", 404);
-  return tenant;
+  if (!updatedTenant) throw new AppError("Tenant not found", 404);
+  return updatedTenant;
 };
 
 export const deleteTenant = async (id) => {
-  const session = await mongoose.startSession();
+  const session = await mongoose.startSession({
+    readConcern: { level: "snapshot" },
+    writeConcern: { w: "majority", j: true },
+  });
   session.startTransaction();
 
   try {

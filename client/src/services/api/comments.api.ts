@@ -38,10 +38,13 @@ export const commentsAPI = {
     return response.comment;
   },
 
-  update: async (id: string, data: UpdateCommentDTO) => {
+  update: async (id: string, data: UpdateCommentDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; comment: Comment }>(
       `/comments/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.comment;
   },

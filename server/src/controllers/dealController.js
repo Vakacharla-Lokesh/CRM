@@ -95,12 +95,14 @@ export const updateDeal = asyncCatch(async (req, res) => {
       ? req.tenantContext.tenantId
       : null;
 
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const updatedDeal = await dealService.updateDeal(
     req.params.id,
     tenantId,
     req.auth.userId,
     canViewAll,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
 
   await fireWorkflowTrigger(
@@ -234,7 +236,7 @@ export const searchDeals = asyncCatch(async (req, res) => {
 
 // Update deal status
 export const updateDealStatus = asyncCatch(async (req, res) => {
-  const { status } = req.body;
+  const { status, lastKnownUpdatedAt } = req.body;
 
   const tenantId =
     req.tenantContext?.scope === "tenant"
@@ -245,6 +247,7 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
     req.params.id,
     tenantId,
     status,
+    lastKnownUpdatedAt,
   );
 
   await fireWorkflowTrigger(req, "deal", "update", deal._id, deal.toObject());

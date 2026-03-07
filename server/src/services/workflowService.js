@@ -59,6 +59,7 @@ export const updateWorkflow = async (
   userId,
   canViewAll,
   updates,
+  lastKnownUpdatedAt,
 ) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
@@ -69,6 +70,18 @@ export const updateWorkflow = async (
 
   if (!canViewAll && workflow.createdBy.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot update this workflow", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(workflow.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This workflow was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   return workflowModel
@@ -91,7 +104,7 @@ export const deleteWorkflow = async (id, tenantId, userId, canViewAll) => {
   await workflowModel.findByIdAndDelete(id);
 };
 
-export const toggleWorkflow = async (id, tenantId, userId, canViewAll) => {
+export const toggleWorkflow = async (id, tenantId, userId, canViewAll, lastKnownUpdatedAt) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
 
@@ -101,6 +114,17 @@ export const toggleWorkflow = async (id, tenantId, userId, canViewAll) => {
 
   if (!canViewAll && workflow.createdBy.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot modify this workflow", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(workflow.updatedAt).getTime();
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This workflow was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   workflow.isActive = !workflow.isActive;

@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 import { rolesApi } from '../services/api/roles.api';
 import type { CreateRoleDTO, UpdateRoleDTO } from '../types/role';
 import { useAppContext } from './useAppContext';
@@ -57,14 +58,23 @@ export const useUpdateRole = () => {
     mutationFn: ({
       roleId,
       updates,
+      lastKnownUpdatedAt,
     }: {
       roleId: string;
       updates: UpdateRoleDTO;
-    }) => rolesApi.updateRole(roleId, updates),
+      lastKnownUpdatedAt?: Date;
+    }) => rolesApi.updateRole(roleId, updates, lastKnownUpdatedAt),
     onSuccess: (updatedRole) => {
       // Invalidate both the list and the specific role
       queryClient.invalidateQueries({ queryKey: ['roles', user?.tenantId] });
       queryClient.invalidateQueries({ queryKey: ['role', updatedRole._id] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This role was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ['roles', user?.tenantId] });
+      }
     },
   });
 };

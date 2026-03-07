@@ -62,11 +62,14 @@ const dealService = {
     return response.deal;
   },
 
-  updateDeal: async (id: string, updates: UpdateDealDTO): Promise<Deal> => {
+  updateDeal: async (id: string, updates: UpdateDealDTO, lastKnownUpdatedAt?: Date): Promise<Deal> => {
     const response = await apiClient.put<{
       message: string;
       deal: Deal;
-    }>(`/deals/${id}`, updates);
+    }>(`/deals/${id}`, {
+      ...updates,
+      ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+    });
     return response.deal;
   },
 

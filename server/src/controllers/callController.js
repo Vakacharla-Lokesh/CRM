@@ -60,9 +60,11 @@ export const updateCall = asyncCatch(async (req, res) => {
     req.user.tenantId,
   );
 
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const { updatedCall } = await callService.updateCall(
     req.params.id,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
 
   res.json({

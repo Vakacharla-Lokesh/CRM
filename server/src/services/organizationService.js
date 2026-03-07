@@ -53,6 +53,7 @@ export const updateOrganization = async (
   userId,
   canViewAll,
   updates,
+  lastKnownUpdatedAt,
 ) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
@@ -63,6 +64,18 @@ export const updateOrganization = async (
 
   if (!canViewAll && organization.userId.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot update this organization", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(organization.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This organization was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   return organizationModel.findByIdAndUpdate(id, updates, {

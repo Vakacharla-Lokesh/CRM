@@ -43,6 +43,10 @@ export const createUser = async (userData) => {
     throw new AppError("User with this email already exists", 409);
   }
 
+  if (userData.role === "super_admin") {
+    throw new AppError("Cannot create user with super_admin role", 403);
+  }
+
   const user = await userModel.create({ ...rest, password });
 
   const userObject = user.toObject();
@@ -50,20 +54,34 @@ export const createUser = async (userData) => {
   return userObject;
 };
 
-export const updateUser = async (id, updateData) => {
+export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
   const { password, ...rest } = updateData;
+
+  const user = await userModel.findById(id);
+  if (!user) throw new AppError("User not found", 404);
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(user.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This user was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
+  }
 
   if (password) {
     rest.password = await bcrypt.hash(password, 12);
   }
 
-  const user = await userModel.findByIdAndUpdate(id, rest, {
+  const updatedUser = await userModel.findByIdAndUpdate(id, rest, {
     new: true,
     runValidators: true,
   });
-  if (!user) throw new AppError("User not found", 404);
 
-  const userObject = user.toObject();
+  const userObject = updatedUser.toObject();
   delete userObject.password;
   return userObject;
 };
@@ -226,6 +244,10 @@ export const assignRoleToUser = async (id, permissions, role) => {
   }
 
   const permissionsMap = Object.fromEntries(permissions.map((p) => [p, true]));
+
+  if (role === "super_admin") {
+    throw new AppError("Cannot assign super_admin role via this endpoint", 403);
+  }
 
   const updateData = { permissions: permissionsMap };
   if (role) updateData.role = role;

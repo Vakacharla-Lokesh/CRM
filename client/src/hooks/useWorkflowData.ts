@@ -72,12 +72,18 @@ export const useWorkflowData = () => {
 
   // ── Update ──────────────────────────────────────────────────────────────
   const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: UpdateWorkflowDTO }) =>
-      workflowService.updateWorkflow(id, data),
+    mutationFn: ({ id, data, lastKnownUpdatedAt }: { id: string; data: UpdateWorkflowDTO; lastKnownUpdatedAt?: Date }) =>
+      workflowService.updateWorkflow(id, data, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });
     },
     onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This workflow was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["workflows"] });
+        return;
+      }
       const msg = err instanceof Error ? err.message : "Failed to update workflow";
       toast.error(msg);
     },
@@ -85,8 +91,9 @@ export const useWorkflowData = () => {
 
   // ── Toggle active ───────────────────────────────────────────────────────
   const toggleMutation = useMutation({
-    mutationFn: (id: string) => workflowService.toggleWorkflow(id),
-    onMutate: async (id: string) => {
+    mutationFn: ({ id, lastKnownUpdatedAt }: { id: string; lastKnownUpdatedAt?: Date }) =>
+      workflowService.toggleWorkflow(id, lastKnownUpdatedAt),
+    onMutate: async ({ id }: { id: string }) => {
       await queryClient.cancelQueries({ queryKey: ["workflows"] });
       const previous = queryClient.getQueryData(["workflows"]);
       // Optimistic update
@@ -104,8 +111,14 @@ export const useWorkflowData = () => {
       });
       return { previous };
     },
-    onError: (_err, _id, context) => {
+    onError: (_err, _vars, context) => {
       queryClient.setQueryData(["workflows"], context?.previous);
+      const status = (_err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This workflow was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["workflows"] });
+        return;
+      }
       const msg = _err instanceof Error ? _err.message : "Failed to toggle workflow";
       toast.error(msg);
     },
@@ -130,10 +143,22 @@ export const useWorkflowData = () => {
   const createWorkflow = (data: CreateWorkflowDTO) =>
     createMutation.mutateAsync(data);
 
-  const updateWorkflow = (id: string, data: UpdateWorkflowDTO) =>
-    updateMutation.mutateAsync({ id, data });
+  const updateWorkflow = (id: string, data: UpdateWorkflowDTO) => {
+    const cachedWorkflow = allWorkflows.find((w) => w._id === id);
+    return updateMutation.mutateAsync({
+      id,
+      data,
+      lastKnownUpdatedAt: cachedWorkflow?.updatedAt ? new Date(cachedWorkflow.updatedAt) : undefined,
+    });
+  };
 
-  const toggleWorkflow = (id: string) => toggleMutation.mutate(id);
+  const toggleWorkflow = (id: string) => {
+    const cachedWorkflow = allWorkflows.find((w) => w._id === id);
+    return toggleMutation.mutate({
+      id,
+      lastKnownUpdatedAt: cachedWorkflow?.updatedAt ? new Date(cachedWorkflow.updatedAt) : undefined,
+    });
+  };
 
   const deleteWorkflow = (id: string) => deleteMutation.mutateAsync(id);
 

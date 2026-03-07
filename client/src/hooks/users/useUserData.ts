@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { userService } from "@/services/userService.ts";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
 import type { User, UserRole } from "@/types";
@@ -124,11 +125,18 @@ export const useUserData = (tenantId?: string) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<User> }) =>
-      userService.updateUser(id, updates),
+    mutationFn: ({ id, updates, lastKnownUpdatedAt }: { id: string; updates: Partial<User>; lastKnownUpdatedAt?: Date }) =>
+      userService.updateUser(id, updates, lastKnownUpdatedAt),
     onSuccess: (updated) => {
       updateItem(updated._id, { ...updated, id: updated._id }).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ["users-list"] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This user was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["users-list"] });
+      }
     },
   });
 
@@ -155,9 +163,15 @@ export const useUserData = (tenantId?: string) => {
   );
 
   const updateUser = useCallback(
-    (id: string, updates: Partial<User>) =>
-      updateMutation.mutateAsync({ id, updates }),
-    [updateMutation],
+    (id: string, updates: Partial<User>) => {
+      const cachedUser = allUsers.find((u) => u._id === id);
+      return updateMutation.mutateAsync({
+        id,
+        updates,
+        lastKnownUpdatedAt: cachedUser?.updatedAt,
+      });
+    },
+    [updateMutation, allUsers],
   );
 
   const deleteUser = useCallback(

@@ -34,10 +34,13 @@ export const usersAPI = {
     return response.user;
   },
 
-  update: async (id: string, data: UpdateUserDTO) => {
+  update: async (id: string, data: UpdateUserDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; user: User }>(
       `/users/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.user;
   },

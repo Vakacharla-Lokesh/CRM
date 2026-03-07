@@ -67,11 +67,15 @@ const organizationService = {
   updateOrganization: async (
     id: string,
     updates: Partial<Organization>,
+    lastKnownUpdatedAt?: Date,
   ): Promise<Organization> => {
     const response = await apiClient.put<{
       message: string;
       organization: Organization;
-    }>(`/organizations/${id}`, updates);
+    }>(`/organizations/${id}`, {
+      ...updates,
+      ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+    });
     return response.organization;
   },
 

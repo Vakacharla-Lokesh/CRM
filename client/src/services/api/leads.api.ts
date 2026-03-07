@@ -76,10 +76,13 @@ export const leadsAPI = {
     return response.lead;
   },
 
-  update: async (id: string, data: UpdateLeadDTO) => {
+  update: async (id: string, data: UpdateLeadDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; lead: Lead }>(
       `/leads/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.lead;
   },

@@ -37,10 +37,13 @@ export const organizationsAPI = {
     return response.organization;
   },
 
-  update: async (id: string, data: UpdateOrganizationDTO) => {
+  update: async (id: string, data: UpdateOrganizationDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; organization: Organization }>(
       `/organizations/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.organization;
   },

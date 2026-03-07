@@ -40,9 +40,21 @@ export const createCall = async (callData, leadId) => {
   return call;
 };
 
-export const updateCall = async (id, updates) => {
+export const updateCall = async (id, updates, lastKnownUpdatedAt) => {
   const call = await callModel.findById(id);
   if (!call) throw new AppError("Call not found", 404);
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(call.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This call was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
+  }
 
   const updatedCall = await callModel.findByIdAndUpdate(id, updates, {
     new: true,

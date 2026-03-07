@@ -9,7 +9,7 @@ export const createUserSchema = z
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
-    role: z.string().min(1).max(50),
+    role: z.enum(["user", "admin"]),
     roleId: z.string().optional(),
     password: z.string().min(8).optional(),
     tenantId: z.string().min(1).optional(),
@@ -25,7 +25,7 @@ export const updateUserSchema = z
       .string()
       .regex(/^[1-9]\d{9}$/)
       .optional(),
-    role: z.string().min(1).max(50).optional(),
+    role: z.enum(["user", "admin"]),
     roleId: z.string().optional(),
     password: z.string().min(8).optional(),
   })
@@ -71,5 +71,5 @@ export const assignPermissionsSchema = z.object({
       ),
     )
     .min(1, "At least one permission is required"),
-  role: z.enum(["user", "admin", "super_admin"]).optional(),
+  role: z.enum(["user", "admin"]).optional(),
 });
