@@ -12,7 +12,8 @@ import notificationService, {
 export const getAllLeads = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
-    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("leads:view_all"));
 
   const filter =
     req.tenantContext?.scope === "tenant"
@@ -33,8 +34,10 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
 
-  const { leads, nextCursor, hasNextPage } =
-    await leadService.getAllLeads(filter, { limit, cursor });
+  const { leads, nextCursor, hasNextPage } = await leadService.getAllLeads(
+    filter,
+    { limit, cursor },
+  );
 
   res.json({
     count: leads.length,
@@ -46,9 +49,7 @@ export const getAllLeads = asyncCatch(async (req, res) => {
 
 export const getLeadById = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const lead = await leadService.getLeadById(req.params.id, tenantId);
 
@@ -68,13 +69,7 @@ export const createLead = asyncCatch(async (req, res) => {
 
   const lead = await leadService.createLead(leadData);
 
-  await fireWorkflowTrigger(
-    req,
-    "lead",
-    "create",
-    lead._id,
-    lead.toObject(),
-  );
+  await fireWorkflowTrigger(req, "lead", "create", lead._id, lead.toObject());
 
   await logActivity({
     leadId: lead._id,
@@ -98,19 +93,17 @@ export const createLead = asyncCatch(async (req, res) => {
 
 export const updateLead = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
-  const lead = await leadService.updateLead(req.params.id, tenantId, req.body);
-
-  await fireWorkflowTrigger(
-    req,
-    "lead",
-    "update",
-    lead._id,
-    lead.toObject(),
+  const { lastKnownUpdatedAt, ...updates } = req.body;
+  const lead = await leadService.updateLead(
+    req.params.id,
+    tenantId,
+    updates,
+    lastKnownUpdatedAt,
   );
+
+  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
 
   await logActivity({
     leadId: req.params.id,
@@ -129,9 +122,7 @@ export const updateLead = asyncCatch(async (req, res) => {
 
 export const deleteLead = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const lead = await leadService.deleteLead(req.params.id, tenantId);
 
@@ -158,9 +149,7 @@ export const getLeadsByTenant = asyncCatch(async (req, res) => {
 
 export const getLeadsByUser = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const leads = await leadService.getLeadsByUser(req.params.userId, tenantId);
 
@@ -169,9 +158,7 @@ export const getLeadsByUser = asyncCatch(async (req, res) => {
 
 export const getLeadsByOrganization = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const leads = await leadService.getLeadsByOrganization(
     req.params.organizationId,
@@ -182,14 +169,16 @@ export const getLeadsByOrganization = asyncCatch(async (req, res) => {
 });
 
 export const updateLeadStatus = asyncCatch(async (req, res) => {
-  const { status } = req.body;
+  const { status, lastKnownUpdatedAt } = req.body;
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
-  const { updatedLead, previousStatus } =
-    await leadService.updateLeadStatus(req.params.id, tenantId, status);
+  const { updatedLead, previousStatus } = await leadService.updateLeadStatus(
+    req.params.id,
+    tenantId,
+    status,
+    lastKnownUpdatedAt,
+  );
 
   await fireWorkflowTrigger(
     req,
@@ -215,16 +204,15 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
 });
 
 export const updateLeadScoreManually = asyncCatch(async (req, res) => {
-  const { score } = req.body;
+  const { score, lastKnownUpdatedAt } = req.body;
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const lead = await leadService.updateLeadScoreManually(
     req.params.id,
     tenantId,
     score,
+    lastKnownUpdatedAt,
   );
 
   res.json({ message: "Lead score updated successfully", lead });
@@ -232,9 +220,7 @@ export const updateLeadScoreManually = asyncCatch(async (req, res) => {
 
 export const convertLeadToDeal = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const { deal, lead } = await leadService.convertLeadToDeal(
     req.params.id,
@@ -298,9 +284,7 @@ export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
 export const assignLead = asyncCatch(async (req, res) => {
   const { assignedTo } = req.body;
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const { lead, previousAssignee } = await leadService.assignLead(
     req.params.id,

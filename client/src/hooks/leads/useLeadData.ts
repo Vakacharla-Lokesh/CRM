@@ -4,6 +4,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 import leadService from "@/services/leadService";
 import type { Lead } from "@/types";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
@@ -155,10 +156,17 @@ export function useLeadData() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates }: { id: string; updates: Partial<Lead> }) =>
-      leadService.updateLead(id, updates),
+    mutationFn: ({ id, updates, lastKnownUpdatedAt }: { id: string; updates: Partial<Lead>; lastKnownUpdatedAt?: Date }) =>
+      leadService.updateLead(id, updates, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This lead was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["leads"] });
+      }
     },
   });
 
@@ -188,9 +196,14 @@ export function useLeadData() {
 
   const updateLead = useCallback(
     async (id: string, updates: Partial<Lead>) => {
-      return updateMutation.mutateAsync({ id, updates });
+      const cachedLead = allLeads.find((l) => l._id === id);
+      return updateMutation.mutateAsync({
+        id,
+        updates,
+        lastKnownUpdatedAt: cachedLead?.updatedAt,
+      });
     },
-    [updateMutation],
+    [updateMutation, allLeads],
   );
 
   const deleteLead = useCallback(

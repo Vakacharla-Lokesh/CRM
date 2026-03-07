@@ -29,14 +29,28 @@ export const createTask = async (data) => {
     .lean();
 };
 
-export const updateTask = async (id, tenantFilter, updates) => {
-  const task = await taskModel
+export const updateTask = async (id, tenantFilter, updates, lastKnownUpdatedAt) => {
+  const task = await taskModel.findOne({ _id: id, ...tenantFilter });
+  if (!task) throw new AppError("Task not found", 404);
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(task.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This task was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
+  }
+
+  const updatedTask = await taskModel
     .findOneAndUpdate({ _id: id, ...tenantFilter }, updates, { new: true })
     .populate("assignedTo", "firstName lastName email")
     .populate("createdBy", "firstName lastName email")
     .lean();
-  if (!task) throw new AppError("Task not found", 404);
-  return task;
+  return updatedTask;
 };
 
 export const deleteTask = async (id, tenantFilter) => {

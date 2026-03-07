@@ -55,9 +55,11 @@ export const updateComment = asyncCatch(async (req, res) => {
     req.user.tenantId,
   );
 
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const { updatedComment } = await commentService.updateComment(
     req.params.id,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
 
   res.json({

@@ -35,18 +35,24 @@ export const createTask = asyncCatch(async (req, res) => {
 });
 
 export const updateTask = asyncCatch(async (req, res) => {
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const task = await taskService.updateTask(
     req.params.id,
     req.tenantFilter,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
   res.json({ message: "Task updated successfully", task });
 });
 
 export const updateTaskStatus = asyncCatch(async (req, res) => {
-  const task = await taskService.updateTask(req.params.id, req.tenantFilter, {
-    status: req.body.status,
-  });
+  const { status, lastKnownUpdatedAt } = req.body;
+  const task = await taskService.updateTask(
+    req.params.id,
+    req.tenantFilter,
+    { status },
+    lastKnownUpdatedAt,
+  );
   res.json({ message: "Task status updated", task });
 });
 

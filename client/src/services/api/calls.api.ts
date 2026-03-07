@@ -38,10 +38,13 @@ export const callsAPI = {
     return response.call;
   },
 
-  update: async (id: string, data: UpdateCallDTO) => {
+  update: async (id: string, data: UpdateCallDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; call: Call }>(
       `/calls/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.call;
   },

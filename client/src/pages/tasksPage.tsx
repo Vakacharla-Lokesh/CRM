@@ -424,7 +424,11 @@ export default function TasksPage() {
   const handleSave = async (dto: CreateTaskDTO) => {
     try {
       if (editingTask) {
-        await updateTask.mutateAsync({ id: editingTask._id, dto });
+        await updateTask.mutateAsync({
+          id: editingTask._id,
+          dto,
+          lastKnownUpdatedAt: editingTask.updatedAt ? new Date(editingTask.updatedAt) : undefined,
+        });
         toast.success("Task updated");
       } else {
         await createTask.mutateAsync(dto);
@@ -454,7 +458,7 @@ export default function TasksPage() {
     if (!task || task.status === newStatus) return;
 
     updateTaskStatus.mutate(
-      { id: draggableId, status: newStatus },
+      { id: draggableId, status: newStatus, lastKnownUpdatedAt: task.updatedAt ? new Date(task.updatedAt) : undefined },
       { onError: () => toast.error("Failed to move task") },
     );
   };

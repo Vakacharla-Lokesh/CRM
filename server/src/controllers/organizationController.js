@@ -95,12 +95,14 @@ export const updateOrganization = asyncCatch(async (req, res) => {
       ? req.tenantContext.tenantId
       : null;
 
+  const { lastKnownUpdatedAt, ...updates } = req.body;
   const updatedOrganization = await organizationService.updateOrganization(
     req.params.id,
     tenantId,
     req.auth.userId,
     canViewAll,
-    req.body,
+    updates,
+    lastKnownUpdatedAt,
   );
 
   await fireWorkflowTrigger(

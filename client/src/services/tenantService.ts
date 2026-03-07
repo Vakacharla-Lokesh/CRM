@@ -55,10 +55,13 @@ class TenantService {
     return response.tenant;
   }
 
-  async updateTenant(id: string, data: UpdateTenantDto): Promise<Tenant> {
+  async updateTenant(id: string, data: UpdateTenantDto, lastKnownUpdatedAt?: Date): Promise<Tenant> {
     const response = await apiClient.put<{ tenant: Tenant; message: string }>(
       `/tenants/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.tenant;
   }

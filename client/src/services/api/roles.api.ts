@@ -46,10 +46,13 @@ export const rolesApi = {
   /**
    * Update an existing role (admin only)
    */
-  updateRole: async (roleId: string, updates: UpdateRoleDTO): Promise<Role> => {
+  updateRole: async (roleId: string, updates: UpdateRoleDTO, lastKnownUpdatedAt?: Date): Promise<Role> => {
     const response = await apiClient.put<RoleResponse>(
       `/roles/${roleId}`,
-      updates,
+      {
+        ...updates,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.data;
   },

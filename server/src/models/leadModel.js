@@ -54,7 +54,7 @@ const leadsSchema = new Schema(
 // Indexes
 leadsSchema.index({ createdBy: 1, createdAt: -1 });
 leadsSchema.index({ assignedTo: 1, createdAt: -1 });
-leadsSchema.index({ tenantId: 1 });
+leadsSchema.index({ tenantId: 1, status: 1, createdAt: -1 });
 leadsSchema.index({ organizationId: 1 });
 leadsSchema.index(
   { idempotencyKey: 1 },

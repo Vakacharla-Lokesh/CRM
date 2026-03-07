@@ -64,10 +64,13 @@ const leadService = {
     return response.lead;
   },
 
-  updateLead: async (id: string, updates: Partial<Lead>): Promise<Lead> => {
+  updateLead: async (id: string, updates: Partial<Lead>, lastKnownUpdatedAt?: Date): Promise<Lead> => {
     const response = await apiClient.put<{ message: string; lead: Lead }>(
       `/leads/${id}`,
-      updates,
+      {
+        ...updates,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.lead;
   },

@@ -50,7 +50,8 @@ export const createTenant = asyncCatch(async (req, res) => {
 
 // Update tenant
 export const updateTenant = asyncCatch(async (req, res) => {
-  const tenant = await tenantService.updateTenant(req.params.id, req.body);
+  const { lastKnownUpdatedAt, ...updates } = req.body;
+  const tenant = await tenantService.updateTenant(req.params.id, updates, lastKnownUpdatedAt);
 
   res.json({
     message: "Tenant updated successfully",

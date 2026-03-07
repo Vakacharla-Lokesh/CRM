@@ -55,7 +55,8 @@ export const createUser = asyncCatch(async (req, res) => {
 
 // Update user
 export const updateUser = asyncCatch(async (req, res) => {
-  const user = await userService.updateUser(req.params.id, req.body);
+  const { lastKnownUpdatedAt, ...updates } = req.body;
+  const user = await userService.updateUser(req.params.id, updates, lastKnownUpdatedAt);
 
   res.json({
     message: "User updated successfully",

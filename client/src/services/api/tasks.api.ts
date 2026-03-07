@@ -52,14 +52,17 @@ export const tasksAPI = {
     const response = await apiClient.post<{ task: Task }>("/tasks", dto);
     return response.task;
   },
-  update: async (id: string, dto: UpdateTaskDTO): Promise<Task> => {
-    const response = await apiClient.put<{ task: Task }>(`/tasks/${id}`, dto);
+  update: async (id: string, dto: UpdateTaskDTO, lastKnownUpdatedAt?: Date): Promise<Task> => {
+    const response = await apiClient.put<{ task: Task }>(`/tasks/${id}`, {
+      ...dto,
+      ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+    });
     return response.task;
   },
-  updateStatus: async (id: string, status: Task["status"]): Promise<Task> => {
+  updateStatus: async (id: string, status: Task["status"], lastKnownUpdatedAt?: Date): Promise<Task> => {
     const response = await apiClient.patch<{ task: Task }>(
       `/tasks/${id}/status`,
-      { status },
+      { status, ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }) },
     );
     return response.task;
   },

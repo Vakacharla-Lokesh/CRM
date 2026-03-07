@@ -30,7 +30,10 @@ async function deduplicateByIdempotencyKey(model, items, session) {
 async function runInTransaction(fn) {
   const session = await mongoose.startSession();
   try {
-    session.startTransaction();
+    session.startTransaction({
+      readConcern: { level: "snapshot" },
+      writeConcern: { w: "majority", j: true }, 
+    });
     const result = await fn(session);
     await session.commitTransaction();
     return result;

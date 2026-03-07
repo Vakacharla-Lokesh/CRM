@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   tasksAPI,
   type CreateTaskDTO,
@@ -26,14 +27,21 @@ export function useTaskData() {
   });
 
   const updateTask = useMutation({
-    mutationFn: ({ id, dto }: { id: string; dto: UpdateTaskDTO }) =>
-      tasksAPI.update(id, dto),
+    mutationFn: ({ id, dto, lastKnownUpdatedAt }: { id: string; dto: UpdateTaskDTO; lastKnownUpdatedAt?: Date }) =>
+      tasksAPI.update(id, dto, lastKnownUpdatedAt),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: TASKS_KEY }),
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This task was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: TASKS_KEY });
+      }
+    },
   });
 
   const updateTaskStatus = useMutation({
-    mutationFn: ({ id, status }: { id: string; status: Task["status"] }) =>
-      tasksAPI.updateStatus(id, status),
+    mutationFn: ({ id, status, lastKnownUpdatedAt }: { id: string; status: Task["status"]; lastKnownUpdatedAt?: Date }) =>
+      tasksAPI.updateStatus(id, status, lastKnownUpdatedAt),
     onMutate: async ({ id, status }) => {
       // Optimistic update
       await queryClient.cancelQueries({ queryKey: TASKS_KEY });
@@ -44,9 +52,14 @@ export function useTaskData() {
       );
       return { previous };
     },
-    onError: (_err, _vars, context) => {
+    onError: (err: unknown, _vars, context) => {
       if (context?.previous) {
         queryClient.setQueryData(TASKS_KEY, context.previous);
+      }
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This task was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: TASKS_KEY });
       }
     },
     onSettled: () => queryClient.invalidateQueries({ queryKey: TASKS_KEY }),

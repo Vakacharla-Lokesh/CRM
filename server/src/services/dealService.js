@@ -42,7 +42,7 @@ export const createDeal = async (dealData) => {
   return dealModel.create(dealData);
 };
 
-export const updateDeal = async (id, tenantId, userId, canViewAll, updates) => {
+export const updateDeal = async (id, tenantId, userId, canViewAll, updates, lastKnownUpdatedAt) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 
@@ -52,6 +52,18 @@ export const updateDeal = async (id, tenantId, userId, canViewAll, updates) => {
 
   if (!canViewAll && deal.userId.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(deal.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This deal was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   return dealModel.findByIdAndUpdate(id, updates, {
@@ -112,12 +124,23 @@ export const searchDeals = async (filter, { q, limit = 25 }) => {
     .limit(Math.min(parseInt(limit), 25));
 };
 
-export const updateDealStatus = async (id, tenantId, status) => {
+export const updateDealStatus = async (id, tenantId, status, lastKnownUpdatedAt) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 
   if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
+  }
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(deal.updatedAt).getTime();
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This deal was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
   }
 
   deal.status = status;

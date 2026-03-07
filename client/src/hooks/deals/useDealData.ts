@@ -5,6 +5,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 import dealService from "@/services/dealService";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
 import type { Deal, DealStatus, CreateDealDTO, UpdateDealDTO } from "@/types";
@@ -199,12 +200,21 @@ export const useDealData = () => {
     mutationFn: ({
       dealId,
       dealData,
+      lastKnownUpdatedAt,
     }: {
       dealId: string;
       dealData: UpdateDealDTO;
-    }) => dealService.updateDeal(dealId, dealData),
+      lastKnownUpdatedAt?: Date;
+    }) => dealService.updateDeal(dealId, dealData, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This deal was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["deals"] });
+      }
     },
   });
 
@@ -254,9 +264,14 @@ export const useDealData = () => {
 
   const updateDeal = useCallback(
     async (dealId: string, dealData: UpdateDealDTO) => {
-      return updateMutation.mutateAsync({ dealId, dealData });
+      const cachedDeal = allDeals.find((d) => d._id === dealId);
+      return updateMutation.mutateAsync({
+        dealId,
+        dealData,
+        lastKnownUpdatedAt: cachedDeal?.updatedAt,
+      });
     },
-    [updateMutation],
+    [updateMutation, allDeals],
   );
 
   const deleteDeal = useCallback(

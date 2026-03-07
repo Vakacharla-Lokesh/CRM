@@ -76,10 +76,13 @@ export const userService = {
     return response.user;
   },
 
-  updateUser: async (id: string, updates: Partial<User>): Promise<User> => {
+  updateUser: async (id: string, updates: Partial<User>, lastKnownUpdatedAt?: Date): Promise<User> => {
     const response = await apiClient.put<{ message: string; user: User }>(
       `/users/${id}`,
-      updates,
+      {
+        ...updates,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.user;
   },

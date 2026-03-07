@@ -5,6 +5,7 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { organizationService } from "@/services";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
 import type { Organization } from "@/types";
@@ -153,16 +154,25 @@ export const useOrganizationData = () => {
     mutationFn: ({
       id,
       updates,
+      lastKnownUpdatedAt,
     }: {
       id: string;
       updates: Partial<Organization>;
-    }) => organizationService.updateOrganization(id, updates),
+      lastKnownUpdatedAt?: Date;
+    }) => organizationService.updateOrganization(id, updates, lastKnownUpdatedAt),
     onSuccess: (updatedOrg) => {
       updateItem(updatedOrg._id, {
         ...updatedOrg,
         id: updatedOrg._id,
       }).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ["organizations"] });
+    },
+    onError: (err: unknown) => {
+      const status = (err as { status?: number }).status;
+      if (status === 409) {
+        toast.error("This organization was modified by someone else. Please refresh and try again.");
+        queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      }
     },
   });
 
@@ -219,9 +229,14 @@ export const useOrganizationData = () => {
 
   const updateOrganization = useCallback(
     async (id: string, updates: Partial<Organization>) => {
-      return updateMutation.mutateAsync({ id, updates });
+      const cachedOrg = allOrganizations.find((o) => o._id === id);
+      return updateMutation.mutateAsync({
+        id,
+        updates,
+        lastKnownUpdatedAt: cachedOrg?.updatedAt,
+      });
     },
-    [updateMutation],
+    [updateMutation, allOrganizations],
   );
 
   const deleteOrganization = useCallback(

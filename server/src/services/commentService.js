@@ -40,9 +40,21 @@ export const createComment = async (commentData, leadId) => {
   return comment;
 };
 
-export const updateComment = async (id, updates) => {
+export const updateComment = async (id, updates, lastKnownUpdatedAt) => {
   const comment = await commentModel.findById(id);
   if (!comment) throw new AppError("Comment not found", 404);
+
+  if (lastKnownUpdatedAt) {
+    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+    const serverTimestamp = new Date(comment.updatedAt).getTime();
+
+    if (clientTimestamp !== serverTimestamp) {
+      throw new AppError(
+        "This comment was modified by someone else. Please refresh and try again.",
+        409,
+      );
+    }
+  }
 
   const updatedComment = await commentModel.findByIdAndUpdate(id, updates, {
     new: true,

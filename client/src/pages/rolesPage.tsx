@@ -63,6 +63,7 @@ const RolesPage = () => {
         await updateRole.mutateAsync({
           roleId: editingRole._id,
           updates: dto as UpdateRoleDTO,
+          lastKnownUpdatedAt: editingRole.updatedAt ? new Date(editingRole.updatedAt) : undefined,
         });
         toast.success(`Role "${editingRole.name}" updated successfully`);
       } else {

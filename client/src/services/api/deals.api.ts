@@ -39,10 +39,13 @@ export const dealsAPI = {
     return response.deal;
   },
 
-  update: async (id: string, data: UpdateDealDTO) => {
+  update: async (id: string, data: UpdateDealDTO, lastKnownUpdatedAt?: Date) => {
     const response = await put<{ message: string; deal: Deal }>(
       `/deals/${id}`,
-      data,
+      {
+        ...data,
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
     return response.deal;
   },

@@ -38,20 +38,27 @@ const workflowService = {
   updateWorkflow: async (
     id: string,
     data: UpdateWorkflowDTO,
+    lastKnownUpdatedAt?: Date,
   ): Promise<Workflow> => {
     const response = await apiClient.put<{
       message: string;
       workflow: Workflow;
-    }>(`/workflows/${id}`, data);
+    }>(`/workflows/${id}`, {
+      ...data,
+      ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+    });
     return response.workflow;
   },
 
   toggleWorkflow: async (
     id: string,
+    lastKnownUpdatedAt?: Date,
   ): Promise<{ message: string; isActive: boolean }> => {
     return apiClient.patch<{ message: string; isActive: boolean }>(
       `/workflows/${id}/toggle`,
-      {},
+      {
+        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
+      },
     );
   },
 

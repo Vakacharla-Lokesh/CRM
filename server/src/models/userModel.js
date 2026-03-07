@@ -52,6 +52,28 @@ userSchema.pre("save", async function () {
   this.password = await bcrypt.hash(this.password, salt);
 });
 
+userSchema.pre("save", function (next) {
+  if (this.isNew && this.role === "super_admin") {
+    if (!process.env._INTERNAL_SEED_MODE) {
+      return next(new Error("Cannot create super_admin via API"));
+    }
+  }
+  next();
+});
+
+userSchema.pre(
+  ["findOneAndUpdate", "updateOne", "updateMany"],
+  function (next) {
+    const update = this.getUpdate();
+    const role = update?.role || update?.$set?.role;
+
+    if (role === "super_admin") {
+      return next(new Error("Cannot escalate role to super_admin via update"));
+    }
+    next();
+  },
+);
+
 userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
