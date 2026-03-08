@@ -14,6 +14,7 @@ interface LeadFilters {
   search?: string;
   status?: string;
   source?: string;
+  pipelineId?: string;
   dateFrom?: string;
   dateTo?: string;
 }
@@ -44,7 +45,14 @@ export function useLeadData() {
     hasNextPage,
     refetch,
   } = useInfiniteQuery({
-    queryKey: ["leads", { status: filters.status, source: filters.source }],
+    queryKey: [
+      "leads",
+      {
+        status: filters.status,
+        source: filters.source,
+        pipelineId: filters.pipelineId,
+      },
+    ],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
       if (!navigator.onLine) {
         const cached = await getAll();
@@ -60,6 +68,7 @@ export function useLeadData() {
         limit: PAGE_LIMIT,
         status: filters.status || undefined,
         source: filters.source || undefined,
+        pipelineId: filters.pipelineId || undefined,
       });
 
       for (const lead of page.leads) {
@@ -78,7 +87,7 @@ export function useLeadData() {
   });
 
   const { data: searchData, isLoading: searchLoading } = useInfiniteQuery({
-    queryKey: ["leads", "search", searchQuery, filters.status, filters.source],
+    queryKey: ["leads", "search", searchQuery, filters.status, filters.source, filters.pipelineId],
     queryFn: async () => {
       const result = await leadService.searchLeads({
         q: searchQuery.trim(),
@@ -127,10 +136,8 @@ export function useLeadData() {
     const bySource: Record<string, number> = {};
 
     filteredLeads.forEach((lead) => {
-      if (lead.status)
-        byStatus[lead.status] = (byStatus[lead.status] ?? 0) + 1;
-      if (lead.source)
-        bySource[lead.source] = (bySource[lead.source] ?? 0) + 1;
+      if (lead.status) byStatus[lead.status] = (byStatus[lead.status] ?? 0) + 1;
+      if (lead.source) bySource[lead.source] = (bySource[lead.source] ?? 0) + 1;
     });
 
     const converted = byStatus["Converted"] ?? 0;
@@ -156,15 +163,24 @@ export function useLeadData() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates, lastKnownUpdatedAt }: { id: string; updates: Partial<Lead>; lastKnownUpdatedAt?: Date }) =>
-      leadService.updateLead(id, updates, lastKnownUpdatedAt),
+    mutationFn: ({
+      id,
+      updates,
+      lastKnownUpdatedAt,
+    }: {
+      id: string;
+      updates: Partial<Lead>;
+      lastKnownUpdatedAt?: Date;
+    }) => leadService.updateLead(id, updates, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["leads"] });
     },
     onError: (err: unknown) => {
       const status = (err as { status?: number }).status;
       if (status === 409) {
-        toast.error("This lead was modified by someone else. Please refresh and try again.");
+        toast.error(
+          "This lead was modified by someone else. Please refresh and try again.",
+        );
         queryClient.invalidateQueries({ queryKey: ["leads"] });
       }
     },

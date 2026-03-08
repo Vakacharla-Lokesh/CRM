@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
 import * as leadService from "../services/leadService.js";
@@ -29,6 +30,9 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   }
   if (req.query.source) {
     filter.source = req.query.source;
+  }
+  if (req.query.pipelineId) {
+    filter.pipelineId = new mongoose.Types.ObjectId(req.query.pipelineId);
   }
 
   const limit = parseInt(req.query.limit) || 20;

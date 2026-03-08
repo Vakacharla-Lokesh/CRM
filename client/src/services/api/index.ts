@@ -14,6 +14,7 @@ import { attachmentsAPI } from "./attachments.api";
 import { exportAPI } from "./export.api";
 import { leadActivitiesAPI } from "./leadActivities.api";
 import { userAnalyticsAPI } from "../api";
+import { pipelinesAPI } from "./pipelines.api";
 
 export {
   authAPI,
@@ -29,6 +30,7 @@ export {
   attachmentsAPI,
   exportAPI,
   leadActivitiesAPI,
+  pipelinesAPI,
 };
 
 export const API = {
@@ -46,6 +48,7 @@ export const API = {
   export: exportAPI,
   leadActivities: leadActivitiesAPI,
   userAnalytics: userAnalyticsAPI,
+  pipelines: pipelinesAPI,
 };
 
 export default API;

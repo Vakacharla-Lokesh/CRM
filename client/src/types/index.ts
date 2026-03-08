@@ -11,6 +11,7 @@ export * from "./notifications";
 export * from "./workflows";
 export * from "./leadActivity";
 export * from "./role";
+export * from "./pipeline";
 
 // API Types
 export interface ApiRequestOptions {

@@ -44,3 +44,5 @@ export { useNotifications } from "./useNotifications.ts";
 export { useUsersStats } from "./users/useUsersStats.ts";
 export { useTenantsStats } from "./tenants/useTenantsStats.ts";
 export { useSocket } from "./useSocket.ts";
+
+export { usePipelineData } from "./usePipelineData.ts";

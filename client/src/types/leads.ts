@@ -1,4 +1,4 @@
-export type LeadStatus = "New" | "Converted" | "Dead" | "Follow-Up";
+export type LeadStatus = string;
 
 export type LeadSource =
   | "API"
@@ -29,6 +29,7 @@ export interface Lead {
   /** 0 – 100 */
   score: number;
   status: LeadStatus;
+  pipelineId?: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -41,6 +42,7 @@ export interface CreateLeadDTO {
   source?: LeadSource;
   score?: number;
   status: LeadStatus;
+  pipelineId?: string | null;
   tenantId: string;
   assignedTo?: string;
 }

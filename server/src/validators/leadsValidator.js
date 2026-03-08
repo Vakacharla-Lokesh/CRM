@@ -29,7 +29,7 @@ export const createLeadSchema = z.object({
     ])
     .optional(),
   score: z.number().min(0).max(100).optional(),
-  status: z.enum(["New", "Converted", "Dead", "Follow-Up"]),
+  status: z.string().min(1).max(50),
   assignedTo: z.string().min(1).optional(),
 });
 
@@ -59,15 +59,14 @@ export const updateLeadSchema = z.object({
     ])
     .optional(),
   score: z.number().min(0).max(100).optional(),
-  status: z.enum(["New", "Converted", "Dead", "Follow-Up"]).optional(),
-  assignedTo: z.string().min(1).optional(),
+  status: z.string().min(1).max(50),
   assignedTo: z.string().min(1).optional(),
   createdBy: z.string().min(1).optional(),
 });
 
 export const updateLeadStatusSchema = z
   .object({
-    status: z.enum(["New", "Converted", "Dead", "Follow-Up"]),
+    status: z.string().min(1).max(50),
   })
   .strict();
 
@@ -80,15 +79,6 @@ export const updateLeadScoreSchema = z
 export const convertLeadSchema = z
   .object({
     value: z.number().min(0).max(1_000_000).optional(),
-    status: z
-      .enum([
-        "Prospecting",
-        "Qualification",
-        "Negotiation",
-        "Ready to close",
-        "Won",
-        "Lost",
-      ])
-      .optional(),
+    status: z.string().min(1).max(50),
   })
   .strict();

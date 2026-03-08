@@ -12,6 +12,7 @@ import {
 import type { Lead } from "@/types";
 import { useLeadData } from "@/hooks";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
+import { usePipelineData } from "@/hooks";
 
 interface EditLeadTabProps {
   lead: Lead;
@@ -20,6 +21,9 @@ interface EditLeadTabProps {
 
 function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
   const { updateLead } = useLeadData();
+  const { pipelines } = usePipelineData();
+  const leadPipeline = pipelines.find((p) => p._id === lead.pipelineId);
+  const availableStatuses = leadPipeline?.statuses ?? [];
 
   const [formData, setFormData] = useState<Lead>(lead);
   const [isSaving, setIsSaving] = useState(false);
@@ -152,7 +156,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           </Select>
         </div>
 
-        {formData.status != "Converted" && (
+        {formData.status !== "Converted" && (
           <div className="space-y-2">
             <Label htmlFor="status">Status</Label>
             <Select
@@ -166,9 +170,22 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="New">New</SelectItem>
-                <SelectItem value="Dead">Dead</SelectItem>
-                <SelectItem value="Follow-Up">Follow-Up</SelectItem>
+                {availableStatuses
+                  .filter((s) => s.label !== "Converted")
+                  .map((stage) => (
+                    <SelectItem
+                      key={stage.label}
+                      value={stage.label}
+                    >
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: stage.color }}
+                        />
+                        {stage.label}
+                      </span>
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>

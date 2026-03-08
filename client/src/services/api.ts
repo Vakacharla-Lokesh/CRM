@@ -16,5 +16,6 @@ export { leadActivitiesAPI } from "./api/leadActivities.api";
 export { userAnalyticsAPI } from "./api/userAnalytics.api";
 export { statsAPI } from "./api/stats.api";
 export { tasksAPI } from "./api/tasks.api";
+export { pipelinesAPI } from "./api/pipelines.api";
 
 export { API, API as default } from "./api/index";

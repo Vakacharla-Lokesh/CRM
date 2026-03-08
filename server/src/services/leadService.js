@@ -1,6 +1,10 @@
 import leadModel from "../models/leadModel.js";
 import AppError from "../utils/appError.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
+import {
+  getDefaultPipeline,
+  validateStatusInPipeline,
+} from "./pipelineService.js";
 
 export const getAllLeads = async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
@@ -38,7 +42,20 @@ export const getLeadById = async (id, tenantId) => {
 };
 
 export const createLead = async (leadData) => {
-  const lead = await leadModel.create(leadData);
+  let pipelineId = leadData.pipelineId ?? null;
+
+  if (!pipelineId) {
+    const defaultPipeline = await getDefaultPipeline(leadData.createdBy);
+    if (defaultPipeline) {
+      pipelineId = defaultPipeline._id;
+    }
+  }
+
+  if (pipelineId && leadData.status) {
+    await validateStatusInPipeline(pipelineId, leadData.status);
+  }
+
+  const lead = await leadModel.create({ ...leadData, pipelineId });
   await updateLeadScore(lead._id);
   return leadModel.findById(lead._id);
 };
@@ -122,6 +139,10 @@ export const updateLeadStatus = async (
         409,
       );
     }
+  }
+
+  if (lead.pipelineId) {
+    await validateStatusInPipeline(lead.pipelineId, status);
   }
 
   const previousStatus = lead.status;

@@ -23,4 +23,4 @@ export const LEAD_STATUSES = [
   { value: "Dead", color: "bg-red-500" },
 ] as const;
 
-export type LeadStatus = (typeof LEAD_STATUSES)[number]["value"];
+export type LeadStatus = string;

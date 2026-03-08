@@ -17,9 +17,18 @@ import { toast } from "sonner";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { leadService } from "@/services";
 import type { Lead } from "@/types";
+import { getPipelineStage } from "@/types/pipeline";
 
 // notification imports
 import { useNotifications } from "@/hooks";
+import { usePipelineData } from "@/hooks";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // tab definitions
 const tabs = [
@@ -87,6 +96,36 @@ function LeadDetailsPage() {
   const handleConvertToDeal = () => {
     if (!lead) return;
     setConvertDialogOpen(true);
+  };
+
+  const { pipelines } = usePipelineData();
+
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+
+  // Resolve the pipeline this lead belongs to
+  const leadPipeline = lead
+    ? pipelines.find((p) => p._id === lead.pipelineId)
+    : undefined;
+
+  const currentStage = lead
+    ? getPipelineStage(leadPipeline, lead.status)
+    : undefined;
+
+  const handleStageChange = async (newStatus: string) => {
+    if (!lead || newStatus === lead.status) return;
+    try {
+      setIsUpdatingStatus(true);
+      const response = await leadService.updateLead(lead._id, {
+        status: newStatus,
+      });
+      setLead(response);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Failed to update status";
+      toast.error(message);
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   const confirmConvert = async () => {
@@ -157,7 +196,8 @@ function LeadDetailsPage() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-4">
+      {/* Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
@@ -168,6 +208,68 @@ function LeadDetailsPage() {
             <ArrowLeft className="w-4 h-4" />
             Back
           </Button>
+
+          {/* Pipeline stage indicator */}
+          {lead && leadPipeline && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 shadow-sm">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                {leadPipeline.name}
+              </span>
+              <span className="text-gray-300 dark:text-gray-600">/</span>
+
+              {lead.status === "Converted" ? (
+                // Converted is terminal — show as a static badge
+                <span
+                  className="flex items-center gap-1.5 text-xs font-semibold px-2 py-0.5 rounded-full text-white"
+                  style={{ backgroundColor: currentStage?.color ?? "#10b981" }}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/70 inline-block" />
+                  {lead.status}
+                </span>
+              ) : (
+                // Non-converted: show an inline stage changer
+                <Select
+                  value={lead.status}
+                  onValueChange={handleStageChange}
+                  disabled={isUpdatingStatus}
+                >
+                  <SelectTrigger className="h-7 border-0 shadow-none bg-transparent p-0 gap-1.5 text-xs font-semibold focus:ring-0 [&>svg]:w-3 [&>svg]:h-3">
+                    <span className="flex items-center gap-1.5">
+                      <span
+                        className="w-2 h-2 rounded-full shrink-0"
+                        style={{
+                          backgroundColor: currentStage?.color ?? "#6b7280",
+                        }}
+                      />
+                      <SelectValue />
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {leadPipeline.statuses
+                      .filter((s) => s.label !== "Converted")
+                      .map((stage) => (
+                        <SelectItem
+                          key={stage.label}
+                          value={stage.label}
+                        >
+                          <span className="flex items-center gap-2">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full shrink-0"
+                              style={{ backgroundColor: stage.color }}
+                            />
+                            {stage.label}
+                          </span>
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              )}
+
+              {isUpdatingStatus && (
+                <div className="w-3 h-3 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+              )}
+            </div>
+          )}
         </div>
 
         {/* Convert to Deal Button */}
