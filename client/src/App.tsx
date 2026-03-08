@@ -21,6 +21,7 @@ import LoginPage from "./pages/loginPage";
 import SignupPage from "./pages/signupPage";
 import LandingPage from "./pages/landingPage";
 import ForgotPasswordPage from "./pages/forgotPasswordPage";
+import ProductPage from "./pages/productPage";
 
 // Styles
 import "./App.css";
@@ -50,6 +51,10 @@ function AppRoutes() {
         <Route
           path="/"
           element={<LandingPage />}
+        />
+        <Route
+          path="/product"
+          element={<ProductPage />}
         />
         <Route
           path="/login"

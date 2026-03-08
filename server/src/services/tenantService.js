@@ -203,3 +203,11 @@ export const searchTenants = async (
 
   return tenantModel.aggregate(pipeline);
 };
+
+export const getPublicTenants = async () => {
+  return tenantModel
+    .find({ isActive: true })
+    .select("_id name")
+    .sort({ name: 1 })
+    .lean();
+};

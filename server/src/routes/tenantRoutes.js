@@ -6,6 +6,7 @@ import {
   updateTenant,
   deleteTenant,
   searchTenants,
+  getPublicTenants,
 } from "../controllers/tenantController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticateRequest, checkActive } from "../middlewares/auth.js";
@@ -16,6 +17,8 @@ import {
 } from "../validators/tenantsValidator.js";
 
 const router = Router();
+
+router.get("/public", getPublicTenants);
 
 router.get(
   "/",

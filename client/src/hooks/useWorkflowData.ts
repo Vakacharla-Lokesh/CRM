@@ -10,13 +10,11 @@ import { toast } from "sonner";
 
 const PAGE_LIMIT = 20;
 
-
 export const useWorkflowData = () => {
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState("");
 
-  // ── Fetch all workflows ─────────────────────────────────────────────────
   const {
     data,
     isLoading: loading,
@@ -44,7 +42,6 @@ export const useWorkflowData = () => {
     [data],
   );
 
-  // ── Client-side search filter ───────────────────────────────────────────
   const filteredWorkflows: Workflow[] = useMemo(() => {
     if (!searchQuery.trim()) return allWorkflows;
     const q = searchQuery.toLowerCase();
@@ -57,7 +54,6 @@ export const useWorkflowData = () => {
     );
   }, [allWorkflows, searchQuery]);
 
-  // ── Create ──────────────────────────────────────────────────────────────
   const createMutation = useMutation({
     mutationFn: (data: CreateWorkflowDTO) =>
       workflowService.createWorkflow(data),
@@ -65,35 +61,55 @@ export const useWorkflowData = () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : "Failed to create workflow";
+      const msg =
+        err instanceof Error ? err.message : "Failed to create workflow";
       toast.error(msg);
     },
   });
 
-  // ── Update ──────────────────────────────────────────────────────────────
   const updateMutation = useMutation({
-    mutationFn: ({ id, data, lastKnownUpdatedAt }: { id: string; data: UpdateWorkflowDTO; lastKnownUpdatedAt?: Date }) =>
-      workflowService.updateWorkflow(id, data, lastKnownUpdatedAt),
+    mutationFn: ({
+      id,
+      data,
+      lastKnownUpdatedAt,
+    }: {
+      id: string;
+      data: UpdateWorkflowDTO;
+      lastKnownUpdatedAt?: Date;
+    }) => workflowService.updateWorkflow(id, data, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });
     },
     onError: (err: unknown) => {
       const status = (err as { status?: number }).status;
       if (status === 409) {
-        toast.error("This workflow was modified by someone else. Please refresh and try again.");
+        toast.error(
+          "This workflow was modified by someone else. Please refresh and try again.",
+        );
         queryClient.invalidateQueries({ queryKey: ["workflows"] });
         return;
       }
-      const msg = err instanceof Error ? err.message : "Failed to update workflow";
+      const msg =
+        err instanceof Error ? err.message : "Failed to update workflow";
       toast.error(msg);
     },
   });
 
-  // ── Toggle active ───────────────────────────────────────────────────────
   const toggleMutation = useMutation({
-    mutationFn: ({ id, lastKnownUpdatedAt }: { id: string; lastKnownUpdatedAt?: Date }) =>
-      workflowService.toggleWorkflow(id, lastKnownUpdatedAt),
-    onMutate: async ({ id }: { id: string }) => {
+    mutationFn: ({
+      id,
+      lastKnownUpdatedAt,
+    }: {
+      id: string;
+      lastKnownUpdatedAt?: Date;
+    }) => workflowService.toggleWorkflow(id, lastKnownUpdatedAt),
+    onMutate: async ({
+      id,
+      lastKnownUpdatedAt: _lastKnownUpdatedAt,
+    }: {
+      id: string;
+      lastKnownUpdatedAt?: Date;
+    }) => {
       await queryClient.cancelQueries({ queryKey: ["workflows"] });
       const previous = queryClient.getQueryData(["workflows"]);
       // Optimistic update
@@ -115,11 +131,14 @@ export const useWorkflowData = () => {
       queryClient.setQueryData(["workflows"], context?.previous);
       const status = (_err as { status?: number }).status;
       if (status === 409) {
-        toast.error("This workflow was modified by someone else. Please refresh and try again.");
+        toast.error(
+          "This workflow was modified by someone else. Please refresh and try again.",
+        );
         queryClient.invalidateQueries({ queryKey: ["workflows"] });
         return;
       }
-      const msg = _err instanceof Error ? _err.message : "Failed to toggle workflow";
+      const msg =
+        _err instanceof Error ? _err.message : "Failed to toggle workflow";
       toast.error(msg);
     },
     onSettled: () => {
@@ -127,19 +146,18 @@ export const useWorkflowData = () => {
     },
   });
 
-  // ── Delete ──────────────────────────────────────────────────────────────
   const deleteMutation = useMutation({
     mutationFn: (id: string) => workflowService.deleteWorkflow(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workflows"] });
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : "Failed to delete workflow";
+      const msg =
+        err instanceof Error ? err.message : "Failed to delete workflow";
       toast.error(msg);
     },
   });
 
-  // ── Exposed helpers ─────────────────────────────────────────────────────
   const createWorkflow = (data: CreateWorkflowDTO) =>
     createMutation.mutateAsync(data);
 
@@ -148,15 +166,21 @@ export const useWorkflowData = () => {
     return updateMutation.mutateAsync({
       id,
       data,
-      lastKnownUpdatedAt: cachedWorkflow?.updatedAt ? new Date(cachedWorkflow.updatedAt) : undefined,
+      lastKnownUpdatedAt: cachedWorkflow?.updatedAt
+        ? new Date(cachedWorkflow.updatedAt)
+        : undefined,
     });
   };
 
-  const toggleWorkflow = (id: string) => {
+  const toggleWorkflow = (id: string, lastKnownUpdatedAt?: Date) => {
     const cachedWorkflow = allWorkflows.find((w) => w._id === id);
     return toggleMutation.mutate({
       id,
-      lastKnownUpdatedAt: cachedWorkflow?.updatedAt ? new Date(cachedWorkflow.updatedAt) : undefined,
+      lastKnownUpdatedAt:
+        lastKnownUpdatedAt ||
+        (cachedWorkflow?.updatedAt
+          ? new Date(cachedWorkflow.updatedAt)
+          : undefined),
     });
   };
 

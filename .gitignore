@@ -1,0 +1,18 @@
+.agent
+.agents
+.agent_logs
+.agent_states
+.agent_tasks
+
+skills-lock.json
+docker.testing.md
+
+# Ignore all files in the .vscode directory
+.vscode/*
+# Except for settings.json
+
+.github
+
+/client/public/*.png
+/client/public/*.jpg
+/client/public/*.jpeg

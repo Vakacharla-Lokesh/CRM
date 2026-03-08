@@ -17,6 +17,7 @@ import { logger } from "../../../utils/logger.js";
 import * as workflowWorker from "./workflowLambda.js";
 import * as exportWorker from "./exportLambda.js";
 import * as leadReminderWorker from "./leadReminderLambda.js";
+import * as analyticsSnapshotWorker from "./analyticsSnapshotLambda.js";
 
 import { jobService } from "../../services/jobService.js";
 
@@ -70,6 +71,15 @@ async function initialize() {
     console.log(
       "[JobProcessor] ✓ Lead reminder worker registered:",
       leadReminderWorker.jobType,
+    );
+
+    jobRegistry.register(
+      analyticsSnapshotWorker.jobType,
+      analyticsSnapshotWorker.handler,
+    );
+    console.log(
+      "[JobProcessor] ✓ Analytics snapshot worker registered:",
+      analyticsSnapshotWorker.jobType,
     );
   } catch (regError) {
     console.error("[JobProcessor] ❌ Worker registration failed:", {

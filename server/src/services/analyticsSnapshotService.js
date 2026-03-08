@@ -1,112 +1,27 @@
+import { startOfDay } from "date-fns";
 import leadModel from "../models/leadModel.js";
 import dealModel from "../models/dealModel.js";
 import organizationModel from "../models/organizationModel.js";
 import AnalyticsSnapshot from "../models/analyticsSnapshotModel.js";
+import tenantModel from "../models/tenantModel.js";
+import userModel from "../models/userModel.js";
 import { periodDates, pctChange } from "../utils/dateFormat.js";
-import { dashboardCache } from "../config/cache.js";
-import {
-  computeTodayDelta,
-  TENANT_SCOPE_KEY,
-} from "./analyticsSnapshotService.js";
 import { logger } from "../utils/logger.js";
 
 const PERIOD_KEY = "historical";
+export const TENANT_SCOPE_KEY = "tenant";
 
-export const getDashboardStats = async (userId, leadFilter, dealFilter) => {
-  const cacheKey = `dashboard_stats_${userId}`;
-
-  const cachedData = await dashboardCache.get(cacheKey);
-  if (cachedData) return cachedData;
-
+export async function computeSnapshotForScope(leadFilter, dealFilter) {
   const { currentStart, currentEnd, previousStart, previousEnd } =
     periodDates(30);
 
-  const tenantId = leadFilter?.tenantId ?? null;
+  const todayStart = startOfDay(new Date());
 
-  const scopeKey = leadFilter?.assignedTo
-    ? leadFilter.assignedTo.toString()
-    : TENANT_SCOPE_KEY;
-
-  let response;
-
-  const snapshot = tenantId
-    ? await AnalyticsSnapshot.findOne({
-        tenantId,
-        scopeKey,
-        periodKey: PERIOD_KEY,
-      }).lean()
-    : null;
-
-  if (snapshot) {
-    logger.info(
-      `[Analytics] Serving from snapshot — tenant: ${tenantId}, scope: ${scopeKey}`,
-    );
-
-    const delta = await computeTodayDelta(leadFilter, dealFilter);
-
-    const mergedStats = mergeSnapshotWithDelta(snapshot.stats, delta);
-
-    response = {
-      stats: mergedStats,
-      changes: snapshot.changes,
-      period: {
-        days: 30,
-        currentStart: snapshot.period.currentStart,
-        currentEnd: snapshot.period.currentEnd,
-        previousStart: snapshot.period.previousStart,
-        previousEnd: snapshot.period.previousEnd,
-      },
-      _source: "snapshot",
-    };
-  } else {
-    logger.info(
-      `[Analytics] No snapshot found, running full computation — scope: ${scopeKey}`,
-    );
-
-    response = await fullComputation(leadFilter, dealFilter, {
-      currentStart,
-      currentEnd,
-      previousStart,
-      previousEnd,
-    });
-
-    response._source = "live";
-  }
-
-  await dashboardCache.set(cacheKey, JSON.stringify(response), 300);
-
-  return response;
-};
-
-function mergeSnapshotWithDelta(snapshotStats, delta) {
-  const totalLeads = snapshotStats.totalLeads + delta.totalLeads;
-  const convertedLeads = snapshotStats.convertedLeads + delta.convertedLeads;
-
-  const conversionRate =
-    totalLeads > 0
-      ? parseFloat(((convertedLeads / totalLeads) * 100).toFixed(1))
-      : 0;
-
-  return {
-    totalLeads,
-    convertedLeads,
-    conversionRate,
-    activeCampaigns: snapshotStats.activeCampaigns + delta.activeCampaigns,
-    revenue: snapshotStats.revenue + delta.revenue,
-    totalDeals: snapshotStats.totalDeals + delta.totalDeals,
-    openDeals: snapshotStats.openDeals + delta.openDeals,
-    totalOrganizations:
-      snapshotStats.totalOrganizations + delta.totalOrganizations,
+  const historicalLeadFilter = {
+    ...leadFilter,
+    createdAt: { $lt: todayStart },
   };
-}
-
-async function fullComputation(
-  leadFilter,
-  dealFilter,
-  { currentStart, currentEnd, previousStart, previousEnd },
-) {
-  const leadMatchFilter = { ...leadFilter };
-  const dealMatchFilter = { ...dealFilter };
+  const historicalDealFilter = { ...dealFilter };
 
   const [
     leadSummary,
@@ -119,7 +34,7 @@ async function fullComputation(
   ] = await Promise.all([
     leadModel.aggregate(
       [
-        { $match: leadMatchFilter },
+        { $match: historicalLeadFilter },
         {
           $facet: {
             total: [{ $count: "count" }],
@@ -141,7 +56,7 @@ async function fullComputation(
 
     dealModel.aggregate(
       [
-        { $match: dealMatchFilter },
+        { $match: historicalDealFilter },
         {
           $facet: {
             wonRevenue: [
@@ -181,7 +96,7 @@ async function fullComputation(
 
     leadModel.aggregate(
       [
-        { $match: leadMatchFilter },
+        { $match: historicalLeadFilter },
         { $group: { _id: "$source" } },
         { $count: "count" },
       ],
@@ -192,7 +107,7 @@ async function fullComputation(
       [
         {
           $match: {
-            ...leadMatchFilter,
+            ...historicalLeadFilter,
             createdAt: { $gte: previousStart, $lt: previousEnd },
           },
         },
@@ -213,7 +128,7 @@ async function fullComputation(
       [
         {
           $match: {
-            ...dealMatchFilter,
+            ...historicalDealFilter,
             status: "Won",
             updatedAt: { $gte: previousStart, $lt: previousEnd },
           },
@@ -227,7 +142,7 @@ async function fullComputation(
       [
         {
           $match: {
-            ...leadMatchFilter,
+            ...historicalLeadFilter,
             createdAt: { $gte: previousStart, $lt: previousEnd },
           },
         },
@@ -238,7 +153,7 @@ async function fullComputation(
     ),
 
     organizationModel.aggregate(
-      [{ $match: dealMatchFilter }, { $count: "count" }],
+      [{ $match: historicalDealFilter }, { $count: "count" }],
       { readPreference: "secondaryPreferred" },
     ),
   ]);
@@ -297,21 +212,137 @@ async function fullComputation(
   };
 }
 
-// Lead analytics
-export {
-  getLeadTrends,
-  getLeadStatusBreakdown,
-  getLeadScoreDistribution,
-} from "./analytics/leadAnalyticsService.js";
+export async function saveAnalyticsSnapshot(
+  tenantId,
+  scopeKey,
+  leadFilter,
+  dealFilter,
+) {
+  logger.info(
+    `[AnalyticsSnapshot] Computing snapshot — tenant: ${tenantId}, scope: ${scopeKey}`,
+  );
 
-// Deal analytics
-export {
-  getDealPipeline,
-  getDealTrends,
-} from "./analytics/dealAnalyticsService.js";
+  const computed = await computeSnapshotForScope(leadFilter, dealFilter);
 
-// Organization analytics
-export {
-  getOrganizationStats,
-  getTopOrganizations,
-} from "./analytics/organizationAnalyticsService.js";
+  await AnalyticsSnapshot.findOneAndUpdate(
+    { tenantId, scopeKey, periodKey: PERIOD_KEY },
+    {
+      tenantId,
+      scopeKey,
+      periodKey: PERIOD_KEY,
+      stats: computed.stats,
+      changes: computed.changes,
+      period: computed.period,
+      computedAt: new Date(),
+      expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    },
+    { upsert: true, new: true },
+  );
+
+  logger.info(
+    `[AnalyticsSnapshot] Snapshot saved — tenant: ${tenantId}, scope: ${scopeKey}`,
+  );
+}
+
+export async function computeTodayDelta(leadFilter, dealFilter) {
+  const todayStart = startOfDay(new Date());
+
+  const todayLeadFilter = { ...leadFilter, createdAt: { $gte: todayStart } };
+  const todayDealFilter = { ...dealFilter };
+
+  const [leadToday, dealToday, sourcesToday, orgsToday] = await Promise.all([
+    leadModel.aggregate(
+      [
+        { $match: todayLeadFilter },
+        {
+          $facet: {
+            total: [{ $count: "count" }],
+            converted: [
+              { $match: { status: "Converted" } },
+              { $count: "count" },
+            ],
+          },
+        },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
+
+    dealModel.aggregate(
+      [
+        { $match: todayDealFilter },
+        {
+          $facet: {
+            wonRevenue: [
+              { $match: { status: "Won", updatedAt: { $gte: todayStart } } },
+              { $group: { _id: null, total: { $sum: "$value" } } },
+            ],
+            totalDeals: [{ $count: "count" }],
+            openDeals: [
+              {
+                $match: {
+                  status: {
+                    $in: [
+                      "Prospecting",
+                      "Qualification",
+                      "Negotiation",
+                      "Ready to close",
+                    ],
+                  },
+                  createdAt: { $gte: todayStart },
+                },
+              },
+              { $count: "count" },
+            ],
+          },
+        },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
+
+    leadModel.aggregate(
+      [
+        { $match: todayLeadFilter },
+        { $group: { _id: "$source" } },
+        { $count: "count" },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
+
+    organizationModel.aggregate(
+      [
+        { $match: { ...dealFilter, createdAt: { $gte: todayStart } } },
+        { $count: "count" },
+      ],
+      { readPreference: "secondaryPreferred" },
+    ),
+  ]);
+
+  return {
+    totalLeads: leadToday[0]?.total[0]?.count ?? 0,
+    convertedLeads: leadToday[0]?.converted[0]?.count ?? 0,
+    revenue: dealToday[0]?.wonRevenue[0]?.total ?? 0,
+    totalDeals: dealToday[0]?.totalDeals[0]?.count ?? 0,
+    openDeals: dealToday[0]?.openDeals[0]?.count ?? 0,
+    activeCampaigns: sourcesToday[0]?.count ?? 0,
+    totalOrganizations: orgsToday[0]?.count ?? 0,
+  };
+}
+
+export async function getAllTenantsWithUsers() {
+  const tenants = await tenantModel.find({ isActive: true }, { _id: 1 }).lean();
+
+  const result = await Promise.all(
+    tenants.map(async (tenant) => {
+      const users = await userModel
+        .find({ tenantId: tenant._id, isActive: true }, { _id: 1 })
+        .lean();
+
+      return {
+        tenantId: tenant._id,
+        userIds: users.map((u) => u._id),
+      };
+    }),
+  );
+
+  return result;
+}
