@@ -1,3 +1,5 @@
+import leadModel from "../../models/leadModel.js";
+
 export const getLeadTrends = async (filter, days = 30) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);

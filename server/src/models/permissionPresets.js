@@ -63,6 +63,9 @@ export const PERMISSION_MAP = {
   // Task Management
   TASKS: ["tasks:read", "tasks:write", "tasks:delete", "tasks:view_all"],
 
+  // Pipelines
+  PIPELINES: ["pipelines:read", "pipelines:write", "pipelines:delete"],
+
   // System-wide access (super_admin / global tenant only)
   SYSTEM: ["system:manage"],
 };
@@ -92,6 +95,9 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "bulk:export",
     "settings:read",
     "workflows:view_all",
+    "pipelines:read",
+    "pipelines:write",
+    "pipelines:delete",
   ],
 
   user: [
@@ -109,6 +115,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "analytics:read",
     "tasks:read",
     "tasks:write",
+    "pipelines:read",
+    "pipelines:write",
   ],
 };
 

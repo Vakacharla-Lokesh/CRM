@@ -2,10 +2,15 @@ import asyncCatch from "../../utils/asyncCatch.js";
 import * as analyticsService from "../../services/analyticsService.js";
 
 export const getLeadTrends = asyncCatch(async (req, res) => {
+  const permissions = req.auth?.permissions ?? [];
+  const permissionsArray = Array.isArray(permissions)
+    ? permissions
+    : Object.keys(permissions).filter((k) => permissions[k] === true);
+
   const canViewAll =
     req.auth?.role === "super_admin" ||
     req.auth?.role === "admin" ||
-    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+    permissionsArray.includes("analytics:view_all");
   const filter = req.tenantFilter || {};
   if (!canViewAll) {
     filter.assignedTo = req.auth.userId;
@@ -21,7 +26,8 @@ export const getLeadStatusBreakdown = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
     req.auth?.role === "admin" ||
-    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("leads:view_all"));
   const filter = req.tenantFilter || {};
   if (!canViewAll) {
     filter.assignedTo = req.auth.userId;
@@ -40,7 +46,8 @@ export const getLeadScoreDistribution = asyncCatch(async (req, res) => {
   const canViewAll =
     req.auth?.role === "super_admin" ||
     req.auth?.role === "admin" ||
-    (Array.isArray(req.auth?.permissions) && req.auth.permissions.includes("leads:view_all"));
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("leads:view_all"));
   const filter = req.tenantFilter || {};
   if (!canViewAll) {
     filter.assignedTo = req.auth.userId;

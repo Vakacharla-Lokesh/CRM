@@ -1,8 +1,3 @@
-/**
- * Permission constants — mirrors server/src/models/permissionPresets.js
- * Single source of truth for the PermissionSelector UI component.
- */
-
 export const PERMISSION_MAP: Record<string, string[]> = {
   Leads: [
     "leads:read",
@@ -42,11 +37,11 @@ export const PERMISSION_MAP: Record<string, string[]> = {
   Bulk: ["bulk:import", "bulk:export", "bulk:delete"],
   Settings: ["settings:read", "settings:write"],
   Tasks: ["tasks:read", "tasks:write", "tasks:delete", "tasks:view_all"],
+  Pipelines: ["pipelines:read", "pipelines:write", "pipelines:delete"],
 };
 
 export const ALL_PERMISSIONS: string[] = Object.values(PERMISSION_MAP).flat();
 
-/** Human-readable label for a permission key, e.g. "leads:view_all" → "View All" */
 export const permissionLabel = (permission: string): string => {
   const action = permission.split(":")[1] ?? permission;
   return action.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());

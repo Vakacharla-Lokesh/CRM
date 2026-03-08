@@ -37,6 +37,9 @@ import { useOfflineManager } from "@/hooks/useOfflineManager";
 import { useNotifications } from "@/hooks";
 import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
 
+import { usePipelineData } from "@/hooks";
+import type { Pipeline } from "@/types/pipeline";
+
 const LeadsPage = () => {
   const {
     filteredLeads,
@@ -93,6 +96,39 @@ const LeadsPage = () => {
     queryFn: () => analyticsAPI.statusBreakdown(),
     staleTime: 1000 * 60 * 5,
   });
+
+  const {
+    pipelines,
+    defaultPipeline,
+    isLoading: pipelinesLoading,
+  } = usePipelineData();
+
+  const [pipelineInitialized, setPipelineInitialized] = useState(false);
+  const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
+
+  useEffect(() => {
+    if (!pipelineInitialized && defaultPipeline) {
+      setPipelineInitialized(true);
+      setSelectedPipelineId(defaultPipeline._id);
+      updateFilter("pipelineId", defaultPipeline._id);
+    }
+  }, [defaultPipeline, pipelineInitialized, updateFilter]);
+
+  const selectedPipeline: Pipeline | undefined = pipelines.find(
+    (p) => p._id === selectedPipelineId,
+  );
+
+  const pipelineStatuses = selectedPipeline?.statuses ?? [];
+
+  const handleResetFilters = () => {
+    resetFilters();
+    if (defaultPipeline) {
+      setSelectedPipelineId(defaultPipeline._id);
+      updateFilter("pipelineId", defaultPipeline._id);
+    } else {
+      setSelectedPipelineId("");
+    }
+  };
 
   // Fetch leads on mount
   useEffect(() => {
@@ -284,80 +320,116 @@ const LeadsPage = () => {
         isLoading={leadStatsQuery.isLoading}
       />
 
-      {/* Filters */}
       <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="space-y-2 col-span-2">
-            <div className="relative">
-              {searchLoading ? (
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              ) : (
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              )}
-              <Input
-                placeholder="Search leads..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search — takes remaining space */}
+          <div className="relative flex-1 min-w-[200px]">
+            {searchLoading ? (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            )}
+            <Input
+              placeholder="Search leads..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-10"
+            />
           </div>
 
-          <div className="flex sm:flex-col lg:flex-row gap-x-2 mx-2">
-            <div className="space-y-2">
-              <Select
-                value={filters.status || "all"}
-                onValueChange={(value) =>
-                  updateFilter("status", value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All statuses" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All statuses</SelectItem>
-                  <SelectItem value="New">New</SelectItem>
-                  <SelectItem value="Follow-Up">Follow-Up</SelectItem>
-                  <SelectItem value="Converted">Converted</SelectItem>
-                  <SelectItem value="Dead">Dead</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Pipeline */}
+          <Select
+            value={selectedPipelineId || "all"}
+            onValueChange={(value) => {
+              const id = value === "all" ? "" : value;
+              setSelectedPipelineId(id);
+              updateFilter("pipelineId", id);
+              updateFilter("status", "");
+            }}
+            disabled={pipelinesLoading}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All pipelines" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All pipelines</SelectItem>
+              {pipelines.map((p) => (
+                <SelectItem
+                  key={p._id}
+                  value={p._id}
+                >
+                  {p.name}
+                  {p.isDefault && (
+                    <span className="ml-1 text-xs text-gray-400">
+                      (default)
+                    </span>
+                  )}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-            <div className="space-y-2">
-              <Select
-                value={filters.source || "all"}
-                onValueChange={(value) =>
-                  updateFilter("source", value === "all" ? "" : value)
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="All sources" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All sources</SelectItem>
-                  {LEAD_SOURCES.map((source) => (
-                    <SelectItem
-                      key={source.value}
-                      value={source.value}
-                    >
-                      {source.value}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+          {/* Status */}
+          <Select
+            value={filters.status || "all"}
+            onValueChange={(value) =>
+              updateFilter("status", value === "all" ? "" : value)
+            }
+            disabled={pipelineStatuses.length === 0}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All statuses</SelectItem>
+              {pipelineStatuses.map((stage) => (
+                <SelectItem
+                  key={stage.label}
+                  value={stage.label}
+                >
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="w-2.5 h-2.5 rounded-full inline-block shrink-0"
+                      style={{ backgroundColor: stage.color }}
+                    />
+                    {stage.label}
+                  </span>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <div className="space-y-2 flex items-end mx-8">
-            <Button
-              variant="outline"
-              onClick={resetFilters}
-              className="w-full"
-            >
-              Reset Filters
-            </Button>
-          </div>
+          {/* Source */}
+          <Select
+            value={filters.source || "all"}
+            onValueChange={(value) =>
+              updateFilter("source", value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All sources" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All sources</SelectItem>
+              {LEAD_SOURCES.map((source) => (
+                <SelectItem
+                  key={source.value}
+                  value={source.value}
+                >
+                  {source.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {/* Reset */}
+          <Button
+            variant="outline"
+            onClick={handleResetFilters}
+            className="shrink-0"
+          >
+            Reset Filters
+          </Button>
         </div>
       </div>
 

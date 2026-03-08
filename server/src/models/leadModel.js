@@ -42,10 +42,13 @@ const leadsSchema = new Schema(
     score: { type: Number, min: 0, max: 100, default: 0 },
     status: {
       type: String,
-      enum: ["New", "Converted", "Dead", "Follow-Up"],
       required: true,
     },
-    // Used for offline-sync deduplication — enforced unique when present
+    pipelineId: {
+      type: Schema.Types.ObjectId,
+      ref: "Pipelines",
+      default: null,
+    },
     idempotencyKey: { type: String, default: null },
   },
   { timestamps: true },
@@ -60,6 +63,7 @@ leadsSchema.index(
   { idempotencyKey: 1 },
   { unique: true, sparse: true, name: "idempotency_key_unique" },
 );
+leadsSchema.index({ pipelineId: 1, status: 1, createdAt: -1 });
 
 // search index
 leadsSchema.index({

@@ -1,3 +1,5 @@
+import dealModel from "../../models/dealModel.js";
+
 export const getDealPipeline = async (filter) => {
   const [pipeline, trends] = await Promise.all([
     dealModel.aggregate(

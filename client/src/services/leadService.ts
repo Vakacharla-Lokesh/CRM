@@ -29,6 +29,7 @@ const leadService = {
     limit?: number;
     status?: string;
     source?: string;
+    pipelineId?: string;
   }): Promise<CursorLeadPage> => {
     const queryParams: Record<string, unknown> = {
       limit: params?.limit ?? 20,
@@ -36,6 +37,7 @@ const leadService = {
     if (params?.cursor) queryParams.cursor = params.cursor;
     if (params?.status) queryParams.status = params.status;
     if (params?.source) queryParams.source = params.source;
+    if (params?.pipelineId) queryParams.pipelineId = params.pipelineId;
 
     const response = await apiClient.get<{
       count: number;
@@ -64,7 +66,11 @@ const leadService = {
     return response.lead;
   },
 
-  updateLead: async (id: string, updates: Partial<Lead>, lastKnownUpdatedAt?: Date): Promise<Lead> => {
+  updateLead: async (
+    id: string,
+    updates: Partial<Lead>,
+    lastKnownUpdatedAt?: Date,
+  ): Promise<Lead> => {
     const response = await apiClient.put<{ message: string; lead: Lead }>(
       `/leads/${id}`,
       {

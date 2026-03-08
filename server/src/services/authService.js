@@ -6,6 +6,7 @@ import RefreshToken from "../models/refreshTokenModel.js";
 import AppError from "../utils/appError.js";
 import { otpCache } from "../config/cache.js";
 import emailController from "../controllers/emailController.js";
+import { seedDefaultPipeline } from "./pipelineService.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
@@ -97,6 +98,11 @@ export const registerUser = async ({ password, name, ...userData }) => {
   }
 
   const user = await userModel.create({ ...userData, tenantId, password });
+
+  await seedDefaultPipeline(user._id, tenantId).catch((err) => {
+    console.error("Failed to seed default pipeline for user:", err);
+  });
+
   return user;
 };
 
