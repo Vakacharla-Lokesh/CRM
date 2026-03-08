@@ -175,6 +175,12 @@ export async function ensureAwsInitialized() {
         lambdaArn,
       );
 
+      await eventBridgeAdapter.ensureScheduleRule(
+        "crm-analytics-snapshot-schedule",
+        "cron(0 2 * * ? *)",
+        lambdaArn,
+      );
+
       console.log(
         "[AWS] ✓ EventBridge dispatchers configured (replaces localRunner polling)",
       );

@@ -3,6 +3,7 @@ export const JOB_TYPES = {
   EXPORT_DATA: "export_data",
   LEAD_REMINDER: "lead_reminder",
   SCHEDULED_SYNC: "scheduled_sync",
+  ANALYTICS_SNAPSHOT: "analytics_snapshot",
 };
 
 export const JOB_TYPE_QUEUE_MAP = {
@@ -10,6 +11,7 @@ export const JOB_TYPE_QUEUE_MAP = {
   [JOB_TYPES.EXPORT_DATA]: "exportData",
   [JOB_TYPES.LEAD_REMINDER]: "offlineWrites",
   [JOB_TYPES.SCHEDULED_SYNC]: "offlineWrites",
+  [JOB_TYPES.ANALYTICS_SNAPSHOT]: "offlineWrites",
 };
 
 const VALID_JOB_TYPES = new Set(Object.values(JOB_TYPES));

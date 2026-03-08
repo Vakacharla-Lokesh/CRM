@@ -55,7 +55,11 @@ class TenantService {
     return response.tenant;
   }
 
-  async updateTenant(id: string, data: UpdateTenantDto, lastKnownUpdatedAt?: Date): Promise<Tenant> {
+  async updateTenant(
+    id: string,
+    data: UpdateTenantDto,
+    lastKnownUpdatedAt?: Date,
+  ): Promise<Tenant> {
     const response = await apiClient.put<{ tenant: Tenant; message: string }>(
       `/tenants/${id}`,
       {
@@ -64,6 +68,14 @@ class TenantService {
       },
     );
     return response.tenant;
+  }
+
+  async getPublicTenants(): Promise<{ _id: string; name: string }[]> {
+    const response = await fetch(
+      `${import.meta.env.VITE_API_URL || "http://localhost:4000/api"}/tenants/public`,
+    );
+    const data = await response.json();
+    return data.tenants ?? [];
   }
 
   async deleteTenant(id: string): Promise<void> {

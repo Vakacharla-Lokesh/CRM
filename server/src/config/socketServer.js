@@ -1,5 +1,7 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import SessionEvent from "../models/sessionEventModel.js";
+import { evaluateSession } from "../services/sessionTrackingService.js";
 
 let io;
 
@@ -160,6 +162,53 @@ export const initializeSocketServer = (httpServer) => {
     // Handle errors
     socket.on("error", (error) => {
       console.error(`[Socket] Error from user ${socket.userId}:`, error);
+    });
+  });
+
+  const trackingNS = io.of("/tracking");
+
+  trackingNS.on("connection", (socket) => {
+    const { sessionId, tenantId, visitorName, visitorEmail } =
+      socket.handshake.query;
+
+    if (!sessionId || !tenantId) {
+      console.warn(
+        "[Tracking] Connection rejected: missing sessionId or tenantId",
+      );
+      socket.disconnect(true);
+      return;
+    }
+
+    socket.join(`session:${sessionId}`);
+    console.log(`[Tracking] Visitor connected — session: ${sessionId}`);
+
+    socket.on("session:event", async (payload) => {
+      try {
+        const { type, data, timestamp } = payload;
+        await SessionEvent.create({
+          sessionId,
+          tenantId,
+          visitorName: visitorName || null,
+          visitorEmail: visitorEmail || null,
+          type,
+          data: data || {},
+          timestamp: timestamp ? new Date(timestamp) : new Date(),
+        });
+      } catch (err) {
+        console.error("[Tracking] Failed to write session event:", err.message);
+      }
+    });
+
+    socket.on("session:end", async () => {
+      try {
+        await evaluateSession(sessionId, tenantId, visitorName, visitorEmail);
+      } catch (err) {
+        console.error("[Tracking] session:end evaluation error:", err.message);
+      }
+    });
+
+    socket.on("disconnect", () => {
+      console.log(`[Tracking] Visitor disconnected — session: ${sessionId}`);
     });
   });
 

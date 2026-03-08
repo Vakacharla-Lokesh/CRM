@@ -51,7 +51,11 @@ export const createTenant = asyncCatch(async (req, res) => {
 // Update tenant
 export const updateTenant = asyncCatch(async (req, res) => {
   const { lastKnownUpdatedAt, ...updates } = req.body;
-  const tenant = await tenantService.updateTenant(req.params.id, updates, lastKnownUpdatedAt);
+  const tenant = await tenantService.updateTenant(
+    req.params.id,
+    updates,
+    lastKnownUpdatedAt,
+  );
 
   res.json({
     message: "Tenant updated successfully",
@@ -81,4 +85,9 @@ export const searchTenants = asyncCatch(async (req, res) => {
     count: tenants.length,
     tenants,
   });
+});
+
+export const getPublicTenants = asyncCatch(async (req, res) => {
+  const tenants = await tenantService.getPublicTenants();
+  res.json({ tenants });
 });
