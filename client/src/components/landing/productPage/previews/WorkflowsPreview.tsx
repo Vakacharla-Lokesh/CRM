@@ -1,4 +1,4 @@
-import { workflowSteps } from "../constants/preview";
+import { workflowSteps } from "@/types/constants/product";
 
 export default function WorkflowsPreview() {
   return (
@@ -50,9 +50,7 @@ export default function WorkflowsPreview() {
               >
                 {s.label}
               </div>
-              <div style={{ fontSize: "10px", color: "#64748b" }}>
-                {s.desc}
-              </div>
+              <div style={{ fontSize: "10px", color: "#64748b" }}>{s.desc}</div>
             </div>
             <div
               style={{
@@ -66,7 +64,13 @@ export default function WorkflowsPreview() {
             </div>
           </div>
           {i < workflowSteps.length - 1 && (
-            <div style={{ display: "flex", justifyContent: "center", padding: "2px 0" }}>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: "2px 0",
+              }}
+            >
               <div
                 style={{
                   width: "1px",

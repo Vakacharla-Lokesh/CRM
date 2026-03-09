@@ -3,6 +3,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
+const EMPTY_ERRORS: Record<string, string> = {};
+
 interface WorkflowBasicInfoProps {
   name: string;
   onNameChange: (value: string) => void;
@@ -20,7 +22,7 @@ export const WorkflowBasicInfo: React.FC<WorkflowBasicInfoProps> = ({
   onDescriptionChange,
   isActive,
   onActiveChange,
-  errors = {},
+  errors = EMPTY_ERRORS,
 }) => {
   return (
     <div className="space-y-4">

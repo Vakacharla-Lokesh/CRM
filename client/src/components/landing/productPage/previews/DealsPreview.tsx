@@ -1,10 +1,19 @@
-import { dealsMockData } from "../constants/preview";
+import { dealsMockData } from "@/types/constants/product";
 
 export default function DealsPreview() {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(4, 1fr)",
+        gap: "8px",
+      }}
+    >
       {dealsMockData.map((col) => (
-        <div key={col.title} style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        <div
+          key={col.title}
+          style={{ display: "flex", flexDirection: "column", gap: "6px" }}
+        >
           <div
             style={{
               display: "flex",
@@ -21,7 +30,9 @@ export default function DealsPreview() {
                 background: col.color,
               }}
             />
-            <span style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8" }}>
+            <span
+              style={{ fontSize: "10px", fontWeight: 700, color: "#94a3b8" }}
+            >
               {col.title}
             </span>
           </div>

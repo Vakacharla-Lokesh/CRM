@@ -18,6 +18,7 @@ import * as workflowWorker from "./workflowLambda.js";
 import * as exportWorker from "./exportLambda.js";
 import * as leadReminderWorker from "./leadReminderLambda.js";
 import * as analyticsSnapshotWorker from "./analyticsSnapshotLambda.js";
+import * as campaignEmailWorker from "./campaignEmailLambda.js";
 
 import { jobService } from "../../services/jobService.js";
 
@@ -25,11 +26,11 @@ let _initialized = false;
 
 async function initialize() {
   if (_initialized) {
-    console.log("[JobProcessor] ℹ Already initialized, skipping...");
+    console.log("[JobProcessor] Already initialized, skipping...");
     return;
   }
 
-  console.log("[JobProcessor] 🔧 Initializing...");
+  console.log("[JobProcessor] Initializing...");
 
   // Connect to MongoDB
   const uri = process.env.DB_URI || process.env.MONGODB_URI;
@@ -39,28 +40,28 @@ async function initialize() {
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri);
     logger.info("[Lambda] Connected to MongoDB");
-    console.log("[JobProcessor] ✓ MongoDB connected");
+    console.log("[JobProcessor] MongoDB connected");
   }
 
   // Initialize AWS resources
   await ensureAwsInitialized();
-  console.log("[JobProcessor] ✓ AWS resources initialized");
+  console.log("[JobProcessor] AWS resources initialized");
 
   queueService.bootstrap();
-  console.log("[JobProcessor] ✓ Queue service bootstrapped");
+  console.log("[JobProcessor] Queue service bootstrapped");
 
   // Register workers
   try {
-    console.log("[JobProcessor] 📝 Registering workers...");
+    console.log("[JobProcessor] Registering workers...");
     jobRegistry.register(workflowWorker.jobType, workflowWorker.handler);
     console.log(
-      "[JobProcessor] ✓ Workflow worker registered:",
+      "[JobProcessor] Workflow worker registered:",
       workflowWorker.jobType,
     );
 
     jobRegistry.register(exportWorker.jobType, exportWorker.handler);
     console.log(
-      "[JobProcessor] ✓ Export worker registered:",
+      "[JobProcessor] Export worker registered:",
       exportWorker.jobType,
     );
 
@@ -69,7 +70,7 @@ async function initialize() {
       leadReminderWorker.handler,
     );
     console.log(
-      "[JobProcessor] ✓ Lead reminder worker registered:",
+      "[JobProcessor] Lead reminder worker registered:",
       leadReminderWorker.jobType,
     );
 
@@ -78,11 +79,24 @@ async function initialize() {
       analyticsSnapshotWorker.handler,
     );
     console.log(
-      "[JobProcessor] ✓ Analytics snapshot worker registered:",
+      "[JobProcessor] Analytics snapshot worker registered:",
       analyticsSnapshotWorker.jobType,
     );
+
+    jobRegistry.register(
+      campaignEmailWorker.jobType,
+      campaignEmailWorker.handler,
+    );
+    console.log(
+      "[JobProcessor] Campaign email worker registered:",
+      campaignEmailWorker.jobType,
+    );
+    console.log(
+      "[JobProcessor] Campaign email worker registered:",
+      campaignEmailWorker.jobType,
+    );
   } catch (regError) {
-    console.error("[JobProcessor] ❌ Worker registration failed:", {
+    console.error("[JobProcessor] Worker registration failed:", {
       error: regError.message,
       stack: regError.stack,
     });
@@ -92,7 +106,7 @@ async function initialize() {
   logger.info(
     `[Lambda] Initialized with ${jobRegistry.getAllTypes().length} worker(s)`,
   );
-  console.log("[JobProcessor] ✅ Initialization complete");
+  console.log("[JobProcessor] Initialization complete");
 
   _initialized = true;
 }
@@ -102,7 +116,7 @@ export const handler = async (event, _context) => {
 
   const records = event.Records || [];
 
-  console.log("[JobProcessor] 📨 Lambda handler called with", {
+  console.log("[JobProcessor] Lambda handler called with", {
     recordCount: records.length,
     timestamp: new Date().toISOString(),
   });
@@ -139,7 +153,7 @@ export const handler = async (event, _context) => {
         traceId: body.payload?._meta?.traceId || null,
       };
 
-      console.log("[JobProcessor] 🔄 Processing record", {
+      console.log("[JobProcessor] Processing record", {
         jobType,
         messageId,
         tenantId: context.tenantId,
@@ -163,17 +177,14 @@ export const handler = async (event, _context) => {
 
       const result = await new Promise((resolve, reject) => {
         requestStore.run(jobStoreContext, () => {
-          console.log(
-            "[JobProcessor] 🚀 Executing worker handler for:",
-            jobType,
-          );
+          console.log("[JobProcessor] Executing worker handler for:", jobType);
           workerHandler(body.payload || body, context)
             .then((res) => {
-              console.log("[JobProcessor] ✓ Worker handler resolved");
+              console.log("[JobProcessor] Worker handler resolved");
               resolve(res);
             })
             .catch((err) => {
-              console.error("[JobProcessor] ❌ Worker handler rejected:", {
+              console.error("[JobProcessor] Worker handler rejected:", {
                 jobType,
                 error: err.message,
                 stack: err.stack,
@@ -188,7 +199,7 @@ export const handler = async (event, _context) => {
 
       if (result.success) {
         logger.info(`[Lambda] Job completed`, { jobType, messageId });
-        console.log("[JobProcessor] ✅ Job succeeded", { jobType, messageId });
+        console.log("[JobProcessor] Job succeeded", { jobType, messageId });
 
         if (jobId && jobTenantId) {
           await jobService
@@ -206,7 +217,7 @@ export const handler = async (event, _context) => {
         }
       } else if (result.shouldRetry) {
         logger.warn(`[Lambda] Job needs retry`, { jobType, messageId });
-        console.log("[JobProcessor] ⚠️ Job needs retry", {
+        console.log("[JobProcessor] Job needs retry", {
           jobType,
           messageId,
         });
@@ -228,7 +239,7 @@ export const handler = async (event, _context) => {
         batchItemFailures.push({ itemIdentifier: messageId });
       } else {
         logger.error(`[Lambda] Job failed (no retry)`, { jobType, messageId });
-        console.log("[JobProcessor] ❌ Job failed (no retry)", {
+        console.log("[JobProcessor] Job failed (no retry)", {
           jobType,
           messageId,
         });
@@ -253,7 +264,7 @@ export const handler = async (event, _context) => {
         error: error.message,
         stack: error.stack,
       });
-      console.error("[JobProcessor] ❌ Error processing message", {
+      console.error("[JobProcessor] Error processing message", {
         messageId,
         error: error.message,
         errorStack: error.stack,

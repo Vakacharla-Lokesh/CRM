@@ -1,4 +1,4 @@
-import { leadsMockData } from "../constants/preview";
+import { leadsMockData } from "@/types/constants/product";
 
 const statusColor: Record<string, string> = {
   New: "#22c55e",
@@ -58,8 +58,7 @@ export default function LeadsPreview() {
                   width: "30px",
                   height: "30px",
                   borderRadius: "50%",
-                  background:
-                    "linear-gradient(135deg, #6366f1, #8b5cf6)",
+                  background: "linear-gradient(135deg, #6366f1, #8b5cf6)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -75,7 +74,13 @@ export default function LeadsPreview() {
                   .join("")}
               </div>
               <div>
-                <div style={{ fontSize: "12px", fontWeight: 600, color: "#e2e8f0" }}>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 600,
+                    color: "#e2e8f0",
+                  }}
+                >
                   {l.name}
                 </div>
                 <div style={{ fontSize: "10px", color: "#64748b" }}>

@@ -11,6 +11,7 @@ import WorkflowsPage from "../pages/workflowsPage";
 import AnalyticsPage from "../pages/analyticsPage";
 import RolesPage from "../pages/rolesPage";
 import TasksPage from "../pages/tasksPage";
+import CampaignPage from "../pages/campaignPage";
 
 // lazy loading components
 import { lazy } from "react";
@@ -101,5 +102,11 @@ export const routeConfig: RouteConfig[] = [
     path: "/tasks",
     element: <TasksPage />,
     requiredPermissions: ["tasks:read"],
+  },
+  {
+    path: "/campaigns",
+    element: <CampaignPage />,
+    requiredPermissions: ["campaigns:read"],
+    unauthorizedFallback: "/dashboard",
   },
 ];

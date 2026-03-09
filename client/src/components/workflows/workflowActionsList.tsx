@@ -21,6 +21,8 @@ import type {
   WorkflowTriggerEntity,
 } from "@/types/workflows";
 
+const EMPTY_ERRORS: Record<string, string> = {};
+
 interface WorkflowActionsListProps {
   actions: WorkflowAction[];
   onAddAction: () => void;
@@ -36,7 +38,7 @@ export const WorkflowActionsList: React.FC<WorkflowActionsListProps> = ({
   onRemoveAction,
   onUpdateAction,
   triggerEntity,
-  errors = {},
+  errors = EMPTY_ERRORS,
 }) => {
   const renderActionFields = (action: WorkflowAction, index: number) => {
     switch (action.type) {

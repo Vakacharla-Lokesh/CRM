@@ -1,4 +1,4 @@
-import { integrations } from "../constants/integrations";
+import { integrations } from "@/types/constants/product";
 
 export default function IntegrationsSection() {
   return (

@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Check } from "lucide-react";
-import { plans } from "../constants/plans";
+import { plans } from "@/types/constants/product";
 
 export default function PricingSection() {
   const navigate = useNavigate();
@@ -32,7 +32,7 @@ export default function PricingSection() {
           </p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 items-start">
-          {plans.map((plan) => (
+          {plans.map((plan: (typeof plans)[0]) => (
             <Card
               key={plan.name}
               className="border relative flex flex-col"
@@ -109,7 +109,7 @@ export default function PricingSection() {
               </CardHeader>
               <CardContent className="flex flex-col gap-4 flex-1">
                 <ul className="flex flex-col gap-2.5">
-                  {plan.features.map((f) => (
+                  {plan.features.map((f: string) => (
                     <li key={f} className="flex items-center gap-2.5 text-sm">
                       <Check
                         size={14}

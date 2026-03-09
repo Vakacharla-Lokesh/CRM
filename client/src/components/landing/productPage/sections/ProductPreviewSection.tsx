@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
-import { tabs, previewTabContent } from "../constants/preview";
-import type { TabId } from "../constants/preview";
+import { tabs, previewTabContent } from "@/types/constants/product";
+import type { TabId } from "@/types/constants/product/preview";
 import LeadsPreview from "../previews/LeadsPreview";
 import DealsPreview from "../previews/DealsPreview";
 import AnalyticsPreview from "../previews/AnalyticsPreview";
@@ -100,12 +100,18 @@ export default function ProductPreviewSection() {
             </p>
             <ul className="flex flex-col gap-3 mb-8">
               {tab.bullets.map((b) => (
-                <li key={b} className="flex items-center gap-3 text-sm">
+                <li
+                  key={b}
+                  className="flex items-center gap-3 text-sm"
+                >
                   <div
-                    className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
+                    className="w-5 h-5 rounded-full flex items-center justify-center shrink-0"
                     style={{ backgroundColor: "var(--primary)" }}
                   >
-                    <Check size={11} color="var(--primary-foreground)" />
+                    <Check
+                      size={11}
+                      color="var(--primary-foreground)"
+                    />
                   </div>
                   <span style={{ color: "var(--foreground)" }}>{b}</span>
                 </li>
@@ -172,7 +178,13 @@ export default function ProductPreviewSection() {
                   background: "#22c55e",
                 }}
               />
-              <span style={{ marginLeft: "8px", fontSize: "11px", color: "#475569" }}>
+              <span
+                style={{
+                  marginLeft: "8px",
+                  fontSize: "11px",
+                  color: "#475569",
+                }}
+              >
                 Campaign Flux — {tabs.find((t) => t.id === activeTab)?.label}
               </span>
             </div>

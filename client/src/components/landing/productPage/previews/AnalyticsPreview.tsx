@@ -1,4 +1,8 @@
-import { analyticsKpis, analyticsBars, analyticsDays } from "../constants/preview";
+import {
+  analyticsKpis,
+  analyticsBars,
+  analyticsDays,
+} from "@/types/constants/product/";
 
 export default function AnalyticsPreview() {
   const maxValue = Math.max(...analyticsBars);
@@ -66,7 +70,9 @@ export default function AnalyticsPreview() {
       </div>
 
       {/* Bar Chart */}
-      <div style={{ background: "#1e293b", borderRadius: "8px", padding: "16px" }}>
+      <div
+        style={{ background: "#1e293b", borderRadius: "8px", padding: "16px" }}
+      >
         <div
           style={{
             display: "flex",

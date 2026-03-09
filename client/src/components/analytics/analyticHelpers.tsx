@@ -394,11 +394,7 @@ export function IconLayers() {
       />
     </svg>
   );
-}
-
-// ─── UI primitives ────────────────────────────────────────────────────────────
-
-export function SectionLabel({ label }: { label: string }) {
+}export function SectionLabel({ label }: { label: string }) {
   return (
     <p
       className="text-[11px] font-bold tracking-widest uppercase px-1 pt-4 pb-2"
@@ -492,8 +488,6 @@ export function ReadonlyValue({ value }: { value: string }) {
     </span>
   );
 }
-
-// ─── Chart type icon picker ───────────────────────────────────────────────────
 
 export function ChartTypePicker({
   value,

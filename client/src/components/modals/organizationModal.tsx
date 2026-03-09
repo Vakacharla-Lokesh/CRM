@@ -15,6 +15,7 @@ import type {
 import { FormField, FormSelect } from "./form-fields";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { StepIndicator } from "./StepIndicator";
 
 import type {
   OrganizationFormData,
@@ -251,25 +252,6 @@ function OrganizationModal({
     }
   };
 
-  const renderStepIndicator = () => {
-    return (
-      <div className="flex items-center justify-center gap-2 mb-6">
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <div
-            key={index}
-            className={`h-2 rounded-full transition-all ${
-              index === currentStep
-                ? "w-8 bg-blue-600"
-                : index < currentStep
-                  ? "w-2 bg-blue-400"
-                  : "w-2 bg-gray-300"
-            }`}
-          />
-        ))}
-      </div>
-    );
-  };
-
   const renderStep = () => {
     switch (currentStep) {
       case 0:
@@ -379,7 +361,7 @@ function OrganizationModal({
           </DialogDescription>
         </DialogHeader>
 
-        {renderStepIndicator()}
+        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
 
         <form
           onSubmit={handleSubmit}

@@ -19,7 +19,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 
 const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
-const POPUP_DELAY_MS = 10_000; // 10 seconds dwell
+const POPUP_DELAY_MS = 1_000;
 
 interface PublicTenant {
   _id: string;
@@ -138,10 +138,7 @@ export default function SessionTrackerPopup({
             placeholder="Work email"
             type="email"
             value={form.email}
-            onFocus={() => {
-              // field_focus event is emitted AFTER session starts
-              // This is handled inside useSessionTracker via the passed socket ref
-            }}
+            onFocus={() => {}}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             style={{
               backgroundColor: "var(--background)",

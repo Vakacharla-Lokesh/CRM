@@ -18,11 +18,13 @@ const BUCKETS = {
 const QUEUES = {
   offlineWrites: "crm-offline-writes",
   exportData: "crm-export-data",
+  campaignEmails: "crm-campaign-emails",
 };
 
 export const queueUrls = {
   offlineWrites: null,
   exportData: null,
+  campaignEmails: null,
 };
 
 let _initPromise = null;
@@ -120,6 +122,7 @@ export async function ensureAwsInitialized() {
     // SQS Queues — store resolved URLs
     queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites);
     queueUrls.exportData = await ensureQueue(QUEUES.exportData);
+    queueUrls.campaignEmails = await ensureQueue(QUEUES.campaignEmails);
 
     try {
       const { eventBridgeAdapter } =
