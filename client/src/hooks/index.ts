@@ -17,6 +17,8 @@ export {
 } from "./usePermissions.ts";
 
 export { useLeadData } from "./leads/useLeadData.ts";
+export { useLeadDetails } from "./leads/useLeadDetails.ts";
+export { useLeadStageManagement } from "./leads/useLeadStageManagement.ts";
 export { useUserData } from "./users/useUserData.ts";
 export { useOrganizationData } from "./organizations/useOrganizationData.ts";
 export { useDealData } from "./deals/useDealData.ts";

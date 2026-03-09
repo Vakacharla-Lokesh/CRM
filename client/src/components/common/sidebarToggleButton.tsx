@@ -10,9 +10,10 @@ interface SidebarToggleButtonProps {
   className?: string;
 }
 
-export const SidebarToggleButton: React.FC<
-  SidebarToggleButtonProps
-> = ({ onToggle, className }) => {
+export const SidebarToggleButton: React.FC<SidebarToggleButtonProps> = ({
+  onToggle,
+  className,
+}) => {
   return (
     <Button
       variant="ghost"
@@ -21,7 +22,7 @@ export const SidebarToggleButton: React.FC<
       aria-label="Toggle sidebar"
       className={cn(
         "hover:bg-accent hover:text-primary transition-colors",
-        className
+        className,
       )}
     >
       <Menu className="w-6 h-6" />

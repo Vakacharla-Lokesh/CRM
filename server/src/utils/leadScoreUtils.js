@@ -3,6 +3,7 @@ import organizationModel from "../models/organizationModel.js";
 import commentModel from "../models/commentModel.js";
 import callModel from "../models/callModel.js";
 import attachmentModel from "../models/attachmentModel.js";
+import { CampaignEmail } from "../models/campaignModel.js";
 
 function scoreLead(lead) {
   let score = 0;
@@ -22,6 +23,8 @@ function scoreLead(lead) {
   score += (lead.calls || 0) * 3;
 
   score += (lead.attachments || 0) * 2;
+
+  score += (lead.emailOpens || 0) * 5;
 
   if (lead.lead_status === "Converted") {
     score += 20;
@@ -63,6 +66,10 @@ export async function updateLeadScore(leadId) {
     const commentsCount = await commentModel.countDocuments({ leadId });
     const callsCount = await callModel.countDocuments({ leadId });
     const attachmentsCount = await attachmentModel.countDocuments({ leadId });
+    const emailOpenCount = await CampaignEmail.countDocuments({
+      leadId: leadId,
+      status: "opened",
+    });
 
     const leadData = {
       comments: commentsCount,
@@ -72,6 +79,7 @@ export async function updateLeadScore(leadId) {
       attachments: attachmentsCount,
       lead_status: lead.status,
       created_on: lead.createdAt,
+      emailOpens: emailOpenCount,
     };
 
     const newScore = scoreLead(leadData);

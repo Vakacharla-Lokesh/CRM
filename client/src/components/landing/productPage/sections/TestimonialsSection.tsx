@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Star } from "lucide-react";
-import { testimonials } from "../constants/testimonials";
+import { testimonials } from "@/types/constants/product";
 
 export default function TestimonialsSection() {
   return (
@@ -50,7 +50,7 @@ export default function TestimonialsSection() {
                 </p>
                 <div className="flex items-center gap-3">
                   <div
-                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                     style={{
                       backgroundColor: "var(--accent)",
                       color: "var(--primary)",

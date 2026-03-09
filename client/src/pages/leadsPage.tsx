@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../components/ui/select";
-import { LeadModal } from "@/components/modals";
+import { LeadModal, PipelineModal } from "@/components/modals";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import LeadStatistics from "@/components/leads/leadStatistics";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ import { toast } from "sonner";
 // other imports
 import { exportEmailLeads, exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
+import { PipelineFilter } from "@/components/leads/PipelineFilter";
 
 // offline handling imports
 import { useOffline } from "@/context/useOffline";
@@ -38,7 +39,11 @@ import { useNotifications } from "@/hooks";
 import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
 
 import { usePipelineData } from "@/hooks";
-import type { Pipeline } from "@/types/pipeline";
+import type {
+  Pipeline,
+  CreatePipelineDTO,
+  UpdatePipelineDTO,
+} from "@/types/pipeline";
 
 const LeadsPage = () => {
   const {
@@ -101,10 +106,18 @@ const LeadsPage = () => {
     pipelines,
     defaultPipeline,
     isLoading: pipelinesLoading,
+    createPipeline,
+    updatePipeline,
   } = usePipelineData();
 
   const [pipelineInitialized, setPipelineInitialized] = useState(false);
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
+
+  // Pipeline modal state
+  const [isPipelineModalOpen, setIsPipelineModalOpen] = useState(false);
+  const [selectedPipelineForEdit, setSelectedPipelineForEdit] = useState<
+    Pipeline | undefined
+  >(undefined);
 
   useEffect(() => {
     if (!pipelineInitialized && defaultPipeline) {
@@ -139,6 +152,38 @@ const LeadsPage = () => {
   const handleAddLead = () => {
     setSelectedLead(null);
     setIsModalOpen(true);
+  };
+
+  // Pipeline modal handlers
+  const handleCreatePipeline = () => {
+    setSelectedPipelineForEdit(undefined);
+    setIsPipelineModalOpen(true);
+  };
+
+  const handleEditPipeline = (pipeline: Pipeline) => {
+    setSelectedPipelineForEdit(pipeline);
+    setIsPipelineModalOpen(true);
+  };
+
+  const handleSavePipeline = async (
+    payload: CreatePipelineDTO | UpdatePipelineDTO,
+  ) => {
+    try {
+      if (selectedPipelineForEdit) {
+        // Edit mode
+        await updatePipeline.mutateAsync({
+          id: selectedPipelineForEdit._id,
+          dto: payload as UpdatePipelineDTO,
+        });
+      } else {
+        // Create mode
+        await createPipeline.mutateAsync(payload as CreatePipelineDTO);
+      }
+      setIsPipelineModalOpen(false);
+      setSelectedPipelineForEdit(undefined);
+    } catch (error) {
+      console.error("Error saving pipeline:", error);
+    }
   };
 
   // handle edit lead
@@ -323,7 +368,7 @@ const LeadsPage = () => {
       <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search — takes remaining space */}
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative flex-1 min-w-50">
             {searchLoading ? (
               <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
             ) : (
@@ -338,36 +383,18 @@ const LeadsPage = () => {
           </div>
 
           {/* Pipeline */}
-          <Select
-            value={selectedPipelineId || "all"}
-            onValueChange={(value) => {
-              const id = value === "all" ? "" : value;
+          <PipelineFilter
+            selectedPipelineId={selectedPipelineId || undefined}
+            pipelines={pipelines}
+            onSelect={(id) => {
               setSelectedPipelineId(id);
               updateFilter("pipelineId", id);
               updateFilter("status", "");
             }}
-            disabled={pipelinesLoading}
-          >
-            <SelectTrigger className="w-[160px]">
-              <SelectValue placeholder="All pipelines" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All pipelines</SelectItem>
-              {pipelines.map((p) => (
-                <SelectItem
-                  key={p._id}
-                  value={p._id}
-                >
-                  {p.name}
-                  {p.isDefault && (
-                    <span className="ml-1 text-xs text-gray-400">
-                      (default)
-                    </span>
-                  )}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            onCreateClick={handleCreatePipeline}
+            onEditClick={handleEditPipeline}
+            isLoading={pipelinesLoading}
+          />
 
           {/* Status */}
           <Select
@@ -377,7 +404,7 @@ const LeadsPage = () => {
             }
             disabled={pipelineStatuses.length === 0}
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -406,7 +433,7 @@ const LeadsPage = () => {
               updateFilter("source", value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-[160px]">
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="All sources" />
             </SelectTrigger>
             <SelectContent>
@@ -515,6 +542,17 @@ const LeadsPage = () => {
         setExportEmail={setExportEmail}
         handleEmailExport={handleEmailExport}
         isSending={isSending}
+      />
+
+      {/* Pipeline Modal */}
+      <PipelineModal
+        isOpen={isPipelineModalOpen}
+        pipeline={selectedPipelineForEdit}
+        onClose={() => {
+          setIsPipelineModalOpen(false);
+          setSelectedPipelineForEdit(undefined);
+        }}
+        onSave={handleSavePipeline}
       />
     </div>
   );

@@ -66,6 +66,9 @@ export const PERMISSION_MAP = {
   // Pipelines
   PIPELINES: ["pipelines:read", "pipelines:write", "pipelines:delete"],
 
+  // Campaigns
+  CAMPAIGNS: ["campaigns:read", "campaigns:write", "campaigns:delete"],
+
   // System-wide access (super_admin / global tenant only)
   SYSTEM: ["system:manage"],
 };
@@ -85,6 +88,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     ...PERMISSION_MAP.COMMENTS,
     ...PERMISSION_MAP.ATTACHMENTS,
     ...PERMISSION_MAP.TASKS,
+    ...PERMISSION_MAP.CAMPAIGNS,
+
     "users:read",
     "users:write",
     "users:view_all",
@@ -117,6 +122,8 @@ export const DEFAULT_ROLE_PERMISSIONS = {
     "tasks:write",
     "pipelines:read",
     "pipelines:write",
+    "campaigns:read",
+    "campaigns:write",
   ],
 };
 

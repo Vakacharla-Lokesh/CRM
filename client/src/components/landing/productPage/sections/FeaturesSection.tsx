@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { highlights } from "../constants/highlights.ts";
+import { highlights } from "@/types/constants/product";
 
 export default function FeaturesSection() {
   return (
-    <section id="features" className="py-24 px-6">
+    <section
+      id="features"
+      className="py-24 px-6"
+    >
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-16">
           <h2
@@ -20,7 +23,7 @@ export default function FeaturesSection() {
           </p>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {highlights.map((h: typeof highlights[0]) => {
+          {highlights.map((h: (typeof highlights)[0]) => {
             const Icon = h.icon;
             return (
               <Card

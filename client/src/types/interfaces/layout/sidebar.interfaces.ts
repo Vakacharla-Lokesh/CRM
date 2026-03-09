@@ -8,6 +8,7 @@ import {
   BarChart2,
   ShieldCheck,
   CheckSquare,
+  Mail,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types";
@@ -94,5 +95,11 @@ export const navItems: NavItem[] = [
     label: "Tasks",
     icon: CheckSquare,
     permission: "tasks:read",
+  },
+  {
+    to: "/campaigns",
+    label: "Campaigns",
+    icon: Mail,
+    permission: "campaigns:read",
   },
 ];

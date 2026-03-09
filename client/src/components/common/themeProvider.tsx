@@ -1,14 +1,9 @@
+import type {
+  Mode,
+  Palette,
+  ThemeProviderState,
+} from "@/types/constants/theme";
 import { createContext, useEffect, useState } from "react";
-
-type Mode = "dark" | "light" | "system";
-type Palette = "default" | "claude" | "tech" | "meta";
-
-type ThemeProviderState = {
-  mode: Mode;
-  palette: Palette;
-  setMode: (mode: Mode) => void;
-  setPalette: (palette: Palette) => void;
-};
 
 const initialState: ThemeProviderState = {
   mode: "system",

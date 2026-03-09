@@ -6,6 +6,7 @@ import httpServer from "./src/server.js";
 import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
 import { queueService } from "./src/services/aws/queue/queue.service.js";
 import { startSessionTracking } from "./src/services/sessionTrackingService.js";
+import { processAllPendingEmails } from "./src/services/campaignService.js";
 
 try {
   await ensureAwsInitialized();
@@ -27,6 +28,15 @@ try {
     error.message,
   );
   console.warn("[Queue] Server will continue without queue functionality");
+}
+
+try {
+  await processAllPendingEmails();
+} catch (error) {
+  console.warn(
+    "[Campaign] Warning: Failed to process pending campaign emails.",
+    error.message,
+  );
 }
 
 try {
