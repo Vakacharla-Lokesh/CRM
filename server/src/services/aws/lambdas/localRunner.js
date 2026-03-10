@@ -107,7 +107,7 @@ async function main() {
     console.log("[LocalRunner] AWS resources initialized");
 
     // Setup EventBridge as the primary mechanism
-    const { queueService } = await import("../queue/queue.service.js");
+    const { queueService } = await import("../queue/queueService.js");
     queueService.bootstrap();
     console.log("[LocalRunner] Queue service bootstrapped");
 
@@ -122,8 +122,7 @@ async function main() {
     process.exit(1);
   }
 
-  // For development: poll queues manually if EventBridge is not available
-  const { queueService } = await import("../queue/queue.service.js");
+  const { queueService } = await import("../queue/queueSqervice.js");
   const QUEUE_NAMES = ["offlineWrites", "exportData"];
   const POLL_INTERVAL_MS = 5000;
 
@@ -142,23 +141,23 @@ async function main() {
     }
   }
 
-  console.log("[LocalRunner] ⏸ Stopped.");
+  console.log("[LocalRunner] Stopped.");
 }
 
 process.on("SIGTERM", shutdown);
 process.on("SIGINT", shutdown);
 
 process.on("uncaughtException", (error) => {
-  console.error("[LocalRunner] ✗ Uncaught exception:", error);
+  console.error("[LocalRunner] Uncaught exception:", error);
   shutdown();
 });
 
 process.on("unhandledRejection", (reason) => {
-  console.error("[LocalRunner] ✗ Unhandled rejection:", reason);
+  console.error("[LocalRunner] Unhandled rejection:", reason);
   shutdown();
 });
 
 main().catch((error) => {
-  console.error("[LocalRunner] ✗ Fatal error:", error);
+  console.error("[LocalRunner] Fatal error:", error);
   process.exit(1);
 });

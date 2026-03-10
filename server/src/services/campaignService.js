@@ -6,7 +6,7 @@ import { JOB_TYPES } from "../utils/jobTypes.js";
 import emailController from "../controllers/emailController.js";
 import { logActivity } from "./leadActivityService.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
-import { queueService } from "./aws/queue/queue.service.js";
+import { queueService } from "./aws/queue/queueService.js";
 import { marked } from "marked";
 
 const TRACKING_BASE_URL =

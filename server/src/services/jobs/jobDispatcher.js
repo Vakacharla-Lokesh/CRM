@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { queueService } from "../aws/queue/queue.service.js";
+import { queueService } from "../aws/queue/queueService.js";
 import { isValidJobType } from "../../utils/jobTypes.js";
 import { jobService } from "../jobService.js";
 
