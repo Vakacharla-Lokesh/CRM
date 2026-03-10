@@ -34,7 +34,7 @@ import {
   exportEmailOrganizations,
   exportOrganizations,
 } from "@/services/exportService";
-import { BulkActionBar } from "@/components/bulk/BulkActionBar";
+import { BulkActionBar } from "@/components/bulk/bulkActionBar";
 
 // offline handling
 import { useOffline } from "@/context/useOffline";

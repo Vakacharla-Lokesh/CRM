@@ -1,5 +1,5 @@
 import { useLeadActivityData } from "@/hooks";
-import LeadActivityItem from "./LeadActivityItem";
+import LeadActivityItem from "./leadActivityItem";
 import { Activity } from "lucide-react";
 
 // ─── Skeleton loader ─────────────────────────────────────────────────────────

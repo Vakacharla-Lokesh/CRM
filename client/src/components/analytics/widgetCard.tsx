@@ -1,4 +1,4 @@
-import ChartRenderer from "./ChartRenderer";
+import ChartRenderer from "./chartRenderer";
 import type { Widget } from "@/services/api/index";
 import {
   CHART_TYPE_LABEL,

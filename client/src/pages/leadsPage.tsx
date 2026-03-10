@@ -11,7 +11,7 @@ import { columns } from "../components/leads/leadColumns";
 import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
 import { Import, Search } from "lucide-react";
-import { BulkActionBar } from "@/components/bulk/BulkActionBar";
+import { BulkActionBar } from "@/components/bulk/bulkActionBar";
 import { Input } from "../components/ui/input";
 import {
   Select,
@@ -29,7 +29,7 @@ import BulkImportModal from "@/components/modals/bulkImportModal";
 // other imports
 import { exportEmailLeads, exportLeads } from "@/services/exportService";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
-import { PipelineFilter } from "@/components/leads/PipelineFilter";
+import { PipelineFilter } from "@/components/leads/pipelineFilter";
 
 // offline handling imports
 import { useOffline } from "@/context/useOffline";

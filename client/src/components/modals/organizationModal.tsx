@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
@@ -15,7 +14,7 @@ import type {
 import { FormField, FormSelect } from "./form-fields";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { StepIndicator } from "./StepIndicator";
+import { StepIndicator } from "./stepIndicator";
 
 import type {
   OrganizationFormData,
@@ -349,7 +348,7 @@ function OrganizationModal({
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-125">
         <DialogHeader>
           <DialogTitle>
             {organization ? "Edit Organization" : "Add New Organization"}

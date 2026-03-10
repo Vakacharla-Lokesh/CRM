@@ -1,2 +1,2 @@
-export { default as LeadActivityTimeline } from "./LeadActivityTimeline";
-export { default as LeadActivityItem } from "./LeadActivityItem";
+export { default as LeadActivityTimeline } from "./leadActivityTimeline";
+export { default as LeadActivityItem } from "./leadActivityItem";

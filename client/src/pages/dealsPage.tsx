@@ -29,7 +29,7 @@ import { toast } from "sonner";
 
 // other imports
 import { Search } from "lucide-react";
-import { BulkActionBar } from "@/components/bulk/BulkActionBar";
+import { BulkActionBar } from "@/components/bulk/bulkActionBar";
 import { exportDeals, exportEmailDeals } from "@/services/exportService";
 
 // notification imports
