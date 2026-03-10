@@ -87,7 +87,14 @@ export function useLeadData() {
   });
 
   const { data: searchData, isLoading: searchLoading } = useInfiniteQuery({
-    queryKey: ["leads", "search", searchQuery, filters.status, filters.source, filters.pipelineId],
+    queryKey: [
+      "leads",
+      "search",
+      searchQuery,
+      filters.status,
+      filters.source,
+      filters.pipelineId,
+    ],
     queryFn: async () => {
       const result = await leadService.searchLeads({
         q: searchQuery.trim(),

@@ -394,7 +394,8 @@ export function IconLayers() {
       />
     </svg>
   );
-}export function SectionLabel({ label }: { label: string }) {
+}
+export function SectionLabel({ label }: { label: string }) {
   return (
     <p
       className="text-[11px] font-bold tracking-widest uppercase px-1 pt-4 pb-2"

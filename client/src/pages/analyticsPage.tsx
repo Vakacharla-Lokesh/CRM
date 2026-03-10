@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import { useUserAnalyticsData } from "@/hooks/users/useUserAnalyticsData";
 import AnalyticsGrid, {
   WidgetSkeleton,
-} from "../components/analytics/AnalyticsGrid";
-import AnalyticsEmptyState from "../components/analytics/AnalyticsEmptyState";
-import ChartConfigModal from "../components/analytics/ChartConfigModal";
+} from "../components/analytics/analyticsGrid";
+import AnalyticsEmptyState from "../components/analytics/analyticsEmptyState";
+import ChartConfigModal from "../components/analytics/chartConfigModal";
 import type { Widget } from "../services/api/userAnalytics.api";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 

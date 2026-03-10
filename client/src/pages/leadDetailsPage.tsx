@@ -10,9 +10,9 @@ import { useLeadStageManagement } from "@/hooks/leads/useLeadStageManagement";
 import { usePipelineData } from "@/hooks";
 
 // Components
-import { LeadStageProgress } from "@/components/leads/LeadStageProgress";
-import { LeadDetailsTabs } from "@/components/leads/LeadDetailsTabs";
-import { ConvertLeadDialog } from "@/components/leads/ConvertLeadDialog";
+import { LeadStageProgress } from "@/components/leads/leadStageProgress";
+import { LeadDetailsTabs } from "@/components/leads/leadDetailsTabs";
+import { ConvertLeadDialog } from "@/components/leads/convertLeadDialog";
 
 function LeadDetailsPage() {
   // Route params and navigation

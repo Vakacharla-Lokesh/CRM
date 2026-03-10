@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Check, ArrowRight } from "lucide-react";
 import { tabs, previewTabContent } from "@/types/constants/product";
 import type { TabId } from "@/types/constants/product/preview";
-import LeadsPreview from "../previews/LeadsPreview";
-import DealsPreview from "../previews/DealsPreview";
-import AnalyticsPreview from "../previews/AnalyticsPreview";
-import WorkflowsPreview from "../previews/WorkflowsPreview";
+import LeadsPreview from "../previews/leadsPreview";
+import DealsPreview from "../previews/dealsPreview";
+import AnalyticsPreview from "../previews/analyticsPreview";
+import WorkflowsPreview from "../previews/workflowsPreview";
 
 const previewComponents: Record<TabId, React.ReactNode> = {
   leads: <LeadsPreview />,

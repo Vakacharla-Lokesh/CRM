@@ -1,5 +1,5 @@
-export { EmailActionFields } from "./EmailActionFields";
-export { UpdateFieldActionFields } from "./UpdateFieldActionFields";
-export { WebhookActionFields } from "./WebhookActionFields";
-export { ExportS3ActionFields } from "./ExportS3ActionFields";
+export { EmailActionFields } from "./emailActionFields";
+export { UpdateFieldActionFields } from "./updateFieldActionFields";
+export { WebhookActionFields } from "./webhookActionFields";
+export { ExportS3ActionFields } from "./exportS3ActionFields";
 export { CreateTaskActionFields } from "./createTaskActionFields";
