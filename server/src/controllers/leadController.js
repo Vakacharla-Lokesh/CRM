@@ -268,23 +268,6 @@ export const searchLeads = asyncCatch(async (req, res) => {
   res.json({ count: leads.length, leads });
 });
 
-export const bulkDeleteLeadsController = asyncCatch(async (req, res) => {
-  const { ids } = req.body;
-  const tenantId =
-    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
-  const userContext = {
-    userId: req.auth.userId,
-    scope: req.tenantContext?.scope,
-  };
-
-  const result = await bulkDeleteLeads(ids, tenantId, userContext);
-
-  res.json({
-    message: "Bulk delete completed",
-    ...result,
-  });
-});
-
 export const assignLead = asyncCatch(async (req, res) => {
   const { assignedTo } = req.body;
   const tenantId =

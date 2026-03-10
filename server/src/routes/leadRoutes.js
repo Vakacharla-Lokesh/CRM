@@ -12,7 +12,6 @@ import {
   convertLeadToDeal,
   updateLeadScoreManually,
   searchLeads,
-  bulkDeleteLeadsController,
   assignLead,
 } from "../controllers/leadController.js";
 import { getLeadActivities } from "../controllers/leadActivityController.js";
@@ -42,13 +41,6 @@ router.get(
   requirePermission("leads:read"),
   injectTenantContext,
   searchLeads,
-);
-router.post(
-  "/bulk-delete",
-  authenticateRequest,
-  requirePermission("leads:delete"),
-  injectTenantContext,
-  bulkDeleteLeadsController,
 );
 router.get(
   "/:id/activities",

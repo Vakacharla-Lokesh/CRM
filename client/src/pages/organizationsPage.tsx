@@ -27,7 +27,7 @@ import type {
   Organization,
   UpdateOrganizationDTO,
 } from "@/types";
-import { Search } from "lucide-react";
+import { Import, Search } from "lucide-react";
 import { useDebounce, useOrganizationData } from "@/hooks";
 import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces/organization.options";
 import {
@@ -43,6 +43,8 @@ import { useOfflineManager } from "@/hooks/useOfflineManager";
 // notification imports
 import { useNotifications } from "@/hooks";
 import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
+import BulkImportModal from "@/components/modals/bulkImportModal";
+import { useBulkImportOrganizations } from "@/hooks/organizations/useImportOrganizations";
 
 const OrganizationsPage = () => {
   const {
@@ -103,6 +105,9 @@ const OrganizationsPage = () => {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
   const [exportEmail, setExportEmail] = useState("");
   const [isSending, setIsSending] = useState(false);
+
+  // Import Modal
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // Fetch organizations on mount
   useEffect(() => {
@@ -275,6 +280,14 @@ const OrganizationsPage = () => {
     };
   }, [fetchOrganizations]);
 
+  const { importOrganizations, loading: importOrgLoading } =
+    useBulkImportOrganizations();
+
+  // import leads
+  const handleBulkImport = () => {
+    setIsImportModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -301,6 +314,13 @@ const OrganizationsPage = () => {
           )}
         </div>
         <div className="flex flex-row gap-4">
+          <Button
+            onClick={handleBulkImport}
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            <Import />
+            Import
+          </Button>
           <Button
             onClick={handleAddOrganization}
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
@@ -451,6 +471,22 @@ const OrganizationsPage = () => {
         setExportEmail={setExportEmail}
         handleEmailExport={handleEmailExport}
         isSending={isSending}
+      />
+
+      <BulkImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Organizations"
+        columns={[
+          { name: "name", required: true },
+          { name: "website", required: true },
+          { name: "industry", required: true },
+          { name: "size" },
+          { name: "city" },
+          { name: "country" },
+        ]}
+        importFn={importOrganizations}
+        loading={importOrgLoading}
       />
     </div>
   );

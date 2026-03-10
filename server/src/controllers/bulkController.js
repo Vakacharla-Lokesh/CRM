@@ -1,6 +1,29 @@
 import asyncCatch from "../utils/asyncCatch.js";
 import AppError from "../utils/appError.js";
+import multer from "multer";
+
+import {
+  bulkImportDeals,
+  bulkImportLeads,
+  bulkImportOrganizations,
+} from "../services/bulkImportService.js";
 import * as bulkOperationService from "../services/bulkOperationService.js";
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      "text/csv",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/vnd.ms-excel",
+    ];
+    if (allowed.includes(file.mimetype)) return cb(null, true);
+    cb(new AppError("Only CSV and Excel files are allowed", 400));
+  },
+});
+
+export const uploadFile = upload.single("file");
 
 // Bulk create leads
 export const bulkCreateLeads = asyncCatch(async (req, res) => {
@@ -41,6 +64,51 @@ export const bulkUpdateLeads = asyncCatch(async (req, res) => {
   });
 });
 
+// Bulk delete leads
+export const bulkDeleteLeads = asyncCatch(async (req, res) => {
+  const { ids } = req.body;
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
+  const userContext = {
+    userId: req.auth.userId,
+    scope: req.tenantContext?.scope,
+  };
+
+  const result = await bulkDeleteLeads(ids, tenantId, userContext);
+
+  res.json({
+    message: "Bulk delete completed",
+    ...result,
+  });
+});
+
+// Bulk import leads
+export const importLeads = asyncCatch(async (req, res) => {
+  if (!req.file) {
+    throw new AppError(
+      "No file uploaded. Send the file under the key 'file'",
+      400,
+    );
+  }
+
+  const context = {
+    userId: req.auth.userId,
+    tenantId: req.tenantContext.tenantId,
+    defaultStatus: req.body.defaultStatus || "New",
+    defaultSource: req.body.defaultSource || "Other",
+  };
+
+  const result = await bulkImportLeads(req.file, context);
+
+  res.status(207).json({
+    message: `Import complete: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`,
+    imported: result.imported,
+    skipped: result.skipped,
+    failed: result.failed,
+    errors: result.errors,
+  });
+});
+
 // Bulk create deals
 export const bulkCreateDeals = asyncCatch(async (req, res) => {
   const deals = req.body.operations || req.body.deals;
@@ -77,6 +145,50 @@ export const bulkUpdateDeals = asyncCatch(async (req, res) => {
     updated: result.updated,
     matched: result.matched,
     failed: result.failed,
+  });
+});
+
+// Bulk delete deals
+export const bulkDeleteDeals = asyncCatch(async (req, res) => {
+  const { ids } = req.body;
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
+  const userContext = {
+    userId: req.auth.userId,
+    scope: req.tenantContext?.scope,
+  };
+
+  const result = await bulkDeleteDeals(ids, tenantId, userContext);
+
+  res.json({
+    message: "Bulk delete completed",
+    ...result,
+  });
+});
+// Bulk import deals
+export const importDeals = asyncCatch(async (req, res) => {
+  if (!req.file) {
+    throw new AppError(
+      "No file uploaded. Send the file under the key 'file'",
+      400,
+    );
+  }
+
+  const context = {
+    userId: req.auth.userId,
+    tenantId: req.tenantContext.tenantId,
+    defaultStatus: req.body.defaultStatus || "New",
+    defaultSource: req.body.defaultSource || "Other",
+  };
+
+  const result = await bulkImportDeals(req.file, context);
+
+  res.status(207).json({
+    message: `Import complete: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`,
+    imported: result.imported,
+    skipped: result.skipped,
+    failed: result.failed,
+    errors: result.errors,
   });
 });
 
@@ -152,5 +264,49 @@ export const bulkUpdateOrganizations = asyncCatch(async (req, res) => {
     updated: result.updated,
     matched: result.matched,
     failed: result.failed,
+  });
+});
+
+// Bulk delete organizations
+export const bulkDeleteOrganizations = asyncCatch(async (req, res) => {
+  const { ids } = req.body;
+  const tenantId = req.user.tenantId;
+  const userContext = {
+    userId: req.user.userId,
+    role: req.user.role,
+  };
+
+  const result = await bulkDeleteOrganizations(ids, tenantId, userContext);
+
+  res.json({
+    message: "Bulk delete completed",
+    ...result,
+  });
+});
+
+// Bulk import organizations
+export const importOrganizations = asyncCatch(async (req, res) => {
+  if (!req.file) {
+    throw new AppError(
+      "No file uploaded. Send the file under the key 'file'",
+      400,
+    );
+  }
+
+  const context = {
+    userId: req.auth.userId,
+    tenantId: req.tenantContext.tenantId,
+    defaultStatus: req.body.defaultStatus || "New",
+    defaultSource: req.body.defaultSource || "Other",
+  };
+
+  const result = await bulkImportOrganizations(req.file, context);
+
+  res.status(207).json({
+    message: `Import complete: ${result.imported} imported, ${result.skipped} skipped, ${result.failed} failed`,
+    imported: result.imported,
+    skipped: result.skipped,
+    failed: result.failed,
+    errors: result.errors,
   });
 });

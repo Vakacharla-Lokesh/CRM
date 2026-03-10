@@ -31,10 +31,8 @@ export default function SessionTrackerPopup() {
   const [form, setForm] = useState({ firstName: "", email: "", tenantId: "" });
   const [loading, setLoading] = useState(false);
 
-  // Generate a stable sessionId for this page visit
   const [sessionId] = useState(() => crypto.randomUUID());
 
-  // Tracker is inactive until the visitor submits the form
   const { flush } = useSessionTracker({
     active: submitted,
     sessionId,
@@ -43,7 +41,6 @@ export default function SessionTrackerPopup() {
     visitorEmail: form.email || null,
   });
 
-  // Trigger popup after dwell time
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!submitted) setOpen(true);
@@ -51,7 +48,6 @@ export default function SessionTrackerPopup() {
     return () => clearTimeout(timer);
   }, [submitted]);
 
-  // Fetch public tenant list for dropdown
   useEffect(() => {
     const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
     fetch(`${baseUrl}/tenants/public`)
@@ -69,17 +65,25 @@ export default function SessionTrackerPopup() {
     setOpen(false);
     setLoading(false);
 
-    // Immediately flush any events that may have buffered while the
-    // popup was open (e.g. scroll depth before form submission)
     await flush();
   }, [form, flush]);
 
   if (submitted) return null;
 
+  const isFormValid = form.firstName.trim() && form.email.trim() && form.tenantId;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    // Only allow closing if form is valid (all fields filled)
+    if (!newOpen && !isFormValid) {
+      return; // Prevent closing when form is incomplete
+    }
+    setOpen(newOpen);
+  };
+
   return (
     <Dialog
       open={open}
-      onOpenChange={setOpen}
+      onOpenChange={handleOpenChange}
     >
       <DialogContent
         className="sm:max-w-md"
@@ -151,12 +155,7 @@ export default function SessionTrackerPopup() {
 
           <Button
             onClick={handleSubmit}
-            disabled={
-              !form.firstName.trim() ||
-              !form.email.trim() ||
-              !form.tenantId ||
-              loading
-            }
+            disabled={!isFormValid || loading}
             className="w-full h-10"
             style={{
               backgroundColor: "var(--primary)",

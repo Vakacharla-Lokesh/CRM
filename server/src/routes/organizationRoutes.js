@@ -8,7 +8,6 @@ import {
   getOrganizationsByTenant,
   getOrganizationsByUser,
   searchOrganizations,
-  bulkDeleteOrganizationsController,
 } from "../controllers/organizationController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticateRequest } from "../middlewares/auth.js";
@@ -33,13 +32,6 @@ router.get(
   requirePermission("organizations:read"),
   injectTenantContext,
   searchOrganizations,
-);
-router.post(
-  "/bulk-delete",
-  authenticateRequest,
-  requirePermission("organizations:delete"),
-  injectTenantContext,
-  bulkDeleteOrganizationsController,
 );
 router.get(
   "/:id",
