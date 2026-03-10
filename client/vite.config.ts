@@ -19,6 +19,7 @@ export default defineConfig({
     },
   },
   build: {
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -29,7 +30,19 @@ export default defineConfig({
           // Table
           "vendor-table": ["@tanstack/react-table"],
           // UI primitives + icons
-          "vendor-ui": ["radix-ui", "lucide-react", "class-variance-authority", "clsx", "tailwind-merge"],
+          "vendor-ui": [
+            "radix-ui",
+            "lucide-react",
+            "class-variance-authority",
+            "clsx",
+            "tailwind-merge",
+          ],
+          // DnD — used only on TasksPage, but heavy enough to isolate
+          "vendor-dnd": ["@hello-pangea/dnd"],
+          // Socket.io — connection overhead, loaded once
+          "vendor-socket": ["socket.io-client"],
+          // Markdown editor — only used on specific pages
+          "vendor-md": ["@uiw/react-md-editor"],
         },
       },
     },

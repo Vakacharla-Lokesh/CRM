@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { io, Socket } from "socket.io-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -16,9 +15,8 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { v4 as uuidv4 } from "uuid";
+import { useSessionTracker } from "@/hooks/useSessionTracker";
 
-const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || "http://localhost:4000";
 const POPUP_DELAY_MS = 1_000;
 
 interface PublicTenant {
@@ -26,18 +24,24 @@ interface PublicTenant {
   name: string;
 }
 
-interface SessionTrackerPopupProps {
-  onSessionStart?: (socket: Socket, sessionId: string) => void;
-}
-
-export default function SessionTrackerPopup({
-  onSessionStart,
-}: SessionTrackerPopupProps) {
+export default function SessionTrackerPopup() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [tenants, setTenants] = useState<PublicTenant[]>([]);
   const [form, setForm] = useState({ firstName: "", email: "", tenantId: "" });
   const [loading, setLoading] = useState(false);
+
+  // Generate a stable sessionId for this page visit
+  const [sessionId] = useState(() => crypto.randomUUID());
+
+  // Tracker is inactive until the visitor submits the form
+  const { flush } = useSessionTracker({
+    active: submitted,
+    sessionId,
+    tenantId: form.tenantId,
+    visitorName: form.firstName || null,
+    visitorEmail: form.email || null,
+  });
 
   // Trigger popup after dwell time
   useEffect(() => {
@@ -56,45 +60,19 @@ export default function SessionTrackerPopup({
       .catch((err) => console.error("[Popup] Failed to fetch tenants:", err));
   }, []);
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const { firstName, email, tenantId } = form;
     if (!firstName.trim() || !email.trim() || !tenantId) return;
 
     setLoading(true);
-
-    const sessionId = uuidv4();
-
-    const trackingSocket = io(`${SOCKET_URL}/tracking`, {
-      query: {
-        sessionId,
-        tenantId,
-        visitorName: firstName,
-        visitorEmail: email,
-      },
-      transports: ["websocket", "polling"],
-    });
-
-    trackingSocket.on("connect", () => {
-      console.log("[Tracking] Connected to /tracking namespace");
-
-      // Emit initial page_enter event
-      trackingSocket.emit("session:event", {
-        type: "page_enter",
-        data: {},
-        timestamp: new Date().toISOString(),
-      });
-    });
-
-    trackingSocket.on("connect_error", (err) => {
-      console.error("[Tracking] Connection error:", err.message);
-    });
-
     setSubmitted(true);
     setOpen(false);
     setLoading(false);
 
-    onSessionStart?.(trackingSocket, sessionId);
-  }, [form, onSessionStart]);
+    // Immediately flush any events that may have buffered while the
+    // popup was open (e.g. scroll depth before form submission)
+    await flush();
+  }, [form, flush]);
 
   if (submitted) return null;
 
@@ -138,7 +116,6 @@ export default function SessionTrackerPopup({
             placeholder="Work email"
             type="email"
             value={form.email}
-            onFocus={() => {}}
             onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
             style={{
               backgroundColor: "var(--background)",
@@ -186,7 +163,7 @@ export default function SessionTrackerPopup({
               color: "var(--primary-foreground)",
             }}
           >
-            {loading ? "Connecting…" : "Get my demo →"}
+            {loading ? "Saving…" : "Get my demo →"}
           </Button>
 
           <p

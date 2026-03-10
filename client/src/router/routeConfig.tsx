@@ -1,22 +1,39 @@
 import type { UserRole } from "@/types";
-
-// Pages
-import DashboardPage from "../pages/dashboardPage";
-import UsersPage from "../pages/usersPage";
-import LeadsPage from "../pages/leadsPage";
-import OrganizationsPage from "../pages/organizationsPage";
-import DealsPage from "../pages/dealsPage";
-import TenantsPage from "../pages/tenantsPage";
-import WorkflowsPage from "../pages/workflowsPage";
-import AnalyticsPage from "../pages/analyticsPage";
-import RolesPage from "../pages/rolesPage";
-import TasksPage from "../pages/tasksPage";
-import CampaignPage from "../pages/campaignPage";
-
-// lazy loading components
 import { lazy } from "react";
 
-// const LazyLoadedComponent = lazy(() => import("../components/common/lazyLoadedComponent"));
+const DashboardPage = lazy(() => import("../pages/dashboardPage"));
+const preloadDashboard = () => import("../pages/dashboardPage");
+
+const UsersPage = lazy(() => import("../pages/usersPage"));
+const preloadUsers = () => import("../pages/usersPage");
+
+const LeadsPage = lazy(() => import("../pages/leadsPage"));
+const preloadLeads = () => import("../pages/leadsPage");
+
+const OrganizationsPage = lazy(() => import("../pages/organizationsPage"));
+const preloadOrganizations = () => import("../pages/organizationsPage");
+
+const DealsPage = lazy(() => import("../pages/dealsPage"));
+const preloadDeals = () => import("../pages/dealsPage");
+
+const TenantsPage = lazy(() => import("../pages/tenantsPage"));
+const preloadTenants = () => import("../pages/tenantsPage");
+
+const WorkflowsPage = lazy(() => import("../pages/workflowsPage"));
+const preloadWorkflows = () => import("../pages/workflowsPage");
+
+const AnalyticsPage = lazy(() => import("../pages/analyticsPage"));
+const preloadAnalytics = () => import("../pages/analyticsPage");
+
+const RolesPage = lazy(() => import("../pages/rolesPage"));
+const preloadRoles = () => import("../pages/rolesPage");
+
+const TasksPage = lazy(() => import("../pages/tasksPage"));
+const preloadTasks = () => import("../pages/tasksPage");
+
+const CampaignPage = lazy(() => import("../pages/campaignPage"));
+const preloadCampaign = () => import("../pages/campaignPage");
+
 const OrganizationLeadsPage = lazy(
   () => import("../pages/organizationLeadsPage"),
 );
@@ -25,22 +42,23 @@ const LeadDetailsPage = lazy(() => import("../pages/leadDetailsPage"));
 export interface RouteConfig {
   path: string;
   element: React.ReactNode;
-  /** Legacy coarse-grained role guard (still used for super_admin-only routes) */
   allowedRoles?: UserRole[];
-  /** Fine-grained permission guard — user must have ALL listed permissions */
   requiredPermissions?: string[];
   unauthorizedFallback?: string;
+  preload?: () => Promise<unknown>;
 }
 
 export const routeConfig: RouteConfig[] = [
   {
     path: "/dashboard",
     element: <DashboardPage />,
+    preload: preloadDashboard,
   },
   {
     path: "/leads",
     element: <LeadsPage />,
     requiredPermissions: ["leads:read"],
+    preload: preloadLeads,
   },
   {
     path: "/leads/:id",
@@ -51,6 +69,7 @@ export const routeConfig: RouteConfig[] = [
     path: "/organizations",
     element: <OrganizationsPage />,
     requiredPermissions: ["organizations:read"],
+    preload: preloadOrganizations,
   },
   {
     path: "/organizations/:id/leads",
@@ -61,24 +80,28 @@ export const routeConfig: RouteConfig[] = [
     path: "/deals",
     element: <DealsPage />,
     requiredPermissions: ["deals:read"],
+    preload: preloadDeals,
   },
   {
     path: "/users",
     element: <UsersPage />,
     requiredPermissions: ["users:read"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadUsers,
   },
   {
     path: "/roles",
     element: <RolesPage />,
     requiredPermissions: ["roles:read"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadRoles,
   },
   {
     path: "/tenants",
     element: <TenantsPage />,
     allowedRoles: ["super_admin"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadTenants,
   },
   {
     path: "/tenants/:id",
@@ -91,22 +114,26 @@ export const routeConfig: RouteConfig[] = [
     element: <WorkflowsPage />,
     requiredPermissions: ["leads:read"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadWorkflows,
   },
   {
     path: "/analytics",
     element: <AnalyticsPage />,
     requiredPermissions: ["analytics:read"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadAnalytics,
   },
   {
     path: "/tasks",
     element: <TasksPage />,
     requiredPermissions: ["tasks:read"],
+    preload: preloadTasks,
   },
   {
     path: "/campaigns",
     element: <CampaignPage />,
     requiredPermissions: ["campaigns:read"],
     unauthorizedFallback: "/dashboard",
+    preload: preloadCampaign,
   },
 ];

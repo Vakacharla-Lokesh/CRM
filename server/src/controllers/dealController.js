@@ -48,9 +48,7 @@ export const getDealById = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("deals:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deal = await dealService.getDealById(
     req.params.id,
@@ -91,9 +89,7 @@ export const updateDeal = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("deals:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const { lastKnownUpdatedAt, ...updates } = req.body;
   const updatedDeal = await dealService.updateDeal(
@@ -127,9 +123,7 @@ export const deleteDeal = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("deals:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deal = await dealService.deleteDeal(
     req.params.id,
@@ -166,9 +160,7 @@ export const getDealsByTenant = asyncCatch(async (req, res) => {
 // Get deals by user
 export const getDealsByUser = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deals = await dealService.getDealsByUser(req.params.userId, tenantId);
 
@@ -181,9 +173,7 @@ export const getDealsByUser = asyncCatch(async (req, res) => {
 // Get deals by lead
 export const getDealsByLead = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deals = await dealService.getDealsByLead(req.params.leadId, tenantId);
 
@@ -196,9 +186,7 @@ export const getDealsByLead = asyncCatch(async (req, res) => {
 // Get deals by organization
 export const getDealsByOrganization = asyncCatch(async (req, res) => {
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deals = await dealService.getDealsByOrganization(
     req.params.organizationId,
@@ -239,9 +227,7 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
   const { status, lastKnownUpdatedAt } = req.body;
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const deal = await dealService.updateDealStatus(
     req.params.id,

@@ -29,7 +29,6 @@ export const useAttachmentData = (leadId: string) => {
         throw new Error("File size must be less than 10MB");
       }
 
-      // Step 1: Get a presigned PUT URL from the server
       const { presignedUrl, s3Key, s3Url } = await attachmentsAPI.getPresignedUrl({
         leadId,
         fileName: file.name,
@@ -37,10 +36,8 @@ export const useAttachmentData = (leadId: string) => {
         fileSize: file.size,
       });
 
-      // Step 2: Upload the file directly to S3 (no auth header, presigned covers it)
       await attachmentsAPI.uploadToS3(presignedUrl, file);
 
-      // Step 3: Confirm the upload — save metadata to the database
       return attachmentsAPI.create({
         leadId,
         fileName: file.name,

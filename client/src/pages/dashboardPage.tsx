@@ -1,11 +1,17 @@
-import { Users, Megaphone, TrendingUp, DollarSign } from "lucide-react";
+import {
+  Users,
+  Megaphone,
+  TrendingUp,
+  DollarSign,
+  RefreshCw,
+} from "lucide-react";
 import StatCard from "../components/common/statCard";
 import { useDashboardStats, useAnalyticsData } from "../hooks";
 import TrendsSection from "@/components/dashboard/trendsSection";
 import PipelineSection from "@/components/dashboard/pipelineSection";
 
 function DashboardPage() {
-  const { stats, changes, loading, error } = useDashboardStats();
+  const { stats, changes, loading, error, refreshStats } = useDashboardStats();
 
   const {
     leadTrends,
@@ -14,7 +20,15 @@ function DashboardPage() {
     dealPipeline,
     dealPipelineSummary,
     loading: analyticsLoading,
+    refreshData,
   } = useAnalyticsData(30);
+
+  const isRefreshing = loading || analyticsLoading;
+
+  const handleRefresh = () => {
+    refreshStats();
+    refreshData();
+  };
 
   const leadTrendData = leadTrends.slice(-10).map((t) => ({
     date: new Date(t.date).toLocaleDateString("en-US", {
@@ -64,6 +78,29 @@ function DashboardPage() {
             Welcome back! Here's your marketing overview.
           </p>
         </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+          title="Refresh dashboard"
+          className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
+          style={{
+            border: "1px solid var(--border)",
+            color: "var(--muted-foreground)",
+            backgroundColor: "transparent",
+          }}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.backgroundColor = "var(--accent)")
+          }
+          onMouseLeave={(e) =>
+            (e.currentTarget.style.backgroundColor = "transparent")
+          }
+        >
+          <RefreshCw
+            size={15}
+            className={isRefreshing ? "animate-spin" : ""}
+          />
+          Refresh
+        </button>
       </div>
 
       {/* Error */}
