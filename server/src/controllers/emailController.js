@@ -352,7 +352,7 @@ const emailController = {
   },
 
   sendEmail: async ({ to, subject, html, text }) => {
-    console.log("[EmailController] 📧 sendEmail called", {
+    console.log("[EmailController] sendEmail called", {
       to,
       subject,
       htmlLength: html?.length,
@@ -369,7 +369,7 @@ const emailController = {
         text,
       });
 
-      console.log("[EmailController] ✓ Email sent successfully", {
+      console.log("[EmailController] Email sent successfully", {
         to,
         response: result?.response,
         messageId: result?.messageId,
@@ -377,7 +377,7 @@ const emailController = {
 
       return result;
     } catch (error) {
-      console.error("[EmailController] ❌ sendMail failed", {
+      console.error("[EmailController] sendMail failed", {
         to,
         subject,
         error: error.message,

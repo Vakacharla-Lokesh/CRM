@@ -14,6 +14,7 @@ const campaignSchema = new Schema(
     totalRecipients: { type: Number, default: 0 },
     sentCount: { type: Number, default: 0 },
     openCount: { type: Number, default: 0 },
+    linkClickCount: { type: Number, default: 0 },
   },
   { timestamps: true },
 );
@@ -37,6 +38,7 @@ const campaignEmailSchema = new Schema(
     },
     sentAt: { type: Date, default: null },
     openedAt: { type: Date, default: null },
+    linkClickCount: { type: Number, default: 0 },
   },
   { timestamps: true },
 );

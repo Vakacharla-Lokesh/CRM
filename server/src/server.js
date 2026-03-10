@@ -35,6 +35,7 @@ import taskRoutes from "./routes/taskRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
 import pipelineRoutes from "./routes/pipelineRoutes.js";
 import campaignRoutes from "./routes/campaignRoutes.js";
+import sessionEventRoutes from "./routes/sessionEventRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
@@ -127,6 +128,7 @@ app.use("/api/tasks", taskRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/pipelines", pipelineRoutes);
 app.use("/api/campaigns", campaignRoutes);
+app.use("/api/session-events", sessionEventRoutes);
 
 // unknown route handler
 app.use(notFound);

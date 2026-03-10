@@ -6,6 +6,10 @@ import {
   validateSignupForm,
 } from "../utils/formValidators";
 import type { SignupFormData, SignupFormErrors } from "../utils/formValidators";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Button } from "../components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 type FormErrors = SignupFormErrors;
 
@@ -38,19 +42,13 @@ function SignupPage() {
       [name]: type === "checkbox" ? checked : value,
     }));
     if (errors[name as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: "",
-      }));
+      setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsLoading(true);
     setErrors({});
@@ -62,9 +60,7 @@ function SignupPage() {
         password: formData.password,
         name: formData.name,
       });
-
       navigate("/dashboard");
-      setIsLoading(false);
     } catch (error: any) {
       console.error("Signup error:", error);
       setErrors({
@@ -73,349 +69,331 @@ function SignupPage() {
           error?.message ||
           "Signup failed. Please try again.",
       });
+    } finally {
       setIsLoading(false);
     }
   };
 
   const passwordStrength = getPasswordStrength(formData.password);
 
+  const inputClass =
+    "h-11 rounded-lg border border-input bg-card hover:border-primary/50 focus:border-primary focus:ring-2 focus:ring-primary/20 transition-colors";
+  const inputErrorClass =
+    "h-11 rounded-lg border border-red-500 dark:border-red-400 bg-card focus:ring-2 focus:ring-red-500/20 transition-colors";
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 px-4 py-8">
-      <div className="w-full max-w-md">
-        {/* Header Section */}
-        <div className="text-center mb-8">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <img
-              src="/crm.png"
-              alt="Campaign Flux Logo"
-              className="h-12"
-            />
-            <h1 className="text-3xl font-bold bg-linear-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">
-              Campaign Flux
-            </h1>
+    <div className="min-h-screen flex items-stretch bg-background">
+      {/* LEFT COLUMN - Illustration */}
+      <div className="hidden lg:flex flex-1 bg-linear-to-br from-primary via-primary/80 to-primary/60 items-center justify-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-20">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl" />
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-white/30 rounded-full blur-3xl" />
+          <div className="absolute top-1/2 left-1/2 w-80 h-80 bg-primary-foreground/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
+        </div>
+        <div className="relative z-10 text-center space-y-6 px-8">
+          <div className="inline-block bg-white/20 backdrop-blur-sm rounded-full p-8 mb-6">
+            <svg
+              className="w-24 h-24 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={1.5}
+                d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+              />
+            </svg>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm">
-            Create your organization account
+          <h3 className="text-3xl font-bold text-white">Join Campaign Flux</h3>
+          <p className="text-white/80 max-w-sm mx-auto">
+            Set up your organization and start managing campaigns with your team
           </p>
         </div>
+      </div>
 
-        {/* Form Card */}
-        <form
-          onSubmit={handleSubmit}
-          className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 space-y-5"
-        >
-          {/* Submit Error Alert */}
-          {errors.submit && (
-            <div className="p-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
-              <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                {errors.submit}
-              </p>
-            </div>
-          )}
-
-          {/* Tenant Name Field */}
-          <div>
-            <label
-              htmlFor="name"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Organization Name
-            </label>
-            <input
-              type="text"
-              id="name"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder="Your Company Inc."
-              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.name
-                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
-            />
-            {errors.name && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.name}
-              </p>
-            )}
-          </div>
-
-          {/* User Name Field */}
-          <div>
-            <label
-              htmlFor="firstName"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Your Full Name
-            </label>
-            <input
-              type="text"
-              id="firstName"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              placeholder="John Doe"
-              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.firstName
-                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
-            />
-            {errors.firstName && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.firstName}
-              </p>
-            )}
-          </div>
-
-          {/* Email Field */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Email Address
-            </label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="you@example.com"
-              className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                errors.email
-                  ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                  : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-              } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500`}
-            />
-            {errors.email && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.email}
-              </p>
-            )}
-          </div>
-
-          {/* Password Field */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Password
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? "text" : "password"}
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.password
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
+      {/* RIGHT COLUMN - Form */}
+      <div className="flex-1 flex flex-col justify-center px-6 sm:px-12 py-12 overflow-y-auto">
+        <div className="max-w-md w-full mx-auto space-y-8">
+          {/* Logo & Header */}
+          <div className="space-y-2">
+            <div className="flex items-center gap-3 mb-6">
+              <img
+                src="/crm.png"
+                alt="Campaign Flux Logo"
+                className="h-10"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
-              >
-                {showPassword ? (
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M15.171 11.586a4 4 0 111.414-1.414l1.473 1.473a10.014 10.014 0 01-1.488 2.316l1.78 1.781a9.958 9.958 0 01-4.512 1.074c-4.478 0-8.268-2.943-9.542-7a9.968 9.968 0 011.441-2.261l1.473 1.473z" />
-                  </svg>
-                )}
-              </button>
+              <h1 className="text-2xl font-bold text-primary">Campaign Flux</h1>
             </div>
+            <h2 className="text-3xl font-bold text-foreground">
+              Create an account
+            </h2>
+            <p className="text-muted-foreground text-sm">
+              Set up your organization to get started
+            </p>
+          </div>
 
-            {/* Password Strength Indicator */}
-            {formData.password && (
-              <div className="mt-3 space-y-2">
-                <div className="flex gap-1">
-                  {[...Array(5)].map((_, id) => (
-                    <div
-                      key={`strength-bar-${id}`}
-                      className={`flex-1 h-1 rounded-full transition-colors ${
-                        id < passwordStrength.level
-                          ? passwordStrength.color
-                          : "bg-gray-200 dark:bg-gray-700"
-                      }`}
-                    />
-                  ))}
-                </div>
-                <p
-                  className={`text-xs font-medium ${
-                    passwordStrength.level <= 2
-                      ? "text-red-600 dark:text-red-400"
-                      : passwordStrength.level === 3
-                        ? "text-yellow-600 dark:text-yellow-400"
-                        : "text-green-600 dark:text-green-400"
-                  }`}
-                >
-                  Password strength: {passwordStrength.text}
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit}
+            className="space-y-5"
+          >
+            {/* Submit Error */}
+            {errors.submit && (
+              <div className="p-4 rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
+                <p className="text-sm font-medium text-red-600 dark:text-red-400">
+                  {errors.submit}
                 </p>
               </div>
             )}
 
-            {errors.password && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.password}
-              </p>
-            )}
-          </div>
-
-          {/* Confirm Password Field */}
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Confirm Password
-            </label>
-            <div className="relative">
-              <input
-                type={showConfirmPassword ? "text" : "password"}
-                id="confirmPassword"
-                name="confirmPassword"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-lg border-2 transition-all duration-200 ${
-                  errors.confirmPassword
-                    ? "border-red-500 dark:border-red-400 focus:ring-2 focus:ring-red-500"
-                    : "border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-500/20"
-                } bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-500 pr-10`}
-              />
-              <button
-                type="button"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400 transition-colors"
+            {/* Organization Name */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="name"
+                className="text-sm font-semibold"
               >
-                {showConfirmPassword ? (
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                    <path
-                      fillRule="evenodd"
-                      d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z"
-                      clipRule="evenodd"
-                    />
-                  </svg>
-                ) : (
-                  <svg
-                    className="w-5 h-5"
-                    fill="currentColor"
-                    viewBox="0 0 20 20"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z"
-                      clipRule="evenodd"
-                    />
-                    <path d="M15.171 11.586a4 4 0 111.414-1.414l1.473 1.473a10.014 10.014 0 01-1.488 2.316l1.78 1.781a9.958 9.958 0 01-4.512 1.074c-4.478 0-8.268-2.943-9.542-7a9.968 9.968 0 011.441-2.261l1.473 1.473z" />
-                  </svg>
-                )}
-              </button>
-            </div>
-            {errors.confirmPassword && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.confirmPassword}
-              </p>
-            )}
-          </div>
-
-          {/* Terms Checkbox */}
-          <div>
-            <label className="flex items-start gap-3 cursor-pointer">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
+                Organization Name
+              </Label>
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                value={formData.name}
                 onChange={handleChange}
-                className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500"
+                placeholder="Your Company Inc."
+                aria-invalid={!!errors.name}
+                className={errors.name ? inputErrorClass : inputClass}
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                I agree to the{" "}
+              {errors.name && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.name}
+                </p>
+              )}
+            </div>
+
+            {/* Full Name */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="firstName"
+                className="text-sm font-semibold"
+              >
+                Your Full Name
+              </Label>
+              <Input
+                type="text"
+                id="firstName"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="John Doe"
+                aria-invalid={!!errors.firstName}
+                className={errors.firstName ? inputErrorClass : inputClass}
+              />
+              {errors.firstName && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.firstName}
+                </p>
+              )}
+            </div>
+
+            {/* Email */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-sm font-semibold"
+              >
+                Email Address
+              </Label>
+              <Input
+                type="email"
+                id="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="you@example.com"
+                aria-invalid={!!errors.email}
+                className={errors.email ? inputErrorClass : inputClass}
+              />
+              {errors.email && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.email}
+                </p>
+              )}
+            </div>
+
+            {/* Password */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="password"
+                className="text-sm font-semibold"
+              >
+                Password
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showPassword ? "text" : "password"}
+                  id="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  aria-invalid={!!errors.password}
+                  className={`${errors.password ? inputErrorClass : inputClass} pr-10`}
+                />
                 <button
                   type="button"
-                  onClick={() => window.open("/terms", "_blank")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Terms and Conditions
-                </button>{" "}
-                and{" "}
-                <button
-                  type="button"
-                  onClick={() => window.open("/privacy", "_blank")}
-                  className="text-blue-600 dark:text-blue-400 hover:underline bg-transparent border-0 p-0 cursor-pointer"
-                >
-                  Privacy Policy
+                  {showPassword ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <EyeOff className="w-5 h-5" />
+                  )}
                 </button>
-              </span>
-            </label>
-            {errors.agreeToTerms && (
-              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
-                {errors.agreeToTerms}
-              </p>
-            )}
-          </div>
+              </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3 px-4 bg-linear-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:from-blue-500 dark:to-indigo-500 dark:hover:from-blue-600 dark:hover:to-indigo-600 text-white font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            {isLoading ? (
-              <>
-                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                <span>Creating account...</span>
-              </>
-            ) : (
-              "Create account"
-            )}
-          </button>
+              {/* Password Strength */}
+              {formData.password && (
+                <div className="space-y-1.5 pt-1">
+                  <div className="flex gap-1">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className={`flex-1 h-1 rounded-full transition-colors ${
+                          i < passwordStrength.level
+                            ? passwordStrength.color
+                            : "bg-muted"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <p
+                    className={`text-xs font-medium ${
+                      passwordStrength.level <= 2
+                        ? "text-red-600 dark:text-red-400"
+                        : passwordStrength.level === 3
+                          ? "text-yellow-600 dark:text-yellow-400"
+                          : "text-green-600 dark:text-green-400"
+                    }`}
+                  >
+                    Password strength: {passwordStrength.text}
+                  </p>
+                </div>
+              )}
 
-          {/* Login Link */}
-          <p className="text-center text-sm text-gray-600 dark:text-gray-400">
-            Already have an account?{" "}
-            <Link
-              to="/login"
-              className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-semibold transition-colors"
+              {errors.password && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.password}
+                </p>
+              )}
+            </div>
+
+            {/* Confirm Password */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="confirmPassword"
+                className="text-sm font-semibold"
+              >
+                Confirm Password
+              </Label>
+              <div className="relative">
+                <Input
+                  type={showConfirmPassword ? "text" : "password"}
+                  id="confirmPassword"
+                  name="confirmPassword"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  aria-invalid={!!errors.confirmPassword}
+                  className={`${errors.confirmPassword ? inputErrorClass : inputClass} pr-10`}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showConfirmPassword ? (
+                    <Eye className="w-5 h-5" />
+                  ) : (
+                    <EyeOff className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+              {errors.confirmPassword && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.confirmPassword}
+                </p>
+              )}
+            </div>
+
+            {/* Terms Checkbox */}
+            <div className="space-y-2">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="agreeToTerms"
+                  checked={formData.agreeToTerms}
+                  onChange={handleChange}
+                  className="mt-1 w-4 h-4 rounded border-input text-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <span className="text-sm text-muted-foreground">
+                  I agree to the{" "}
+                  <button
+                    type="button"
+                    onClick={() => window.open("/terms", "_blank")}
+                    className="text-primary font-medium hover:text-primary/80 transition-colors bg-transparent border-0 p-0 cursor-pointer"
+                  >
+                    Terms and Conditions
+                  </button>{" "}
+                  and{" "}
+                  <button
+                    type="button"
+                    onClick={() => window.open("/privacy", "_blank")}
+                    className="text-primary font-medium hover:text-primary/80 transition-colors bg-transparent border-0 p-0 cursor-pointer"
+                  >
+                    Privacy Policy
+                  </button>
+                </span>
+              </label>
+              {errors.agreeToTerms && (
+                <p className="text-sm text-red-600 dark:text-red-400 font-medium">
+                  {errors.agreeToTerms}
+                </p>
+              )}
+            </div>
+
+            {/* Submit */}
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold rounded-lg transition-colors"
+              size="lg"
             >
-              Sign in instead
-            </Link>
-          </p>
-        </form>
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : (
+                "Create account"
+              )}
+            </Button>
+
+            {/* Login Link */}
+            <p className="text-center text-sm text-muted-foreground">
+              Already have an account?{" "}
+              <Link
+                to="/login"
+                className="text-primary font-semibold hover:text-primary/80 transition-colors"
+              >
+                Sign in instead
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   );

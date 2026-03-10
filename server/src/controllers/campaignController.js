@@ -3,6 +3,7 @@ import AppError from "../utils/appError.js";
 import {
   createAndDispatchCampaign,
   recordEmailOpen,
+  recordLinkClick,
   getCampaigns,
   getCampaignById,
 } from "../services/campaignService.js";
@@ -77,6 +78,52 @@ export const trackEmailOpen = asyncCatch(async (req, res) => {
       await updateLeadScore(ce.leadId);
     } catch (err) {
       console.error("[TrackPixel] Post-pixel processing failed:", err.message);
+    }
+  });
+});
+
+export const trackLinkClick = asyncCatch(async (req, res) => {
+  const { dest } = req.query;
+  const { campaignEmailId } = req.params;
+
+  if (!dest) return res.status(400).send("Missing destination");
+
+  let destUrl;
+  try {
+    destUrl = new URL(dest);
+  } catch {
+    return res.status(400).send("Invalid destination URL");
+  }
+
+  if (!["http:", "https:"].includes(destUrl.protocol)) {
+    return res.status(400).send("Invalid destination protocol");
+  }
+
+  res.redirect(302, destUrl.href);
+
+  setImmediate(async () => {
+    try {
+      const ce = await recordLinkClick(campaignEmailId);
+      if (!ce) return;
+
+      await logActivity({
+        leadId: ce.leadId,
+        tenantId: ce.tenantId,
+        type: "link_clicked",
+        description: "Lead clicked a link in a campaign email",
+        metadata: {
+          campaignId: ce.campaignId,
+          campaignEmailId: ce._id,
+          url: destUrl.href,
+        },
+      });
+
+      await updateLeadScore(ce.leadId);
+    } catch (err) {
+      console.error(
+        "[TrackLink] Post-redirect processing failed:",
+        err.message,
+      );
     }
   });
 });

@@ -23,12 +23,17 @@ export const getDashboardStats = asyncCatch(async (req, res) => {
     req.auth?.role === "super_admin" ||
     req.auth?.permissions?.includes("analytics:view_all");
 
-  const leadFilter = req.tenantFilter || {};
-  const dealFilter = req.tenantFilter || {};
+  const tenantBase = req.tenantFilter || {};
+  const dealFilter = { ...tenantBase };
+  let leadFilter = { ...tenantBase };
 
   if (!canViewAll) {
-    leadFilter.assignedTo = new mongoose.Types.ObjectId(req.auth.userId);
-    dealFilter.userId = new mongoose.Types.ObjectId(req.auth.userId);
+    const userObjectId = new mongoose.Types.ObjectId(req.auth.userId);
+    leadFilter = {
+      ...tenantBase,
+      $or: [{ assignedTo: userObjectId }, { createdBy: userObjectId }],
+    };
+    dealFilter.userId = userObjectId;
   }
 
   const response = await analyticsService.getDashboardStats(

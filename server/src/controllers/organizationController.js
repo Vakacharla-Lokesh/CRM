@@ -41,9 +41,7 @@ export const getOrganizationById = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("organizations:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const organization = await organizationService.getOrganizationById(
     req.params.id,
@@ -91,9 +89,7 @@ export const updateOrganization = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("organizations:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const { lastKnownUpdatedAt, ...updates } = req.body;
   const updatedOrganization = await organizationService.updateOrganization(
@@ -126,9 +122,7 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
       req.auth.permissions.includes("organizations:view_all"));
 
   const tenantId =
-    req.tenantContext?.scope === "tenant"
-      ? req.tenantContext.tenantId
-      : null;
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const organization = await organizationService.deleteOrganization(
     req.params.id,
@@ -170,8 +164,7 @@ export const getOrganizationsByTenant = asyncCatch(async (req, res) => {
 });
 
 export const getOrganizationsByUser = asyncCatch(async (req, res) => {
-  const tenantId =
-    req.user.role !== "super_admin" ? req.user.tenantId : null;
+  const tenantId = req.user.role !== "super_admin" ? req.user.tenantId : null;
 
   const organizations = await organizationService.getOrganizationsByUser(
     req.params.userId,

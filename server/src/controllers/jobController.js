@@ -11,6 +11,5 @@ export const getJobStatus = asyncCatch(async (req, res) => {
   if (!job) {
     throw new AppError("Job not found or expired", 404);
   }
-
   res.status(200).json({ success: true, job });
 });

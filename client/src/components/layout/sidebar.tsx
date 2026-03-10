@@ -1,12 +1,18 @@
 import { Link, useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 import { useAppContext } from "@/hooks";
+import { routeConfig } from "@/router/routeConfig";
 
 import {
   type SidebarProps,
   type NavLinkProps,
   navItems,
 } from "@/types/interfaces/layout/sidebar.interfaces";
+
+const preloadMap = new Map(
+  routeConfig.filter((r) => r.preload).map((r) => [r.path, r.preload!]),
+);
 
 const NavLink = ({
   to,
@@ -15,51 +21,66 @@ const NavLink = ({
   onClick,
   isOpen,
   isActive,
-}: NavLinkProps) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
-      isActive
-        ? "bg-accent text-primary border-primary rounded-lg"
-        : "text-muted-foreground hover:bg-muted border-transparent rounded-lg"
-    }`}
-  >
-    <span className="w-5 h-5 shrink-0">{icon}</span>
-    {isOpen && <span>{label}</span>}
-  </Link>
-);
+}: NavLinkProps) => {
+  const handlePrefetch = () => {
+    preloadMap.get(to)?.();
+  };
+
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      onPointerEnter={handlePrefetch}
+      className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-colors ${
+        isActive
+          ? "bg-accent text-primary border-primary rounded-lg"
+          : "text-muted-foreground hover:bg-muted border-transparent rounded-lg"
+      }`}
+    >
+      <span className="w-5 h-5 shrink-0">{icon}</span>
+      {isOpen && <span>{label}</span>}
+    </Link>
+  );
+};
 
 function Sidebar({ isOpen }: SidebarProps) {
   const location = useLocation();
   const { user } = useAppContext();
 
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
+  const isActive = (path: string) => location.pathname === path;
 
   const isSuperAdmin = user?.role === "super_admin";
   const userPermissions = user?.permissions ?? [];
 
   const filteredNavItems = navItems.filter((item) => {
-    // Items with no guards are always visible (e.g. Dashboard)
     if (!item.roles && !item.permission) return true;
-
-    // Super-admins see everything
     if (isSuperAdmin) return true;
-
-    // Role-exclusive items (e.g. Tenants)
     if (item.roles && item.roles.length > 0) {
       return user?.role ? item.roles.includes(user.role) : false;
     }
-
-    // Permission-gated items
     if (item.permission) {
       return userPermissions.includes(item.permission);
     }
-
     return false;
   });
+
+  useEffect(() => {
+    if (!user) return;
+
+    const visiblePaths = filteredNavItems.map((item) => item.to);
+
+    const id = requestIdleCallback(
+      () => {
+        visiblePaths.forEach((path) => {
+          preloadMap.get(path)?.();
+        });
+      },
+      { timeout: 3000 },
+    );
+
+    return () => cancelIdleCallback(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]); 
 
   return (
     <aside

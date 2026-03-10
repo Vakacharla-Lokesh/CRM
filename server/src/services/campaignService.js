@@ -7,9 +7,17 @@ import emailController from "../controllers/emailController.js";
 import { logActivity } from "./leadActivityService.js";
 import { updateLeadScore } from "../utils/leadScoreUtils.js";
 import { queueService } from "./aws/queue/queue.service.js";
+import { marked } from "marked";
 
 const TRACKING_BASE_URL =
   process.env.API_BASE_URL || "http://localhost:4000/api";
+
+function wrapLinksWithTracking(html, campaignEmailId) {
+  return html.replace(/href="(https?:\/\/[^"]+)"/g, (_, url) => {
+    const encoded = encodeURIComponent(url);
+    return `href="${TRACKING_BASE_URL}/campaigns/link/${campaignEmailId}?dest=${encoded}"`;
+  });
+}
 
 function isCampaignQueueAvailable() {
   try {
@@ -22,14 +30,16 @@ function isCampaignQueueAvailable() {
 
 async function sendCampaignEmailDirect(ce, campaign) {
   const pixelUrl = `${TRACKING_BASE_URL}/campaigns/track/${ce._id}`;
-  const trackedHtml = `${campaign.body}<img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
+  let htmlBody = await marked.parse(campaign.body);
+  htmlBody = wrapLinksWithTracking(htmlBody, ce._id);
+  const trackedHtml = `${htmlBody}<img src="${pixelUrl}" width="1" height="1" style="display:none;" alt="" />`;
 
   try {
     await emailController.sendEmail({
       to: ce.toEmail,
       subject: campaign.subject,
       html: trackedHtml,
-      text: campaign.body.replace(/<[^>]*>/g, ""),
+      text: campaign.body,
     });
 
     ce.status = "sent";
@@ -163,4 +173,19 @@ export const getCampaignById = async (campaignId, tenantId) => {
   const campaign = await Campaign.findOne({ _id: campaignId, tenantId }).lean();
   if (!campaign) throw new AppError("Campaign not found", 404);
   return campaign;
+};
+
+export const recordLinkClick = async (campaignEmailId) => {
+  const ce = await CampaignEmail.findByIdAndUpdate(
+    campaignEmailId,
+    { $inc: { linkClickCount: 1 } },
+    { new: true },
+  ).lean();
+  if (!ce) return null;
+
+  await Campaign.findByIdAndUpdate(ce.campaignId, {
+    $inc: { linkClickCount: 1 },
+  });
+
+  return ce;
 };

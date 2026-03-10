@@ -38,14 +38,12 @@ export const attachmentsAPI = {
     };
   },
 
-  // Step 1: Ask the server for a presigned PUT URL
   getPresignedUrl: async (
     data: PresignedUrlRequest,
   ): Promise<PresignedUrlResponse> => {
     return post<PresignedUrlResponse>("/attachments/presigned-url", data);
   },
 
-  // Step 2a: Upload the file directly to S3 using the presigned URL
   uploadToS3: async (presignedUrl: string, file: File): Promise<void> => {
     const response = await fetch(presignedUrl, {
       method: "PUT",
@@ -59,7 +57,6 @@ export const attachmentsAPI = {
     }
   },
 
-  // Step 2b: Confirm the upload by saving metadata to the DB
   create: async (data: CreateAttachmentDTO) => {
     const response = await post<{ message: string; attachment: Attachment }>(
       "/attachments",
@@ -70,7 +67,6 @@ export const attachmentsAPI = {
 
   delete: (id: string) => delete_<{ message: string }>(`/attachments/${id}`),
 
-  // Returns a fresh presigned GET URL from the server
   download: async (id: string): Promise<string> => {
     const headers: Record<string, string> = {};
 
