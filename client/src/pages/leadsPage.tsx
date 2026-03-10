@@ -1,7 +1,7 @@
 // hooks and basic imports
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useLeadData, useDebounce } from "@/hooks";
+import { useLeadData, useDebounce, useBulkImportLeads } from "@/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsAPI } from "@/services";
 
@@ -10,7 +10,7 @@ import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/leads/leadColumns";
 import type { CreateLeadDTO, Lead } from "@/types";
 import { Button } from "../components/ui/button";
-import { Search } from "lucide-react";
+import { Import, Search } from "lucide-react";
 import { BulkActionBar } from "@/components/bulk/BulkActionBar";
 import { Input } from "../components/ui/input";
 import {
@@ -24,6 +24,7 @@ import { LeadModal, PipelineModal } from "@/components/modals";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import LeadStatistics from "@/components/leads/leadStatistics";
 import { toast } from "sonner";
+import BulkImportModal from "@/components/modals/bulkImportModal";
 
 // other imports
 import { exportEmailLeads, exportLeads } from "@/services/exportService";
@@ -79,6 +80,9 @@ const LeadsPage = () => {
   // search state
   const [searchInput, setSearchInput] = useState(filters.search ?? "");
   const debouncedSearch = useDebounce(searchInput, 400);
+
+  // Import Modal
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   // navigation
   const navigate = useNavigate();
@@ -324,6 +328,13 @@ const LeadsPage = () => {
     };
   }, [fetchLeads]);
 
+  const { importLeads, loading: importLoading } = useBulkImportLeads();
+
+  // import leads
+  const handleBulkImport = () => {
+    setIsImportModalOpen(true);
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -350,6 +361,13 @@ const LeadsPage = () => {
           )}
         </div>
         <div className="flex flex-row gap-4">
+          <Button
+            onClick={handleBulkImport}
+            className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+          >
+            <Import />
+            Import
+          </Button>
           <Button
             onClick={handleAddLead}
             className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
@@ -553,6 +571,25 @@ const LeadsPage = () => {
           setSelectedPipelineForEdit(undefined);
         }}
         onSave={handleSavePipeline}
+      />
+
+      {/* Import Modal */}
+
+      <BulkImportModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        title="Import Leads"
+        columns={[
+          { name: "firstName", required: true },
+          { name: "lastName" },
+          { name: "email" },
+          { name: "status" },
+          { name: "source" },
+          { name: "score" },
+          { name: "assignedTo" },
+        ]}
+        importFn={importLeads}
+        loading={importLoading}
       />
     </div>
   );

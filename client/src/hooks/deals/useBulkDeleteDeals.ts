@@ -16,7 +16,11 @@ export function useBulkDeleteDeals() {
   const bulkDelete = async (ids: string[]): Promise<BulkDeleteResponse> => {
     setLoading(true);
     try {
-      const result = await post<BulkDeleteResponse>("/deals/bulk-delete", {
+      // const result = await post<BulkDeleteResponse>("/deals/bulk-delete", {
+      //   ids,
+      // });
+
+      const result = await post<BulkDeleteResponse>("/bulk/deals/delete", {
         ids,
       });
 

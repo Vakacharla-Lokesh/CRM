@@ -8,6 +8,13 @@ import {
   bulkCreateCalls,
   bulkCreateOrganizations,
   bulkUpdateOrganizations,
+  bulkDeleteLeads,
+  bulkDeleteDeals,
+  bulkDeleteOrganizations,
+  uploadFile,
+  importLeads,
+  importDeals,
+  importOrganizations,
 } from "../controllers/bulkController.js";
 import { authenticateRequest } from "../middlewares/auth.js";
 import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
@@ -42,6 +49,21 @@ router.post(
   bulkUpdateLeads,
 );
 router.post(
+  "/leads/delete",
+  authenticateRequest,
+  requirePermission("bulk:delete"),
+  injectTenantContext,
+  bulkDeleteLeads,
+);
+router.post(
+  "/leads/import",
+  uploadFile,
+  authenticateRequest,
+  requirePermission("bulk:import"),
+  injectTenantContext,
+  importLeads,
+);
+router.post(
   "/deals/create",
   authenticateRequest,
   requirePermission("bulk:import"),
@@ -56,6 +78,21 @@ router.post(
   injectTenantContext,
   validate(bulkUpdateDealsSchema),
   bulkUpdateDeals,
+);
+router.post(
+  "/deals/delete",
+  authenticateRequest,
+  requirePermission("bulk:delete"),
+  injectTenantContext,
+  bulkDeleteDeals,
+);
+router.post(
+  "/deals/import",
+  uploadFile,
+  authenticateRequest,
+  requirePermission("bulk:import"),
+  injectTenantContext,
+  importDeals,
 );
 router.post(
   "/comments/create",
@@ -88,6 +125,21 @@ router.post(
   injectTenantContext,
   validate(bulkUpdateOrganizationsSchema),
   bulkUpdateOrganizations,
+);
+router.post(
+  "/organizations/delete",
+  authenticateRequest,
+  requirePermission("bulk:delete"),
+  injectTenantContext,
+  bulkDeleteOrganizations,
+);
+router.post(
+  "/organizations/import",
+  uploadFile,
+  authenticateRequest,
+  requirePermission("bulk:import"),
+  injectTenantContext,
+  importOrganizations,
 );
 
 export default router;

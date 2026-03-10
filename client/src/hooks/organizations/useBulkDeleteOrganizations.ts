@@ -16,8 +16,13 @@ export function useBulkDeleteOrganizations() {
   const bulkDelete = async (ids: string[]): Promise<BulkDeleteResponse> => {
     setLoading(true);
     try {
+      // const result = await post<BulkDeleteResponse>(
+      //   "/organizations/bulk-delete",
+      //   { ids },
+      // );
+
       const result = await post<BulkDeleteResponse>(
-        "/organizations/bulk-delete",
+        "/bulk/organizations/delete",
         { ids },
       );
 

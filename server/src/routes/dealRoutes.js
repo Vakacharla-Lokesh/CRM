@@ -11,7 +11,6 @@ import {
   getDealsByOrganization,
   updateDealStatus,
   searchDeals,
-  bulkDeleteDealsController,
 } from "../controllers/dealController.js";
 import { validate } from "../middlewares/validate.js";
 import { authenticateRequest } from "../middlewares/auth.js";
@@ -37,13 +36,6 @@ router.get(
   requirePermission("deals:read"),
   injectTenantContext,
   searchDeals,
-);
-router.post(
-  "/bulk-delete",
-  authenticateRequest,
-  requirePermission("deals:delete"),
-  injectTenantContext,
-  bulkDeleteDealsController,
 );
 router.get(
   "/:id",

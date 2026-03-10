@@ -44,7 +44,6 @@ organizationsSchema.index(
 );
 
 // search index
-// search index
 organizationsSchema.index({
   name: "text",
   website: "text",

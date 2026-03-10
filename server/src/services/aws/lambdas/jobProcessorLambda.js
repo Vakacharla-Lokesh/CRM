@@ -20,7 +20,7 @@ import * as leadReminderWorker from "./leadReminderLambda.js";
 import * as analyticsSnapshotWorker from "./analyticsSnapshotLambda.js";
 import * as campaignEmailWorker from "./campaignEmailLambda.js";
 
-import { jobService } from "../../services/jobService.js";
+import { jobService } from "../../jobService.js";
 
 let _initialized = false;
 

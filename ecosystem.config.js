@@ -3,8 +3,8 @@ module.exports = {
     {
       name: "frontend",
       cwd: "./client",
-      script: "npm",
-      args: "run dev",
+      script: "node",
+      args: "node_modules/vite/bin/vite.js",
       env: {
         NODE_ENV: "development",
       },
@@ -26,8 +26,8 @@ module.exports = {
     {
       name: "backend",
       cwd: "./server",
-      script: "npm",
-      args: "run dev",
+      script: "node",
+      args: "--watch index.js",
       env: {
         NODE_ENV: "development",
         PORT: 4000,
@@ -51,8 +51,8 @@ module.exports = {
     {
       name: "worker",
       cwd: "./server",
-      script: "npm",
-      args: "run worker:dev",
+      script: "node",
+      args: "--watch src/services/aws/lambdas/localRunner.js",
       env: {
         NODE_ENV: "development",
       },

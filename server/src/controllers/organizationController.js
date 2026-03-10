@@ -197,21 +197,3 @@ export const searchOrganizations = asyncCatch(async (req, res) => {
 
   res.json({ count: organizations.length, organizations });
 });
-
-export const bulkDeleteOrganizationsController = asyncCatch(
-  async (req, res) => {
-    const { ids } = req.body;
-    const tenantId = req.user.tenantId;
-    const userContext = {
-      userId: req.user.userId,
-      role: req.user.role,
-    };
-
-    const result = await bulkDeleteOrganizations(ids, tenantId, userContext);
-
-    res.json({
-      message: "Bulk delete completed",
-      ...result,
-    });
-  },
-);

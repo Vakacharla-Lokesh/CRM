@@ -2,29 +2,24 @@ import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { bulkAPI } from "@/services";
 
-interface BulkDeleteResponse {
+export interface BulkImportResult {
   message: string;
-  totalRequested: number;
-  totalDeleted: number;
-  failedIds: string[];
+  imported: number;
+  skipped: number;
+  failed: number;
+  errors: string[];
 }
 
-export function useBulkDeleteLeads() {
+export function useBulkImportLeads() {
   const [loading, setLoading] = useState(false);
   const queryClient = useQueryClient();
 
-  const bulkDelete = async (
-    ids: string[],
-  ): Promise<BulkDeleteResponse> => {
+  const importLeads = async (file: File): Promise<BulkImportResult> => {
     setLoading(true);
     try {
-      // const result = await post<BulkDeleteResponse>("/leads/bulk-delete", {
-      //   ids,
-      // });
+      const result = await bulkAPI.importLeads(file);
 
-      const result = await bulkAPI.deleteLeads(ids);
-
-      // Invalidate leads-related query caches
+      // Invalidate leads list and analytics so the table refreshes
       await queryClient.invalidateQueries({ queryKey: ["leads"] });
       await queryClient.invalidateQueries({
         queryKey: ["analytics", "statusBreakdown"],
@@ -36,5 +31,5 @@ export function useBulkDeleteLeads() {
     }
   };
 
-  return { bulkDelete, loading };
+  return { importLeads, loading };
 }

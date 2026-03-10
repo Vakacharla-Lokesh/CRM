@@ -243,20 +243,3 @@ export const updateDealStatus = asyncCatch(async (req, res) => {
     deal,
   });
 });
-
-export const bulkDeleteDealsController = asyncCatch(async (req, res) => {
-  const { ids } = req.body;
-  const tenantId =
-    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
-  const userContext = {
-    userId: req.auth.userId,
-    scope: req.tenantContext?.scope,
-  };
-
-  const result = await bulkDeleteDeals(ids, tenantId, userContext);
-
-  res.json({
-    message: "Bulk delete completed",
-    ...result,
-  });
-});

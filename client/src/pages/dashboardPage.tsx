@@ -5,10 +5,14 @@ import {
   DollarSign,
   RefreshCw,
 } from "lucide-react";
+import { useState, useCallback } from "react";
 import StatCard from "../components/common/statCard";
 import { useDashboardStats, useAnalyticsData } from "../hooks";
+import { useDebouncedCallback } from "../hooks/useDebouncedCallback";
 import TrendsSection from "@/components/dashboard/trendsSection";
 import PipelineSection from "@/components/dashboard/pipelineSection";
+
+const REFRESH_DEBOUNCE_DELAY = 5000; // 5 seconds
 
 function DashboardPage() {
   const { stats, changes, loading, error, refreshStats } = useDashboardStats();
@@ -23,11 +27,27 @@ function DashboardPage() {
     refreshData,
   } = useAnalyticsData(30);
 
+  const [isDebounced, setIsDebounced] = useState(false);
   const isRefreshing = loading || analyticsLoading;
 
-  const handleRefresh = () => {
+  const performRefresh = useCallback(() => {
     refreshStats();
     refreshData();
+  }, [refreshStats, refreshData]);
+
+  const debouncedRefresh = useDebouncedCallback(() => {
+    setIsDebounced(true);
+    performRefresh();
+
+    setTimeout(() => {
+      setIsDebounced(false);
+    }, REFRESH_DEBOUNCE_DELAY);
+  }, 300);
+
+  const handleRefresh = () => {
+    if (!isDebounced && !isRefreshing) {
+      debouncedRefresh();
+    }
   };
 
   const leadTrendData = leadTrends.slice(-10).map((t) => ({
@@ -80,8 +100,12 @@ function DashboardPage() {
         </div>
         <button
           onClick={handleRefresh}
-          disabled={isRefreshing}
-          title="Refresh dashboard"
+          disabled={isRefreshing || isDebounced}
+          title={
+            isDebounced
+              ? "Please wait before refreshing again"
+              : "Refresh dashboard"
+          }
           className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
           style={{
             border: "1px solid var(--border)",
