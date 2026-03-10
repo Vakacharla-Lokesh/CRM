@@ -60,7 +60,6 @@ async function ensureEventPatternRule(ruleName, eventPattern, targetArn, roleArn
       },
     ];
 
-    // Add RoleArn if provided (needed for service-to-service invocation)
     if (roleArn) {
       targets[0].RoleArn = roleArn;
     }

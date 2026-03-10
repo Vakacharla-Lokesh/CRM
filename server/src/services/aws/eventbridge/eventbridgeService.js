@@ -1,4 +1,4 @@
-import { eventBridgeAdapter } from "../queue/eventbridge.adapter.js";
+import { eventBridgeAdapter } from "../queue/eventbridge.js";
 import { isValidJobType, JOB_TYPE_QUEUE_MAP } from "../../../utils/jobTypes.js";
 
 async function delegateJobViaEventBridge(jobType, payload, tenantId) {
@@ -39,11 +39,11 @@ async function delegateJobViaEventBridge(jobType, payload, tenantId) {
     }
 
     console.log(
-      `[EventBridgeService] ✓ Job delegated: ${jobType} for tenant: ${tenantId}`,
+      `[EventBridgeService] Job delegated: ${jobType} for tenant: ${tenantId}`,
     );
     return response.Entries?.[0]?.EventId;
   } catch (error) {
-    console.error("[EventBridgeService] ❌ Error delegating job:", {
+    console.error("[EventBridgeService] Error delegating job:", {
       jobType,
       error: error.message,
     });
@@ -53,7 +53,7 @@ async function delegateJobViaEventBridge(jobType, payload, tenantId) {
 
 async function setupJobDispatcher(lambdaArn, roleArn) {
   try {
-    console.log("[EventBridgeService] 🔧 Setting up job dispatcher...");
+    console.log("[EventBridgeService] Setting up job dispatcher...");
 
     const ruleName = "crm-job-dispatcher";
 
@@ -76,9 +76,9 @@ async function setupJobDispatcher(lambdaArn, roleArn) {
       roleArn,
     );
 
-    console.log("[EventBridgeService] ✓ Job dispatcher configured");
+    console.log("[EventBridgeService] Job dispatcher configured");
   } catch (error) {
-    console.error("[EventBridgeService] ❌ Failed to setup dispatcher:", {
+    console.error("[EventBridgeService] Failed to setup dispatcher:", {
       error: error.message,
     });
     throw error;
@@ -87,7 +87,7 @@ async function setupJobDispatcher(lambdaArn, roleArn) {
 
 async function setupSqsQueueDispatcher(sqsArn, lambdaArn, roleArn) {
   try {
-    console.log("[EventBridgeService] 🔧 Setting up SQS queue dispatcher...");
+    console.log("[EventBridgeService] Setting up SQS queue dispatcher...");
 
     const ruleName = "crm-sqs-queue-dispatcher";
 
@@ -114,9 +114,9 @@ async function setupSqsQueueDispatcher(sqsArn, lambdaArn, roleArn) {
       roleArn,
     );
 
-    console.log("[EventBridgeService] ✓ SQS queue dispatcher configured");
+    console.log("[EventBridgeService] SQS queue dispatcher configured");
   } catch (error) {
-    console.error("[EventBridgeService] ❌ Failed to setup SQS dispatcher:", {
+    console.error("[EventBridgeService] Failed to setup SQS dispatcher:", {
       error: error.message,
     });
     throw error;

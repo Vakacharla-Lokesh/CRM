@@ -3,7 +3,7 @@ import mongoose, { Schema, model } from "mongoose";
 const sessionEventSchema = new Schema(
   {
     sessionId: { type: String, required: true, index: true },
-    tenantId: { type: Schema.Types.ObjectId, required: true, index: true },
+    tenantId: { type: Schema.Types.ObjectId, required: true },
     type: {
       type: String,
       required: true,

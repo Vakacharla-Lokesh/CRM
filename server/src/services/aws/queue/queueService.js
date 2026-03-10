@@ -1,4 +1,4 @@
-import { sqsAdapter } from "./sqs.adapter.js";
+import { sqsAdapter } from "./sqsHandler.js";
 import { queueUrls } from "../initAwsResources.js";
 import { isValidJobType, JOB_TYPE_QUEUE_MAP } from "../../../utils/jobTypes.js";
 

@@ -4,7 +4,12 @@ import {
   PutBucketCorsCommand,
 } from "@aws-sdk/client-s3";
 
-import { CreateQueueCommand, GetQueueUrlCommand } from "@aws-sdk/client-sqs";
+import {
+  CreateQueueCommand,
+  GetQueueUrlCommand,
+  GetQueueAttributesCommand,
+  SetQueueAttributesCommand,
+} from "@aws-sdk/client-sqs";
 
 import { s3, sqs } from "./awsClient.js";
 
@@ -60,7 +65,7 @@ async function applyCors(bucketName) {
 
   const origins = allowedOrigins.length
     ? allowedOrigins
-    : ["http://localhost:5173", "http://localhost:3000"];
+    : ["http://localhost:5173", "http://localhost:4000"];
 
   await s3.send(
     new PutBucketCorsCommand({
@@ -81,12 +86,23 @@ async function applyCors(bucketName) {
   console.log(`[AWS] CORS applied to bucket: ${bucketName}`);
 }
 
-async function ensureQueue(queueName) {
+async function ensureQueue(queueName, attributes = {}) {
   try {
     const existing = await sqs.send(
       new GetQueueUrlCommand({ QueueName: queueName }),
     );
     console.log(`[AWS] SQS queue already exists: ${queueName}`);
+
+    if (Object.keys(attributes).length > 0) {
+      await sqs.send(
+        new SetQueueAttributesCommand({
+          QueueUrl: existing.QueueUrl,
+          Attributes: attributes,
+        }),
+      );
+      console.log(`[AWS] SQS queue attributes updated: ${queueName}`);
+    }
+
     return existing.QueueUrl;
   } catch (err) {
     if (
@@ -95,7 +111,10 @@ async function ensureQueue(queueName) {
     ) {
       console.log(`[AWS] Creating SQS queue: ${queueName}`);
       const created = await sqs.send(
-        new CreateQueueCommand({ QueueName: queueName }),
+        new CreateQueueCommand({
+          QueueName: queueName,
+          Attributes: attributes,
+        }),
       );
       console.log(`[AWS] SQS queue created: ${queueName}`);
       return created.QueueUrl;
@@ -119,14 +138,39 @@ export async function ensureAwsInitialized() {
     await applyCors(BUCKETS.leads);
     await applyCors(BUCKETS.workflows);
 
-    // SQS Queues — store resolved URLs
-    queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites);
-    queueUrls.exportData = await ensureQueue(QUEUES.exportData);
-    queueUrls.campaignEmails = await ensureQueue(QUEUES.campaignEmails);
+    const dlqUrl = await ensureQueue("crm-dead-letter");
+
+    const dlqAttrs = await sqs.send(
+      new GetQueueAttributesCommand({
+        QueueUrl: dlqUrl,
+        AttributeNames: ["QueueArn"],
+      }),
+    );
+    const dlqArn = dlqAttrs.Attributes.QueueArn;
+    console.log(`[AWS] DLQ ARN resolved: ${dlqArn}`);
+
+    const redrivePolicy = JSON.stringify({
+      deadLetterTargetArn: dlqArn,
+      maxReceiveCount: "3",
+    });
+
+    queueUrls.offlineWrites = await ensureQueue(QUEUES.offlineWrites, {
+      VisibilityTimeout: "300",
+      RedrivePolicy: redrivePolicy,
+    });
+
+    queueUrls.exportData = await ensureQueue(QUEUES.exportData, {
+      VisibilityTimeout: "600",
+      RedrivePolicy: redrivePolicy,
+    });
+
+    queueUrls.campaignEmails = await ensureQueue(QUEUES.campaignEmails, {
+      VisibilityTimeout: "120",
+      RedrivePolicy: redrivePolicy,
+    });
 
     try {
-      const { eventBridgeAdapter } =
-        await import("./queue/eventbridge.adapter.js");
+      const { eventBridgeAdapter } = await import("./queue/eventbridge.js");
 
       const lambdaArn =
         process.env.LAMBDA_JOB_PROCESSOR_ARN ||
@@ -185,7 +229,7 @@ export async function ensureAwsInitialized() {
       );
 
       console.log(
-        "[AWS] ✓ EventBridge dispatchers configured (replaces localRunner polling)",
+        "[AWS] EventBridge dispatchers configured (replaces localRunner polling)",
       );
     } catch (err) {
       console.warn("[AWS] EventBridge setup incomplete:", err.message);

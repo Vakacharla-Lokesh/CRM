@@ -1,11 +1,12 @@
-import mongoose from "mongoose";
 import SessionEvent from "../models/sessionEventModel.js";
 import { createLead } from "./leadService.js";
 import { getNextAssignee } from "./roundRobinService.js";
-import { notifyUser } from "./notificationService.js";
-import { notificationTypes } from "./notificationService.js";
+import { notifyUser, notificationTypes } from "./notificationService.js";
 
 const SCORE_THRESHOLD = 50;
+const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
+
+const RETRY_DELAYS_MS = [2000, 4000, 8000, 15000, 30000];
 
 const SCORING_RULES = [
   {
@@ -65,7 +66,32 @@ const SCORING_RULES = [
   },
 ];
 
-const convertedSessions = new Set();
+const convertedSessions = new Map();
+
+const sessionHasConverted = (sessionId) => {
+  const entry = convertedSessions.get(sessionId);
+  if (!entry) return false;
+  if (Date.now() > entry.expiresAt) {
+    convertedSessions.delete(sessionId);
+    return false;
+  }
+  return true;
+};
+
+const markSessionConverted = (sessionId) => {
+  convertedSessions.set(sessionId, { expiresAt: Date.now() + SESSION_TTL_MS });
+};
+
+const unmarkSessionConverted = (sessionId) => {
+  convertedSessions.delete(sessionId);
+};
+
+const evictExpiredSessions = () => {
+  const now = Date.now();
+  for (const [id, entry] of convertedSessions) {
+    if (now > entry.expiresAt) convertedSessions.delete(id);
+  }
+};
 
 const scoreSession = (events) => {
   let total = 0;
@@ -85,12 +111,12 @@ const createAutoLead = async (
   visitorEmail,
   score,
 ) => {
-  if (convertedSessions.has(sessionId)) {
+  if (sessionHasConverted(sessionId)) {
     console.log(`[Tracking] Session ${sessionId} already converted — skipping`);
     return;
   }
 
-  convertedSessions.add(sessionId);
+  markSessionConverted(sessionId);
 
   try {
     const assignedTo = await getNextAssignee(tenantId);
@@ -99,7 +125,7 @@ const createAutoLead = async (
       console.warn(
         `[Tracking] No assignee found for tenant ${tenantId} — lead not created`,
       );
-      convertedSessions.delete(sessionId);
+      unmarkSessionConverted(sessionId);
       return;
     }
 
@@ -130,7 +156,7 @@ const createAutoLead = async (
       },
     });
   } catch (err) {
-    convertedSessions.delete(sessionId);
+    unmarkSessionConverted(sessionId);
     console.error(
       `[Tracking] Failed to create auto-lead for session ${sessionId}:`,
       err,
@@ -141,7 +167,7 @@ const createAutoLead = async (
 const processEvent = async (newEvent) => {
   const { sessionId, tenantId, visitorName, visitorEmail } = newEvent;
 
-  if (convertedSessions.has(sessionId)) return;
+  if (sessionHasConverted(sessionId)) return;
 
   const events = await SessionEvent.find({ sessionId }).lean();
   const score = scoreSession(events);
@@ -156,22 +182,19 @@ const processEvent = async (newEvent) => {
 };
 
 let changeStream = null;
+let isStopped = false;
+let retryCount = 0;
 
-export const startSessionTracking = async () => {
-  try {
-    await SessionEvent.createCollection();
-    console.log("[Tracking] SessionEvents collection ready");
-  } catch (err) {
-    if (!err.message?.includes("already exists")) {
-      console.error("[Tracking] Error ensuring collection:", err.message);
-    }
-  }
+const openStream = () => {
+  if (isStopped) return;
 
   changeStream = SessionEvent.watch([{ $match: { operationType: "insert" } }], {
     fullDocument: "updateLookup",
   });
 
   changeStream.on("change", async (change) => {
+    retryCount = 0;
+    evictExpiredSessions();
     try {
       const doc = change.fullDocument;
       if (!doc) return;
@@ -183,16 +206,50 @@ export const startSessionTracking = async () => {
 
   changeStream.on("error", (err) => {
     console.error("[Tracking] Change stream error:", err);
+    scheduleReconnect();
   });
 
   changeStream.on("close", () => {
-    console.warn("[Tracking] Change stream closed");
+    if (isStopped) {
+      console.log("[Tracking] Change stream closed intentionally");
+      return;
+    }
+    console.warn(
+      "[Tracking] Change stream closed unexpectedly — will reconnect",
+    );
+    scheduleReconnect();
   });
 
   console.log("[Tracking] Change stream watching SessionEvents");
 };
 
+const scheduleReconnect = () => {
+  if (isStopped) return;
+
+  const delayMs =
+    RETRY_DELAYS_MS[Math.min(retryCount, RETRY_DELAYS_MS.length - 1)];
+  retryCount++;
+
+  console.log(
+    `[Tracking] Reconnecting in ${delayMs / 1000}s (attempt ${retryCount})...`,
+  );
+
+  setTimeout(() => {
+    if (!isStopped) {
+      console.log("[Tracking] Attempting to reopen change stream...");
+      openStream();
+    }
+  }, delayMs);
+};
+
+export const startSessionTracking = () => {
+  isStopped = false;
+  retryCount = 0;
+  openStream();
+};
+
 export const stopSessionTracking = () => {
+  isStopped = true;
   if (changeStream) {
     changeStream.close();
     changeStream = null;
@@ -206,7 +263,7 @@ export const evaluateSession = async (
   visitorName,
   visitorEmail,
 ) => {
-  if (convertedSessions.has(sessionId)) return;
+  if (sessionHasConverted(sessionId)) return;
   const events = await SessionEvent.find({ sessionId }).lean();
   const score = scoreSession(events);
   if (score >= SCORE_THRESHOLD) {

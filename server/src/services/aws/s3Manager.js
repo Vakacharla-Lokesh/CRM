@@ -7,7 +7,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { s3 } from "./awsClient.js";
 import { BUCKETS } from "./initAwsResources.js";
 
-const SIGNED_URL_EXPIRY_SECONDS = 300;
+const SIGNED_URL_EXPIRY_SECONDS = 1800;
 
 function buildS3Url(bucket, key) {
   const endpoint =
