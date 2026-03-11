@@ -10,8 +10,8 @@ config({ path: path.resolve(__dirname, "../../.env") });
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
-import userModel from "../models/userModel.js";
-import tenantModel from "../models/tenantModel.js";
+import userModel from "../modules/users/models/userModel.js";
+import tenantModel from "../modules/tenants/models/tenantModel.js";
 
 // Local Strategy (used during login)
 passport.use(

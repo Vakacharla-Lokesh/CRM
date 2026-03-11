@@ -1,9 +1,9 @@
-import leadModel from "../models/leadModel.js";
-import organizationModel from "../models/organizationModel.js";
-import commentModel from "../models/commentModel.js";
-import callModel from "../models/callModel.js";
-import attachmentModel from "../models/attachmentModel.js";
-import { CampaignEmail } from "../models/campaignModel.js";
+import leadModel from "../modules/leads/models/leadModel.js";
+import organizationModel from "../modules/organizations/models/organizationModel.js";
+import commentModel from "../modules/comments/models/commentModel.js";
+import callModel from "../modules/calls/models/callModel.js";
+import attachmentModel from "../modules/attachments/models/attachmentModel.js";
+import { CampaignEmail } from "../modules/campaign/models/campaignModel.js";
 
 function scoreLead(lead) {
   let score = 0;

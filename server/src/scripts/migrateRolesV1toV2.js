@@ -2,9 +2,9 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import User from "../models/userModel.js";
+import User from "../modules/users/models/userModel.js";
 import Role from "../models/roleModel.js";
-import Tenant from "../models/tenantModel.js";
+import Tenant from "../modules/tenants/models/tenantModel.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../models/permissionPresets.js";
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,4 +1,4 @@
-import Workflow from "../models/workflows/workflowModel.js";
+import Workflow from "../modules/workflows/models/workflowModel.js";
 
 export async function seedWorkflows(tenants, users) {
   // Clear existing workflows

@@ -14,7 +14,7 @@ import {
   saveAnalyticsSnapshot,
   getAllTenantsWithUsers,
   TENANT_SCOPE_KEY,
-} from "../../analyticsSnapshotService.js";
+} from "../../../modules/analytics/services/analyticsSnapshotService.js";
 
 export const jobType = JOB_TYPES.ANALYTICS_SNAPSHOT;
 

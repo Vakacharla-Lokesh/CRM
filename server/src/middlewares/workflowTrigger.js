@@ -1,5 +1,5 @@
-import workflowModel from "../models/workflows/workflowModel.js";
-import workflowExecutionLogModel from "../models/workflows/workflowExecutionLogModel.js";
+import workflowModel from "../modules/workflows/models/workflowModel.js";
+import workflowExecutionLogModel from "../modules/workflows/models/workflowExecutionLogModel.js";
 import { jobDispatcher } from "../services/jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../utils/jobTypes.js";
 import asyncCatch from "../utils/asyncCatch.js";

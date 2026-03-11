@@ -1,4 +1,4 @@
-import Organization from "../models/organizationModel.js";
+import Organization from "../modules/organizations/models/organizationModel.js";
 
 export async function seedOrganizations(tenants, users) {
   // Clear existing organizations

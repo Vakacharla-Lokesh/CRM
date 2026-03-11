@@ -1,9 +1,9 @@
 import mongoose from "mongoose";
 import AppError from "../utils/appError.js";
 
-import leadModel from "../models/leadModel.js";
-import organizationModel from "../models/organizationModel.js";
-import dealModel from "../models/dealModel.js";
+import leadModel from "../modules/leads/models/leadModel.js";
+import organizationModel from "../modules/organizations/models/organizationModel.js";
+import dealModel from "../modules/deals/models/dealModel.js";
 
 const MAX_BULK_DELETE_IDS = 50;
 

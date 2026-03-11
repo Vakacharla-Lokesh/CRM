@@ -6,8 +6,8 @@ import { seedLeads } from "./seedLeads.js";
 import { seedDeals } from "./seedDeals.js";
 import { seedWorkflows } from "./seedWorkflows.js";
 
-import tenantModel from "../../src/models/tenantModel.js";
-import userModel from "../../src/models/userModel.js";
+import tenantModel from "../../src/modules/tenants/models/tenantModel.js";
+import userModel from "../../src/modules/users/models/userModel.js";
 
 dotenv.config({ path: "../../.env" });
 

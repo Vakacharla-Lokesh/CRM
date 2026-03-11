@@ -29,7 +29,7 @@ export const authenticateRequest = (req, res, next) => {
 
 export const checkActive = async (req, res, next) => {
   try {
-    const { default: userModel } = await import("../models/userModel.js");
+    const { default: userModel } = await import("../modules/users/models/userModel.js");
     const userDoc = await userModel.findById(req.auth.userId).lean();
 
     if (!userDoc || !userDoc.isActive) {
@@ -39,7 +39,7 @@ export const checkActive = async (req, res, next) => {
     }
 
     if (!req.auth.permissions.includes("system:manage") && req.auth.tenantId) {
-      const { default: tenantModel } = await import("../models/tenantModel.js");
+      const { default: tenantModel } = await import("../modules/tenants/models/tenantModel.js");
       const tenant = await tenantModel.findById(req.auth.tenantId).lean();
 
       if (!tenant || !tenant.isActive) {

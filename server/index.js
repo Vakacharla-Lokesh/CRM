@@ -5,8 +5,8 @@ import httpServer from "./src/server.js";
 
 import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
 import { queueService } from "./src/services/aws/queue/queueService.js";
-import { startSessionTracking } from "./src/services/sessionTrackingService.js";
-import { processAllPendingEmails } from "./src/services/campaignService.js";
+import { startSessionTracking } from "./src/modules/sessionEvents/services/sessionTrackingService.js";
+import { processAllPendingEmails } from "./src/modules/campaign/services/campaignService.js";
 
 try {
   await ensureAwsInitialized();

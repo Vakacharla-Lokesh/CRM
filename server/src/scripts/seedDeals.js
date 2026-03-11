@@ -1,4 +1,4 @@
-import Deal from "../models/dealModel.js";
+import Deal from "../modules/deals/models/dealModel.js";
 
 export async function seedDeals(tenants, users, leads, organizations) {
   // Clear existing deals

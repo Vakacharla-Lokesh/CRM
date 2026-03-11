@@ -17,25 +17,25 @@ import { initializeSocketServer } from "./config/socketServer.js";
 
 // Routes
 import authRoutes from "./routes/authRoutes.js";
-import leadRoutes from "./routes/leadRoutes.js";
-import userRoutes from "./routes/userRoutes.js";
-import tenantRoutes from "./routes/tenantRoutes.js";
-import organizationRoutes from "./routes/organizationRoutes.js";
-import dealRoutes from "./routes/dealRoutes.js";
-import callRoutes from "./routes/callRoutes.js";
-import commentRoutes from "./routes/commentRoutes.js";
-import attachmentRoutes from "./routes/attachmentRoutes.js";
-import analyticsRoutes from "./routes/analyticsRoutes.js";
+import leadRoutes from "./modules/leads/routes/leadRoutes.js";
+import userRoutes from "./modules/users/routes/userRoutes.js";
+import tenantRoutes from "./modules/tenants/routes/tenantRoutes.js";
+import organizationRoutes from "./modules/organizations/routes/organizationRoutes.js";
+import dealRoutes from "./modules/deals/routes/dealRoutes.js";
+import callRoutes from "./modules/calls/routes/callRoutes.js";
+import commentRoutes from "./modules/comments/routes/commentRoutes.js";
+import attachmentRoutes from "./modules/attachments/routes/attachmentRoutes.js";
+import analyticsRoutes from "./modules/analytics/routes/analyticsRoutes.js";
 import bulkRoutes from "./routes/bulkRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
-import workflowRoutes from "./routes/workflowRoutes.js";
-import userAnalyticsRoutes from "./routes/userAnalyticsRoutes.js";
-import statsRoutes from "./routes/statsRoutes.js";
-import taskRoutes from "./routes/taskRoutes.js";
+import workflowRoutes from "./modules/workflows/routes/workflowRoutes.js";
+import userAnalyticsRoutes from "./modules/analytics/routes/userAnalyticsRoutes.js";
+import statsRoutes from "./modules/analytics/routes/statsRoutes.js";
+import taskRoutes from "./modules/tasks/routes/taskRoutes.js";
 import jobRoutes from "./routes/jobRoutes.js";
-import pipelineRoutes from "./routes/pipelineRoutes.js";
-import campaignRoutes from "./routes/campaignRoutes.js";
-import sessionEventRoutes from "./routes/sessionEventRoutes.js";
+import pipelineRoutes from "./modules/pipelines/routes/pipelineRoutes.js";
+import campaignRoutes from "./modules/campaign/routes/campaignRoutes.js";
+import sessionEventRoutes from "./modules/sessionEvents/routes/sessionEventRoutes.js";
 
 // error handler middlewares
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
