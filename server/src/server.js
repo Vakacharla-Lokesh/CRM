@@ -15,7 +15,7 @@ import { requestContextMiddleware } from "./middlewares/requestContext.js";
 import { initializeSocketServer } from "./config/socketServer.js";
 
 // Routes
-import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./modules/auth/routes/authRoutes.js";
 import leadRoutes from "./modules/leads/routes/leadRoutes.js";
 import userRoutes from "./modules/users/routes/userRoutes.js";
 import tenantRoutes from "./modules/tenants/routes/tenantRoutes.js";
@@ -26,12 +26,12 @@ import commentRoutes from "./modules/comments/routes/commentRoutes.js";
 import attachmentRoutes from "./modules/attachments/routes/attachmentRoutes.js";
 import analyticsRoutes from "./modules/analytics/routes/analyticsRoutes.js";
 import bulkRoutes from "./modules/bulk/routes/bulkRoutes.js";
-import exportRoutes from "./routes/exportRoutes.js";
+import exportRoutes from "./modules/exports/routes/exportRoutes.js";
 import workflowRoutes from "./modules/workflows/routes/workflowRoutes.js";
 import userAnalyticsRoutes from "./modules/analytics/routes/userAnalyticsRoutes.js";
 import statsRoutes from "./modules/analytics/routes/statsRoutes.js";
 import taskRoutes from "./modules/tasks/routes/taskRoutes.js";
-import jobRoutes from "./routes/jobRoutes.js";
+import jobRoutes from "./modules/jobs/routes/jobRoutes.js";
 import pipelineRoutes from "./modules/pipelines/routes/pipelineRoutes.js";
 import campaignRoutes from "./modules/campaign/routes/campaignRoutes.js";
 import sessionEventRoutes from "./modules/sessionEvents/routes/sessionEventRoutes.js";

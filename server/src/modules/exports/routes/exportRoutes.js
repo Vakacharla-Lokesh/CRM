@@ -7,9 +7,9 @@ import {
   exportOrganizationsToEmail,
   exportDealsToEmail,
 } from "../controllers/exportController.js";
-import { authenticateRequest } from "../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../middlewares/rbac.js";
-import { validate } from "../middlewares/validate.js";
+import { authenticateRequest } from "../../../middlewares/auth.js";
+import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import { validate } from "../../../middlewares/validate.js";
 import {
   exportLeadsSchema,
   exportOrganizationsSchema,

@@ -1,5 +1,5 @@
 import { useState, useEffect, type FormEvent } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, ChevronDown, ChevronUp } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +11,9 @@ import { useAppContext } from "@/hooks";
 import type { CreateUserDTO } from "@/types";
 import { FormField, FormSelect } from "./form-fields";
 import { ModalFooter } from "./shared";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 import type {
   UserFormData,
@@ -23,73 +26,70 @@ import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
 
 import { useRoles } from "@/hooks/useRoles";
+import { usersAPI } from "@/services/api/users.api";
+import { PERMISSION_MAP } from "@/types/constants/permissions";
+import { useQuery } from "@tanstack/react-query";
+import { normalizePermissions } from "@/utils/format";
 
 function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
   const { user: currentUser } = useAppContext();
   const isSuperAdmin = currentUser?.role === "super_admin";
+  const isAdmin = currentUser?.role === "admin";
+  const canEditPermissions = isSuperAdmin || isAdmin;
   const { id } = useParams();
   const { isOnline, addToQueue } = useOffline();
 
-  const [formData, setFormData] = useState<UserFormData>(
-    user
-      ? {
-          firstName: user.firstName,
-          lastName: user.lastName || "",
-          email: user.email,
-          mobile: user.mobile || "",
-          role: user.role,
-          roleId: user.roleId ?? "",
-          password: "",
-          tenantId: user.tenantId,
-        }
-      : {
-          firstName: "",
-          lastName: "",
-          email: "",
-          mobile: "",
-          role: "user",
-          roleId: "",
-          password: "",
-          tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
-        },
-  );
+  const buildDefault = (): UserFormData => ({
+    firstName: user?.firstName ?? "",
+    lastName: user?.lastName ?? "",
+    email: user?.email ?? "",
+    mobile: user?.mobile ?? "",
+    role: user?.role ?? "user",
+    password: "",
+    tenantId:
+      user?.tenantId ??
+      (isSuperAdmin ? String(id) : (currentUser?.tenantId ?? "")),
+    permissions: normalizePermissions(user?.permissions),
+  });
 
+  const [formData, setFormData] = useState<UserFormData>(buildDefault);
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [expandedCategories, setExpandedCategories] = useState<
+    Record<string, boolean>
+  >({});
 
   const { data: tenantRoles = [] } = useRoles();
 
-  // Reset form when modal closes
+  // Fetch existing user permissions when editing
+  const { data: existingPermsData } = useQuery({
+    queryKey: ["user-permissions", user?._id],
+    queryFn: () => usersAPI.getPermissions(user!._id),
+    enabled: !!user?._id && canEditPermissions && isOpen,
+    staleTime: 0,
+  });
+
+  // Seed permissions from API when they arrive
+  useEffect(() => {
+    if (existingPermsData?.permissions) {
+      setFormData((prev) => ({
+        ...prev,
+        permissions: normalizePermissions(existingPermsData.permissions),
+      }));
+    }
+  }, [existingPermsData]);
+
+  // Reset form when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
-      setFormData(
-        user
-          ? {
-              firstName: user.firstName,
-              lastName: user.lastName || "",
-              email: user.email,
-              mobile: user.mobile || "",
-              role: user.role,
-              roleId: user.roleId ?? "",
-              password: "",
-              tenantId: user.tenantId,
-            }
-          : {
-              firstName: "",
-              lastName: "",
-              email: "",
-              mobile: "",
-              role: "user",
-              roleId: "",
-              password: "",
-              tenantId: isSuperAdmin ? String(id) : currentUser?.tenantId || "",
-            },
-      );
+      setFormData(buildDefault());
       setErrors({});
       setShowPassword(false);
+      setExpandedCategories({});
     }
-  }, [isOpen, user, isSuperAdmin, id, currentUser?.tenantId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const validateForm = (): boolean => {
     const newErrors = validateUserForm(formData, {
@@ -102,22 +102,16 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setIsSubmitting(true);
 
     if (!isOnline) {
       if (user) {
-        toast.error(
-          "Updating a user requires an internet connection. Please try again when online.",
-        );
+        toast.error("Updating a user requires an internet connection.");
         setIsSubmitting(false);
         return;
       }
-
       const userData: CreateUserDTO = {
         firstName: formData.firstName,
         lastName: formData.lastName || undefined,
@@ -126,8 +120,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         mobile: formData.mobile || undefined,
         role: formData.role,
         tenantId: formData.tenantId,
+        permissions: normalizePermissions(formData.permissions).reduce(
+          (acc, p) => ({ ...acc, [p]: true }),
+          {} as Record<string, boolean>,
+        ),
       };
-
       addToQueue(
         "/api/users",
         "POST",
@@ -137,10 +134,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         "users",
         "create",
       );
-
-      toast.info(
-        "You're offline. User has been queued and will sync automatically when your connection is restored.",
-      );
+      toast.info("You're offline. User queued for sync.");
       onClose();
       setIsSubmitting(false);
       return;
@@ -155,44 +149,84 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
         mobile: formData.mobile || undefined,
         role: formData.role,
         tenantId: formData.tenantId,
+        permissions: normalizePermissions(formData.permissions).reduce(
+          (acc, p) => ({ ...acc, [p]: true }),
+          {} as Record<string, boolean>,
+        ),
       };
 
       await onSave(userData);
+
+      if (user && canEditPermissions) {
+        const perms = normalizePermissions(formData.permissions);
+        if (perms.length > 0) {
+          try {
+            await usersAPI.assignRole(user._id, {
+              permissions: perms,
+              role: formData.role,
+            });
+          } catch (err) {
+            toast.error("User saved but permissions update failed.");
+            console.error(err);
+          }
+        }
+      }
+
       onClose();
-      setIsSubmitting(false);
     } catch (error) {
       console.error("Error saving user:", error);
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleInputChange = (field: keyof UserFormData, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-
+    setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field as keyof FormErrors]) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: undefined,
-      }));
+      setErrors((prev: any) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  const togglePermission = (permission: string) => {
+    setFormData((prev) => {
+      const current = normalizePermissions(prev.permissions);
+      const updated = current.includes(permission)
+        ? current.filter((p) => p !== permission)
+        : [...current, permission];
+      return { ...prev, permissions: updated };
+    });
+  };
+
+  const toggleCategory = (_category: string, perms: string[]) => {
+    setFormData((prev) => {
+      const current = normalizePermissions(prev.permissions);
+      const allSelected = perms.every((p) => current.includes(p));
+      const updated = allSelected
+        ? current.filter((p) => !perms.includes(p))
+        : [...new Set([...current, ...perms])];
+      return { ...prev, permissions: updated };
+    });
+  };
+
+  const toggleCategoryExpand = (category: string) => {
+    setExpandedCategories((prev) => ({ ...prev, [category]: !prev[category] }));
+  };
+
+  const currentPermissions = normalizePermissions(formData.permissions);
 
   return (
     <Dialog
       open={isOpen}
       onOpenChange={onClose}
     >
-      <DialogContent className="sm:max-w-150 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
             {user ? "Edit User" : "Add New User"}
           </DialogTitle>
           <DialogDescription>
             {user
-              ? "Update the user information below."
+              ? "Update the user information and permissions below."
               : "Fill in the details to create a new user."}
           </DialogDescription>
         </DialogHeader>
@@ -201,6 +235,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
           onSubmit={handleSubmit}
           className="space-y-6 py-4"
         >
+          {/* Basic Info */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FormField
               id="firstName"
@@ -211,7 +246,6 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
               required
               error={errors.firstName}
             />
-
             <FormField
               id="lastName"
               label="Last Name"
@@ -246,12 +280,10 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
             <FormSelect
               id="role"
               label="Role"
-              value={formData.roleId || formData.role}
+              value={formData.role}
               onChange={(value) => {
-                // value is either a tenant role _id or a fallback system role string
                 const matchedRole = tenantRoles.find((r) => r._id === value);
                 if (matchedRole) {
-                  // Map role name to system role enum — fallback to "user"
                   const systemRole =
                     matchedRole.name.toLowerCase() === "admin"
                       ? "admin"
@@ -264,7 +296,6 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                     roleId: matchedRole._id,
                   }));
                 } else {
-                  // Fallback: treat as plain system role string
                   handleInputChange("role", value);
                 }
               }}
@@ -276,7 +307,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                       value: r._id,
                       label: (
                         <div className="flex items-center gap-2">
-                          <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                          <div className="w-2 h-2 rounded-full bg-blue-500" />
                           <span>{r.name}</span>
                         </div>
                       ),
@@ -286,7 +317,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                         value: "user",
                         label: (
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-gray-500"></div>
+                            <div className="w-2 h-2 rounded-full bg-gray-500" />
                             <span>User</span>
                           </div>
                         ),
@@ -295,7 +326,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                         value: "admin",
                         label: (
                           <div className="flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                            <div className="w-2 h-2 rounded-full bg-blue-500" />
                             <span>Admin</span>
                           </div>
                         ),
@@ -313,7 +344,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                 type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={(value) => handleInputChange("password", value)}
-                placeholder="Enter password (min. 6 characters)"
+                placeholder="Enter password (min. 8 characters)"
                 required
                 error={errors.password}
               />
@@ -329,6 +360,133 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                   <EyeOff className="h-4 w-4" />
                 )}
               </button>
+            </div>
+          )}
+
+          {/* Permissions Editor — admin/super_admin only, edit mode only (or create if admin) */}
+          {canEditPermissions && (user || isAdmin || isSuperAdmin) && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
+                    Permissions
+                  </h3>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                    {currentPermissions.length} permission
+                    {currentPermissions.length !== 1 ? "s" : ""} selected
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        permissions: Object.values(PERMISSION_MAP).flat(),
+                      }))
+                    }
+                    className="text-xs text-blue-600 hover:text-blue-700 dark:text-blue-400 font-medium"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, permissions: [] }))
+                    }
+                    className="text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 font-medium"
+                  >
+                    Clear All
+                  </button>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 dark:border-gray-700 rounded-lg divide-y divide-gray-100 dark:divide-gray-800">
+                {Object.entries(PERMISSION_MAP).map(([category, perms]) => {
+                  const selectedCount = perms.filter((p) =>
+                    currentPermissions.includes(p),
+                  ).length;
+                  const allSelected = selectedCount === perms.length;
+                  const isExpanded = expandedCategories[category] ?? false;
+
+                  return (
+                    <div key={category}>
+                      {/* Category header */}
+                      <div className="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-800/50">
+                        <Checkbox
+                          id={`cat-${category}`}
+                          checked={allSelected}
+                          onCheckedChange={() =>
+                            toggleCategory(category, perms)
+                          }
+                          className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                        />
+                        <button
+                          type="button"
+                          className="flex-1 flex items-center justify-between text-left"
+                          onClick={() => toggleCategoryExpand(category)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Label
+                              htmlFor={`cat-${category}`}
+                              className="text-sm font-medium cursor-pointer text-gray-800 dark:text-gray-200"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {category}
+                            </Label>
+                            <Badge
+                              variant={
+                                selectedCount > 0 ? "default" : "secondary"
+                              }
+                              className="text-xs px-1.5 py-0"
+                            >
+                              {selectedCount}/{perms.length}
+                            </Badge>
+                          </div>
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+
+                      {/* Individual permissions */}
+                      {isExpanded && (
+                        <div className="px-4 py-2 grid grid-cols-1 sm:grid-cols-2 gap-2 bg-white dark:bg-gray-900">
+                          {perms.map((perm) => {
+                            const isChecked = currentPermissions.includes(perm);
+                            const [, action] = perm.split(":");
+                            const label = action
+                              ?.replace(/_/g, " ")
+                              .replace(/\b\w/g, (c) => c.toUpperCase());
+                            return (
+                              <div
+                                key={perm}
+                                className="flex items-center gap-2 py-1"
+                              >
+                                <Checkbox
+                                  id={perm}
+                                  checked={isChecked}
+                                  onCheckedChange={() => togglePermission(perm)}
+                                  className="data-[state=checked]:bg-blue-600 data-[state=checked]:border-blue-600"
+                                />
+                                <Label
+                                  htmlFor={perm}
+                                  className="text-xs cursor-pointer text-gray-700 dark:text-gray-300"
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
 

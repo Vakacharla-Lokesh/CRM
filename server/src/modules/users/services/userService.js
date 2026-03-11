@@ -55,7 +55,7 @@ export const createUser = async (userData) => {
 };
 
 export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
-  const { password, ...rest } = updateData;
+  const { password, tenantId: _tenantId, ...rest } = updateData;
 
   const user = await userModel.findById(id);
   if (!user) throw new AppError("User not found", 404);
@@ -72,7 +72,7 @@ export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
     }
   }
 
-  if (password) {
+   if (password && password.length > 0) {
     rest.password = await bcrypt.hash(password, 12);
   }
 
@@ -83,6 +83,7 @@ export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
 
   const userObject = updatedUser.toObject();
   delete userObject.password;
+  
   return userObject;
 };
 
@@ -237,7 +238,8 @@ export const assignRoleToUser = async (id, permissions, role) => {
     throw new AppError("permissions must be an array of strings", 400);
   }
 
-  const { ALL_PERMISSIONS } = await import("../../../utils/permissionPresets.js");
+  const { ALL_PERMISSIONS } =
+    await import("../../../utils/permissionPresets.js");
   const invalid = permissions.filter((p) => !ALL_PERMISSIONS.includes(p));
   if (invalid.length > 0) {
     throw new AppError(`Invalid permissions: ${invalid.join(", ")}`, 400);

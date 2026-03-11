@@ -1,6 +1,26 @@
 import { z } from "zod";
 import { ALL_PERMISSIONS } from "../../../utils/permissionPresets.js";
 
+const permissionsMapSchema = z
+  .union([z.record(z.string(), z.boolean()), z.array(z.string())])
+  .optional()
+  .transform((val) => {
+    if (!val) return undefined;
+    if (Array.isArray(val)) {
+      return val.reduce((acc, p) => {
+        if (ALL_PERMISSIONS.includes(p)) acc[p] = true;
+        return acc;
+      }, {});
+    }
+    const cleaned = {};
+    for (const [key, v] of Object.entries(val)) {
+      if (ALL_PERMISSIONS.includes(key) && v === true) {
+        cleaned[key] = true;
+      }
+    }
+    return cleaned;
+  });
+
 export const createUserSchema = z
   .object({
     firstName: z.string().min(1),
@@ -9,10 +29,10 @@ export const createUserSchema = z
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
-    role: z.enum(["user", "admin"]),
-    roleId: z.string().optional(),
+    role: z.enum(["user", "admin"]).optional(),
     password: z.string().min(8).optional(),
     tenantId: z.string().min(1).optional(),
+    permissions: permissionsMapSchema,
   })
   .strict();
 
@@ -25,9 +45,11 @@ export const updateUserSchema = z
       .string()
       .regex(/^[1-9]\d{9}$/)
       .optional(),
-    role: z.enum(["user", "admin"]),
-    roleId: z.string().optional(),
-    password: z.string().min(8).optional(),
+    role: z.enum(["user", "admin"]).optional(),
+    password: z.union([z.literal(""), z.string().min(8)]).optional(),
+    tenantId: z.string().optional(),
+    lastKnownUpdatedAt: z.string().optional(),
+    permissions: permissionsMapSchema,
   })
   .strict();
 

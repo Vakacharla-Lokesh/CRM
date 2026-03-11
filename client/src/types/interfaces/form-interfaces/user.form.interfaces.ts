@@ -6,12 +6,12 @@ export interface UserFormData {
   email: string;
   mobile: string;
   role: UserRole;
-  roleId?: string;
   password: string;
   tenantId: string;
+  permissions?: string[];
 }
 
-export interface FormErrors {
+export interface UserFormErrors {
   firstName?: string;
   lastName?: string;
   email?: string;
@@ -25,4 +25,13 @@ export interface UserModalProps {
   user: User | null;
   onClose: () => void;
   onSave: (userData: CreateUserDTO) => Promise<void>;
+}
+
+export interface FormErrors {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  mobile?: string;
+  password?: string;
+  tenantId?: string;
 }

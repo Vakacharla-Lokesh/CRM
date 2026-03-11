@@ -7,7 +7,7 @@ import envConfig from "../../../config/envConfig.js";
 export const jobType = JOB_TYPES.CAMPAIGN_EMAIL_SEND;
 
 const TRACKING_BASE_URL =
-  envConfig.apiBaseUrl || "http://localhost:5000/api";
+  envConfig.apiBaseUrl || "http://localhost:4000/api";
 
 export async function handler(payload, _context) {
   const { campaignEmailId, campaignId, leadId } = payload;

@@ -76,13 +76,34 @@ export const userService = {
     return response.user;
   },
 
-  updateUser: async (id: string, updates: Partial<User>, lastKnownUpdatedAt?: Date): Promise<User> => {
+  updateUser: async (
+    id: string,
+    updates: Partial<User>,
+    lastKnownUpdatedAt?: Date,
+  ): Promise<User> => {
+    const {
+      firstName,
+      lastName,
+      email,
+      mobile,
+      role,
+      tenantId,
+      permissions,
+    } = updates;
+
+    const body: Record<string, unknown> = {};
+    if (firstName !== undefined) body.firstName = firstName;
+    if (lastName !== undefined) body.lastName = lastName;
+    if (email !== undefined) body.email = email;
+    if (mobile !== undefined) body.mobile = mobile;
+    if (role !== undefined) body.role = role;
+    if (tenantId !== undefined) body.tenantId = tenantId;
+    if (permissions !== undefined) body.permissions = permissions;
+    if (lastKnownUpdatedAt) body.lastKnownUpdatedAt = lastKnownUpdatedAt;
+
     const response = await apiClient.put<{ message: string; user: User }>(
       `/users/${id}`,
-      {
-        ...updates,
-        ...(lastKnownUpdatedAt && { lastKnownUpdatedAt }),
-      },
+      body,
     );
     return response.user;
   },

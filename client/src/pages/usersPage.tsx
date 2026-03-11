@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useUserData, useUsersStats } from "@/hooks";
 import { useParams } from "react-router-dom";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 // components imports
 import { DataTable } from "@/components/common/dataTable";
@@ -18,13 +17,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
 import UserStatistics from "@/components/users/userStatistics";
 import { toast } from "sonner";
 
@@ -36,9 +28,7 @@ import { Search } from "lucide-react";
 import { useNotifications } from "@/hooks";
 
 // RBAC imports
-import { useRoles } from "@/hooks/useRoles";
 import { useHasPermission } from "@/hooks/usePermissions";
-import { usersAPI } from "@/services/api/users.api";
 
 const UsersPage = () => {
   // get tenant id from url params if present to fetch users of that tenant
@@ -77,45 +67,6 @@ const UsersPage = () => {
 
   // RBAC
   const canManageRoles = useHasPermission("users:manage_roles");
-  const { data: availableRoles = [] } = useRoles();
-  const queryClient = useQueryClient();
-
-  // assign role dialog state
-  const [assignRoleDialogOpen, setAssignRoleDialogOpen] = useState(false);
-  const [assignRoleUserId, setAssignRoleUserId] = useState<string | null>(null);
-  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
-
-  const assignRoleMutation = useMutation({
-    mutationFn: ({ userId, roleId }: { userId: string; roleId: string }) =>
-      usersAPI.assignRole(userId, roleId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users-list"] });
-      toast.success("Role assigned successfully");
-      setAssignRoleDialogOpen(false);
-      setAssignRoleUserId(null);
-      setSelectedRoleId("");
-    },
-    onError: (err: unknown) => {
-      const message =
-        err instanceof Error ? err.message : "Failed to assign role";
-      toast.error(message);
-    },
-  });
-
-  const handleOpenAssignRole = (userId: string) => {
-    const user = filteredUsers.find((u) => u._id === userId);
-    setAssignRoleUserId(userId);
-    setSelectedRoleId(user?.roleId ?? "");
-    setAssignRoleDialogOpen(true);
-  };
-
-  const handleConfirmAssignRole = () => {
-    if (!assignRoleUserId || !selectedRoleId) return;
-    assignRoleMutation.mutate({
-      userId: assignRoleUserId,
-      roleId: selectedRoleId,
-    });
-  };
 
   // handle add user
   const handleAddUser = () => {
@@ -133,7 +84,6 @@ const UsersPage = () => {
   const handleSaveUser = async (userData: CreateUserDTO) => {
     if (selectedUser) {
       await updateUser(selectedUser._id, userData);
-      toast.success("User updated successfully!");
       notifyEvent({
         type: "user_updated",
         title: "User Updated",
@@ -143,12 +93,11 @@ const UsersPage = () => {
       });
     } else {
       await createUser(userData);
-      toast.success("User created successfully!");
       notifyEvent({
         type: "user_created",
         title: "User Created",
         message: `User ${userData.firstName} has been created successfully.`,
-        entityId: "", // You can set this to the new user's ID if your API returns it on creation
+        entityId: "",
         entityType: "user",
       });
     }
@@ -304,7 +253,7 @@ const UsersPage = () => {
           columns={columns({
             onEdit: handleEditUser,
             onDelete: handleDeleteUser,
-            onAssignRole: canManageRoles ? handleOpenAssignRole : undefined,
+            onAssignRole: canManageRoles ? handleEditUser : undefined,
           })}
           data={filteredUsers}
           name="Users"
@@ -332,62 +281,6 @@ const UsersPage = () => {
         confirmText="Delete"
         variant="destructive"
       />
-
-      {/* Assign Role Dialog */}
-      <Dialog
-        open={assignRoleDialogOpen}
-        onOpenChange={(open) => {
-          if (!open) {
-            setAssignRoleDialogOpen(false);
-            setAssignRoleUserId(null);
-            setSelectedRoleId("");
-          }
-        }}
-      >
-        <DialogContent className="max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Assign Role</DialogTitle>
-          </DialogHeader>
-          <div className="py-2">
-            <Select
-              value={selectedRoleId}
-              onValueChange={setSelectedRoleId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a role…" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableRoles.map((role) => (
-                  <SelectItem
-                    key={role._id}
-                    value={role._id}
-                  >
-                    {role.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setAssignRoleDialogOpen(false);
-                setAssignRoleUserId(null);
-                setSelectedRoleId("");
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleConfirmAssignRole}
-              disabled={!selectedRoleId || assignRoleMutation.isPending}
-            >
-              {assignRoleMutation.isPending ? "Saving…" : "Assign"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

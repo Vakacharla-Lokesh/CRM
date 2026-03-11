@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent, useMemo } from "react";
 import {
   Dialog,
@@ -17,7 +18,6 @@ import type {
   LeadFormData,
   LeadModalProps,
 } from "@/types/interfaces/form-interfaces/lead.form.interfaces";
-import { useOrganizationData } from "@/hooks";
 import { organizationService } from "@/services";
 import { FormField, FormSelect, UserCombobox } from "./form-fields";
 import { ErrorAlert, ModalFooter } from "./shared";
@@ -28,7 +28,12 @@ import {
   LEAD_STATUSES,
 } from "@/types/interfaces/form-interfaces";
 import { mapToSelectOptions } from "@/components/modals/map-options/mapSelectLeadOptions";
-import { useAppContext, useUserData } from "@/hooks";
+import {
+  useAppContext,
+  useUserData,
+  usePipelineData,
+  useOrganizationData,
+} from "@/hooks";
 import { useHasPermission } from "@/hooks/usePermissions";
 import { validateLeadForm } from "@/utils/formValidators";
 import { useOffline } from "@/context/useOffline";
@@ -51,6 +56,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           score: lead.score,
           organizationId: lead.organizationId || "",
           assignedTo: lead.assignedTo || undefined,
+          pipelineId: lead.pipelineId || undefined,
         }
       : {
           firstName: "",
@@ -61,6 +67,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
           score: 0,
           organizationId: "",
           assignedTo: undefined,
+          pipelineId: undefined,
         },
   );
   const [organizationMode, setOrganizationMode] = useState<"select" | "create">(
@@ -95,6 +102,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               score: lead.score,
               organizationId: lead.organizationId || "",
               assignedTo: lead.assignedTo || undefined,
+              pipelineId: lead.pipelineId || undefined,
             }
           : {
               firstName: "",
@@ -105,6 +113,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
               score: 0,
               organizationId: "",
               assignedTo: undefined,
+              pipelineId: undefined,
             },
       );
       setNewOrgData({
@@ -152,6 +161,7 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
         status: formData.status,
         organizationId: formData.organizationId || undefined,
         tenantId: user?.tenantId || "tenant-1",
+        pipelineId: formData.pipelineId || undefined,
       };
 
       addToQueue(
@@ -266,6 +276,27 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
     return [{ value: user._id, label: "Assign to self" }, ...others];
   }, [canAssign, users, user]);
 
+  const { pipelines, isLoading: pipelinesLoading } = usePipelineData();
+
+  const pipelineOptions = useMemo(
+    () =>
+      pipelines.map((p) => ({
+        value: p._id,
+        label: p.isDefault ? `${p.name} (Default)` : p.name,
+      })),
+    [pipelines],
+  );
+
+  // Auto-select default pipeline for new leads
+  useEffect(() => {
+    if (!lead && pipelines.length > 0 && !formData.pipelineId) {
+      const defaultPipeline = pipelines.find((p) => p.isDefault);
+      if (defaultPipeline) {
+        setFormData((prev) => ({ ...prev, pipelineId: defaultPipeline._id }));
+      }
+    }
+  }, [lead, pipelines, formData.pipelineId]);
+
   return (
     <Dialog
       open={isOpen}
@@ -338,6 +369,18 @@ function LeadModal({ isOpen, lead, onClose, onSave }: LeadModalProps) {
                 onChange={(value) => handleInputChange("status", value)}
                 placeholder="Select status"
                 options={statusOptions}
+              />
+
+              <FormSelect
+                id="pipelineId"
+                label="Pipeline"
+                value={formData.pipelineId ?? ""}
+                onChange={(value) => handleInputChange("pipelineId", value)}
+                placeholder={
+                  pipelinesLoading ? "Loading pipelines..." : "Select pipeline"
+                }
+                options={pipelineOptions}
+                disabled={pipelinesLoading}
               />
 
               {canAssign && (

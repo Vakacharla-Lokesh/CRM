@@ -9,12 +9,7 @@ export {
   useUpdateRole,
   useDeleteRole,
 } from "./useRoles.ts";
-export {
-  usePermissions,
-  useHasPermission,
-  useHasAllPermissions,
-  useHasAnyPermission,
-} from "./usePermissions.ts";
+export { useHasPermission } from "./usePermissions.ts";
 
 export { useLeadData } from "./leads/useLeadData.ts";
 export { useLeadDetails } from "./leads/useLeadDetails.ts";

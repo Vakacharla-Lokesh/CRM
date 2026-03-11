@@ -1,8 +1,8 @@
-import passport from "../config/passport.js";
-import asyncCatch from "../utils/asyncCatch.js";
+import passport from "../../../config/passport.js";
+import asyncCatch from "../../../utils/asyncCatch.js";
 import * as authService from "../services/authService.js";
 
-import envConfig from "../config/envConfig.js";
+import envConfig from "../../../config/envConfig.js";
 
 const IS_PROD = envConfig.isProduction;
 

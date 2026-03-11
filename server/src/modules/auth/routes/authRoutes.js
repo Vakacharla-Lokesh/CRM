@@ -10,8 +10,8 @@ import {
   verifyPasswordResetOTP,
   resetPassword,
 } from "../controllers/authController.js";
-import { validate } from "../middlewares/validate.js";
-import { authenticateRequest } from "../middlewares/auth.js";
+import { validate } from "../../../middlewares/validate.js";
+import { authenticateRequest } from "../../../middlewares/auth.js";
 import {
   loginSchema,
   registerSchema,

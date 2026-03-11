@@ -47,30 +47,26 @@ const userSchema = new Schema(
 );
 
 userSchema.pre("save", async function () {
+  if (this.isNew && this.role === "super_admin") {
+    if (!process.env._INTERNAL_SEED_MODE) {
+      throw new Error("Cannot create super_admin via API");
+    }
+  }
+
   if (!this.isModified("password")) return;
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
-userSchema.pre("save", function (next) {
-  if (this.isNew && this.role === "super_admin") {
-    if (!process.env._INTERNAL_SEED_MODE) {
-      return next(new Error("Cannot create super_admin via API"));
-    }
-  }
-  next();
-});
-
 userSchema.pre(
   ["findOneAndUpdate", "updateOne", "updateMany"],
-  function (next) {
+  async function () {
     const update = this.getUpdate();
     const role = update?.role || update?.$set?.role;
 
     if (role === "super_admin") {
-      return next(new Error("Cannot escalate role to super_admin via update"));
+      throw new Error("Cannot escalate role to super_admin via update");
     }
-    next();
   },
 );
 
