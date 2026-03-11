@@ -2,7 +2,6 @@ import asyncCatch from "../../../utils/asyncCatch.js";
 import AppError from "../../../utils/appError.js";
 import * as organizationService from "../services/organizationService.js";
 import { fireWorkflowTrigger } from "../../../middlewares/workflowTrigger.js";
-import { bulkDeleteOrganizations } from "../../../services/bulkDeleteService.js";
 
 export const getAllOrganizations = asyncCatch(async (req, res) => {
   const canViewAll =

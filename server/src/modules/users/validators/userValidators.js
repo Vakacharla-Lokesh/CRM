@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ALL_PERMISSIONS } from "../../../models/permissionPresets.js";
+import { ALL_PERMISSIONS } from "../../../utils/permissionPresets.js";
 
 export const createUserSchema = z
   .object({

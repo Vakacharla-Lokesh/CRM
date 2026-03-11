@@ -1,14 +1,3 @@
-#!/usr/bin/env node
-
-/**
- * getSuperAdminCredentials.js
- *
- * Quick utility to find and display super_admin user credentials for testing.
- *
- * Usage:
- *   node getSuperAdminCredentials.js
- */
-
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";

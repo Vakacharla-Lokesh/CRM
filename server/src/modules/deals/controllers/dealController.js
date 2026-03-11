@@ -3,8 +3,6 @@ import asyncCatch from "../../../utils/asyncCatch.js";
 import AppError from "../../../utils/appError.js";
 import { fireWorkflowTrigger } from "../../../middlewares/workflowTrigger.js";
 
-import { bulkDeleteDeals } from "../../../services/bulkDeleteService.js";
-
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {
   const canViewAll =

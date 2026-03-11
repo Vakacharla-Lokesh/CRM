@@ -3,15 +3,8 @@ import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
 import { requestStore } from "../../../utils/requestContext.js";
 import mongoose from "mongoose";
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
+import envConfig from "../../../config/envConfig.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-config({ path: path.resolve(__dirname, "../../../../../.env") });
-
-// ─── Job registry shape (used by jobProcessor.lambda.js) ───────────────────
 export const jobType = JOB_TYPES.WORKFLOW_EXECUTION;
 
 export async function handler(payload, context) {
@@ -38,12 +31,11 @@ export async function handler(payload, context) {
   };
 }
 
-// ─── Standalone Lambda handler (direct invocation or EventBridge) ───────────
 let _dbConnected = false;
 
 async function ensureDb() {
   if (_dbConnected) return;
-  const uri = process.env.DB_URI || process.env.MONGODB_URI;
+  const uri = envConfig.dbUri;
   if (!uri) throw new Error("[WorkflowWorker Lambda] No MongoDB URI found");
   if (mongoose.connection.readyState === 0) {
     await mongoose.connect(uri);

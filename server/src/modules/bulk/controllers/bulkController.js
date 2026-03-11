@@ -1,5 +1,5 @@
-import asyncCatch from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
+import asyncCatch from "../../../utils/asyncCatch.js";
+import AppError from "../../../utils/appError.js";
 import multer from "multer";
 
 import {

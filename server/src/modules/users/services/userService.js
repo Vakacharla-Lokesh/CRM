@@ -237,7 +237,7 @@ export const assignRoleToUser = async (id, permissions, role) => {
     throw new AppError("permissions must be an array of strings", 400);
   }
 
-  const { ALL_PERMISSIONS } = await import("../models/permissionPresets.js");
+  const { ALL_PERMISSIONS } = await import("../../../utils/permissionPresets.js");
   const invalid = permissions.filter((p) => !ALL_PERMISSIONS.includes(p));
   if (invalid.length > 0) {
     throw new AppError(`Invalid permissions: ${invalid.join(", ")}`, 400);

@@ -2,7 +2,9 @@ import passport from "../config/passport.js";
 import asyncCatch from "../utils/asyncCatch.js";
 import * as authService from "../services/authService.js";
 
-const IS_PROD = process.env.NODE_ENV === "production";
+import envConfig from "../config/envConfig.js";
+
+const IS_PROD = envConfig.isProduction;
 
 function setAuthCookies(res, accessToken, refreshToken) {
   res.cookie("auth_token", accessToken, {

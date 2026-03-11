@@ -12,8 +12,9 @@ import {
 } from "@aws-sdk/client-sqs";
 
 import { s3, sqs } from "./awsClient.js";
+import envConfig from "../../config/envConfig.js";
 
-const REGION = process.env.AWS_REGION || "us-east-1";
+const REGION = envConfig.awsRegion || "us-east-1";
 
 const BUCKETS = {
   leads: "crm-leads",
@@ -58,7 +59,7 @@ async function ensureBucket(bucketName) {
 }
 
 async function applyCors(bucketName) {
-  const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS || "")
+  const allowedOrigins = (envConfig.corsOrigin || "")
     .split(",")
     .map((o) => o.trim())
     .filter(Boolean);

@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import User from "../modules/users/models/userModel.js";
 import Role from "../models/roleModel.js";
 import Tenant from "../modules/tenants/models/tenantModel.js";
-import { DEFAULT_ROLE_PERMISSIONS } from "../models/permissionPresets.js";
+import { DEFAULT_ROLE_PERMISSIONS } from "../utils/permissionPresets.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

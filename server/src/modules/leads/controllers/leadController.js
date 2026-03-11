@@ -5,7 +5,6 @@ import * as leadService from "../services/leadService.js";
 import { fireWorkflowTrigger } from "../../../middlewares/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../../../utils/leadActivityTypes.js";
-import { bulkDeleteLeads } from "../../../services/bulkDeleteService.js";
 import notificationService, {
   notificationTypes,
 } from "../../../services/notificationService.js";

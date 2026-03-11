@@ -7,6 +7,7 @@ import AppError from "../utils/appError.js";
 import { otpCache } from "../config/cache.js";
 import emailController from "../modules/emails/controllers/emailController.js";
 import { seedDefaultPipeline } from "../modules/pipelines/services/pipelineService.js";
+import envConfig from "../config/envConfig.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
@@ -32,7 +33,7 @@ export const generateAccessToken = (user) => {
       role: user.role,
       permissions,
     },
-    process.env.JWT_SECRET,
+    envConfig.jwtSecret,
     { expiresIn: `${AUTH_TOKEN_EXPIRY_MINUTES}m` },
   );
 };
@@ -156,7 +157,7 @@ export const getProfileByEmail = async (email) => {
 
 export const verifyToken = (token) => {
   try {
-    jwt.verify(token, process.env.JWT_SECRET);
+    jwt.verify(token, envConfig.jwtSecret);
     return true;
   } catch {
     return false;
@@ -223,7 +224,7 @@ export const verifyOTP = async (email, otp) => {
 
   const resetToken = jwt.sign(
     { email, type: "password-reset" },
-    process.env.JWT_SECRET,
+    envConfig.jwtSecret,
     { expiresIn: `${RESET_TOKEN_EXPIRY_MINUTES}m` },
   );
 
@@ -233,7 +234,7 @@ export const verifyOTP = async (email, otp) => {
 export const resetPassword = async (resetToken, newPassword) => {
   let decoded;
   try {
-    decoded = jwt.verify(resetToken, process.env.JWT_SECRET);
+    decoded = jwt.verify(resetToken, envConfig.jwtSecret);
   } catch {
     throw new AppError(
       "Invalid or expired reset token. Please request a new OTP.",

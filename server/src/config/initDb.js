@@ -1,13 +1,12 @@
 import "node:process";
 import mongoose from "mongoose";
-import { config } from "dotenv";
-config();
+import envConfig from "./envConfig.js";
 
 const SESSION_EVENTS_COLLECTION = "sessionevents";
 const CAP_SIZE_BYTES = 10 * 1024 * 1024;
 
 const db = mongoose
-  .connect(process.env.DB_URI, {
+  .connect(envConfig.dbUri, {
     readPreference: "secondaryPreferred",
     readConcernLevel: "majority",
     writeConcern: { w: "majority", j: true },

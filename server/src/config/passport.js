@@ -1,11 +1,4 @@
-import { config } from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-config({ path: path.resolve(__dirname, "../../.env") });
+import envConfig from "./envConfig.js";
 
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -60,7 +53,7 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromExtractors([
         (req) => req?.cookies?.auth_token ?? null,
       ]),
-      secretOrKey: process.env.JWT_SECRET,
+      secretOrKey: envConfig.jwtSecret,
     },
     async (jwtPayload, done) => {
       try {

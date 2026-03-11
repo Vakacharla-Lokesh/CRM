@@ -7,8 +7,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import cookieParser from "cookie-parser";
 
-import { config } from "dotenv";
-config();
+import envConfig from "./config/envConfig.js";
 
 // passport js for authentication
 import passport from "./config/passport.js";
@@ -26,7 +25,7 @@ import callRoutes from "./modules/calls/routes/callRoutes.js";
 import commentRoutes from "./modules/comments/routes/commentRoutes.js";
 import attachmentRoutes from "./modules/attachments/routes/attachmentRoutes.js";
 import analyticsRoutes from "./modules/analytics/routes/analyticsRoutes.js";
-import bulkRoutes from "./routes/bulkRoutes.js";
+import bulkRoutes from "./modules/bulk/routes/bulkRoutes.js";
 import exportRoutes from "./routes/exportRoutes.js";
 import workflowRoutes from "./modules/workflows/routes/workflowRoutes.js";
 import userAnalyticsRoutes from "./modules/analytics/routes/userAnalyticsRoutes.js";
@@ -78,7 +77,7 @@ morgan.token("user-id", (req) => req.auth?.userId?.toString() ?? "-");
 // Request logger for express
 app.use(
   morgan(
-    process.env.NODE_ENV === "production"
+    envConfig.isProduction
       ? '{"time":":date[iso]","method":":method","url":":url","status":":status","ms":":response-time","requestId":":request-id","userId":":user-id"}'
       : ":method :url :status :response-time ms — :request-id",
   ),
@@ -87,7 +86,7 @@ app.use(
 // Cors package to handle request from frontend
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: envConfig.corsOrigin,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     credentials: true,
   }),
