@@ -48,7 +48,7 @@ async function enqueueJob(jobType, payload, tenantId) {
 
   const messageBody = {
     jobType,
-    tenantId,
+    tenantId: tenantId?.toString(),
     payload,
     enqueuedAt: new Date().toISOString(),
   };

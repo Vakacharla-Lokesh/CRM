@@ -17,6 +17,7 @@ interface LeadFilters {
   pipelineId?: string;
   dateFrom?: string;
   dateTo?: string;
+  rfmSegment?: string;
 }
 
 interface LeadStatistics {
@@ -51,6 +52,7 @@ export function useLeadData() {
         status: filters.status,
         source: filters.source,
         pipelineId: filters.pipelineId,
+        rfmSegment: filters.rfmSegment,
       },
     ],
     queryFn: async ({ pageParam }: { pageParam: string | null }) => {
@@ -69,6 +71,7 @@ export function useLeadData() {
         status: filters.status || undefined,
         source: filters.source || undefined,
         pipelineId: filters.pipelineId || undefined,
+        rfmSegment: filters.rfmSegment || undefined,
       });
 
       for (const lead of page.leads) {

@@ -77,7 +77,10 @@ export const exportDeals = createExportHandler("deals", "deals");
 function createEmailExportHandler(entityType) {
   return asyncCatch(async (req, res) => {
     const { ids, email } = req.body;
-    const tenantId = req.user?.tenantId || req.tenantId;
+    const tenantId =
+      req.tenantContext?.scope === "tenant"
+        ? req.tenantContext.tenantId
+        : req.user?.tenantId;
 
     if (!ids || ids.length === 0) {
       throw new AppError(`No ${entityType} IDs provided for export`, 400);

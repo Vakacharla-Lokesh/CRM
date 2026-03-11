@@ -11,9 +11,11 @@ import * as exportWorker from "./exportLambda.js";
 import * as leadReminderWorker from "./leadReminderLambda.js";
 import * as analyticsSnapshotWorker from "./analyticsSnapshotLambda.js";
 import * as campaignEmailWorker from "./campaignEmailLambda.js";
+import * as rfmWorker from "../../jobs/rfmCalculationJob.js";
 
-import { jobService } from "../../jobService.js";
+import { jobService } from "../../../modules/jobs/services/jobService.js";
 import envConfig from "../../../config/envConfig.js";
+import { JOB_TYPES } from "../../../utils/jobTypes.js";
 
 let _initialized = false;
 
@@ -84,9 +86,12 @@ async function initialize() {
       "[JobProcessor] Campaign email worker registered:",
       campaignEmailWorker.jobType,
     );
+
+    jobRegistry.register(rfmWorker.jobType, rfmWorker.handler);
+
     console.log(
-      "[JobProcessor] Campaign email worker registered:",
-      campaignEmailWorker.jobType,
+      "[JobProcessor] RFM Calculation worker registered:",
+      rfmWorker.jobType,
     );
   } catch (regError) {
     console.error("[JobProcessor] Worker registration failed:", {

@@ -30,6 +30,7 @@ const leadService = {
     status?: string;
     source?: string;
     pipelineId?: string;
+    rfmSegment?: string;
   }): Promise<CursorLeadPage> => {
     const queryParams: Record<string, unknown> = {
       limit: params?.limit ?? 20,
@@ -38,6 +39,7 @@ const leadService = {
     if (params?.status) queryParams.status = params.status;
     if (params?.source) queryParams.source = params.source;
     if (params?.pipelineId) queryParams.pipelineId = params.pipelineId;
+    if (params?.rfmSegment) queryParams.rfmSegment = params.rfmSegment;
 
     const response = await apiClient.get<{
       count: number;

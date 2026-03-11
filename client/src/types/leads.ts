@@ -26,10 +26,10 @@ export interface Lead {
   lastName?: string | null;
   email: string;
   source: LeadSource;
-  /** 0 – 100 */
   score: number;
   status: LeadStatus;
   pipelineId?: string | null;
+  rfm?: LeadRFM;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -43,6 +43,7 @@ export interface CreateLeadDTO {
   score?: number;
   status: LeadStatus;
   pipelineId?: string | null;
+  rfm?: LeadRFM;
   tenantId: string;
   assignedTo?: string;
 }
@@ -56,6 +57,7 @@ export interface UpdateLeadDTO {
   score?: number;
   status?: LeadStatus;
   assignedTo?: string;
+  rfm?: LeadRFM;
 }
 
 export interface LeadListResponse {
@@ -119,4 +121,22 @@ export function enrichLead(lead: Lead): LeadWithComputed {
     statusColor: getLeadStatusColor(lead.status),
     scoreColor: getLeadScoreColor(lead.score),
   };
+}
+
+export type PipelineSegment =
+  | "Hot Deals"
+  | "Sleeping Giants"
+  | "Time Wasters"
+  | "Dead Wood"
+  | "Active Prospect"
+  | "Unsegmented";
+
+export interface LeadRFM {
+  rScore: number;
+  fScore: number;
+  mScore: number;
+  segment: PipelineSegment;
+  lastTouchpoint?: Date | null;
+  engagementCount: number;
+  dealValue: number;
 }

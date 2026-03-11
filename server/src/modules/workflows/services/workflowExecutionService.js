@@ -8,7 +8,7 @@ import emailController from "../../emails/controllers/emailController.js";
 import {
   sendSlackMessageWithRetry,
   buildSlackVariables,
-} from "../../../services/slackService.js";
+} from "./slackService.js";
 
 class WorkflowExecutionEngine {
   constructor() {}
@@ -30,7 +30,7 @@ class WorkflowExecutionEngine {
 
     try {
       console.log(
-        `\n▶ Starting workflow: ${workflow.name} (Execution: ${executionLogId})`,
+        `\n Starting workflow: ${workflow.name} (Execution: ${executionLogId})`,
       );
 
       for (let i = 0; i < workflow.actions.length; i++) {

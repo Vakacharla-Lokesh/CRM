@@ -4,7 +4,7 @@ import { ensureAwsInitialized } from "../initAwsResources.js";
 import { handler } from "./jobProcessorLambda.js";
 import envConfig from "../../../config/envConfig.js";
 
-const BATCH_SIZE = 10;
+const BATCH_SIZE = 1;
 
 const controller = new AbortController();
 const { signal } = controller;
@@ -115,8 +115,8 @@ async function main() {
     process.exit(1);
   }
 
-  const { queueService } = await import("../queue/queueSqervice.js");
-  const QUEUE_NAMES = ["offlineWrites", "exportData"];
+  const { queueService } = await import("../queue/queueService.js");
+  const QUEUE_NAMES = ["offlineWrites", "exportData", "campaignEmails"];
   const POLL_INTERVAL_MS = 5000;
 
   while (!signal.aborted) {
@@ -124,6 +124,9 @@ async function main() {
       if (signal.aborted) break;
       try {
         await pollQueueLegacy(queueService, queueName);
+        if (queueName === "campaignEmails") {
+          await new Promise((r) => setTimeout(r, 1500));
+        }
       } catch (err) {
         console.error(`[LocalRunner] Error in polling ${queueName}:`, err);
       }

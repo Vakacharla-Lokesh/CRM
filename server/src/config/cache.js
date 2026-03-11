@@ -69,3 +69,4 @@ export const otpCache = new RedisCache();
 
 export const dashboardCache = new RedisCache();
 
+export const jobCache = new RedisCache();

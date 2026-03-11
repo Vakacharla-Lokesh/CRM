@@ -1,4 +1,4 @@
-import redis from "../../../config/redis.js";
+import { jobCache } from "../../../config/cache.js";
 import crypto from "crypto";
 
 const JOB_TTL = 30 * 24 * 60 * 60;
@@ -6,6 +6,15 @@ const JOB_TTL = 30 * 24 * 60 * 60;
 function getJobKey(jobId, tenantId) {
   return `job:${tenantId}:${jobId}`;
 }
+
+const safeParse = (val) => {
+  if (!val) return null;
+  try {
+    return JSON.parse(val);
+  } catch {
+    return null;
+  }
+};
 
 export const jobService = {
   async createJob({ tenantId, type, status = "pending" }) {
@@ -23,68 +32,40 @@ export const jobService = {
     };
 
     const jobKey = getJobKey(jobId, tenantId.toString());
-
-    // Store job in Redis with TTL
-    await redis.hset(jobKey, jobData);
-    await redis.expire(jobKey, JOB_TTL);
+    await jobCache.set(jobKey, JSON.stringify(jobData), JOB_TTL);
 
     return jobData;
   },
 
   async getJob(jobId, tenantId) {
     const jobKey = getJobKey(jobId, tenantId.toString());
-    const job = await redis.hgetall(jobKey);
-
-    // Return null if job doesn't exist, otherwise transform numeric fields
-    if (!job || Object.keys(job).length === 0) {
-      return null;
-    }
-
-    return {
-      jobId: job.jobId,
-      tenantId: job.tenantId,
-      type: job.type,
-      status: job.status,
-      progress: parseInt(job.progress, 10),
-      result: job.result ? JSON.parse(job.result) : undefined,
-      error: job.error ? JSON.parse(job.error) : undefined,
-      createdAt: parseInt(job.createdAt, 10),
-      updatedAt: parseInt(job.updatedAt, 10),
-    };
+    const raw = await jobCache.get(jobKey);
+    return safeParse(raw);
   },
 
   async updateJob(jobId, tenantId, updates) {
-    const { status, progress, result, error } = updates;
-    const now = Date.now();
-
     const jobKey = getJobKey(jobId, tenantId.toString());
+    const raw = await jobCache.get(jobKey);
+    const existing = safeParse(raw);
 
-    // Prepare update object
-    const updateData = {
-      updatedAt: now,
+    if (!existing) {
+      console.warn(`[JobService] updateJob: job not found`, {
+        jobId,
+        tenantId,
+      });
+      return null;
+    }
+
+    const updated = {
+      ...existing,
+      ...(updates.status !== undefined && { status: updates.status }),
+      ...(updates.progress !== undefined && { progress: updates.progress }),
+      ...(updates.result !== undefined && { result: updates.result }),
+      ...(updates.error !== undefined && { error: updates.error }),
+      updatedAt: Date.now(),
     };
 
-    if (status !== undefined) {
-      updateData.status = status;
-    }
-
-    if (progress !== undefined) {
-      updateData.progress = progress;
-    }
-
-    if (result !== undefined) {
-      updateData.result = JSON.stringify(result);
-    }
-
-    if (error !== undefined) {
-      updateData.error = JSON.stringify(error);
-    }
-
-    // Update job in Redis
-    await redis.hset(jobKey, updateData);
-    await redis.expire(jobKey, JOB_TTL);
-
-    // Return updated job
-    return this.getJob(jobId, tenantId);
+    await jobCache.set(jobKey, JSON.stringify(updated), JOB_TTL);
+    return updated;
   },
 };
