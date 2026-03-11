@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import userModel from "../models/userModel.js";
-import tenantModel from "../models/tenantModel.js";
+import userModel from "../modules/users/models/userModel.js";
+import tenantModel from "../modules/tenants/models/tenantModel.js";
 import RefreshToken from "../models/refreshTokenModel.js";
 import AppError from "../utils/appError.js";
 import { otpCache } from "../config/cache.js";
-import emailController from "../controllers/emailController.js";
-import { seedDefaultPipeline } from "./pipelineService.js";
+import emailController from "../modules/emails/controllers/emailController.js";
+import { seedDefaultPipeline } from "../modules/pipelines/services/pipelineService.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;

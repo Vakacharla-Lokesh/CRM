@@ -1,4 +1,4 @@
-import Lead from "../models/leadModel.js";
+import Lead from "../modules/leads/models/leadModel.js";
 
 export async function seedLeads(tenants, users, organizations) {
   // Clear existing leads

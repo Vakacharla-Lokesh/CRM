@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import AppError from "../utils/appError.js";
 
-import { getDefaultPipeline } from "./pipelineService.js";
+import { getDefaultPipeline } from "../modules/pipelines/services/pipelineService.js";
 
 import {
   normaliseRow,
@@ -13,9 +13,9 @@ import {
   validateDealRow,
 } from "../utils/importHelpers.js";
 
-import leadModel from "../models/leadModel.js";
-import organizationModel from "../models/organizationModel.js";
-import dealModel from "../models/dealModel.js";
+import leadModel from "../modules/leads/models/leadModel.js";
+import organizationModel from "../modules/organizations/models/organizationModel.js";
+import dealModel from "../modules/deals/models/dealModel.js";
 
 export async function bulkImportLeads(file, context) {
   const { userId, tenantId, defaultStatus, defaultSource } = context;

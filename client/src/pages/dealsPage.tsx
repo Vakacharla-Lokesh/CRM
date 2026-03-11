@@ -1,15 +1,10 @@
-// hooks and basic imports
-import { useState, useEffect } from "react";
-import { useDealData, useDebounce } from "@/hooks";
-import { useQuery } from "@tanstack/react-query";
-import { analyticsAPI } from "@/services";
-
-// components imports
-import { DataTable } from "../components/common/dataTable";
-import { columns } from "../components/deals/dealColumns";
+import { useDealsPageState } from "@/hooks/deals/useDealsPageState";
+import { DataTable } from "@/components/common/dataTable";
+import { columns } from "@/components/deals/dealColumns";
 import { Button } from "@/components/ui/button";
+import { Search } from "lucide-react";
+import { BulkActionBar } from "@/components/bulk/bulkActionBar";
 import { Input } from "@/components/ui/input";
-import { ConfirmDialog } from "@/components/common/confirmDialog";
 import {
   Select,
   SelectContent,
@@ -18,23 +13,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { DealModal } from "@/components/modals";
-import {
-  type Deal,
-  type UpdateDealDTO,
-  type DealStatus,
-  statuses,
-} from "@/types";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
 import DealStatistics from "@/components/deals/dealStatistics";
-import { toast } from "sonner";
-
-// other imports
-import { Search } from "lucide-react";
-import { BulkActionBar } from "@/components/bulk/bulkActionBar";
-import { exportDeals, exportEmailDeals } from "@/services/exportService";
-
-// notification imports
-import { useNotifications } from "@/hooks";
 import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
+import { statuses as DEAL_STATUSES } from "@/types/deals";
 
 const DealsPage = () => {
   const {
@@ -43,149 +25,36 @@ const DealsPage = () => {
     loadingMore,
     error,
     filters,
-    updateFilter,
-    clearFilters,
-    updateDeal,
-    deleteDeal,
-    searchDeals,
-    searchLoading,
     hasNextPage,
     loadMore,
-  } = useDealData();
-
-  // Analytics stats (all-time, from server aggregation)
-  const dealStatsQuery = useQuery({
-    queryKey: ["analytics", "dealPipeline"],
-    queryFn: () => analyticsAPI.dealPipeline(),
-    staleTime: 1000 * 60 * 5,
-  });
-
-  // search state
-  const [searchInput, setSearchInput] = useState("");
-  const debouncedSearch = useDebounce(searchInput, 400);
-
-  // modal usestate
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  // selected deal for edit
-  const [dealToDelete, setDealToDelete] = useState<string | null>(null);
-  const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null);
-
-  // delete confirmation dialog state
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-  // selection state for bulk actions
-  const [selectedDealIds, setSelectedDealIds] = useState<string[]>([]);
-  const [selectionResetKey, setSelectionResetKey] = useState(0);
-
-  // notifications
-  const { notifyEvent } = useNotifications();
-
-  // export dialog state
-  const [isExportDialogOpen, setIsExportDialogOpen] = useState(false);
-  const [exportEmail, setExportEmail] = useState("");
-  const [isSending, setIsSending] = useState(false);
-
-  // search handlers
-  useEffect(() => {
-    searchDeals(debouncedSearch);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch]);
-
-  // edit and delete handlers
-  const handleEdit = (id: string) => {
-    const deal = filteredDeals.find((d) => d._id === id);
-    if (deal) {
-      setSelectedDeal(deal);
-      setIsModalOpen(true);
-    }
-  };
-
-  const handleDeleteDeal = (id: string) => {
-    setDealToDelete(id);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!dealToDelete) return;
-
-    try {
-      await deleteDeal(dealToDelete);
-      setDealToDelete(null);
-      toast.success("Deal deleted successfully!");
-      notifyEvent({
-        type: "deal_deleted",
-        title: "Deal Deleted",
-        message: `A deal has been deleted.`,
-        entityId: dealToDelete,
-        entityType: "deal",
-      });
-    } catch (error) {
-      console.error("Error deleting deal:", error);
-      toast.error("Failed to delete deal. Please try again.");
-      setDealToDelete(null);
-    }
-  };
-
-  // save handler for deal modal
-  const handleSave = async (dealData: UpdateDealDTO) => {
-    if (!selectedDeal) return;
-
-    try {
-      await updateDeal(selectedDeal._id, dealData);
-      setIsModalOpen(false);
-      setSelectedDeal(null);
-      toast.success("Deal updated successfully!");
-      notifyEvent({
-        type: "deal_updated",
-        title: "Deal Updated",
-        message: `The deal "${dealData.name}" has been updated.`,
-        entityId: selectedDeal._id,
-        entityType: "deal",
-      });
-    } catch (error) {
-      console.error("Error updating deal:", error);
-      toast.error("Failed to update deal. Please try again.");
-      throw error;
-    }
-  };
-
-  // close modal handler
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setSelectedDeal(null);
-  };
-
-  // export handler
-  const handleExport = async () => {
-    await exportDeals(selectedDealIds);
-    setSelectedDealIds([]);
-    setSelectionResetKey((k) => k + 1);
-  };
-
-  const handleEmailExport = async () => {
-    if (!exportEmail) return;
-
-    try {
-      setIsSending(true);
-
-      await exportEmailDeals(selectedDealIds, exportEmail);
-
-      toast.success("Export emailed successfully!", {
-        description: "Check your inbox for the exported deals.",
-      });
-
-      setSelectedDealIds([]);
-      setSelectionResetKey((k) => k + 1);
-      setExportEmail("");
-      setIsExportDialogOpen(false);
-    } catch (error) {
-      console.error("Error emailing export:", error);
-      toast.error("Failed to email export. Please try again.");
-    } finally {
-      setIsSending(false);
-    }
-  };
+    dealStatsQuery,
+    searchInput,
+    setSearchInput,
+    searchLoading,
+    isModalOpen,
+    selectedDeal,
+    selectedDealIds,
+    setSelectedDealIds,
+    selectionResetKey,
+    deleteDialogOpen,
+    setDeleteDialogOpen,
+    isExportDialogOpen,
+    setIsExportDialogOpen,
+    exportEmail,
+    setExportEmail,
+    isSending,
+    fetchDeals,
+    handleAddDeal,
+    handleEdit,
+    handleDeleteDeal,
+    confirmDelete,
+    handleSave,
+    handleCloseModal,
+    handleExport,
+    handleEmailExport,
+    handleClearFilters,
+    handleStageFilter,
+  } = useDealsPageState();
 
   return (
     <div className="space-y-6">
@@ -195,60 +64,54 @@ const DealsPage = () => {
             Deals
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your deals and pipelines
+            Manage and track your deals
           </p>
         </div>
+        <Button
+          onClick={handleAddDeal}
+          className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
+        >
+          <span>+</span> Add Deal
+        </Button>
       </div>
 
       <DealStatistics
         pipeline={dealStatsQuery.data?.pipeline ?? []}
-        summary={
-          dealStatsQuery.data?.summary ?? {
-            totalPipelineValue: 0,
-            totalDeals: 0,
-            avgDealValue: 0,
-          }
-        }
+        summary={dealStatsQuery.data?.summary ?? { totalPipelineValue: 0, totalDeals: 0, avgDealValue: 0 }}
         isLoading={dealStatsQuery.isLoading}
       />
 
-      {/* Filters */}
-      <div className="rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search deals..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="pl-10"
-              />
-              {searchLoading && (
-                <div className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-              )}
-            </div>
+      <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-50">
+            {searchLoading ? (
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            )}
+            <Input
+              placeholder="Search deals..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="pl-10"
+            />
           </div>
+
           <Select
             value={filters.stage || "all"}
-            onValueChange={(value) =>
-              updateFilter(
-                "stage",
-                value === "all" ? "" : (value as DealStatus),
-              )
-            }
+            onValueChange={handleStageFilter}
           >
-            <SelectTrigger className="w-full sm:w-45">
-              <SelectValue placeholder="Filter by Stage" />
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="All stages" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              {statuses.map((status) => (
+              <SelectItem value="all">All stages</SelectItem>
+              {DEAL_STATUSES.map((stage) => (
                 <SelectItem
-                  key={status}
-                  value={status}
+                  key={stage}
+                  value={stage}
                 >
-                  {status}
+                  {stage}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -256,20 +119,10 @@ const DealsPage = () => {
 
           <Button
             variant="outline"
-            onClick={() => {
-              clearFilters();
-              setSearchInput("");
-            }}
-            disabled={
-              !searchInput &&
-              !filters.stage &&
-              !filters.dateFrom &&
-              !filters.dateTo &&
-              !filters.minValue &&
-              !filters.maxValue
-            }
+            onClick={handleClearFilters}
+            className="shrink-0"
           >
-            Clear Filters
+            Reset Filters
           </Button>
         </div>
       </div>
@@ -289,10 +142,10 @@ const DealsPage = () => {
               Failed to load deals
             </p>
             <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
-              {error.message}
+              {error?.message || "An error occurred"}
             </p>
             <Button
-              onClick={() => window.location.reload()}
+              onClick={fetchDeals}
               variant="outline"
             >
               Retry
@@ -301,30 +154,30 @@ const DealsPage = () => {
         </div>
       ) : (
         <DataTable
-          columns={columns({ onEdit: handleEdit, onDelete: handleDeleteDeal })}
+          columns={columns({
+            onEdit: handleEdit,
+            onDelete: handleDeleteDeal,
+          })}
           data={filteredDeals}
           name="Deals"
-          searchColumn="name"
+          searchColumn="title"
           onSelectionChange={(rows) =>
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            setSelectedDealIds(rows.map((r: any) => r._id))
+            setSelectedDealIds(rows.map((r) => r._id))
           }
           hasNextPage={hasNextPage}
           onLoadMore={loadMore}
           loadingMore={loadingMore}
           resetSelectionTrigger={selectionResetKey}
-        ></DataTable>
+        />
       )}
 
       <BulkActionBar
         selectedIds={selectedDealIds}
         entityType="deals"
-        onClearSelection={() => {
-          setSelectedDealIds([]);
-          setSelectionResetKey((k) => k + 1);
-        }}
-        exportMailHandler={() => setIsExportDialogOpen(true)}
+        onClearSelection={() => setSelectedDealIds([])}
         exportHandler={handleExport}
+        exportMailHandler={() => setIsExportDialogOpen(true)}
+        onDeleteSuccess={fetchDeals}
       />
 
       <DealModal
@@ -345,7 +198,6 @@ const DealsPage = () => {
         variant="destructive"
       />
 
-      {/* Dialog */}
       <EmailExportDialogBox
         isExportDialogOpen={isExportDialogOpen}
         setIsExportDialogOpen={setIsExportDialogOpen}

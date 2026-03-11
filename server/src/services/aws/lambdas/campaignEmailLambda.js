@@ -1,5 +1,5 @@
-import emailController from "../../../controllers/emailController.js";
-import { Campaign, CampaignEmail } from "../../../models/campaignModel.js";
+import emailController from "../../../modules/emails/controllers/emailController.js";
+import { Campaign, CampaignEmail } from "../../../modules/campaign/models/campaignModel.js";
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
 

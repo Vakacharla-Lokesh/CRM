@@ -1,4 +1,4 @@
-import { workflowExecutionEngine } from "../../../services/workflowExecutionService.js";
+import { workflowExecutionEngine } from "../../../modules/workflows/services/workflowExecutionService.js";
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
 import { requestStore } from "../../../utils/requestContext.js";

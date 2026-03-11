@@ -1,6 +1,6 @@
 import { subDays, startOfDay, endOfDay } from "date-fns";
-import LeadModel from "../../../models/leadModel.js";
-import emailController from "../../../controllers/emailController.js";
+import LeadModel from "../../../modules/leads/models/leadModel.js";
+import emailController from "../../../modules/emails/controllers/emailController.js";
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
 import { requestStore } from "../../../utils/requestContext.js";

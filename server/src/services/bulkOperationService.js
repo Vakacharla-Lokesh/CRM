@@ -1,10 +1,10 @@
 import mongoose from "mongoose";
 import AppError from "../utils/appError.js";
-import leadModel from "../models/leadModel.js";
-import dealModel from "../models/dealModel.js";
-import commentModel from "../models/commentModel.js";
-import callModel from "../models/callModel.js";
-import organizationModel from "../models/organizationModel.js";
+import leadModel from "../modules/leads/models/leadModel.js";
+import dealModel from "../modules/deals/models/dealModel.js";
+import commentModel from "../modules/comments/models/commentModel.js";
+import callModel from "../modules/calls/models/callModel.js";
+import organizationModel from "../modules/organizations/models/organizationModel.js";
 
 async function deduplicateByIdempotencyKey(model, items, session) {
   const idempotencyKeys = items.map((i) => i.idempotencyKey).filter(Boolean);

@@ -33,6 +33,9 @@ export { useLeadActivityData } from "./leads/useLeadActivityData.ts";
 export { useUserAnalyticsData } from "./users/useUserAnalyticsData.ts";
 
 export { useWorkflowData } from "./useWorkflowData.ts";
+export { useLeadsPageState } from "./leads/useLeadsPageState.ts";
+export { useDealsPageState } from "./deals/useDealsPageState.ts";
+export { useOrganizationsPageState } from "./organizations/useOrganizationsPageState.ts";
 
 export { useOfflineManager } from "./useOfflineManager.ts";
 export {

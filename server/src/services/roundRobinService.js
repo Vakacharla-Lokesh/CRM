@@ -1,4 +1,4 @@
-import userModel from "../models/userModel.js";
+import userModel from "../modules/users/models/userModel.js";
 import roundRobinPointerModel from "../models/roundRobinPointerModel.js";
 
 export const getNextAssignee = async (tenantId) => {
