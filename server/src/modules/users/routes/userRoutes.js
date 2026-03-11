@@ -6,7 +6,6 @@ import {
   updateUser,
   deleteUser,
   getUsersByTenant,
-  updateUserRole,
   getCurrentUser,
   searchUsers,
   getUserStats,
@@ -23,11 +22,12 @@ import { requirePermission, injectTenantContext } from "../../../middlewares/rba
 import {
   createUserSchema,
   updateUserSchema,
-  updateRoleSchema,
   updatePasswordSchema,
   passwordResetSchema,
   updateProfileSchema,
+  assignPermissionsSchema
 } from "../validators/userValidators.js";
+
 
 const router = Router();
 
@@ -36,7 +36,9 @@ router.post(
   validate(passwordResetSchema),
   sendPasswordReset,
 );
+
 router.get("/me", authenticateRequest, getCurrentUser);
+
 router.get(
   "/search",
   authenticateRequest,
@@ -100,6 +102,7 @@ router.patch(
   authenticateRequest,
   requirePermission("users:manage_roles"),
   injectTenantContext,
+  validate(assignPermissionsSchema),
   assignRoleToUser,
 );
 router.put(

@@ -30,8 +30,10 @@ export const getAllUsers = asyncCatch(async (req, res) => {
     ];
   }
 
-  const { users, nextCursor, hasNextPage } =
-    await userService.getAllUsers(filter, { limit, cursor });
+  const { users, nextCursor, hasNextPage } = await userService.getAllUsers(
+    filter,
+    { limit, cursor },
+  );
 
   res.json({ count: users.length, users, nextCursor, hasNextPage });
 });
@@ -45,6 +47,12 @@ export const getUserById = asyncCatch(async (req, res) => {
 
 // Create a new user
 export const createUser = asyncCatch(async (req, res) => {
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
+
+  const userData = { ...req.body };
+  if (tenantId) userData.tenantId = tenantId;
+  
   const user = await userService.createUser(req.body);
 
   res.status(201).json({
@@ -56,7 +64,11 @@ export const createUser = asyncCatch(async (req, res) => {
 // Update user
 export const updateUser = asyncCatch(async (req, res) => {
   const { lastKnownUpdatedAt, ...updates } = req.body;
-  const user = await userService.updateUser(req.params.id, updates, lastKnownUpdatedAt);
+  const user = await userService.updateUser(
+    req.params.id,
+    updates,
+    lastKnownUpdatedAt,
+  );
 
   res.json({
     message: "User updated successfully",

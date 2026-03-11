@@ -7,7 +7,7 @@ import {
 import { toast } from "sonner";
 import { userService } from "@/services/userService.ts";
 import { useIndexedDB } from "@/hooks/useIndexedDB";
-import type { User, UserRole } from "@/types";
+import type { CreateUserDTO, User, UserRole } from "@/types";
 
 const PAGE_LIMIT = 20;
 
@@ -125,8 +125,15 @@ export const useUserData = (tenantId?: string) => {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, updates, lastKnownUpdatedAt }: { id: string; updates: Partial<User>; lastKnownUpdatedAt?: Date }) =>
-      userService.updateUser(id, updates, lastKnownUpdatedAt),
+    mutationFn: ({
+      id,
+      updates,
+      lastKnownUpdatedAt,
+    }: {
+      id: string;
+      updates: Partial<User>;
+      lastKnownUpdatedAt?: Date;
+    }) => userService.updateUser(id, updates, lastKnownUpdatedAt),
     onSuccess: (updated) => {
       updateItem(updated._id, { ...updated, id: updated._id }).catch(() => {});
       queryClient.invalidateQueries({ queryKey: ["users-list"] });
@@ -134,7 +141,9 @@ export const useUserData = (tenantId?: string) => {
     onError: (err: unknown) => {
       const status = (err as { status?: number }).status;
       if (status === 409) {
-        toast.error("This user was modified by someone else. Please refresh and try again.");
+        toast.error(
+          "This user was modified by someone else. Please refresh and try again.",
+        );
         queryClient.invalidateQueries({ queryKey: ["users-list"] });
       }
     },
@@ -158,16 +167,17 @@ export const useUserData = (tenantId?: string) => {
   });
 
   const createUser = useCallback(
-    (userData: Partial<User>) => createMutation.mutateAsync(userData),
+    (userData: CreateUserDTO) =>
+      createMutation.mutateAsync(userData as unknown as Partial<User>),
     [createMutation],
   );
 
   const updateUser = useCallback(
-    (id: string, updates: Partial<User>) => {
+    (id: string, updates: CreateUserDTO) => {
       const cachedUser = allUsers.find((u) => u._id === id);
       return updateMutation.mutateAsync({
         id,
-        updates,
+        updates: updates as unknown as Partial<User>,
         lastKnownUpdatedAt: cachedUser?.updatedAt,
       });
     },

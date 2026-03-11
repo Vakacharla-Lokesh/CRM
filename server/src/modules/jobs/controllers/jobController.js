@@ -1,5 +1,5 @@
-import { asyncCatch } from "../utils/asyncCatch.js";
-import AppError from "../utils/appError.js";
+import { asyncCatch } from "../../../utils/asyncCatch.js";
+import AppError from "../../../utils/appError.js";
 import { jobService } from "../services/jobService.js";
 
 export const getJobStatus = asyncCatch(async (req, res) => {

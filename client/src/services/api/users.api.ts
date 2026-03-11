@@ -34,7 +34,11 @@ export const usersAPI = {
     return response.user;
   },
 
-  update: async (id: string, data: UpdateUserDTO, lastKnownUpdatedAt?: Date) => {
+  update: async (
+    id: string,
+    data: UpdateUserDTO,
+    lastKnownUpdatedAt?: Date,
+  ) => {
     const response = await put<{ message: string; user: User }>(
       `/users/${id}`,
       {
@@ -57,12 +61,16 @@ export const usersAPI = {
     params?: { page?: number; limit?: number },
   ) => get<LeadListResponse>(`/users/${userId}/leads`, params),
 
-  assignRole: async (userId: string, roleId: string) => {
-    const response = await patch<{ message: string; user: User }>(
-      `/users/${userId}/role`,
-      { roleId },
-    );
-    return response.user;
+  assignRole: async (
+    userId: string,
+    payload: { permissions: string[]; role?: string },
+  ) => {
+    const response = await patch<{
+      success: boolean;
+      message: string;
+      data: { userId: string; role: string; permissions: string[] };
+    }>(`/users/${userId}/role`, payload);
+    return response.data;
   },
 
   getPermissions: (userId: string) =>

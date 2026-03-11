@@ -1,4 +1,4 @@
-import redis from "../config/redis.js";
+import redis from "../../../config/redis.js";
 import crypto from "crypto";
 
 const JOB_TTL = 30 * 24 * 60 * 60;

@@ -2,7 +2,6 @@ import workflowModel from "../modules/workflows/models/workflowModel.js";
 import workflowExecutionLogModel from "../modules/workflows/models/workflowExecutionLogModel.js";
 import { jobDispatcher } from "../services/jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../utils/jobTypes.js";
-import asyncCatch from "../utils/asyncCatch.js";
 
 export const captureRequestContext = (req, res, next) => {
   req.workflowContext = {
@@ -15,8 +14,7 @@ export const captureRequestContext = (req, res, next) => {
   next();
 };
 
-export const fireWorkflowTrigger = asyncCatch(
-  async (req, entityType, action, entityId, newData) => {
+export const fireWorkflowTrigger = async (req, entityType, action, entityId, newData) => {
     if (!req.user?.userId) return;
 
     const matchingWorkflows = await workflowModel.find({
@@ -43,8 +41,7 @@ export const fireWorkflowTrigger = asyncCatch(
         newData,
       );
     }
-  },
-);
+};
 
 function evaluateTriggerConditions(conditions, data) {
   if (!Array.isArray(conditions) || conditions.length === 0) {
@@ -87,8 +84,7 @@ function getNestedValue(obj, path) {
   return path.split(".").reduce((current, part) => current?.[part], obj);
 }
 
-const queueWorkflowExecution = asyncCatch(
-  async (tenantId, workflow, entityType, entityId, entityData) => {
+const queueWorkflowExecution = async (tenantId, workflow, entityType, entityId, entityData) => {
     const executionLog = await workflowExecutionLogModel.create({
       tenantId,
       workflowId: workflow._id,
@@ -134,8 +130,7 @@ const queueWorkflowExecution = asyncCatch(
       $inc: { totalExecutions: 1 },
       lastExecuted: new Date(),
     });
-  },
-);
+};
 
 export default {
   captureRequestContext,

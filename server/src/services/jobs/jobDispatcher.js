@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { queueService } from "../aws/queue/queueService.js";
 import { isValidJobType } from "../../utils/jobTypes.js";
-import { jobService } from "../jobService.js";
+import { jobService } from "../../modules/jobs/services/jobService.js";
 
 async function dispatch({ jobType, payload, tenantId, userId }) {
   if (!jobType) {

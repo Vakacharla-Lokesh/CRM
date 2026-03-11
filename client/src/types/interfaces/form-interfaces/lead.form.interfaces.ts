@@ -9,6 +9,7 @@ export interface LeadFormData {
   score: number;
   organizationId: string;
   assignedTo?: string;
+  pipelineId?: string;
 }
 
 export interface FormErrors {

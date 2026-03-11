@@ -198,3 +198,14 @@ export const formatCompactCurrency = (
 
   return `${sign}${symbol}${abs.toFixed(2)}`;
 };
+
+export function normalizePermissions(raw: unknown): string[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw.filter((p) => typeof p === "string");
+  if (typeof raw === "object") {
+    return Object.entries(raw as Record<string, unknown>)
+      .filter(([, v]) => v === true)
+      .map(([k]) => k);
+  }
+  return [];
+}

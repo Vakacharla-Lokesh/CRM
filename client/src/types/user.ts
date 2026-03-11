@@ -6,7 +6,6 @@ export interface User {
   email: string;
   mobile?: string;
   role: UserRole;
-  roleId?: string;
   roleName?: string;
   permissions: string[];
   tenantId: string;
@@ -23,8 +22,8 @@ export interface CreateUserDTO {
   password: string;
   mobile?: string;
   role?: UserRole;
-  roleId?: string;
   tenantId: string;
+  permissions?: Record<string, boolean> | string[];
 }
 
 export interface UpdateUserDTO {
@@ -34,6 +33,8 @@ export interface UpdateUserDTO {
   mobile?: string;
   role?: UserRole;
   isActive?: boolean;
+  permissions?: Record<string, boolean> | string[];
+  lastKnownUpdatedAt?: Date;
 }
 
 export interface UserListResponse {
@@ -57,7 +58,6 @@ export interface UserStatistics {
 }
 
 export type UserRole = "user" | "admin" | "super_admin";
-
 
 export function isUser(obj: any): obj is User {
   return (

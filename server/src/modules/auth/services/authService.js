@@ -1,13 +1,13 @@
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import userModel from "../modules/users/models/userModel.js";
-import tenantModel from "../modules/tenants/models/tenantModel.js";
+import userModel from "../../users/models/userModel.js";
+import tenantModel from "../../tenants/models/tenantModel.js";
 import RefreshToken from "../models/refreshTokenModel.js";
-import AppError from "../utils/appError.js";
-import { otpCache } from "../config/cache.js";
-import emailController from "../modules/emails/controllers/emailController.js";
-import { seedDefaultPipeline } from "../modules/pipelines/services/pipelineService.js";
-import envConfig from "../config/envConfig.js";
+import AppError from "../../../utils/appError.js";
+import { otpCache } from "../../../config/cache.js";
+import emailController from "../../emails/controllers/emailController.js";
+import { seedDefaultPipeline } from "../../pipelines/services/pipelineService.js";
+import envConfig from "../../../config/envConfig.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
