@@ -1,15 +1,8 @@
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import mongoose from "mongoose";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { ensureAwsInitialized } from "../initAwsResources.js";
 import { handler } from "./jobProcessorLambda.js";
+import envConfig from "../../../config/envConfig.js";
 
 const BATCH_SIZE = 10;
 
@@ -17,7 +10,7 @@ const controller = new AbortController();
 const { signal } = controller;
 
 async function connectDatabase() {
-  const uri = process.env.DB_URI || process.env.MONGODB_URI;
+  const uri = envConfig.dbUri;
   if (!uri)
     throw new Error("[LocalRunner] No MongoDB URI found. Set DB_URI in .env");
 

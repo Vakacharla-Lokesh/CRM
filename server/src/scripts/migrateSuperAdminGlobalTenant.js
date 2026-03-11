@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 import User from "../modules/users/models/userModel.js";
 import Role from "../models/roleModel.js";
 import Tenant from "../modules/tenants/models/tenantModel.js";
-import { ALL_PERMISSIONS } from "../models/permissionPresets.js";
+import { ALL_PERMISSIONS } from "../utils/permissionPresets.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,14 +15,6 @@ dotenv.config({ path: path.join(__dirname, "../../.env") });
 const GLOBAL_TENANT_NAME = "GLOBAL_SYSTEM";
 const SYSTEM_ROLE_NAME = "system_admin";
 
-/**
- * Migration Script: Create a GLOBAL_SYSTEM tenant for super_admin users
- *
- * Steps:
- * 1. Create (or find) the GLOBAL_SYSTEM tenant with isSystemTenant: true
- * 2. Create (or find) a system_admin role under that tenant with ALL permissions
- * 3. Update all super_admin users to reference both
- */
 const migrateSuperAdminGlobalTenant = async () => {
   try {
     console.log("🚀 Starting Super Admin → Global Tenant Migration...\n");

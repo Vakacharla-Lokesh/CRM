@@ -1,12 +1,4 @@
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import mongoose from "mongoose";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-config({ path: path.resolve(__dirname, "../../../../.env") });
 
 import { ensureAwsInitialized } from "../initAwsResources.js";
 import { queueService } from "../queue/queueService.js";
@@ -21,6 +13,7 @@ import * as analyticsSnapshotWorker from "./analyticsSnapshotLambda.js";
 import * as campaignEmailWorker from "./campaignEmailLambda.js";
 
 import { jobService } from "../../jobService.js";
+import envConfig from "../../../config/envConfig.js";
 
 let _initialized = false;
 
@@ -33,7 +26,7 @@ async function initialize() {
   console.log("[JobProcessor] Initializing...");
 
   // Connect to MongoDB
-  const uri = process.env.DB_URI || process.env.MONGODB_URI;
+  const uri = envConfig.dbUri;
   if (!uri)
     throw new Error("[Lambda] No MongoDB URI found. Set DB_URI in .env");
 

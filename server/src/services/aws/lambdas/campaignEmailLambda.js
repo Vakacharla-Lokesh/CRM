@@ -2,11 +2,12 @@ import emailController from "../../../modules/emails/controllers/emailController
 import { Campaign, CampaignEmail } from "../../../modules/campaign/models/campaignModel.js";
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
+import envConfig from "../../../config/envConfig.js";
 
 export const jobType = JOB_TYPES.CAMPAIGN_EMAIL_SEND;
 
 const TRACKING_BASE_URL =
-  process.env.API_BASE_URL || "http://localhost:5000/api";
+  envConfig.apiBaseUrl || "http://localhost:5000/api";
 
 export async function handler(payload, _context) {
   const { campaignEmailId, campaignId, leadId } = payload;

@@ -1,6 +1,6 @@
 import { Schema, model } from "mongoose";
 import bcrypt from "bcryptjs";
-import { ALL_PERMISSIONS } from "../../../models/permissionPresets.js";
+import { ALL_PERMISSIONS } from "../../../utils/permissionPresets.js";
 
 const userSchema = new Schema(
   {

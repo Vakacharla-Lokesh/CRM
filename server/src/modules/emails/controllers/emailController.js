@@ -1,14 +1,17 @@
 import nodemailer from "nodemailer";
+import envConfig from "../../../config/envConfig.js";
 
 let _transport = null;
 
 function getTransport() {
   if (_transport) return _transport;
 
-  const HOST = process.env.MAILTRAP_HOST;
-  const PORT = process.env.MAILTRAP_PORT;
-  const USER = process.env.MAILTRAP_USER;
-  const PASS = process.env.MAILTRAP_PASS;
+  const MAILTRAP_CREDENTIALS = envConfig.mailtrap;
+
+  const HOST = MAILTRAP_CREDENTIALS.host;
+  const PORT = MAILTRAP_CREDENTIALS.port;
+  const USER = MAILTRAP_CREDENTIALS.user;
+  const PASS = MAILTRAP_CREDENTIALS.pass;
 
   if (!HOST || !PORT || !USER || !PASS) {
     console.warn("Mailtrap SMTP credentials are missing in .env");
@@ -25,8 +28,8 @@ function getTransport() {
 }
 
 const FROM_EMAIL = () =>
-  process.env.MAILTRAP_FROM_EMAIL || "hello@demomailtrap.co";
-const FROM_NAME = () => process.env.MAILTRAP_FROM_NAME || "Your App";
+  MAILTRAP_CREDENTIALS.fromEmail || "hello@demomailtrap.co";
+const FROM_NAME = () => MAILTRAP_CREDENTIALS.fromName || "Your App";
 
 const emailTemplates = {
   otpEmail: (email, otp, expiryMinutes = 5) => ({

@@ -1,11 +1,4 @@
-import { config } from "dotenv";
-import { fileURLToPath } from "url";
-import path from "path";
 import mongoose from "mongoose";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-config({ path: path.resolve(__dirname, "../../../../../.env") });
 
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import { logger } from "../../../utils/logger.js";
@@ -15,6 +8,7 @@ import {
   getAllTenantsWithUsers,
   TENANT_SCOPE_KEY,
 } from "../../../modules/analytics/services/analyticsSnapshotService.js";
+import envConfig from "../../../config/envConfig.js";
 
 export const jobType = JOB_TYPES.ANALYTICS_SNAPSHOT;
 
@@ -87,7 +81,7 @@ let _dbConnected = false;
 
 async function ensureDb() {
   if (_dbConnected) return;
-  const uri = process.env.DB_URI || process.env.MONGODB_URI;
+  const uri = envConfig.dbUri;
   if (!uri)
     throw new Error("[AnalyticsSnapshotWorker Lambda] No MongoDB URI found");
   if (mongoose.connection.readyState === 0) {

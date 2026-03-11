@@ -1,6 +1,6 @@
 import SessionEvent from "../models/sessionEventModel.js";
 import { createLead } from "../../leads/services/leadService.js";
-import { getNextAssignee } from "../../../services/roundRobinService.js";
+import { getNextAssignee } from "../../roundRobin/services/roundRobinService.js";
 import { notifyUser, notificationTypes } from "../../../services/notificationService.js";
 
 const SCORE_THRESHOLD = 50;

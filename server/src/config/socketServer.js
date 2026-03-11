@@ -1,12 +1,13 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
+import envConfig from "./envConfig.js";
 
 let io;
 
 export const initializeSocketServer = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
-      origin: process.env.CORS_ORIGIN || "http://localhost:5173",
+      origin: envConfig.corsOrigin || "http://localhost:5173",
       methods: ["GET", "POST"],
       credentials: true,
     },
@@ -25,7 +26,7 @@ export const initializeSocketServer = (httpServer) => {
 
       const decoded = jwt.verify(
         token,
-        process.env.JWT_SECRET || "your-secret-key",
+        envConfig.jwtSecret || "your-secret-key",
       );
       socket.userId = decoded.userId;
       socket.tenantId = decoded.tenantId;
