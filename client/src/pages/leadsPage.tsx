@@ -19,6 +19,16 @@ import BulkImportModal from "@/components/modals/bulkImportModal";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 import { PipelineFilter } from "@/components/leads/pipelineFilter";
 import EmailExportDialogBox from "@/components/common/emailExportDialogBox";
+import type { PipelineSegment } from "@/types/leads";
+
+const RFM_SEGMENTS: PipelineSegment[] = [
+  "Hot Deals",
+  "Sleeping Giants",
+  "Time Wasters",
+  "Dead Wood",
+  "Active Prospect",
+  "Unsegmented",
+];
 
 const LeadsPage = () => {
   const {
@@ -200,6 +210,28 @@ const LeadsPage = () => {
                   value={source.value}
                 >
                   {source.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select
+            value={filters.rfmSegment || "all"}
+            onValueChange={(value) =>
+              updateFilter("rfmSegment", value === "all" ? "" : value)
+            }
+          >
+            <SelectTrigger className="w-44">
+              <SelectValue placeholder="All segments" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All segments</SelectItem>
+              {RFM_SEGMENTS.map((seg) => (
+                <SelectItem
+                  key={seg}
+                  value={seg}
+                >
+                  {seg}
                 </SelectItem>
               ))}
             </SelectContent>

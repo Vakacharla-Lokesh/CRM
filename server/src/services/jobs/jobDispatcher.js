@@ -17,7 +17,7 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
   }
 
   const job = await jobService.createJob({
-    tenantId,
+    tenantId: tenantId.toString(),
     type: jobType,
     status: "pending",
   });
@@ -30,8 +30,8 @@ async function dispatch({ jobType, payload, tenantId, userId }) {
     _meta: {
       jobType,
       jobId: job.jobId,
-      tenantId,
-      userId: userId || null,
+      tenantId: tenantId.toString(),
+      userId: userId ? userId.toString() : null,
       requestId,
       traceId,
       dispatchedAt: new Date().toISOString(),

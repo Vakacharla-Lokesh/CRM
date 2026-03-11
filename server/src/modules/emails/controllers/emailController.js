@@ -28,8 +28,8 @@ function getTransport() {
 }
 
 const FROM_EMAIL = () =>
-  MAILTRAP_CREDENTIALS.fromEmail || "hello@demomailtrap.co";
-const FROM_NAME = () => MAILTRAP_CREDENTIALS.fromName || "Your App";
+  envConfig.mailtrap.fromEmail || "hello@demomailtrap.co";
+const FROM_NAME = () => envConfig.mailtrap.fromName || "Your App";
 
 const emailTemplates = {
   otpEmail: (email, otp, expiryMinutes = 5) => ({

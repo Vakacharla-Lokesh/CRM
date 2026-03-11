@@ -229,6 +229,12 @@ export async function ensureAwsInitialized() {
         lambdaArn,
       );
 
+      await eventBridgeAdapter.ensureScheduleRule(
+        "crm-rfm-calculation-schedule",
+        "cron(0 10 * * ? *)",
+        lambdaArn,
+      );
+
       console.log(
         "[AWS] EventBridge dispatchers configured (replaces localRunner polling)",
       );

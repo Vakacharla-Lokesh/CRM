@@ -33,6 +33,13 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   if (req.query.pipelineId) {
     filter.pipelineId = new mongoose.Types.ObjectId(req.query.pipelineId);
   }
+   if (req.query.rfmSegment) {
+    filter["rfm.segment"] = req.query.rfmSegment;
+  }
+  if (req.query.minRfmScore) {
+    const min = parseInt(req.query.minRfmScore);
+    filter["rfm.rScore"] = { $gte: min };
+  }
 
   const limit = parseInt(req.query.limit) || 20;
   const cursor = req.query.cursor;
