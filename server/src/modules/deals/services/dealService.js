@@ -2,99 +2,100 @@ import dealModel from "../models/dealModel.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllDeals = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
-  }
+export const getAllDeals = wrapServiceFn(
+  async (filter, { limit = 20, cursor } = {}) => {
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
 
-  const deals = await dealModel
-    .find(filter)
-    .sort({ _id: 1 })
-    .limit(limit + 1);
+    const deals = await dealModel
+      .find(filter)
+      .sort({ _id: 1 })
+      .limit(limit + 1);
 
-  const hasNextPage = deals.length > limit;
-  if (hasNextPage) deals.pop();
+    const hasNextPage = deals.length > limit;
+    if (hasNextPage) deals.pop();
 
-  const nextCursor =
-    hasNextPage && deals.length > 0
-      ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
-      : null;
+    const nextCursor =
+      hasNextPage && deals.length > 0
+        ? Buffer.from(deals[deals.length - 1]._id.toString()).toString("base64")
+        : null;
 
-  return { deals, nextCursor, hasNextPage };
-});
+    return { deals, nextCursor, hasNextPage };
+  },
+);
 
-export const getDealById = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
-  const deal = await dealModel.findById(id);
-  if (!deal) throw new AppError("Deal not found", 404);
+export const getDealById = wrapServiceFn(
+  async (id, tenantId, userId, canViewAll) => {
+    const deal = await dealModel.findById(id);
+    if (!deal) throw new AppError("Deal not found", 404);
 
-  if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot access this deal", 403);
-  }
+    if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot access this deal", 403);
+    }
 
-  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
-    throw new AppError("Forbidden: You cannot access this deal", 403);
-  }
+    if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
+      throw new AppError("Forbidden: You cannot access this deal", 403);
+    }
 
-  return deal;
-});
+    return deal;
+  },
+);
 
 export const createDeal = wrapServiceFn(async (dealData) => {
   return dealModel.create(dealData);
 });
 
-export const updateDeal = wrapServiceFn(async (
-  id,
-  tenantId,
-  userId,
-  canViewAll,
-  updates,
-  lastKnownUpdatedAt,
-) => {
-  const deal = await dealModel.findById(id);
-  if (!deal) throw new AppError("Deal not found", 404);
+export const updateDeal = wrapServiceFn(
+  async (id, tenantId, userId, canViewAll, updates, lastKnownUpdatedAt) => {
+    const deal = await dealModel.findById(id);
+    if (!deal) throw new AppError("Deal not found", 404);
 
-  if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(deal.updatedAt).getTime();
-
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This deal was modified by someone else. Please refresh and try again.",
-        409,
-      );
+    if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot update this deal", 403);
     }
-  }
 
-  return dealModel.findByIdAndUpdate(id, updates, {
-    new: true,
-    runValidators: true,
-  });
-});
+    if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
+      throw new AppError("Forbidden: You cannot update this deal", 403);
+    }
 
-export const deleteDeal = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
-  const deal = await dealModel.findById(id);
-  if (!deal) throw new AppError("Deal not found", 404);
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(deal.updatedAt).getTime();
 
-  if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot delete this deal", 403);
-  }
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This deal was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
+    }
 
-  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
-    throw new AppError("Forbidden: You cannot delete this deal", 403);
-  }
+    return dealModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+  },
+);
 
-  await dealModel.findByIdAndDelete(id);
-  return deal;
-});
+export const deleteDeal = wrapServiceFn(
+  async (id, tenantId, userId, canViewAll) => {
+    const deal = await dealModel.findById(id);
+    if (!deal) throw new AppError("Deal not found", 404);
+
+    if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot delete this deal", 403);
+    }
+
+    if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
+      throw new AppError("Forbidden: You cannot delete this deal", 403);
+    }
+
+    await dealModel.findByIdAndDelete(id);
+    return deal;
+  },
+);
 
 export const getDealsByTenant = wrapServiceFn(async (tenantId) => {
   return dealModel.find({ tenantId });
@@ -112,11 +113,13 @@ export const getDealsByLead = wrapServiceFn(async (leadId, tenantId) => {
   return dealModel.find(filter);
 });
 
-export const getDealsByOrganization = wrapServiceFn(async (organizationId, tenantId) => {
-  const filter = { organizationId };
-  if (tenantId) filter.tenantId = tenantId;
-  return dealModel.find(filter);
-});
+export const getDealsByOrganization = wrapServiceFn(
+  async (organizationId, tenantId) => {
+    const filter = { organizationId };
+    if (tenantId) filter.tenantId = tenantId;
+    return dealModel.find(filter);
+  },
+);
 
 export const searchDeals = wrapServiceFn(async (filter, { q, limit = 25 }) => {
   if (!q || q.trim() === "") {
@@ -132,31 +135,28 @@ export const searchDeals = wrapServiceFn(async (filter, { q, limit = 25 }) => {
     .limit(Math.min(parseInt(limit), 25));
 });
 
-export const updateDealStatus = wrapServiceFn(async (
-  id,
-  tenantId,
-  status,
-  lastKnownUpdatedAt,
-) => {
-  const deal = await dealModel.findById(id);
-  if (!deal) throw new AppError("Deal not found", 404);
+export const updateDealStatus = wrapServiceFn(
+  async (id, tenantId, status, lastKnownUpdatedAt) => {
+    const deal = await dealModel.findById(id);
+    if (!deal) throw new AppError("Deal not found", 404);
 
-  if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot update this deal", 403);
-  }
-
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(deal.updatedAt).getTime();
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This deal was modified by someone else. Please refresh and try again.",
-        409,
-      );
+    if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot update this deal", 403);
     }
-  }
 
-  deal.status = status;
-  await deal.save();
-  return deal;
-});
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(deal.updatedAt).getTime();
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This deal was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
+    }
+
+    deal.status = status;
+    await deal.save();
+    return deal;
+  },
+);

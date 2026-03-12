@@ -287,13 +287,11 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
                   const systemRole =
                     matchedRole.name.toLowerCase() === "admin"
                       ? "admin"
-                      : matchedRole.name.toLowerCase() === "super_admin"
-                        ? "super_admin"
-                        : "user";
+                      : "user";
                   setFormData((prev) => ({
                     ...prev,
                     role: systemRole as UserFormData["role"],
-                    roleId: matchedRole._id,
+                    permissions: matchedRole.permissions,
                   }));
                 } else {
                   handleInputChange("role", value);

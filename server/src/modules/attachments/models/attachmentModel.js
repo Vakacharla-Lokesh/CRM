@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-// attachment schema
 const attachmentsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "attachmentId", auto: true },
@@ -14,7 +13,6 @@ const attachmentsSchema = new Schema(
   { timestamps: true },
 );
 
-// Indexes
 attachmentsSchema.index({ leadId: 1, createdAt: -1 });
 
 export default model("Attachments", attachmentsSchema);

@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-// MongoDB collection schema
 const leadActivitySchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "activityId", auto: true },
@@ -14,7 +13,6 @@ const leadActivitySchema = new Schema(
   { timestamps: true },
 );
 
-// Indexes
 leadActivitySchema.index({ leadId: 1, createdAt: -1 });
 leadActivitySchema.index({ tenantId: 1 });
 

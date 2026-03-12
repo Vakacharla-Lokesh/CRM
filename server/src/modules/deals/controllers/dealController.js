@@ -1,7 +1,7 @@
 import * as dealService from "../services/dealService.js";
 import asyncCatch from "../../../utils/asyncCatch.js";
 import AppError from "../../../utils/appError.js";
-import { fireWorkflowTrigger } from "../../../middlewares/workflowTrigger.js";
+import { fireWorkflowTrigger } from "../../../services/workflowTrigger.js";
 
 // Get all deals
 export const getAllDeals = asyncCatch(async (req, res) => {

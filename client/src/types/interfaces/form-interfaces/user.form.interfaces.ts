@@ -9,6 +9,7 @@ export interface UserFormData {
   password: string;
   tenantId: string;
   permissions?: string[];
+  roleId?: string;
 }
 
 export interface UserFormErrors {

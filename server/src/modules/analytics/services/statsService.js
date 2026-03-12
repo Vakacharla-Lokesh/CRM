@@ -1,6 +1,5 @@
 import userModel from "../../users/models/userModel.js";
 import tenantModel from "../../tenants/models/tenantModel.js";
-import mongoose from "mongoose";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 export const getUsersStatsService = wrapServiceFn(async (tenantFilter) => {

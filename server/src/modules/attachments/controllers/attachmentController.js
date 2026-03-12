@@ -3,7 +3,6 @@ import asyncCatch from "../../../utils/asyncCatch.js";
 import { logActivity } from "../../leads/services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../../../utils/leadActivityTypes.js";
 
-// GET /attachments — list all (admin use)
 export const getAllAttachments = asyncCatch(async (req, res) => {
   const attachments = await attachmentService.getAllAttachments();
 
@@ -13,14 +12,12 @@ export const getAllAttachments = asyncCatch(async (req, res) => {
   });
 });
 
-// GET /attachments/:id
 export const getAttachmentById = asyncCatch(async (req, res) => {
   const attachment = await attachmentService.getAttachmentById(req.params.id);
 
   res.json({ attachment: attachmentService.toPublic(attachment) });
 });
 
-// POST /attachments/presigned-url
 export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize } = req.body;
 
@@ -39,7 +36,6 @@ export const getPresignedUploadUrl = asyncCatch(async (req, res) => {
   res.json(result);
 });
 
-// POST /attachments
 export const createAttachment = asyncCatch(async (req, res) => {
   const { leadId, fileName, fileType, fileSize, s3Key, s3Url } = req.body;
 
@@ -73,7 +69,6 @@ export const createAttachment = asyncCatch(async (req, res) => {
   });
 });
 
-// DELETE /attachments/:id — removes the DB record and the S3 object
 export const deleteAttachment = asyncCatch(async (req, res) => {
   const existing = await attachmentService.getAttachmentById(req.params.id);
 
@@ -99,7 +94,6 @@ export const deleteAttachment = asyncCatch(async (req, res) => {
   res.json({ message: "Attachment deleted successfully" });
 });
 
-// GET /attachments/lead/:leadId
 export const getAttachmentsByLead = asyncCatch(async (req, res) => {
   await attachmentService.verifyLeadTenantAccess(
     req.params.leadId,
@@ -117,7 +111,6 @@ export const getAttachmentsByLead = asyncCatch(async (req, res) => {
   });
 });
 
-// GET /attachments/:id/download
 export const downloadAttachment = asyncCatch(async (req, res) => {
   const existing = await attachmentService.getAttachmentById(req.params.id);
 

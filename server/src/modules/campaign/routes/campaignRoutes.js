@@ -14,7 +14,10 @@ import {
   incrementTemplateUsage,
 } from "../controllers/campaignTemplateController.js";
 import { authenticateRequest, checkActive } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 
 const router = Router();
 

@@ -7,29 +7,31 @@ import {
   validateStatusInPipeline,
 } from "../../pipelines/services/pipelineService.js";
 
-export const getAllLeads = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
-  if (cursor) {
-    const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
-    filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
-  }
+export const getAllLeads = wrapServiceFn(
+  async (filter, { limit = 20, cursor } = {}) => {
+    if (cursor) {
+      const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
+      filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
+    }
 
-  const leads = await leadModel
-    .find(filter)
-    .sort({ updatedAt: -1 })
-    .limit(limit + 1);
+    const leads = await leadModel
+      .find(filter)
+      .sort({ updatedAt: -1 })
+      .limit(limit + 1);
 
-  const hasNextPage = leads.length > limit;
-  if (hasNextPage) leads.pop();
+    const hasNextPage = leads.length > limit;
+    if (hasNextPage) leads.pop();
 
-  const nextCursor =
-    hasNextPage && leads.length > 0
-      ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString(
-          "base64",
-        )
-      : null;
+    const nextCursor =
+      hasNextPage && leads.length > 0
+        ? Buffer.from(leads[leads.length - 1].updatedAt.toISOString()).toString(
+            "base64",
+          )
+        : null;
 
-  return { leads, nextCursor, hasNextPage };
-});
+    return { leads, nextCursor, hasNextPage };
+  },
+);
 
 export const getLeadById = wrapServiceFn(async (id, tenantId) => {
   const lead = await leadModel.findById(id);
@@ -61,34 +63,36 @@ export const createLead = wrapServiceFn(async (leadData) => {
   return leadModel.findById(lead._id);
 });
 
-export const updateLead = wrapServiceFn(async (id, tenantId, updates, lastKnownUpdatedAt) => {
-  const lead = await leadModel.findById(id);
-  if (!lead) throw new AppError("Lead not found", 404);
+export const updateLead = wrapServiceFn(
+  async (id, tenantId, updates, lastKnownUpdatedAt) => {
+    const lead = await leadModel.findById(id);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(lead.updatedAt).getTime();
-
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This lead was modified by someone else. Please refresh and try again.",
-        409,
-      );
+    if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot update this lead", 403);
     }
-  }
 
-  const updatedLead = await leadModel.findByIdAndUpdate(id, updates, {
-    new: true,
-    runValidators: true,
-  });
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(lead.updatedAt).getTime();
 
-  await updateLeadScore(id);
-  return leadModel.findById(id);
-});
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This lead was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
+    }
+
+    const updatedLead = await leadModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+
+    await updateLeadScore(id);
+    return leadModel.findById(id);
+  },
+);
 
 export const deleteLead = wrapServiceFn(async (id, tenantId) => {
   const lead = await leadModel.findById(id);
@@ -112,134 +116,131 @@ export const getLeadsByUser = wrapServiceFn(async (userId, tenantId) => {
   return leadModel.find(filter);
 });
 
-export const getLeadsByOrganization = wrapServiceFn(async (organizationId, tenantId) => {
-  const filter = { organizationId };
-  if (tenantId) filter.tenantId = tenantId;
-  return leadModel.find(filter);
-});
+export const getLeadsByOrganization = wrapServiceFn(
+  async (organizationId, tenantId) => {
+    const filter = { organizationId };
+    if (tenantId) filter.tenantId = tenantId;
+    return leadModel.find(filter);
+  },
+);
 
-export const updateLeadStatus = wrapServiceFn(async (
-  id,
-  tenantId,
-  status,
-  lastKnownUpdatedAt,
-) => {
-  const lead = await leadModel.findById(id);
-  if (!lead) throw new AppError("Lead not found", 404);
+export const updateLeadStatus = wrapServiceFn(
+  async (id, tenantId, status, lastKnownUpdatedAt) => {
+    const lead = await leadModel.findById(id);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(lead.updatedAt).getTime();
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This lead was modified by someone else. Please refresh and try again.",
-        409,
-      );
+    if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot update this lead", 403);
     }
-  }
 
-  if (lead.pipelineId) {
-    await validateStatusInPipeline(lead.pipelineId, status);
-  }
-
-  const previousStatus = lead.status;
-  lead.status = status;
-  await lead.save();
-
-  await updateLeadScore(id);
-  const updatedLead = await leadModel.findById(id);
-
-  return { updatedLead, previousStatus };
-});
-
-export const updateLeadScoreManually = wrapServiceFn(async (
-  id,
-  tenantId,
-  score,
-  lastKnownUpdatedAt,
-) => {
-  const lead = await leadModel.findById(id);
-  if (!lead) throw new AppError("Lead not found", 404);
-
-  if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
-    throw new AppError("Forbidden: You cannot update this lead", 403);
-  }
-
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(lead.updatedAt).getTime();
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This lead was modified by someone else. Please refresh and try again.",
-        409,
-      );
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(lead.updatedAt).getTime();
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This lead was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
     }
-  }
 
-  lead.score = score;
-  await lead.save();
-  return lead;
-});
+    if (lead.pipelineId) {
+      await validateStatusInPipeline(lead.pipelineId, status);
+    }
 
-export const convertLeadToDeal = wrapServiceFn(async (id, tenantId, dealData, userId) => {
-  const lead = await leadModel.findById(id);
-  if (!lead) throw new AppError("Lead not found", 404);
+    const previousStatus = lead.status;
+    lead.status = status;
+    await lead.save();
 
-  if (tenantId && lead.tenantId?.toString() !== tenantId?.toString()) {
-    throw new AppError("Forbidden: You cannot convert this lead", 403);
-  }
+    await updateLeadScore(id);
+    const updatedLead = await leadModel.findById(id);
 
-  if (lead.status === "Converted") {
-    throw new AppError("Lead has already been converted to a deal", 400);
-  }
+    return { updatedLead, previousStatus };
+  },
+);
 
-  const dealModel = (await import("../models/dealModel.js")).default;
+export const updateLeadScoreManually = wrapServiceFn(
+  async (id, tenantId, score, lastKnownUpdatedAt) => {
+    const lead = await leadModel.findById(id);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  const deal = await dealModel.create({
-    leadId: lead._id,
-    organizationId: lead.organizationId,
-    tenantId: lead.tenantId,
-    createdBy: userId,
-    assignedTo: lead.assignedTo || userId,
-    name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
-    value: dealData.value || 0,
-    status: dealData.status || "Prospecting",
-  });
+    if (tenantId && lead.tenantId.toString() !== tenantId.toString()) {
+      throw new AppError("Forbidden: You cannot update this lead", 403);
+    }
 
-  lead.status = "Converted";
-  await lead.save();
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(lead.updatedAt).getTime();
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This lead was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
+    }
 
-  return { deal, lead };
-});
+    lead.score = score;
+    await lead.save();
+    return lead;
+  },
+);
 
-export const searchLeads = wrapServiceFn(async (
-  filter,
-  { q, status, source, limit = 25 },
-) => {
-  if (!q || q.trim() === "") {
-    throw new AppError("Search query 'q' is required", 400);
-  }
+export const convertLeadToDeal = wrapServiceFn(
+  async (id, tenantId, dealData, userId) => {
+    const lead = await leadModel.findById(id);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  const searchRegex = new RegExp(q.trim(), "i");
+    if (tenantId && lead.tenantId?.toString() !== tenantId?.toString()) {
+      throw new AppError("Forbidden: You cannot convert this lead", 403);
+    }
 
-  filter.$or = [
-    { firstName: searchRegex },
-    { lastName: searchRegex },
-    { email: searchRegex },
-  ];
+    if (lead.status === "Converted") {
+      throw new AppError("Lead has already been converted to a deal", 400);
+    }
 
-  if (status) filter.status = status;
-  if (source) filter.source = source;
+    const dealModel = (await import("../models/dealModel.js")).default;
 
-  return leadModel
-    .find(filter)
-    .sort({ createdAt: -1 })
-    .limit(Math.min(parseInt(limit), 25));
-});
+    const deal = await dealModel.create({
+      leadId: lead._id,
+      organizationId: lead.organizationId,
+      tenantId: lead.tenantId,
+      createdBy: userId,
+      assignedTo: lead.assignedTo || userId,
+      name: `${lead.firstName} ${lead.lastName || ""}`.trim(),
+      value: dealData.value || 0,
+      status: dealData.status || "Prospecting",
+    });
+
+    lead.status = "Converted";
+    await lead.save();
+
+    return { deal, lead };
+  },
+);
+
+export const searchLeads = wrapServiceFn(
+  async (filter, { q, status, source, limit = 25 }) => {
+    if (!q || q.trim() === "") {
+      throw new AppError("Search query 'q' is required", 400);
+    }
+
+    const searchRegex = new RegExp(q.trim(), "i");
+
+    filter.$or = [
+      { firstName: searchRegex },
+      { lastName: searchRegex },
+      { email: searchRegex },
+    ];
+
+    if (status) filter.status = status;
+    if (source) filter.source = source;
+
+    return leadModel
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .limit(Math.min(parseInt(limit), 25));
+  },
+);
 
 export const assignLead = wrapServiceFn(async (id, tenantId, assignedTo) => {
   if (!assignedTo) throw new AppError("assignedTo userId is required", 400);

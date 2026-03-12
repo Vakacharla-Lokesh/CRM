@@ -9,7 +9,10 @@ import {
 } from "../controllers/commentController.js";
 import { validate } from "../../../middlewares/validate.js";
 import { authenticateRequest } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 import {
   createCommentSchema,
   updateCommentSchema,

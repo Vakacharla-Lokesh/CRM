@@ -79,34 +79,39 @@ export const formatUser = (user) => {
   };
 };
 
-export const registerUser = wrapServiceFn(async ({ password, name, ...userData }) => {
-  const existingUser = await userModel.findOne({ email: userData.email });
-  if (existingUser) {
-    throw new AppError("User with this email already exists", 409);
-  }
+export const registerUser = wrapServiceFn(
+  async ({ password, name, ...userData }) => {
+    const existingUser = await userModel.findOne({ email: userData.email });
+    if (existingUser) {
+      throw new AppError("User with this email already exists", 409);
+    }
 
-  let tenantId = userData.tenantId;
-  if (name && !tenantId) {
-    const tenant = await tenantModel.create({
-      name,
-      email: userData.email,
-      mobile: userData.mobile || "0000000000",
+    let tenantId = userData.tenantId;
+    if (name && !tenantId) {
+      const tenant = await tenantModel.create({
+        name,
+        email: userData.email,
+        mobile: userData.mobile || "0000000000",
+      });
+      tenantId = tenant._id;
+    }
+
+    if (!tenantId) {
+      throw new AppError(
+        "Tenant information is required for registration",
+        400,
+      );
+    }
+
+    const user = await userModel.create({ ...userData, tenantId, password });
+
+    await seedDefaultPipeline(user._id, tenantId).catch((err) => {
+      console.error("Failed to seed default pipeline for user:", err);
     });
-    tenantId = tenant._id;
-  }
 
-  if (!tenantId) {
-    throw new AppError("Tenant information is required for registration", 400);
-  }
-
-  const user = await userModel.create({ ...userData, tenantId, password });
-
-  await seedDefaultPipeline(user._id, tenantId).catch((err) => {
-    console.error("Failed to seed default pipeline for user:", err);
-  });
-
-  return user;
-});
+    return user;
+  },
+);
 
 export const revokeRefreshToken = wrapServiceFn(async (rawRefreshToken) => {
   if (rawRefreshToken) {

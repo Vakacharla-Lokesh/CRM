@@ -4,7 +4,10 @@ import {
   saveUserAnalyticsDashboard,
 } from "../controllers/userAnalyticsController.js";
 import { authenticateRequest } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 
 const router = Router();
 const auth = [

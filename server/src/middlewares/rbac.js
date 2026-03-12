@@ -8,7 +8,6 @@ export const requirePermission = (...requiredPermissions) => {
         throw new AppError("Authentication required", 401);
       }
 
-      // Super admins bypass all permission checks (mirrors frontend behaviour)
       if (req.auth.role === "super_admin") {
         return next();
       }
@@ -35,7 +34,6 @@ export const requirePermission = (...requiredPermissions) => {
 export const injectTenantContext = (req, res, next) => {
   const permissions = req.auth?.permissions || [];
 
-  // Super admins always get global scope (mirrors frontend behaviour)
   if (
     permissions.includes("system:manage") ||
     req.auth?.role === "super_admin"

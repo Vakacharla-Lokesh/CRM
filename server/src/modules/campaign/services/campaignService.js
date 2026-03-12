@@ -58,69 +58,65 @@ async function sendCampaignEmailDirect(ce, campaign) {
   }
 }
 
-export const createAndDispatchCampaign = wrapServiceFn(async ({
-  tenantId,
-  userId,
-  subject,
-  body,
-  leadIds,
-}) => {
-  if (!leadIds?.length)
-    throw new AppError("At least one lead is required", 400);
+export const createAndDispatchCampaign = wrapServiceFn(
+  async ({ tenantId, userId, subject, body, leadIds }) => {
+    if (!leadIds?.length)
+      throw new AppError("At least one lead is required", 400);
 
-  const leads = await leadModel
-    .find({ _id: { $in: leadIds }, tenantId })
-    .select("_id email firstName")
-    .lean();
+    const leads = await leadModel
+      .find({ _id: { $in: leadIds }, tenantId })
+      .select("_id email firstName")
+      .lean();
 
-  const validLeads = leads.filter((l) => !!l.email);
-  if (!validLeads.length)
-    throw new AppError("No leads with valid email addresses", 400);
+    const validLeads = leads.filter((l) => !!l.email);
+    if (!validLeads.length)
+      throw new AppError("No leads with valid email addresses", 400);
 
-  const campaign = await Campaign.create({
-    tenantId,
-    createdBy: userId,
-    subject,
-    body,
-    status: "queued",
-    totalRecipients: validLeads.length,
-  });
+    const campaign = await Campaign.create({
+      tenantId,
+      createdBy: userId,
+      subject,
+      body,
+      status: "queued",
+      totalRecipients: validLeads.length,
+    });
 
-  const campaignEmailDocs = validLeads.map((lead) => ({
-    campaignId: campaign._id,
-    leadId: lead._id,
-    tenantId,
-    toEmail: lead.email,
-    status: "pending",
-  }));
+    const campaignEmailDocs = validLeads.map((lead) => ({
+      campaignId: campaign._id,
+      leadId: lead._id,
+      tenantId,
+      toEmail: lead.email,
+      status: "pending",
+    }));
 
-  const inserted = await CampaignEmail.insertMany(campaignEmailDocs);
+    const inserted = await CampaignEmail.insertMany(campaignEmailDocs);
 
-  if (isCampaignQueueAvailable()) {
-    console.log("[CampaignService] SQS available — dispatching to queue");
-    const dispatchPromises = inserted.map((ce) =>
-      jobDispatcher.dispatch({
-        jobType: JOB_TYPES.CAMPAIGN_EMAIL_SEND,
-        tenantId: tenantId.toString(),
-        userId: userId.toString(),
-        payload: {
-          campaignEmailId: ce._id.toString(),
-          campaignId: campaign._id.toString(),
-          leadId: ce.leadId.toString(),
+    if (isCampaignQueueAvailable()) {
+      console.log("[CampaignService] SQS available — dispatching to queue");
+      const dispatchPromises = inserted.map((ce) =>
+        jobDispatcher.dispatch({
+          jobType: JOB_TYPES.CAMPAIGN_EMAIL_SEND,
           tenantId: tenantId.toString(),
-        },
-      }),
-    );
-    await Promise.all(dispatchPromises);
-  } else {
-    for (const ce of inserted) {
-      await sendCampaignEmailDirect(ce, campaign);
+          userId: userId.toString(),
+          payload: {
+            campaignEmailId: ce._id.toString(),
+            campaignId: campaign._id.toString(),
+            leadId: ce.leadId.toString(),
+            tenantId: tenantId.toString(),
+          },
+        }),
+      );
+      await Promise.all(dispatchPromises);
+    } else {
+      for (const ce of inserted) {
+        await sendCampaignEmailDirect(ce, campaign);
+      }
+      await Campaign.findByIdAndUpdate(campaign._id, { status: "completed" });
     }
-    await Campaign.findByIdAndUpdate(campaign._id, { status: "completed" });
-  }
 
-  return Campaign.findById(campaign._id).lean();
-});
+    return Campaign.findById(campaign._id).lean();
+  },
+);
 
 export const processAllPendingEmails = wrapServiceFn(async () => {
   const pendingEmails = await CampaignEmail.find({ status: "pending" }).lean();

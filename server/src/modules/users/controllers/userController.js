@@ -32,7 +32,7 @@ export const getAllUsers = asyncCatch(async (req, res) => {
 
   const { users, nextCursor, hasNextPage } = await userService.getAllUsers(
     filter,
-    { limit, cursor },
+    { limit, cursor, excludeUserId: req.user?.userId },
   );
 
   res.json({ count: users.length, users, nextCursor, hasNextPage });

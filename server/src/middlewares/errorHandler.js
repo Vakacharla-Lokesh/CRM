@@ -7,7 +7,6 @@ export const errorHandler = (err, req, res, next) => {
     ...(err.isOperational ? {} : { unexpectedError: true }),
   });
 
-  // Operational errors created via AppError — send the exact message & status
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
@@ -15,7 +14,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Mongoose validation error
   if (err.name === "ValidationError") {
     return res.status(400).json({
       status: "fail",
@@ -24,7 +22,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Mongoose duplicate key error
   if (err.code === 11000) {
     return res.status(409).json({
       status: "fail",
@@ -33,7 +30,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Mongoose cast error (invalid ID)
   if (err.name === "CastError") {
     return res.status(400).json({
       status: "fail",
@@ -41,7 +37,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // JWT errors
   if (err.name === "JsonWebTokenError") {
     return res.status(401).json({
       status: "fail",
@@ -56,7 +51,6 @@ export const errorHandler = (err, req, res, next) => {
     });
   }
 
-  // Default error
   const statusCode = err.statusCode || 500;
   res.status(statusCode).json({
     status: statusCode >= 500 ? "error" : "fail",

@@ -33,7 +33,7 @@ async function runInTransaction(fn) {
   try {
     session.startTransaction({
       readConcern: { level: "snapshot" },
-      writeConcern: { w: "majority", j: true }, 
+      writeConcern: { w: "majority", j: true },
     });
     const result = await fn(session);
     await session.commitTransaction();
@@ -46,40 +46,38 @@ async function runInTransaction(fn) {
   }
 }
 
-export const bulkCreateLeads = wrapServiceFn(async (
-  leads,
-  defaultUserId,
-  defaultTenantId,
-) => {
-  if (!Array.isArray(leads) || leads.length === 0) {
-    throw new AppError("Invalid leads array", 400);
-  }
+export const bulkCreateLeads = wrapServiceFn(
+  async (leads, defaultUserId, defaultTenantId) => {
+    if (!Array.isArray(leads) || leads.length === 0) {
+      throw new AppError("Invalid leads array", 400);
+    }
 
-  return runInTransaction(async (session) => {
-    const leadData = leads.map((lead) => ({
-      ...lead,
-      userId: lead.userId || defaultUserId,
-      tenantId: lead.tenantId || defaultTenantId,
-    }));
+    return runInTransaction(async (session) => {
+      const leadData = leads.map((lead) => ({
+        ...lead,
+        userId: lead.userId || defaultUserId,
+        tenantId: lead.tenantId || defaultTenantId,
+      }));
 
-    const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
-      leadModel,
-      leadData,
-      session,
-    );
+      const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
+        leadModel,
+        leadData,
+        session,
+      );
 
-    const createdLeads =
-      newItems.length > 0
-        ? await leadModel.insertMany(newItems, { session, ordered: true })
-        : [];
+      const createdLeads =
+        newItems.length > 0
+          ? await leadModel.insertMany(newItems, { session, ordered: true })
+          : [];
 
-    return {
-      created: createdLeads.length,
-      skipped: skippedCount,
-      items: createdLeads,
-    };
-  });
-});
+      return {
+        created: createdLeads.length,
+        skipped: skippedCount,
+        items: createdLeads,
+      };
+    });
+  },
+);
 
 export const bulkUpdateLeads = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {
@@ -110,40 +108,38 @@ export const bulkUpdateLeads = wrapServiceFn(async (updates) => {
   });
 });
 
-export const bulkCreateDeals = wrapServiceFn(async (
-  deals,
-  defaultUserId,
-  defaultTenantId,
-) => {
-  if (!Array.isArray(deals) || deals.length === 0) {
-    throw new AppError("Invalid deals array", 400);
-  }
+export const bulkCreateDeals = wrapServiceFn(
+  async (deals, defaultUserId, defaultTenantId) => {
+    if (!Array.isArray(deals) || deals.length === 0) {
+      throw new AppError("Invalid deals array", 400);
+    }
 
-  return runInTransaction(async (session) => {
-    const dealData = deals.map((deal) => ({
-      ...deal,
-      userId: deal.userId || defaultUserId,
-      tenantId: deal.tenantId || defaultTenantId,
-    }));
+    return runInTransaction(async (session) => {
+      const dealData = deals.map((deal) => ({
+        ...deal,
+        userId: deal.userId || defaultUserId,
+        tenantId: deal.tenantId || defaultTenantId,
+      }));
 
-    const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
-      dealModel,
-      dealData,
-      session,
-    );
+      const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
+        dealModel,
+        dealData,
+        session,
+      );
 
-    const createdDeals =
-      newItems.length > 0
-        ? await dealModel.insertMany(newItems, { session, ordered: true })
-        : [];
+      const createdDeals =
+        newItems.length > 0
+          ? await dealModel.insertMany(newItems, { session, ordered: true })
+          : [];
 
-    return {
-      created: createdDeals.length,
-      skipped: skippedCount,
-      items: createdDeals,
-    };
-  });
-});
+      return {
+        created: createdDeals.length,
+        skipped: skippedCount,
+        items: createdDeals,
+      };
+    });
+  },
+);
 
 export const bulkUpdateDeals = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {
@@ -224,43 +220,41 @@ export const bulkCreateCalls = wrapServiceFn(async (calls) => {
   });
 });
 
-export const bulkCreateOrganizations = wrapServiceFn(async (
-  organizations,
-  defaultUserId,
-  defaultTenantId,
-) => {
-  if (!Array.isArray(organizations) || organizations.length === 0) {
-    throw new AppError("Invalid organizations array", 400);
-  }
+export const bulkCreateOrganizations = wrapServiceFn(
+  async (organizations, defaultUserId, defaultTenantId) => {
+    if (!Array.isArray(organizations) || organizations.length === 0) {
+      throw new AppError("Invalid organizations array", 400);
+    }
 
-  return runInTransaction(async (session) => {
-    const organizationData = organizations.map((org) => ({
-      ...org,
-      userId: org.userId || defaultUserId,
-      tenantId: org.tenantId || defaultTenantId,
-    }));
+    return runInTransaction(async (session) => {
+      const organizationData = organizations.map((org) => ({
+        ...org,
+        userId: org.userId || defaultUserId,
+        tenantId: org.tenantId || defaultTenantId,
+      }));
 
-    const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
-      organizationModel,
-      organizationData,
-      session,
-    );
+      const { newItems, skippedCount } = await deduplicateByIdempotencyKey(
+        organizationModel,
+        organizationData,
+        session,
+      );
 
-    const createdOrganizations =
-      newItems.length > 0
-        ? await organizationModel.insertMany(newItems, {
-            session,
-            ordered: true,
-          })
-        : [];
+      const createdOrganizations =
+        newItems.length > 0
+          ? await organizationModel.insertMany(newItems, {
+              session,
+              ordered: true,
+            })
+          : [];
 
-    return {
-      created: createdOrganizations.length,
-      skipped: skippedCount,
-      items: createdOrganizations,
-    };
-  });
-});
+      return {
+        created: createdOrganizations.length,
+        skipped: skippedCount,
+        items: createdOrganizations,
+      };
+    });
+  },
+);
 
 export const bulkUpdateOrganizations = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {

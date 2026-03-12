@@ -11,7 +11,10 @@ import {
 } from "../controllers/analyticsController.js";
 import { triggerAnalyticsSnapshot } from "../controllers/analyticsSnapshotController.js";
 import { authenticateRequest } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 
 const router = Router();
 
