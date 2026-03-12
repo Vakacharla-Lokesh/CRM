@@ -14,7 +14,7 @@ const callsSchema = new Schema(
     },
     duration: { type: Number, min: 1, max: 1000 },
     // Used for offline-sync deduplication — enforced unique when present
-    idempotencyKey: { type: String, default: null },
+    idempotencyKey: { type: String },
   },
   { timestamps: true },
 );

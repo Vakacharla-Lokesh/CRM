@@ -34,14 +34,14 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
   const getFileIcon = (fileType: string) => {
     const iconColor = fileType.includes("pdf")
-      ? "text-red-600"
+      ? "text-destructive"
       : fileType.includes("image")
-        ? "text-blue-600"
+        ? "text-primary"
         : fileType.includes("word") || fileType.includes("document")
           ? "text-blue-700"
           : fileType.includes("sheet") || fileType.includes("excel")
             ? "text-green-600"
-            : "text-gray-600";
+            : "text-muted-foreground";
     return iconColor;
   };
 
@@ -179,22 +179,22 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
 
       {/* Attachments List */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Attachments ({attachments.length})
         </h3>
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-gray-600 dark:text-gray-400">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-muted-foreground">
                 Loading attachments...
               </p>
             </div>
           </div>
         ) : attachments.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-muted-foreground">
               No attachments yet
             </p>
           </div>
@@ -203,7 +203,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
             {attachments.map((attachment) => (
               <div
                 key={attachment._id}
-                className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
+                className="bg-muted/40 border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
               >
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -211,14 +211,14 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
                       className={`w-8 h-8 ${getFileIcon(attachment.fileType)} shrink-0 mt-1`}
                     />
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-semibold text-gray-900 dark:text-white wrap-break-word">
+                      <h4 className="font-semibold text-foreground wrap-break-word">
                         {attachment.fileName}
                       </h4>
                       <div className="flex items-center gap-4 mt-1">
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           {formatFileSize(attachment.fileSize)}
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500">
+                        <p className="text-xs text-muted-foreground/60">
                           {new Date(attachment.createdAt).toLocaleDateString()}{" "}
                           at{" "}
                           {new Date(attachment.createdAt).toLocaleTimeString()}
@@ -232,7 +232,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDownload(attachment)}
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                      className="text-primary hover:text-primary/80 hover:bg-primary/10 dark:hover:bg-primary/20"
                     >
                       <Download className="w-4 h-4" />
                     </Button>
@@ -240,7 +240,7 @@ function AttachmentsTab({ leadId }: AttachmentsTabProps) {
                       variant="ghost"
                       size="sm"
                       onClick={() => handleDeleteAttachment(attachment._id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
+                      className="text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

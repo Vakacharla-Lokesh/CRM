@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
-import { useLeadData, useDebounce, useBulkImportLeads, useNotifications } from "@/hooks";
+import {
+  useLeadData,
+  useDebounce,
+  useBulkImportLeads,
+  useNotifications,
+} from "@/hooks";
 import { useQuery } from "@tanstack/react-query";
 import { analyticsAPI } from "@/services";
 import { useOffline } from "@/context/useOffline";
@@ -14,6 +19,7 @@ import type {
   CreatePipelineDTO,
   UpdatePipelineDTO,
 } from "@/types/pipeline";
+import { leadsAPI } from "@/services/api";
 
 export function useLeadsPageState() {
   const {
@@ -52,6 +58,11 @@ export function useLeadsPageState() {
 
   // import modal
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+
+  // segmenting state
+  const [isSegmenting, setIsSegmenting] = useState(false);
+  const [segmentCooldown, setSegmentCooldown] = useState(0);
+  const cooldownTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // navigation
   const navigate = useNavigate();
@@ -287,6 +298,37 @@ export function useLeadsPageState() {
     setIsImportModalOpen(true);
   };
 
+  const handleRunSegmentation = async () => {
+    try {
+      setIsSegmenting(true);
+      const result = await leadsAPI.runRfmSegmentation();
+      toast.success("Segmentation complete!", { description: result.message });
+      fetchLeads();
+    } catch (error) {
+      console.error("RFM segmentation failed:", error);
+      toast.error("Segmentation failed. Please try again.");
+    } finally {
+      setIsSegmenting(false);
+      setSegmentCooldown(10);
+      cooldownTimerRef.current = setInterval(() => {
+        setSegmentCooldown((prev) => {
+          if (prev <= 1) {
+            clearInterval(cooldownTimerRef.current!);
+            cooldownTimerRef.current = null;
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
+    };
+  }, []);
+
   return {
     // data
     filteredLeads,
@@ -349,6 +391,11 @@ export function useLeadsPageState() {
     importLeads,
     importLoading,
 
+    // segmentation
+    isSegmenting,
+    setIsSegmenting,
+    segmentCooldown,
+
     // handlers
     handleAddLead,
     handleEditLead,
@@ -363,5 +410,6 @@ export function useLeadsPageState() {
     handleExport,
     handleEmailExport,
     handleBulkImport,
+    handleRunSegmentation,
   };
 }

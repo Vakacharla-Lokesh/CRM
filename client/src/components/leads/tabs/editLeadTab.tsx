@@ -97,7 +97,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             value={formData.firstName}
             onChange={(e) => handleInputChange("firstName", e.target.value)}
             placeholder="Enter first name"
-            className="border-gray-300 dark:border-gray-600"
           />
         </div>
 
@@ -108,7 +107,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             value={formData.lastName || ""}
             onChange={(e) => handleInputChange("lastName", e.target.value)}
             placeholder="Enter last name"
-            className="border-gray-300 dark:border-gray-600"
           />
         </div>
 
@@ -120,7 +118,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             value={formData.email}
             onChange={(e) => handleInputChange("email", e.target.value)}
             placeholder="Enter email address"
-            className="border-gray-300 dark:border-gray-600"
           />
         </div>
 
@@ -132,7 +129,6 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           >
             <SelectTrigger
               id="source"
-              className="border-gray-300 dark:border-gray-600"
             >
               <SelectValue />
             </SelectTrigger>
@@ -152,51 +148,54 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         </div>
       </div>
 
-      <div className="space-y-3 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="space-y-3 p-4 rounded-lg border border-border">
         <div className="flex items-center justify-between">
           <div>
             <Label className="text-sm font-semibold">Lead Score</Label>
-            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Automatically calculated by the system
             </p>
           </div>
-          <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+          <span className="text-2xl font-bold text-primary">
             {formData.score}
           </span>
         </div>
-        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div
-            className="h-full bg-linear-to-r from-blue-500 to-indigo-600 transition-all duration-300"
-            style={{ width: `${formData.score}%` }}
+            className="h-full transition-all duration-300"
+            style={{ 
+              width: `${formData.score}%`,
+              backgroundColor: 'hsl(var(--primary))'
+            }}
           />
         </div>
-        <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+        <div className="flex justify-between text-xs text-muted-foreground">
           <span>0</span>
           <span>50</span>
           <span>100</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
         <div className="space-y-1">
-          <p className="text-xs text-gray-600 dark:text-gray-400">Created</p>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+          <p className="text-xs text-muted-foreground">Created</p>
+          <p className="text-sm font-medium text-foreground">
             {new Date(lead.createdAt).toLocaleDateString()} at{" "}
             {new Date(lead.createdAt).toLocaleTimeString()}
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="text-xs text-muted-foreground">
             Last Updated
           </p>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
+          <p className="text-sm font-medium text-foreground">
             {new Date(lead.updatedAt).toLocaleDateString()} at{" "}
             {new Date(lead.updatedAt).toLocaleTimeString()}
           </p>
         </div>
       </div>
 
-      <div className="flex justify-end pt-6 border-t border-gray-200 dark:border-gray-700">
+      <div className="flex justify-end pt-6 border-t border-border">
         <Button
           onClick={handleSave}
           disabled={!hasChanges || isSaving}
