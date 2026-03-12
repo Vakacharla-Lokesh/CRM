@@ -9,10 +9,11 @@ import {
   TENANT_SCOPE_KEY,
 } from "./analyticsSnapshotService.js";
 import { logger } from "../../../utils/logger.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const PERIOD_KEY = "historical";
 
-export const getDashboardStats = async (userId, leadFilter, dealFilter) => {
+export const getDashboardStats = wrapServiceFn(async (userId, leadFilter, dealFilter) => {
   const cacheKey = `dashboard_stats_${userId}`;
 
   const cachedData = await dashboardCache.get(cacheKey);
@@ -76,7 +77,7 @@ export const getDashboardStats = async (userId, leadFilter, dealFilter) => {
   await dashboardCache.set(cacheKey, JSON.stringify(response), 300);
 
   return response;
-};
+});
 
 function mergeSnapshotWithDelta(snapshotStats, delta) {
   const totalLeads = snapshotStats.totalLeads + delta.totalLeads;

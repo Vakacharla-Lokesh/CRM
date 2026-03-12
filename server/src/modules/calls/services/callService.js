@@ -2,18 +2,19 @@ import callModel from "../models/callModel.js";
 import leadModel from "../../leads/models/leadModel.js";
 import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllCalls = async () => {
+export const getAllCalls = wrapServiceFn(async () => {
   return callModel.find();
-};
+});
 
-export const getCallById = async (id) => {
+export const getCallById = wrapServiceFn(async (id) => {
   const call = await callModel.findById(id);
   if (!call) throw new AppError("Call not found", 404);
   return call;
-};
+});
 
-export const verifyLeadTenantAccess = async (
+export const verifyLeadTenantAccess = wrapServiceFn(async (
   leadId,
   userRole,
   userTenantId,
@@ -32,15 +33,15 @@ export const verifyLeadTenantAccess = async (
   }
 
   return lead;
-};
+});
 
-export const createCall = async (callData, leadId) => {
+export const createCall = wrapServiceFn(async (callData, leadId) => {
   const call = await callModel.create(callData);
   await updateLeadScore(leadId);
   return call;
-};
+});
 
-export const updateCall = async (id, updates, lastKnownUpdatedAt) => {
+export const updateCall = wrapServiceFn(async (id, updates, lastKnownUpdatedAt) => {
   const call = await callModel.findById(id);
   if (!call) throw new AppError("Call not found", 404);
 
@@ -62,9 +63,9 @@ export const updateCall = async (id, updates, lastKnownUpdatedAt) => {
   });
 
   return { updatedCall, leadId: call.leadId };
-};
+});
 
-export const deleteCall = async (id) => {
+export const deleteCall = wrapServiceFn(async (id) => {
   const call = await callModel.findById(id);
   if (!call) throw new AppError("Call not found", 404);
 
@@ -73,8 +74,8 @@ export const deleteCall = async (id) => {
   await updateLeadScore(leadId);
 
   return { call, leadId };
-};
+});
 
-export const getCallsByLead = async (leadId) => {
+export const getCallsByLead = wrapServiceFn(async (leadId) => {
   return callModel.find({ leadId });
-};
+});

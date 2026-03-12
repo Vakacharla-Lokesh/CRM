@@ -1,7 +1,8 @@
 import dealModel from "../models/dealModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllDeals = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllDeals = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };
@@ -21,9 +22,9 @@ export const getAllDeals = async (filter, { limit = 20, cursor } = {}) => {
       : null;
 
   return { deals, nextCursor, hasNextPage };
-};
+});
 
-export const getDealById = async (id, tenantId, userId, canViewAll) => {
+export const getDealById = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 
@@ -36,13 +37,13 @@ export const getDealById = async (id, tenantId, userId, canViewAll) => {
   }
 
   return deal;
-};
+});
 
-export const createDeal = async (dealData) => {
+export const createDeal = wrapServiceFn(async (dealData) => {
   return dealModel.create(dealData);
-};
+});
 
-export const updateDeal = async (
+export const updateDeal = wrapServiceFn(async (
   id,
   tenantId,
   userId,
@@ -77,9 +78,9 @@ export const updateDeal = async (
     new: true,
     runValidators: true,
   });
-};
+});
 
-export const deleteDeal = async (id, tenantId, userId, canViewAll) => {
+export const deleteDeal = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 
@@ -93,31 +94,31 @@ export const deleteDeal = async (id, tenantId, userId, canViewAll) => {
 
   await dealModel.findByIdAndDelete(id);
   return deal;
-};
+});
 
-export const getDealsByTenant = async (tenantId) => {
+export const getDealsByTenant = wrapServiceFn(async (tenantId) => {
   return dealModel.find({ tenantId });
-};
+});
 
-export const getDealsByUser = async (userId, tenantId) => {
+export const getDealsByUser = wrapServiceFn(async (userId, tenantId) => {
   const filter = { assignedTo: userId };
   if (tenantId) filter.tenantId = tenantId;
   return dealModel.find(filter);
-};
+});
 
-export const getDealsByLead = async (leadId, tenantId) => {
+export const getDealsByLead = wrapServiceFn(async (leadId, tenantId) => {
   const filter = { leadId };
   if (tenantId) filter.tenantId = tenantId;
   return dealModel.find(filter);
-};
+});
 
-export const getDealsByOrganization = async (organizationId, tenantId) => {
+export const getDealsByOrganization = wrapServiceFn(async (organizationId, tenantId) => {
   const filter = { organizationId };
   if (tenantId) filter.tenantId = tenantId;
   return dealModel.find(filter);
-};
+});
 
-export const searchDeals = async (filter, { q, limit = 25 }) => {
+export const searchDeals = wrapServiceFn(async (filter, { q, limit = 25 }) => {
   if (!q || q.trim() === "") {
     throw new AppError("Search query 'q' is required", 400);
   }
@@ -129,9 +130,9 @@ export const searchDeals = async (filter, { q, limit = 25 }) => {
     .find(filter)
     .sort({ createdAt: -1 })
     .limit(Math.min(parseInt(limit), 25));
-};
+});
 
-export const updateDealStatus = async (
+export const updateDealStatus = wrapServiceFn(async (
   id,
   tenantId,
   status,
@@ -158,4 +159,4 @@ export const updateDealStatus = async (
   deal.status = status;
   await deal.save();
   return deal;
-};
+});

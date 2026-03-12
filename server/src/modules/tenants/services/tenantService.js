@@ -3,8 +3,9 @@ import mongoose from "mongoose";
 import tenantModel from "../models/tenantModel.js";
 import userModel from "../../users/models/userModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllTenants = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllTenants = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
     filter._id = { $gt: lastId };
@@ -26,15 +27,15 @@ export const getAllTenants = async (filter, { limit = 20, cursor } = {}) => {
       : null;
 
   return { tenants, nextCursor, hasNextPage };
-};
+});
 
-export const getTenantById = async (id) => {
+export const getTenantById = wrapServiceFn(async (id) => {
   const tenant = await tenantModel.findById(id);
   if (!tenant) throw new AppError("Tenant not found", 404);
   return tenant;
-};
+});
 
-export const createTenant = async (tenantData) => {
+export const createTenant = wrapServiceFn(async (tenantData) => {
   const session = await mongoose.startSession({
     readConcern: { level: "snapshot" },
     writeConcern: { w: "majority", j: true },
@@ -68,9 +69,9 @@ export const createTenant = async (tenantData) => {
   } finally {
     session.endSession();
   }
-};
+});
 
-export const updateTenant = async (id, updates, lastKnownUpdatedAt) => {
+export const updateTenant = wrapServiceFn(async (id, updates, lastKnownUpdatedAt) => {
   const tenant = await tenantModel.findById(id);
   if (!tenant) throw new AppError("Tenant not found", 404);
 
@@ -92,9 +93,9 @@ export const updateTenant = async (id, updates, lastKnownUpdatedAt) => {
   });
   if (!updatedTenant) throw new AppError("Tenant not found", 404);
   return updatedTenant;
-};
+});
 
-export const deleteTenant = async (id) => {
+export const deleteTenant = wrapServiceFn(async (id) => {
   const session = await mongoose.startSession({
     readConcern: { level: "snapshot" },
     writeConcern: { w: "majority", j: true },
@@ -131,9 +132,9 @@ export const deleteTenant = async (id) => {
     session.endSession();
     throw err;
   }
-};
+});
 
-export const searchTenants = async (
+export const searchTenants = wrapServiceFn(async (
   tenantFilter,
   { q, isActive, limit = 25 },
 ) => {
@@ -202,12 +203,12 @@ export const searchTenants = async (
   );
 
   return tenantModel.aggregate(pipeline);
-};
+});
 
-export const getPublicTenants = async () => {
+export const getPublicTenants = wrapServiceFn(async () => {
   return tenantModel
     .find({ isActive: true })
     .select("_id name")
     .sort({ name: 1 })
     .lean();
-};
+});

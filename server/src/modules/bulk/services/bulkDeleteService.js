@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 import leadModel from "../../leads/models/leadModel.js";
 import organizationModel from "../../organizations/models/organizationModel.js";
@@ -7,7 +8,7 @@ import dealModel from "../../deals/models/dealModel.js";
 
 const MAX_BULK_DELETE_IDS = 50;
 
-export async function bulkDeleteDeals(ids, tenantId, userContext) {
+export const bulkDeleteDeals = wrapServiceFn(async function bulkDeleteDeals(ids, tenantId, userContext) {
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new AppError("ids array is required and must not be empty", 400);
   }
@@ -63,9 +64,9 @@ export async function bulkDeleteDeals(ids, tenantId, userContext) {
     totalDeleted: result.deletedCount,
     failedIds,
   };
-}
+});
 
-export async function bulkDeleteLeads(ids, tenantId, userContext) {
+export const bulkDeleteLeads = wrapServiceFn(async function bulkDeleteLeads(ids, tenantId, userContext) {
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new AppError("ids array is required and must not be empty", 400);
   }
@@ -122,9 +123,9 @@ export async function bulkDeleteLeads(ids, tenantId, userContext) {
     totalDeleted: result.deletedCount,
     failedIds,
   };
-}
+});
 
-export async function bulkDeleteOrganizations(ids, tenantId, userContext) {
+export const bulkDeleteOrganizations = wrapServiceFn(async function bulkDeleteOrganizations(ids, tenantId, userContext) {
   if (!Array.isArray(ids) || ids.length === 0) {
     throw new AppError("ids array is required and must not be empty", 400);
   }
@@ -185,4 +186,5 @@ export async function bulkDeleteOrganizations(ids, tenantId, userContext) {
     totalDeleted: result.deletedCount,
     failedIds,
   };
+});
 }

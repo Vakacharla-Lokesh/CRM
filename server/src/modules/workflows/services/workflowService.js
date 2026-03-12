@@ -1,8 +1,9 @@
 import workflowModel from "../models/workflowModel.js";
 import workflowExecutionLogModel from "../models/workflowExecutionLogModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllWorkflows = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllWorkflows = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
     const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
     filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
@@ -25,9 +26,9 @@ export const getAllWorkflows = async (filter, { limit = 20, cursor } = {}) => {
       : null;
 
   return { workflows, nextCursor, hasNextPage };
-};
+});
 
-export const getWorkflowById = async (id, tenantId, userId, canViewAll) => {
+export const getWorkflowById = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const workflow = await workflowModel
     .findById(id)
     .populate("createdBy", "firstName lastName email");
@@ -43,17 +44,17 @@ export const getWorkflowById = async (id, tenantId, userId, canViewAll) => {
   }
 
   return workflow;
-};
+});
 
-export const createWorkflow = async (workflowData) => {
+export const createWorkflow = wrapServiceFn(async (workflowData) => {
   const workflow = await workflowModel.create(workflowData);
 
   return workflowModel
     .findById(workflow._id)
     .populate("createdBy", "firstName lastName email");
-};
+});
 
-export const updateWorkflow = async (
+export const updateWorkflow = wrapServiceFn(async (
   id,
   tenantId,
   userId,
@@ -87,9 +88,9 @@ export const updateWorkflow = async (
   return workflowModel
     .findByIdAndUpdate(id, updates, { new: true, runValidators: true })
     .populate("createdBy", "firstName lastName email");
-};
+});
 
-export const deleteWorkflow = async (id, tenantId, userId, canViewAll) => {
+export const deleteWorkflow = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
 
@@ -102,9 +103,9 @@ export const deleteWorkflow = async (id, tenantId, userId, canViewAll) => {
   }
 
   await workflowModel.findByIdAndDelete(id);
-};
+});
 
-export const toggleWorkflow = async (id, tenantId, userId, canViewAll, lastKnownUpdatedAt) => {
+export const toggleWorkflow = wrapServiceFn(async (id, tenantId, userId, canViewAll, lastKnownUpdatedAt) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
 
@@ -131,9 +132,9 @@ export const toggleWorkflow = async (id, tenantId, userId, canViewAll, lastKnown
   await workflow.save();
 
   return workflow;
-};
+});
 
-export const getWorkflowLogs = async (id, tenantId, { limit = 50 } = {}) => {
+export const getWorkflowLogs = wrapServiceFn(async (id, tenantId, { limit = 50 } = {}) => {
   const workflow = await workflowModel.findById(id);
   if (!workflow) throw new AppError("Workflow not found", 404);
 
@@ -145,4 +146,4 @@ export const getWorkflowLogs = async (id, tenantId, { limit = 50 } = {}) => {
     .find({ workflowId: id })
     .sort({ triggeredAt: -1 })
     .limit(limit);
-};
+});

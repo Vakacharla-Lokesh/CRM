@@ -1,6 +1,7 @@
 import organizationModel from "../../organizations/models/organizationModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getOrganizationStats = async (filter) => {
+export const getOrganizationStats = wrapServiceFn(async (filter) => {
   return organizationModel.aggregate(
     [
       { $match: filter },
@@ -64,9 +65,9 @@ export const getOrganizationStats = async (filter) => {
     ],
     { readPreference: "secondaryPreferred" },
   );
-};
+});
 
-export const getTopOrganizations = async (filter, limit = 10) => {
+export const getTopOrganizations = wrapServiceFn(async (filter, limit = 10) => {
   return organizationModel.aggregate(
     [
       { $match: filter },
@@ -125,4 +126,4 @@ export const getTopOrganizations = async (filter, limit = 10) => {
     ],
     { readPreference: "secondaryPreferred" },
   );
-};
+});

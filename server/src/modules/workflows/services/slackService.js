@@ -1,3 +1,5 @@
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
+
 export const sendSlackMessage = async (
   webhookUrl,
   messageTemplate,
@@ -53,7 +55,7 @@ export const sendSlackMessage = async (
   }
 };
 
-export const sendSlackMessageWithRetry = async (
+export const sendSlackMessageWithRetry = wrapServiceFn(async (
   webhookUrl,
   messageTemplate,
   variables = {},
@@ -86,7 +88,7 @@ export const sendSlackMessageWithRetry = async (
     attempts: maxRetries + 1,
     error: lastError,
   };
-};
+});
 
 export const buildSlackVariables = (entity, entityType, user = null) => {
   const baseVars = {

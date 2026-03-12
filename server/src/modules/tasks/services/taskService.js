@@ -1,16 +1,17 @@
 import taskModel from "../models/taskModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllTasks = async (tenantFilter) => {
+export const getAllTasks = wrapServiceFn(async (tenantFilter) => {
   return taskModel
     .find(tenantFilter)
     .populate("assignedTo", "firstName lastName email")
     .populate("createdBy", "firstName lastName email")
     .sort({ createdAt: -1 })
     .lean();
-};
+});
 
-export const getTaskById = async (id, tenantFilter) => {
+export const getTaskById = wrapServiceFn(async (id, tenantFilter) => {
   const task = await taskModel
     .findOne({ _id: id, ...tenantFilter })
     .populate("assignedTo", "firstName lastName email")
@@ -18,18 +19,18 @@ export const getTaskById = async (id, tenantFilter) => {
     .lean();
   if (!task) throw new AppError("Task not found", 404);
   return task;
-};
+});
 
-export const createTask = async (data) => {
+export const createTask = wrapServiceFn(async (data) => {
   const task = await taskModel.create(data);
   return taskModel
     .findById(task._id)
     .populate("assignedTo", "firstName lastName email")
     .populate("createdBy", "firstName lastName email")
     .lean();
-};
+});
 
-export const updateTask = async (id, tenantFilter, updates, lastKnownUpdatedAt) => {
+export const updateTask = wrapServiceFn(async (id, tenantFilter, updates, lastKnownUpdatedAt) => {
   const task = await taskModel.findOne({ _id: id, ...tenantFilter });
   if (!task) throw new AppError("Task not found", 404);
 
@@ -51,10 +52,10 @@ export const updateTask = async (id, tenantFilter, updates, lastKnownUpdatedAt) 
     .populate("createdBy", "firstName lastName email")
     .lean();
   return updatedTask;
-};
+});
 
-export const deleteTask = async (id, tenantFilter) => {
+export const deleteTask = wrapServiceFn(async (id, tenantFilter) => {
   const task = await taskModel.findOneAndDelete({ _id: id, ...tenantFilter });
   if (!task) throw new AppError("Task not found", 404);
   return task;
-};
+});

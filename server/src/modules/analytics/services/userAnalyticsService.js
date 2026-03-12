@@ -3,6 +3,7 @@ import UserAnalyticsDashboard from "../models/userAnalyticsDashboardModel.js";
 import leadModel from "../../leads/models/leadModel.js";
 import dealModel from "../../deals/models/dealModel.js";
 import organizationModel from "../../organizations/models/organizationModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const ENTITY_MODEL_MAP = {
   leads: leadModel,
@@ -22,7 +23,7 @@ const ALLOWED_METRIC_FIELDS = {
   organizations: { sum: "size", avg: "size" },
 };
 
-export const getUserDashboard = async (userId, tenantId) => {
+export const getUserDashboard = wrapServiceFn(async (userId, tenantId) => {
   const filter = { userId };
   if (tenantId) filter.tenantId = tenantId;
 
@@ -38,9 +39,9 @@ export const getUserDashboard = async (userId, tenantId) => {
   }
 
   return dashboard;
-};
+});
 
-export const updateDashboardLayout = async (userId, tenantId, layout) => {
+export const updateDashboardLayout = wrapServiceFn(async (userId, tenantId, layout) => {
   const filter = { userId };
   if (tenantId) filter.tenantId = tenantId;
 
@@ -51,9 +52,9 @@ export const updateDashboardLayout = async (userId, tenantId, layout) => {
   ).lean();
 
   return updated;
-};
+});
 
-export const computeChartData = async (widgetConfig, tenantId) => {
+export const computeChartData = wrapServiceFn(async (widgetConfig, tenantId) => {
   const { entity, groupBy, metric, filters = {} } = widgetConfig;
 
   const Model = ENTITY_MODEL_MAP[entity];
@@ -146,4 +147,4 @@ export const computeChartData = async (widgetConfig, tenantId) => {
           : (r.value ?? 0),
     };
   });
-};
+});

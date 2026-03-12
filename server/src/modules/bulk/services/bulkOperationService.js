@@ -5,6 +5,7 @@ import dealModel from "../../deals/models/dealModel.js";
 import commentModel from "../../comments/models/commentModel.js";
 import callModel from "../../calls/models/callModel.js";
 import organizationModel from "../../organizations/models/organizationModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 async function deduplicateByIdempotencyKey(model, items, session) {
   const idempotencyKeys = items.map((i) => i.idempotencyKey).filter(Boolean);
@@ -45,7 +46,7 @@ async function runInTransaction(fn) {
   }
 }
 
-export const bulkCreateLeads = async (
+export const bulkCreateLeads = wrapServiceFn(async (
   leads,
   defaultUserId,
   defaultTenantId,
@@ -78,9 +79,9 @@ export const bulkCreateLeads = async (
       items: createdLeads,
     };
   });
-};
+});
 
-export const bulkUpdateLeads = async (updates) => {
+export const bulkUpdateLeads = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);
   }
@@ -107,9 +108,9 @@ export const bulkUpdateLeads = async (updates) => {
       failed: updates.length - result.matchedCount,
     };
   });
-};
+});
 
-export const bulkCreateDeals = async (
+export const bulkCreateDeals = wrapServiceFn(async (
   deals,
   defaultUserId,
   defaultTenantId,
@@ -142,9 +143,9 @@ export const bulkCreateDeals = async (
       items: createdDeals,
     };
   });
-};
+});
 
-export const bulkUpdateDeals = async (updates) => {
+export const bulkUpdateDeals = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);
   }
@@ -171,9 +172,9 @@ export const bulkUpdateDeals = async (updates) => {
       failed: updates.length - result.matchedCount,
     };
   });
-};
+});
 
-export const bulkCreateComments = async (comments) => {
+export const bulkCreateComments = wrapServiceFn(async (comments) => {
   if (!Array.isArray(comments) || comments.length === 0) {
     throw new AppError("Invalid comments array", 400);
   }
@@ -196,9 +197,9 @@ export const bulkCreateComments = async (comments) => {
       items: createdComments,
     };
   });
-};
+});
 
-export const bulkCreateCalls = async (calls) => {
+export const bulkCreateCalls = wrapServiceFn(async (calls) => {
   if (!Array.isArray(calls) || calls.length === 0) {
     throw new AppError("Invalid calls array", 400);
   }
@@ -221,9 +222,9 @@ export const bulkCreateCalls = async (calls) => {
       items: createdCalls,
     };
   });
-};
+});
 
-export const bulkCreateOrganizations = async (
+export const bulkCreateOrganizations = wrapServiceFn(async (
   organizations,
   defaultUserId,
   defaultTenantId,
@@ -259,9 +260,9 @@ export const bulkCreateOrganizations = async (
       items: createdOrganizations,
     };
   });
-};
+});
 
-export const bulkUpdateOrganizations = async (updates) => {
+export const bulkUpdateOrganizations = wrapServiceFn(async (updates) => {
   if (!Array.isArray(updates) || updates.length === 0) {
     throw new AppError("Invalid updates array", 400);
   }
@@ -288,4 +289,4 @@ export const bulkUpdateOrganizations = async (updates) => {
       failed: updates.length - result.matchedCount,
     };
   });
-};
+});

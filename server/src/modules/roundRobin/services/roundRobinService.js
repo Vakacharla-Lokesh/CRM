@@ -1,7 +1,8 @@
 import userModel from "../../users/models/userModel.js";
 import roundRobinPointerModel from "../models/roundRobinPointerModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getNextAssignee = async (tenantId) => {
+export const getNextAssignee = wrapServiceFn(async (tenantId) => {
   const activeUsers = await userModel
     .find({ tenantId, isActive: true, role: { $in: ["user", "admin"] } })
     .select("_id")
@@ -24,4 +25,4 @@ export const getNextAssignee = async (tenantId) => {
   const index = pointer.lastAssignedIndex % total;
   const assignedUser = activeUsers[index];
   return assignedUser._id;
-};
+});

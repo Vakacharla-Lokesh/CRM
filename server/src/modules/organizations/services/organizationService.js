@@ -1,7 +1,8 @@
 import organizationModel from "../models/organizationModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllOrganizations = async (
+export const getAllOrganizations = wrapServiceFn(async (
   filter,
   { limit = 20, cursor } = {},
 ) => {
@@ -26,9 +27,9 @@ export const getAllOrganizations = async (
       : null;
 
   return { organizations, nextCursor, hasNextPage };
-};
+});
 
-export const getOrganizationById = async (id, tenantId, userId, canViewAll) => {
+export const getOrganizationById = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
 
@@ -41,13 +42,13 @@ export const getOrganizationById = async (id, tenantId, userId, canViewAll) => {
   }
 
   return organization;
-};
+});
 
-export const createOrganization = async (organizationData) => {
+export const createOrganization = wrapServiceFn(async (organizationData) => {
   return organizationModel.create(organizationData);
-};
+});
 
-export const updateOrganization = async (
+export const updateOrganization = wrapServiceFn(async (
   id,
   tenantId,
   userId,
@@ -82,9 +83,9 @@ export const updateOrganization = async (
     new: true,
     runValidators: true,
   });
-};
+});
 
-export const deleteOrganization = async (id, tenantId, userId, canViewAll) => {
+export const deleteOrganization = wrapServiceFn(async (id, tenantId, userId, canViewAll) => {
   const organization = await organizationModel.findById(id);
   if (!organization) throw new AppError("Organization not found", 404);
 
@@ -98,19 +99,19 @@ export const deleteOrganization = async (id, tenantId, userId, canViewAll) => {
 
   await organizationModel.findByIdAndDelete(id);
   return organization;
-};
+});
 
-export const getOrganizationsByTenant = async (tenantId) => {
+export const getOrganizationsByTenant = wrapServiceFn(async (tenantId) => {
   return organizationModel.find({ tenantId });
-};
+});
 
-export const getOrganizationsByUser = async (userId, tenantId) => {
+export const getOrganizationsByUser = wrapServiceFn(async (userId, tenantId) => {
   const filter = { userId };
   if (tenantId) filter.tenantId = tenantId;
   return organizationModel.find(filter);
-};
+});
 
-export const searchOrganizations = async (filter, { q, limit = 25 }) => {
+export const searchOrganizations = wrapServiceFn(async (filter, { q, limit = 25 }) => {
   if (!q || q.trim() === "") {
     throw new AppError("Search query 'q' is required", 400);
   }
@@ -127,4 +128,4 @@ export const searchOrganizations = async (filter, { q, limit = 25 }) => {
     .find(filter)
     .sort({ createdAt: -1 })
     .limit(Math.min(parseInt(limit), 25));
-};
+});

@@ -3,6 +3,7 @@ import leadModel from "../../leads/models/leadModel.js";
 import dealModel from "../../deals/models/dealModel.js";
 import organizationModel from "../../organizations/models/organizationModel.js";
 import taskModel from "../../tasks/models/taskModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 import emailController from "../../emails/controllers/emailController.js";
 import {
@@ -302,5 +303,9 @@ class WorkflowExecutionEngine {
   }
 }
 
-export const workflowExecutionEngine = new WorkflowExecutionEngine();
+const _engine = new WorkflowExecutionEngine();
+_engine.executeWorkflow = wrapServiceFn(
+  WorkflowExecutionEngine.prototype.executeWorkflow.bind(_engine),
+);
+export const workflowExecutionEngine = _engine;
 export default workflowExecutionEngine;

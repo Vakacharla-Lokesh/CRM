@@ -1,6 +1,7 @@
 import pipelineModel from "../models/pipelineModel.js";
 import AppError from "../../../utils/appError.js";
 import mongoose from "mongoose";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 export const DEFAULT_SALES_PIPELINE_STATUSES = [
   { label: "New", color: "#3b82f6", order: 0 },
@@ -9,7 +10,7 @@ export const DEFAULT_SALES_PIPELINE_STATUSES = [
   { label: "Converted", color: "#10b981", order: 3 },
 ];
 
-export const seedDefaultPipeline = async (userId, tenantId) => {
+export const seedDefaultPipeline = wrapServiceFn(async (userId, tenantId) => {
   const existing = await pipelineModel.findOne({ userId, isDefault: true });
   if (existing) return existing;
 
@@ -21,9 +22,9 @@ export const seedDefaultPipeline = async (userId, tenantId) => {
     statuses: DEFAULT_SALES_PIPELINE_STATUSES,
     createdBy: userId,
   });
-};
+});
 
-export const getDefaultPipeline = async (userId) => {
+export const getDefaultPipeline = wrapServiceFn(async (userId) => {
   const pipeline = await pipelineModel
     .findOne({ userId, isDefault: true })
     .lean();
@@ -34,22 +35,22 @@ export const getDefaultPipeline = async (userId) => {
     .sort({ createdAt: 1 })
     .lean();
   return fallback ?? null;
-};
+});
 
-export const getAllPipelinesForUser = async (userId) => {
+export const getAllPipelinesForUser = wrapServiceFn(async (userId) => {
   return pipelineModel
     .find({ userId })
     .sort({ isDefault: -1, createdAt: 1 })
     .lean();
-};
+});
 
-export const getPipelineById = async (id, userId) => {
+export const getPipelineById = wrapServiceFn(async (id, userId) => {
   const pipeline = await pipelineModel.findOne({ _id: id, userId }).lean();
   if (!pipeline) throw new AppError("Pipeline not found", 404);
   return pipeline;
-};
+});
 
-export const createPipeline = async (data) => {
+export const createPipeline = wrapServiceFn(async (data) => {
   const labels = data.statuses.map((s) => s.label.toLowerCase());
   const uniqueLabels = new Set(labels);
   if (labels.length !== uniqueLabels.size) {
@@ -57,9 +58,9 @@ export const createPipeline = async (data) => {
   }
 
   return pipelineModel.create(data);
-};
+});
 
-export const updatePipeline = async (id, userId, updates) => {
+export const updatePipeline = wrapServiceFn(async (id, userId, updates) => {
   const pipeline = await pipelineModel.findOne({ _id: id, userId });
   if (!pipeline) throw new AppError("Pipeline not found", 404);
 
@@ -79,9 +80,9 @@ export const updatePipeline = async (id, userId, updates) => {
     .lean();
 
   return updated;
-};
+});
 
-export const deletePipeline = async (id, userId) => {
+export const deletePipeline = wrapServiceFn(async (id, userId) => {
   const pipeline = await pipelineModel.findOne({ _id: id, userId });
   if (!pipeline) throw new AppError("Pipeline not found", 404);
 
@@ -100,9 +101,9 @@ export const deletePipeline = async (id, userId) => {
 
   await pipelineModel.findOneAndDelete({ _id: id, userId });
   return pipeline;
-};
+});
 
-export const setDefaultPipeline = async (id, userId) => {
+export const setDefaultPipeline = wrapServiceFn(async (id, userId) => {
   const pipeline = await pipelineModel.findOne({ _id: id, userId });
   if (!pipeline) throw new AppError("Pipeline not found", 404);
 
@@ -117,9 +118,9 @@ export const setDefaultPipeline = async (id, userId) => {
     .lean();
 
   return updated;
-};
+});
 
-export const validateStatusInPipeline = async (pipelineId, statusLabel) => {
+export const validateStatusInPipeline = wrapServiceFn(async (pipelineId, statusLabel) => {
   const pipeline = await pipelineModel.findById(pipelineId).lean();
   if (!pipeline) throw new AppError("Pipeline not found", 404);
 
@@ -136,4 +137,4 @@ export const validateStatusInPipeline = async (pipelineId, statusLabel) => {
   }
 
   return pipeline;
-};
+});
