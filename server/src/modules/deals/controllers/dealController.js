@@ -16,7 +16,7 @@ export const getAllDeals = asyncCatch(async (req, res) => {
       : {};
 
   if (!canViewAll) {
-    filter.userId = req.auth.userId;
+    filter.assignedTo = req.auth.userId;
   }
 
   // Server-side filters
@@ -62,7 +62,8 @@ export const getDealById = asyncCatch(async (req, res) => {
 export const createDeal = asyncCatch(async (req, res) => {
   const dealData = {
     ...req.body,
-    userId: req.user.userId,
+    createdBy: req.user.userId,
+    assignedTo: req.body.assignedTo || req.user.userId,
   };
 
   if (req.tenantContext?.scope === "tenant") {

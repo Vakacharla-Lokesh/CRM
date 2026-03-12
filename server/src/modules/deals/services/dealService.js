@@ -31,7 +31,7 @@ export const getDealById = async (id, tenantId, userId, canViewAll) => {
     throw new AppError("Forbidden: You cannot access this deal", 403);
   }
 
-  if (!canViewAll && deal.userId.toString() !== userId.toString()) {
+  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot access this deal", 403);
   }
 
@@ -42,7 +42,14 @@ export const createDeal = async (dealData) => {
   return dealModel.create(dealData);
 };
 
-export const updateDeal = async (id, tenantId, userId, canViewAll, updates, lastKnownUpdatedAt) => {
+export const updateDeal = async (
+  id,
+  tenantId,
+  userId,
+  canViewAll,
+  updates,
+  lastKnownUpdatedAt,
+) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 
@@ -50,7 +57,7 @@ export const updateDeal = async (id, tenantId, userId, canViewAll, updates, last
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
 
-  if (!canViewAll && deal.userId.toString() !== userId.toString()) {
+  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot update this deal", 403);
   }
 
@@ -80,7 +87,7 @@ export const deleteDeal = async (id, tenantId, userId, canViewAll) => {
     throw new AppError("Forbidden: You cannot delete this deal", 403);
   }
 
-  if (!canViewAll && deal.userId.toString() !== userId.toString()) {
+  if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
     throw new AppError("Forbidden: You cannot delete this deal", 403);
   }
 
@@ -93,7 +100,7 @@ export const getDealsByTenant = async (tenantId) => {
 };
 
 export const getDealsByUser = async (userId, tenantId) => {
-  const filter = { userId };
+  const filter = { assignedTo: userId };
   if (tenantId) filter.tenantId = tenantId;
   return dealModel.find(filter);
 };
@@ -124,7 +131,12 @@ export const searchDeals = async (filter, { q, limit = 25 }) => {
     .limit(Math.min(parseInt(limit), 25));
 };
 
-export const updateDealStatus = async (id, tenantId, status, lastKnownUpdatedAt) => {
+export const updateDealStatus = async (
+  id,
+  tenantId,
+  status,
+  lastKnownUpdatedAt,
+) => {
   const deal = await dealModel.findById(id);
   if (!deal) throw new AppError("Deal not found", 404);
 

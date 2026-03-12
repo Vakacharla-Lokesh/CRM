@@ -19,9 +19,10 @@ export interface Deal {
   _id: string;
   dealId?: string;
   leadId: string;
-  organizationId: string;
+  organizationId?: string;
   tenantId: string;
-  userId: string;
+  createdBy: string;
+  assignedTo: string | null;
   name: string;
   value: number;
   status: DealStatus;
