@@ -4,7 +4,7 @@ import {
   useCreateRole,
   useUpdateRole,
   useDeleteRole,
-} from "@/hooks/useRoles";
+} from "@/hooks/roles/useRoles";
 import { useHasPermission } from "@/hooks/usePermissions";
 import { RoleForm } from "@/components/roles/RoleForm";
 import { ConfirmDialog } from "@/components/common/confirmDialog";

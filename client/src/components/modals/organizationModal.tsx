@@ -1,4 +1,3 @@
-import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,27 +5,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import type {
-  CreateOrganizationDTO,
-  UpdateOrganizationDTO,
-  OrganizationIndustry,
-} from "@/types";
+
 import { FormField, FormSelect } from "./form-fields";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { StepIndicator } from "./stepIndicator";
 
-import type {
-  OrganizationFormData,
-  FormErrors,
-  OrganizationModalProps,
-} from "@/types/interfaces/form-interfaces";
-import { ORGANIZATION_INDUSTRIES } from "@/types/interfaces/form-interfaces";
-import { mapToSelectOptions } from "@/components/modals/map-options/mapOrganizationOptions";
-import { useAppContext } from "@/hooks";
-import { validateOrganizationForm } from "@/utils/formValidators";
-import { useOffline } from "@/context/useOffline";
-import { toast } from "sonner";
+import type { OrganizationModalProps } from "@/types/interfaces/form-interfaces";
+
+import { useOrganizationModalState } from "@/hooks/organizations/useOrganizationModalState";
 
 function OrganizationModal({
   isOpen,
@@ -35,221 +22,24 @@ function OrganizationModal({
   onSave,
   onUpdate,
 }: OrganizationModalProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<OrganizationFormData>({
-    name: "",
-    website: "",
-    size: 10,
-    industry: "Software",
-    city: "",
-    country: "",
+  const {
+    currentStep,
+    formData,
+    errors,
+    isSubmitting,
+    industryOptions,
+    handleInputChange,
+    handleNext,
+    handleBack,
+    handleSubmit,
+    totalSteps,
+  } = useOrganizationModalState({
+    isOpen,
+    organization,
+    onClose,
+    onSave,
+    onUpdate,
   });
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const industryOptions = mapToSelectOptions(ORGANIZATION_INDUSTRIES);
-
-  const { user } = useAppContext();
-  const { isOnline, addToQueue } = useOffline();
-
-  const totalSteps = 2;
-
-  useEffect(() => {
-    if (organization) {
-      setFormData({
-        name: organization.name,
-        website: organization.website || "",
-        size:
-          typeof organization.size === "string"
-            ? parseInt(organization.size)
-            : organization.size || 10,
-        industry: organization.industry,
-        city: organization.city || "",
-        country: organization.country || "",
-      });
-    } else {
-      setFormData({
-        name: "",
-        website: "",
-        size: 10,
-        industry: "Software",
-        city: "",
-        country: "",
-      });
-    }
-    setErrors({});
-    setCurrentStep(0);
-  }, [organization, isOpen]);
-
-  const handleInputChange = (
-    field: keyof OrganizationFormData,
-    value: string | number,
-  ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const validateCurrentStep = (): boolean => {
-    const stepErrors: FormErrors = {};
-
-    if (currentStep === 0) {
-      // Step 1: Basic Information
-      if (!formData.name.trim()) {
-        stepErrors.name = "Organization name is required";
-      }
-
-      if (!formData.website.trim()) {
-        stepErrors.website = "Website is required";
-      } else if (
-        !/^(ftp|http|https):\/\/[^ "]+$/.test(formData.website)
-      ) {
-        stepErrors.website = "Please provide a valid website URL";
-      }
-
-      if (!formData.industry) {
-        stepErrors.industry = "Industry is required";
-      }
-    } else if (currentStep === 1) {
-      // Step 2: Company Details
-      if (
-        formData.size < 1 ||
-        formData.size > 10_000_000
-      ) {
-        stepErrors.size =
-          "Organization size must be between 1 and 10,000,000";
-      }
-
-      // City and country are optional, but validate length if provided
-      if (formData.city && formData.city.trim().length > 100) {
-        stepErrors.city = "City name cannot exceed 100 characters";
-      }
-
-      if (formData.country && formData.country.trim().length > 100) {
-        stepErrors.country = "Country name cannot exceed 100 characters";
-      }
-    }
-
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
-  };
-
-  const handleNext = () => {
-    if (validateCurrentStep()) {
-      setCurrentStep((prev) => Math.min(prev + 1, totalSteps - 1));
-    }
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(prev - 1, 0));
-    setErrors({});
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    // Guard: if not on the final step, advance instead of submitting
-    if (currentStep < totalSteps - 1) {
-      handleNext();
-      return;
-    }
-
-    // Final validation
-    const allErrors = validateOrganizationForm(formData);
-    if (Object.keys(allErrors).length > 0) {
-      setErrors(allErrors);
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    // --- Offline path ---
-    if (!isOnline) {
-      if (organization && onUpdate) {
-        const updateData = {
-          id: organization._id,
-          name: formData.name,
-          website: formData.website,
-          size: formData.size,
-          industry:
-            formData.industry as OrganizationIndustry,
-          city: formData.city || undefined,
-          country: formData.country || undefined,
-        };
-        addToQueue(
-          "/api/organizations",
-          "PUT",
-          updateData,
-          undefined,
-          3,
-          "organizations",
-          "update",
-        );
-        toast.info(
-          "You're offline. Organization update has been queued and will sync when your connection is restored.",
-        );
-      } else {
-        const createData: CreateOrganizationDTO = {
-          name: formData.name,
-          website: formData.website,
-          size: formData.size,
-          industry:
-            formData.industry as OrganizationIndustry,
-          tenantId: user?.tenantId || "tenant-1",
-          city: formData.city || undefined,
-          country: formData.country || undefined,
-        };
-        addToQueue(
-          "/api/organizations",
-          "POST",
-          createData,
-          undefined,
-          3,
-          "organizations",
-          "create",
-        );
-        toast.info(
-          "You're offline. Organization has been queued and will sync automatically when your connection is restored.",
-        );
-      }
-      setIsSubmitting(false);
-      onClose();
-      return;
-    }
-
-    // --- Online path ---
-    try {
-      if (organization && onUpdate) {
-        const updateData: UpdateOrganizationDTO = {
-          name: formData.name,
-          website: formData.website,
-          size: formData.size,
-          industry:
-            formData.industry as OrganizationIndustry,
-          city: formData.city || undefined,
-          country: formData.country || undefined,
-        };
-        await onUpdate(organization._id, updateData);
-      } else {
-        const createData: CreateOrganizationDTO = {
-          name: formData.name,
-          website: formData.website,
-          size: formData.size,
-          industry:
-            formData.industry as OrganizationIndustry,
-          tenantId: user?.tenantId || "tenant-1",
-          city: formData.city || undefined,
-          country: formData.country || undefined,
-        };
-        await onSave(createData);
-      }
-    } catch (error) {
-      console.error("Failed to save organization:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const renderStep = () => {
     switch (currentStep) {
@@ -274,9 +64,7 @@ function OrganizationModal({
               label="Website"
               type="url"
               value={formData.website}
-              onChange={(value) =>
-                handleInputChange("website", value)
-              }
+              onChange={(value) => handleInputChange("website", value)}
               placeholder="https://www.acme.com"
               required
               error={errors.website}
@@ -286,9 +74,7 @@ function OrganizationModal({
               id="industry"
               label="Industry"
               value={formData.industry}
-              onChange={(value) =>
-                handleInputChange("industry", value)
-              }
+              onChange={(value) => handleInputChange("industry", value)}
               placeholder="Select industry"
               required
               error={errors.industry}
@@ -360,7 +146,10 @@ function OrganizationModal({
           </DialogDescription>
         </DialogHeader>
 
-        <StepIndicator currentStep={currentStep} totalSteps={totalSteps} />
+        <StepIndicator
+          currentStep={currentStep}
+          totalSteps={totalSteps}
+        />
 
         <form
           onSubmit={handleSubmit}

@@ -193,6 +193,8 @@ export const useDealData = () => {
     mutationFn: (dealData: CreateDealDTO) => dealService.createDeal(dealData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", "dealPipeline"] });
     },
   });
 
@@ -208,12 +210,16 @@ export const useDealData = () => {
     }) => dealService.updateDeal(dealId, dealData, lastKnownUpdatedAt),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["deals"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      queryClient.invalidateQueries({ queryKey: ["analytics", "dealPipeline"] });
     },
     onError: (err: unknown) => {
       const status = (err as { status?: number }).status;
       if (status === 409) {
         toast.error("This deal was modified by someone else. Please refresh and try again.");
         queryClient.invalidateQueries({ queryKey: ["deals"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics"] });
+        queryClient.invalidateQueries({ queryKey: ["analytics", "dealPipeline"] });
       }
     },
   });

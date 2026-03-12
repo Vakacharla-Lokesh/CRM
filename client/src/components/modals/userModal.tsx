@@ -25,7 +25,7 @@ import { validateUserForm } from "@/utils/formValidators";
 import { useOffline } from "@/context/useOffline";
 import { toast } from "sonner";
 
-import { useRoles } from "@/hooks/useRoles";
+import { useRoles } from "@/hooks/roles/useRoles";
 import { usersAPI } from "@/services/api/users.api";
 import { PERMISSION_MAP } from "@/types/constants/permissions";
 import { useQuery } from "@tanstack/react-query";
@@ -60,7 +60,9 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
     Record<string, boolean>
   >({});
 
-  const { data: tenantRoles = [] } = useRoles();
+  // For super_admins creating/editing a user in another tenant, fetch that tenant's roles
+  const targetTenantId = isSuperAdmin && id ? id : undefined;
+  const { data: tenantRoles = [] } = useRoles(targetTenantId);
 
   // Fetch existing user permissions when editing
   const { data: existingPermsData } = useQuery({
@@ -80,16 +82,62 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
     }
   }, [existingPermsData]);
 
-  // Reset form when modal opens/closes
+  // When tenant roles load, try to resolve role name
   useEffect(() => {
-    if (!isOpen) {
+    // attempt to initialize the role when editing a user and tenant roles are available
+    if (!isOpen) return;
+    if (!user) return;
+    setFormData((prev) => {
+      // If role is already set to something from tenantRoles, keep it
+      if (
+        tenantRoles.some((r) =>
+          r.name?.toLowerCase() === prev.role?.toLowerCase(),
+        )
+      ) {
+        return prev;
+      }
+
+      // try match user's role by name (case-insensitive)
+      if (user?.role) {
+        const matchedRole = tenantRoles.find(
+          (r) => r.name?.toLowerCase() === user.role?.toLowerCase(),
+        );
+        if (matchedRole) {
+          return {
+            ...prev,
+            role: matchedRole.name as UserFormData["role"],
+            permissions: prev.permissions?.length
+              ? prev.permissions
+              : matchedRole.permissions,
+          };
+        }
+        // User's custom role not in tenantRoles, keep the original
+        return {
+          ...prev,
+          role: user.role as UserFormData["role"],
+        };
+      }
+
+      return prev;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tenantRoles, user, isOpen]);
+
+  useEffect(() => {
+    if (isOpen) {
+      setFormData(buildDefault());
+      setErrors({});
+      setShowPassword(false);
+      setExpandedCategories({});
+    } else {
+      // keep a clean state when fully closed
       setFormData(buildDefault());
       setErrors({});
       setShowPassword(false);
       setExpandedCategories({});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [isOpen, user]);
 
   const validateForm = (): boolean => {
     const newErrors = validateUserForm(formData, {
@@ -174,6 +222,12 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
 
       onClose();
     } catch (error) {
+      const message =
+        (error as { response?: { data?: { message?: string } }; message?: string })
+          ?.response?.data?.message ||
+        (error as { message?: string })?.message ||
+        "Failed to save user. Please try again.";
+      toast.error(message);
       console.error("Error saving user:", error);
     } finally {
       setIsSubmitting(false);
@@ -282,19 +336,21 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
               label="Role"
               value={formData.role}
               onChange={(value) => {
-                const matchedRole = tenantRoles.find((r) => r._id === value);
+                const matchedRole = tenantRoles.find(
+                  (r) => r.name?.toLowerCase() === value.toLowerCase(),
+                );
                 if (matchedRole) {
-                  const systemRole =
-                    matchedRole.name.toLowerCase() === "admin"
-                      ? "admin"
-                      : "user";
                   setFormData((prev) => ({
                     ...prev,
-                    role: systemRole as UserFormData["role"],
+                    role: matchedRole.name as UserFormData["role"],
                     permissions: matchedRole.permissions,
                   }));
                 } else {
-                  handleInputChange("role", value);
+                  // value is a custom role string like 'Manager', 'user', or 'admin'
+                  setFormData((prev) => ({
+                    ...prev,
+                    role: value as UserFormData["role"],
+                  }));
                 }
               }}
               placeholder="Select role"
@@ -302,7 +358,7 @@ function UserModal({ isOpen, user, onClose, onSave }: UserModalProps) {
               options={
                 tenantRoles.length > 0
                   ? tenantRoles.map((r) => ({
-                      value: r._id,
+                      value: r.name,
                       label: (
                         <div className="flex items-center gap-2">
                           <div className="w-2 h-2 rounded-full bg-blue-500" />

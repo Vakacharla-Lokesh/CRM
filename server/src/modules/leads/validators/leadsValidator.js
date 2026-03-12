@@ -79,6 +79,6 @@ export const updateLeadScoreSchema = z
 export const convertLeadSchema = z
   .object({
     value: z.number().min(0).max(1_000_000).optional(),
-    status: z.string().min(1).max(50),
+    status: z.string().min(1).max(50).optional(),
   })
   .strict();

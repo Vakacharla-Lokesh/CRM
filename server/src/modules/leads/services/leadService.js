@@ -198,7 +198,7 @@ export const convertLeadToDeal = wrapServiceFn(
       throw new AppError("Lead has already been converted to a deal", 400);
     }
 
-    const dealModel = (await import("../models/dealModel.js")).default;
+    const dealModel = (await import("../../deals/models/dealModel.js")).default;
 
     const deal = await dealModel.create({
       leadId: lead._id,

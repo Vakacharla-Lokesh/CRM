@@ -2,10 +2,9 @@ import { apiClient } from "./core";
 import type { Role, CreateRoleDTO, UpdateRoleDTO } from "../../types/role";
 
 export const rolesApi = {
-  getRoles: async (): Promise<Role[]> => {
-    const response = await apiClient.get<{ count: number; roles: Role[] }>(
-      "/roles",
-    );
+  getRoles: async (tenantId?: string): Promise<Role[]> => {
+    const url = tenantId ? `/roles?tenantId=${tenantId}` : "/roles";
+    const response = await apiClient.get<{ count: number; roles: Role[] }>(url);
     return response.roles;
   },
 
@@ -22,10 +21,10 @@ export const rolesApi = {
     return response.role;
   },
 
-  updateRole: async (roleId: string, updates: UpdateRoleDTO): Promise<Role> => {
+  updateRole: async (roleId: string, updates: UpdateRoleDTO, lastKnownUpdatedAt?: Date): Promise<Role> => {
     const response = await apiClient.put<{ message: string; role: Role }>(
       `/roles/${roleId}`,
-      updates,
+      { ...updates, lastKnownUpdatedAt },
     );
     return response.role;
   },

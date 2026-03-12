@@ -8,7 +8,6 @@ const CAP_SIZE_BYTES = 10 * 1024 * 1024;
 const db = mongoose
   .connect(envConfig.dbUri, {
     readPreference: "secondaryPreferred",
-    readConcernLevel: "majority",
     writeConcern: { w: "majority", j: true },
   })
   .then(async (conn) => {

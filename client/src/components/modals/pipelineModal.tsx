@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -50,6 +50,8 @@ export function PipelineModal({
 
   const [dragIndex, setDragIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const [openColorPicker, setOpenColorPicker] = useState<string | null>(null);
+  const paletteRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -153,6 +155,21 @@ export function PipelineModal({
     setDragIndex(null);
     setDragOverIndex(null);
   };
+
+  useEffect(() => {
+    if (!openColorPicker) return;
+
+    function onDocClick(e: MouseEvent) {
+      const el = paletteRef.current as HTMLDivElement | null;
+      if (!el) return;
+      if (!el.contains(e.target as Node)) {
+        setOpenColorPicker(null);
+      }
+    }
+
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, [openColorPicker]);
 
   const validate = () => {
     let valid = true;
@@ -314,22 +331,32 @@ export function PipelineModal({
                     </div>
 
                     {/* Color */}
-                    <div className="relative group">
+                    <div className="relative">
+
                       <div
-                        className="w-6 h-6 rounded-full border"
+                        className="w-6 h-6 rounded-full border cursor-pointer"
                         style={{ backgroundColor: stage.color }}
+                        onClick={(e) => {
+                          if (locked) return;
+                          e.stopPropagation();
+                          setOpenColorPicker(stage._localId);
+                        }}
                       />
 
-                      {!locked && (
-                        <div className="absolute hidden group-hover:flex top-8 left-0 flex-wrap gap-1 bg-popover border rounded p-2 shadow-md w-40">
+                      {!locked && openColorPicker === stage._localId && (
+                        <div
+                          ref={paletteRef}
+                          className="absolute top-8 left-0 flex-wrap gap-1 bg-popover border rounded p-2 shadow-md w-40 z-50"
+                        >
                           {STAGE_COLORS.map((c) => (
                             <button
                               key={c.hex}
                               type="button"
-                              onClick={() =>
-                                updateStageColor(stage._localId, c.hex)
-                              }
-                              className="w-5 h-5 rounded-full border"
+                              onClick={() => {
+                                updateStageColor(stage._localId, c.hex);
+                                setOpenColorPicker(null);
+                              }}
+                              className="w-5 h-5 rounded-full border m-0.5"
                               style={{ backgroundColor: c.hex }}
                             />
                           ))}
@@ -349,7 +376,7 @@ export function PipelineModal({
                           updateStageLabel(stage._localId, e.target.value)
                         }
                         placeholder="Stage name"
-                        className="flex-1 border-0 shadow-none focus-visible:ring-0 p-0 bg-transparent"
+                        className="flex-1 border-0 shadow-none focus-visible:ring-0 p-0 px-5 bg-transparent"
                       />
                     )}
 

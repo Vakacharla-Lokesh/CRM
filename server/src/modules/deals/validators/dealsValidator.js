@@ -19,6 +19,7 @@ export const createDealSchema = z.object({
     ])
     .optional(),
 });
+
 export const updateDealSchema = z
   .object({
     name: z.string().min(1).max(100).optional(),
@@ -34,6 +35,7 @@ export const updateDealSchema = z
       ])
       .optional(),
     assignedTo: z.string().min(1).nullable().optional(),
+    lastKnownUpdatedAt: z.string().datetime().optional(),
   })
   .strict();
 
