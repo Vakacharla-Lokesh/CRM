@@ -14,26 +14,24 @@ export const getCommentById = wrapServiceFn(async (id) => {
   return comment;
 });
 
-export const verifyLeadTenantAccess = wrapServiceFn(async (
-  leadId,
-  userRole,
-  userTenantId,
-) => {
-  const lead = await leadModel.findById(leadId);
-  if (!lead) throw new AppError("Lead not found", 404);
+export const verifyLeadTenantAccess = wrapServiceFn(
+  async (leadId, userRole, userTenantId) => {
+    const lead = await leadModel.findById(leadId);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  if (
-    userRole !== "super_admin" &&
-    lead.tenantId.toString() !== userTenantId?.toString()
-  ) {
-    throw new AppError(
-      "Forbidden: You cannot access resources from other tenants",
-      403,
-    );
-  }
+    if (
+      userRole !== "super_admin" &&
+      lead.tenantId.toString() !== userTenantId?.toString()
+    ) {
+      throw new AppError(
+        "Forbidden: You cannot access resources from other tenants",
+        403,
+      );
+    }
 
-  return lead;
-});
+    return lead;
+  },
+);
 
 export const createComment = wrapServiceFn(async (commentData, leadId) => {
   const comment = await commentModel.create(commentData);
@@ -41,29 +39,31 @@ export const createComment = wrapServiceFn(async (commentData, leadId) => {
   return comment;
 });
 
-export const updateComment = wrapServiceFn(async (id, updates, lastKnownUpdatedAt) => {
-  const comment = await commentModel.findById(id);
-  if (!comment) throw new AppError("Comment not found", 404);
+export const updateComment = wrapServiceFn(
+  async (id, updates, lastKnownUpdatedAt) => {
+    const comment = await commentModel.findById(id);
+    if (!comment) throw new AppError("Comment not found", 404);
 
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(comment.updatedAt).getTime();
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(comment.updatedAt).getTime();
 
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This comment was modified by someone else. Please refresh and try again.",
-        409,
-      );
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This comment was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
     }
-  }
 
-  const updatedComment = await commentModel.findByIdAndUpdate(id, updates, {
-    new: true,
-    runValidators: true,
-  });
+    const updatedComment = await commentModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
 
-  return { updatedComment, leadId: comment.leadId };
-});
+    return { updatedComment, leadId: comment.leadId };
+  },
+);
 
 export const deleteComment = wrapServiceFn(async (id) => {
   const comment = await commentModel.findById(id);

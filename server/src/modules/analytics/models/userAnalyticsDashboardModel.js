@@ -51,7 +51,6 @@ const userAnalyticsDashboardSchema = new Schema(
   { timestamps: true },
 );
 
-// Compound index for per-user, per-tenant lookup
 userAnalyticsDashboardSchema.index(
   { userId: 1, tenantId: 1 },
   { unique: true },

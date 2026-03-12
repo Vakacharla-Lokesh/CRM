@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Schema for requesting a presigned PUT URL
 export const presignedUrlSchema = z
   .object({
     leadId: z.string().min(1),
@@ -10,7 +9,6 @@ export const presignedUrlSchema = z
   })
   .strict();
 
-// Schema for confirming the upload (saving metadata + s3 info to DB)
 export const createAttachmentSchema = z
   .object({
     leadId: z.string().min(1),

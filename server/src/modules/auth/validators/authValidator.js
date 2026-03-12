@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 export const registerSchema = z
   .object({
     firstName: z.string().min(1),

@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 import asyncCatch from "../../../utils/asyncCatch.js";
 import AppError from "../../../utils/appError.js";
 import * as leadService from "../services/leadService.js";
-import { fireWorkflowTrigger } from "../../../middlewares/workflowTrigger.js";
+import { fireWorkflowTrigger } from "../../../services/workflowTrigger.js";
 import { logActivity } from "../services/leadActivityService.js";
 import { LEAD_ACTIVITY_TYPES } from "../../../utils/leadActivityTypes.js";
 import notificationService, {
@@ -34,7 +34,7 @@ export const getAllLeads = asyncCatch(async (req, res) => {
   if (req.query.pipelineId) {
     filter.pipelineId = new mongoose.Types.ObjectId(req.query.pipelineId);
   }
-   if (req.query.rfmSegment) {
+  if (req.query.rfmSegment) {
     filter["rfm.segment"] = req.query.rfmSegment;
   }
   if (req.query.minRfmScore) {

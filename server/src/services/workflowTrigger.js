@@ -1,6 +1,6 @@
 import workflowModel from "../modules/workflows/models/workflowModel.js";
 import workflowExecutionLogModel from "../modules/workflows/models/workflowExecutionLogModel.js";
-import { jobDispatcher } from "../services/jobs/jobDispatcher.js";
+import { jobDispatcher } from "./jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../utils/jobTypes.js";
 
 export const captureRequestContext = (req, res, next) => {

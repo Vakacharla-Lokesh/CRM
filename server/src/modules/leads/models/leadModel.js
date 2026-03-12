@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-// MongoDB collection schema
 const leadsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "leadId", auto: true },

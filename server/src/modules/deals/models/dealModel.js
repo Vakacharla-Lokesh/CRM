@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-// MongoDB collection schema
 const dealsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "dealId", auto: true },
@@ -25,8 +24,7 @@ const dealsSchema = new Schema(
         "Lost",
       ],
     },
-    // Used for offline-sync deduplication — enforced unique when present
-    idempotencyKey: { type: String, default: null },
+    idempotencyKey: { type: String },
   },
   { timestamps: true },
 );

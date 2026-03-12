@@ -21,19 +21,24 @@ export function toPublic(att) {
   };
 }
 
-export const verifyLeadTenantAccess = wrapServiceFn(async (leadId, userRole, userTenantId) => {
-  const lead = await leadModel.findById(leadId);
-  if (!lead) throw new AppError("Lead not found", 404);
+export const verifyLeadTenantAccess = wrapServiceFn(
+  async (leadId, userRole, userTenantId) => {
+    const lead = await leadModel.findById(leadId);
+    if (!lead) throw new AppError("Lead not found", 404);
 
-  if (userRole !== "super_admin" && lead.tenantId.toString() !== userTenantId?.toString()) {
-    throw new AppError(
-      "Forbidden: You cannot access resources from other tenants",
-      403,
-    );
-  }
+    if (
+      userRole !== "super_admin" &&
+      lead.tenantId.toString() !== userTenantId?.toString()
+    ) {
+      throw new AppError(
+        "Forbidden: You cannot access resources from other tenants",
+        403,
+      );
+    }
 
-  return lead;
-});
+    return lead;
+  },
+);
 
 export const getAllAttachments = wrapServiceFn(async () => {
   const attachments = await attachmentModel.find().select("-__v");
@@ -46,20 +51,22 @@ export const getAttachmentById = wrapServiceFn(async (id) => {
   return attachment;
 });
 
-export const getPresignedUploadUrl = wrapServiceFn(async (leadId, fileName, fileSize) => {
-  const uuid = randomUUID();
-  const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
+export const getPresignedUploadUrl = wrapServiceFn(
+  async (leadId, fileName, fileSize) => {
+    const uuid = randomUUID();
+    const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
 
-  const presignedUrl = await s3Manager.getPresignedUploadUrl(
-    BUCKETS.leads,
-    s3Key,
-    fileSize,
-  );
-  const s3Url = s3Manager.buildS3Url(BUCKETS.leads, s3Key);
+    const presignedUrl = await s3Manager.getPresignedUploadUrl(
+      BUCKETS.leads,
+      s3Key,
+      fileSize,
+    );
+    const s3Url = s3Manager.buildS3Url(BUCKETS.leads, s3Key);
 
-  return { presignedUrl, s3Key, s3Url };
-});
+    return { presignedUrl, s3Key, s3Url };
+  },
+);
 
 export const createAttachment = wrapServiceFn(async (attachmentData) => {
   const attachment = await attachmentModel.create(attachmentData);

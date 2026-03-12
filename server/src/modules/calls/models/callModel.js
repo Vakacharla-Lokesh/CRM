@@ -1,6 +1,5 @@
 import { Schema, model } from "mongoose";
 
-// MongoDB collection schema
 const callsSchema = new Schema(
   {
     _id: { type: Schema.Types.ObjectId, alias: "callId", auto: true },
@@ -13,13 +12,11 @@ const callsSchema = new Schema(
       enum: ["completed", "missed", "no-answer", "voicemail"],
     },
     duration: { type: Number, min: 1, max: 1000 },
-    // Used for offline-sync deduplication — enforced unique when present
     idempotencyKey: { type: String },
   },
   { timestamps: true },
 );
 
-// Indexes
 callsSchema.index({ leadId: 1, createdAt: -1 });
 callsSchema.index(
   { idempotencyKey: 1 },

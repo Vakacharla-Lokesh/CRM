@@ -41,110 +41,114 @@ export const getUserDashboard = wrapServiceFn(async (userId, tenantId) => {
   return dashboard;
 });
 
-export const updateDashboardLayout = wrapServiceFn(async (userId, tenantId, layout) => {
-  const filter = { userId };
-  if (tenantId) filter.tenantId = tenantId;
+export const updateDashboardLayout = wrapServiceFn(
+  async (userId, tenantId, layout) => {
+    const filter = { userId };
+    if (tenantId) filter.tenantId = tenantId;
 
-  const updated = await UserAnalyticsDashboard.findOneAndUpdate(
-    filter,
-    { $set: { layout } },
-    { new: true, upsert: true },
-  ).lean();
+    const updated = await UserAnalyticsDashboard.findOneAndUpdate(
+      filter,
+      { $set: { layout } },
+      { new: true, upsert: true },
+    ).lean();
 
-  return updated;
-});
+    return updated;
+  },
+);
 
-export const computeChartData = wrapServiceFn(async (widgetConfig, tenantId) => {
-  const { entity, groupBy, metric, filters = {} } = widgetConfig;
+export const computeChartData = wrapServiceFn(
+  async (widgetConfig, tenantId) => {
+    const { entity, groupBy, metric, filters = {} } = widgetConfig;
 
-  const Model = ENTITY_MODEL_MAP[entity];
-  if (!Model) return [];
+    const Model = ENTITY_MODEL_MAP[entity];
+    if (!Model) return [];
 
-  const allowedGroupByFields = ALLOWED_GROUP_BY[entity] || [];
-  if (!allowedGroupByFields.includes(groupBy)) return [];
+    const allowedGroupByFields = ALLOWED_GROUP_BY[entity] || [];
+    if (!allowedGroupByFields.includes(groupBy)) return [];
 
-  const matchStage = {};
-  if (tenantId) {
-    matchStage.tenantId = new mongoose.Types.ObjectId(String(tenantId));
-  }
-
-  const SAFE_FILTER_KEYS = {
-    leads: ["status", "source"],
-    deals: ["status"],
-    organizations: ["industry"],
-  };
-
-  const safeKeys = SAFE_FILTER_KEYS[entity] || [];
-  for (const key of safeKeys) {
-    if (filters[key] !== undefined && filters[key] !== null) {
-      matchStage[key] = String(filters[key]);
+    const matchStage = {};
+    if (tenantId) {
+      matchStage.tenantId = new mongoose.Types.ObjectId(String(tenantId));
     }
-  }
 
-  let groupId;
-  if (groupBy === "createdAt") {
-    groupId = {
-      year: { $year: "$createdAt" },
-      month: { $month: "$createdAt" },
+    const SAFE_FILTER_KEYS = {
+      leads: ["status", "source"],
+      deals: ["status"],
+      organizations: ["industry"],
     };
-  } else {
-    groupId = `$${groupBy}`;
-  }
 
-  let accumulator;
-  if (metric === "count") {
-    accumulator = { $sum: 1 };
-  } else if (metric === "sum") {
-    const field = ALLOWED_METRIC_FIELDS[entity]?.sum;
-    accumulator = field ? { $sum: `$${field}` } : { $sum: 1 };
-  } else if (metric === "avg") {
-    const field = ALLOWED_METRIC_FIELDS[entity]?.avg;
-    accumulator = field ? { $avg: `$${field}` } : { $sum: 1 };
-  } else {
-    accumulator = { $sum: 1 };
-  }
+    const safeKeys = SAFE_FILTER_KEYS[entity] || [];
+    for (const key of safeKeys) {
+      if (filters[key] !== undefined && filters[key] !== null) {
+        matchStage[key] = String(filters[key]);
+      }
+    }
 
-  const pipeline = [
-    { $match: matchStage },
-    {
-      $group: {
-        _id: groupId,
-        value: accumulator,
-      },
-    },
-    { $sort: { "_id.year": 1, "_id.month": 1, _id: 1 } },
-    { $limit: 50 },
-  ];
-
-  const results = await Model.aggregate(pipeline);
-
-  return results.map((r) => {
-    let label;
-    if (groupBy === "createdAt" && r._id?.year) {
-      const monthNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
-      ];
-      label = `${monthNames[(r._id.month || 1) - 1]} ${r._id.year}`;
+    let groupId;
+    if (groupBy === "createdAt") {
+      groupId = {
+        year: { $year: "$createdAt" },
+        month: { $month: "$createdAt" },
+      };
     } else {
-      label = r._id ?? "Unknown";
+      groupId = `$${groupBy}`;
     }
-    return {
-      label: String(label),
-      value:
-        metric === "avg"
-          ? parseFloat((r.value ?? 0).toFixed(2))
-          : (r.value ?? 0),
-    };
-  });
-});
+
+    let accumulator;
+    if (metric === "count") {
+      accumulator = { $sum: 1 };
+    } else if (metric === "sum") {
+      const field = ALLOWED_METRIC_FIELDS[entity]?.sum;
+      accumulator = field ? { $sum: `$${field}` } : { $sum: 1 };
+    } else if (metric === "avg") {
+      const field = ALLOWED_METRIC_FIELDS[entity]?.avg;
+      accumulator = field ? { $avg: `$${field}` } : { $sum: 1 };
+    } else {
+      accumulator = { $sum: 1 };
+    }
+
+    const pipeline = [
+      { $match: matchStage },
+      {
+        $group: {
+          _id: groupId,
+          value: accumulator,
+        },
+      },
+      { $sort: { "_id.year": 1, "_id.month": 1, _id: 1 } },
+      { $limit: 50 },
+    ];
+
+    const results = await Model.aggregate(pipeline);
+
+    return results.map((r) => {
+      let label;
+      if (groupBy === "createdAt" && r._id?.year) {
+        const monthNames = [
+          "Jan",
+          "Feb",
+          "Mar",
+          "Apr",
+          "May",
+          "Jun",
+          "Jul",
+          "Aug",
+          "Sep",
+          "Oct",
+          "Nov",
+          "Dec",
+        ];
+        label = `${monthNames[(r._id.month || 1) - 1]} ${r._id.year}`;
+      } else {
+        label = r._id ?? "Unknown";
+      }
+      return {
+        label: String(label),
+        value:
+          metric === "avg"
+            ? parseFloat((r.value ?? 0).toFixed(2))
+            : (r.value ?? 0),
+      };
+    });
+  },
+);

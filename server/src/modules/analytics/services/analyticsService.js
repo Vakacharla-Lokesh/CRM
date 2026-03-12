@@ -13,71 +13,73 @@ import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const PERIOD_KEY = "historical";
 
-export const getDashboardStats = wrapServiceFn(async (userId, leadFilter, dealFilter) => {
-  const cacheKey = `dashboard_stats_${userId}`;
+export const getDashboardStats = wrapServiceFn(
+  async (userId, leadFilter, dealFilter) => {
+    const cacheKey = `dashboard_stats_${userId}`;
 
-  const cachedData = await dashboardCache.get(cacheKey);
-  if (cachedData) return cachedData;
+    const cachedData = await dashboardCache.get(cacheKey);
+    if (cachedData) return cachedData;
 
-  const { currentStart, currentEnd, previousStart, previousEnd } =
-    periodDates(30);
+    const { currentStart, currentEnd, previousStart, previousEnd } =
+      periodDates(30);
 
-  const tenantId = leadFilter?.tenantId ?? null;
+    const tenantId = leadFilter?.tenantId ?? null;
 
-  const scopeKey = leadFilter?.assignedTo
-    ? leadFilter.assignedTo.toString()
-    : TENANT_SCOPE_KEY;
+    const scopeKey = leadFilter?.assignedTo
+      ? leadFilter.assignedTo.toString()
+      : TENANT_SCOPE_KEY;
 
-  let response;
+    let response;
 
-  const snapshot = tenantId
-    ? await AnalyticsSnapshot.findOne({
-        tenantId,
-        scopeKey,
-        periodKey: PERIOD_KEY,
-      }).lean()
-    : null;
+    const snapshot = tenantId
+      ? await AnalyticsSnapshot.findOne({
+          tenantId,
+          scopeKey,
+          periodKey: PERIOD_KEY,
+        }).lean()
+      : null;
 
-  if (snapshot) {
-    logger.info(
-      `[Analytics] Serving from snapshot — tenant: ${tenantId}, scope: ${scopeKey}`,
-    );
+    if (snapshot) {
+      logger.info(
+        `[Analytics] Serving from snapshot — tenant: ${tenantId}, scope: ${scopeKey}`,
+      );
 
-    const delta = await computeTodayDelta(leadFilter, dealFilter);
+      const delta = await computeTodayDelta(leadFilter, dealFilter);
 
-    const mergedStats = mergeSnapshotWithDelta(snapshot.stats, delta);
+      const mergedStats = mergeSnapshotWithDelta(snapshot.stats, delta);
 
-    response = {
-      stats: mergedStats,
-      changes: snapshot.changes,
-      period: {
-        days: 30,
-        currentStart: snapshot.period.currentStart,
-        currentEnd: snapshot.period.currentEnd,
-        previousStart: snapshot.period.previousStart,
-        previousEnd: snapshot.period.previousEnd,
-      },
-      _source: "snapshot",
-    };
-  } else {
-    logger.info(
-      `[Analytics] No snapshot found, running full computation — scope: ${scopeKey}`,
-    );
+      response = {
+        stats: mergedStats,
+        changes: snapshot.changes,
+        period: {
+          days: 30,
+          currentStart: snapshot.period.currentStart,
+          currentEnd: snapshot.period.currentEnd,
+          previousStart: snapshot.period.previousStart,
+          previousEnd: snapshot.period.previousEnd,
+        },
+        _source: "snapshot",
+      };
+    } else {
+      logger.info(
+        `[Analytics] No snapshot found, running full computation — scope: ${scopeKey}`,
+      );
 
-    response = await fullComputation(leadFilter, dealFilter, {
-      currentStart,
-      currentEnd,
-      previousStart,
-      previousEnd,
-    });
+      response = await fullComputation(leadFilter, dealFilter, {
+        currentStart,
+        currentEnd,
+        previousStart,
+        previousEnd,
+      });
 
-    response._source = "live";
-  }
+      response._source = "live";
+    }
 
-  await dashboardCache.set(cacheKey, JSON.stringify(response), 300);
+    await dashboardCache.set(cacheKey, JSON.stringify(response), 300);
 
-  return response;
-});
+    return response;
+  },
+);
 
 function mergeSnapshotWithDelta(snapshotStats, delta) {
   const totalLeads = snapshotStats.totalLeads + delta.totalLeads;
@@ -306,10 +308,7 @@ export {
 } from "./leadAnalyticsService.js";
 
 // Deal analytics
-export {
-  getDealPipeline,
-  getDealTrends,
-} from "./dealAnalyticsService.js";
+export { getDealPipeline, getDealTrends } from "./dealAnalyticsService.js";
 
 // Organization analytics
 export {

@@ -3,14 +3,18 @@ import userModel from "../models/userModel.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllUsers = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
+export const getAllUsers = wrapServiceFn(async (filter = {}, { limit = 20, cursor, excludeUserId } = {}) => {
   if (!filter.role) {
     filter.role = { $ne: "super_admin" };
   }
 
   if (cursor) {
     const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
+    filter._id = { ...(filter._id && typeof filter._id === "object" ? filter._id : {}), $gt: lastId };
+  }
+
+  if (excludeUserId) {
+    filter._id = { ...(filter._id && typeof filter._id === "object" ? filter._id : {}), $ne: excludeUserId };
   }
 
   const users = await userModel

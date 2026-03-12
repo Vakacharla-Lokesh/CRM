@@ -92,6 +92,6 @@ export const assignPermissionsSchema = z.object({
         (p) => ({ message: `Invalid permission: ${p}` }),
       ),
     )
-    .min(1, "At least one permission is required"),
+    .default([]),
   role: z.enum(["user", "admin"]).optional(),
 });
