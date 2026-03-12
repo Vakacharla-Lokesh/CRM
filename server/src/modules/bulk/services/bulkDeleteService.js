@@ -147,17 +147,14 @@ export async function bulkDeleteOrganizations(ids, tenantId, userContext) {
 
   const objectIds = ids.map((id) => new mongoose.Types.ObjectId(id));
 
-  // Build filter with tenant isolation
   const filter = {
     _id: { $in: objectIds },
   };
 
-  // Tenant enforcement — never trust client tenantId
   if (userContext.role !== "super_admin") {
     filter.tenantId = new mongoose.Types.ObjectId(tenantId);
   }
 
-  // Find matching organizations first to identify failures
   const matchingOrgs = await organizationModel
     .find(filter)
     .select("_id")

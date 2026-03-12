@@ -10,7 +10,8 @@ const dealsSchema = new Schema(
       rel: "Organizations",
     },
     tenantId: { type: Schema.Types.ObjectId, required: true, rel: "Tenants" },
-    userId: { type: Schema.Types.ObjectId, required: true, rel: "Users" },
+    createdBy: { type: Schema.Types.ObjectId, required: true, ref: "Users" },
+    assignedTo: { type: Schema.Types.ObjectId, ref: "Users", default: null },
     name: { type: String, minLength: 1, maxLength: 100, required: true },
     value: { type: Number, min: 0, max: 10_00_000, default: 0 },
     status: {
@@ -33,6 +34,8 @@ const dealsSchema = new Schema(
 // Indexes
 dealsSchema.index({ leadId: 1, createdAt: -1 });
 dealsSchema.index({ tenantId: 1 });
+dealsSchema.index({ createdBy: 1, createdAt: -1 });
+dealsSchema.index({ assignedTo: 1, createdAt: -1 });
 dealsSchema.index(
   { idempotencyKey: 1 },
   { unique: true, sparse: true, name: "idempotency_key_unique" },
