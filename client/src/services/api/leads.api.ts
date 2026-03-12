@@ -76,7 +76,11 @@ export const leadsAPI = {
     return response.lead;
   },
 
-  update: async (id: string, data: UpdateLeadDTO, lastKnownUpdatedAt?: Date) => {
+  update: async (
+    id: string,
+    data: UpdateLeadDTO,
+    lastKnownUpdatedAt?: Date,
+  ) => {
     const response = await put<{ message: string; lead: Lead }>(
       `/leads/${id}`,
       {
@@ -114,5 +118,11 @@ export const leadsAPI = {
   getByOrganization: async (organizationId: string) =>
     get<{ count: number; leads: Lead[] }>(
       `/leads/organization/${organizationId}`,
+    ),
+  
+    runRfmSegmentation: async () =>
+    post<{ success: boolean; count: number; message: string }>(
+      "/leads/rfm/run",
+      {},
     ),
 };

@@ -140,3 +140,34 @@ export interface LeadRFM {
   engagementCount: number;
   dealValue: number;
 }
+
+export const segmentStyles: Record<string, { badge: string; dot: string }> = {
+  "Hot Deals": {
+    badge:
+      "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400",
+    dot: "bg-orange-500",
+  },
+  "Sleeping Giants": {
+    badge:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400",
+    dot: "bg-purple-500",
+  },
+  "Time Wasters": {
+    badge:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
+    dot: "bg-yellow-500",
+  },
+  "Dead Wood": {
+    badge: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+    dot: "bg-red-500",
+  },
+  "Active Prospect": {
+    badge:
+      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+    dot: "bg-green-500",
+  },
+  Unsegmented: {
+    badge: "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+    dot: "bg-gray-400",
+  },
+};

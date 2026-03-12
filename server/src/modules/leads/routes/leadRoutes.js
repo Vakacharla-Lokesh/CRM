@@ -13,11 +13,15 @@ import {
   updateLeadScoreManually,
   searchLeads,
   assignLead,
+  triggerRfmSegmentation,
 } from "../controllers/leadController.js";
 import { getLeadActivities } from "../controllers/leadActivityController.js";
 import { validate } from "../../../middlewares/validate.js";
 import { authenticateRequest } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 import {
   createLeadSchema,
   updateLeadSchema,
@@ -131,6 +135,14 @@ router.patch(
   requirePermission("leads:assign"),
   injectTenantContext,
   assignLead,
+);
+
+router.post(
+  "/rfm/run",
+  authenticateRequest,
+  requirePermission("leads:write"),
+  injectTenantContext,
+  triggerRfmSegmentation,
 );
 
 export default router;

@@ -77,7 +77,6 @@ export const getLeadStatusBreakdown = async (filter, days) => {
     },
     { $sort: { count: -1 } },
   ];
-  S;
   const breakdown = await leadModel.aggregate(leadStatusPipeline, {
     readPreference: "secondaryPreferred",
   });

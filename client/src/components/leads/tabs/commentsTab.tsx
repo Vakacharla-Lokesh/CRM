@@ -67,8 +67,8 @@ function CommentsTab({ leadId }: CommentsTabProps) {
         </div>
       )}
 
-      <div className="bg-secondary dark:bg-secondary rounded-lg p-6 border border-gray-200 dark:border-gray-600">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+      <div className="bg-secondary rounded-lg p-6 border border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
           Add New Comment
         </h3>
         <form
@@ -85,7 +85,6 @@ function CommentsTab({ leadId }: CommentsTabProps) {
               }
               placeholder="Comment title"
               disabled={isAdding}
-              className="border-gray-300 dark:border-gray-600"
             />
           </div>
 
@@ -100,7 +99,7 @@ function CommentsTab({ leadId }: CommentsTabProps) {
               placeholder="Add comment details (optional)"
               rows={4}
               disabled={isAdding}
-              className="border-gray-300 dark:border-gray-600 resize-none"
+              className="resize-none"
             />
           </div>
 
@@ -116,41 +115,41 @@ function CommentsTab({ leadId }: CommentsTabProps) {
       </div>
 
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-foreground">
           Comments ({comments.length})
         </h3>
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
             <div className="text-center">
-              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-              <p className="text-gray-600 dark:text-gray-400">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-muted-foreground">
                 Loading comments...
               </p>
             </div>
           </div>
         ) : comments.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600 dark:text-gray-400">No comments yet</p>
+            <p className="text-muted-foreground">No comments yet</p>
           </div>
         ) : (
           <div className="space-y-3">
             {comments.map((comment) => (
               <div
                 key={comment._id}
-                className="bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600 rounded-lg p-4 hover:border-gray-300 dark:hover:border-gray-500 transition-colors"
+                className="bg-muted/40 border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold text-gray-900 dark:text-white wrap-break-word">
+                    <h4 className="font-semibold text-foreground wrap-break-word">
                       {comment.title}
                     </h4>
                     {comment.description && (
-                      <p className="text-gray-600 dark:text-gray-400 mt-2 whitespace-pre-wrap wrap-break-word">
+                      <p className="text-muted-foreground mt-2 whitespace-pre-wrap wrap-break-word">
                         {comment.description}
                       </p>
                     )}
-                    <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                    <p className="text-xs text-muted-foreground/60 mt-2">
                       {new Date(comment.createdAt).toLocaleDateString()} at{" "}
                       {new Date(comment.createdAt).toLocaleTimeString()}
                     </p>
@@ -159,7 +158,7 @@ function CommentsTab({ leadId }: CommentsTabProps) {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleDeleteComment(comment._id)}
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                    className="text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>

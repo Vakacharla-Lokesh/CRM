@@ -8,6 +8,7 @@ import { LEAD_ACTIVITY_TYPES } from "../../../utils/leadActivityTypes.js";
 import notificationService, {
   notificationTypes,
 } from "../../../services/notificationService.js";
+import { runRfmSegmentation } from "../../../services/rfmSegmentationService.js";
 
 export const getAllLeads = asyncCatch(async (req, res) => {
   const canViewAll =
@@ -309,5 +310,22 @@ export const assignLead = asyncCatch(async (req, res) => {
   res.json({
     message: "Lead assigned successfully",
     lead,
+  });
+});
+
+export const triggerRfmSegmentation = asyncCatch(async (req, res) => {
+  const tenantId =
+    req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
+
+  if (!tenantId) {
+    throw new AppError("Tenant context required to run segmentation.", 400);
+  }
+
+  const result = await runRfmSegmentation(tenantId);
+
+  res.json({
+    success: result.success,
+    count: result.count,
+    message: result.message,
   });
 });

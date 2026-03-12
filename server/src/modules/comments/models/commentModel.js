@@ -7,7 +7,7 @@ const commentsSchema = new Schema(
     leadId: { type: Schema.Types.ObjectId, required: true, rel: "Leads" },
     title: { type: String, required: true },
     description: { type: String },
-    idempotencyKey: { type: String, default: null },
+    idempotencyKey: { type: String },
   },
   { timestamps: true },
 );

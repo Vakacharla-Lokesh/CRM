@@ -85,6 +85,9 @@ const LeadsPage = () => {
     handleExport,
     handleEmailExport,
     handleBulkImport,
+    handleRunSegmentation,
+    isSegmenting,
+    segmentCooldown,
   } = useLeadsPageState();
 
   return (
@@ -135,22 +138,25 @@ const LeadsPage = () => {
         isLoading={leadStatsQuery.isLoading}
       />
 
-      <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative flex-1 min-w-50">
-            {searchLoading ? (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            )}
-            <Input
-              placeholder="Search leads..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+      <div className="rounded-lg p-4 border border-gray-200 dark:border-gray-700 space-y-3">
+        {/* Row 1 — Search */}
+        <div className="relative w-full">
+          {searchLoading ? (
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+          )}
 
+          <Input
+            placeholder="Search leads..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="pl-10 w-full"
+          />
+        </div>
+
+        {/* Row 2 — Filters */}
+        <div className="flex flex-wrap items-center gap-3">
           <PipelineFilter
             selectedPipelineId={selectedPipelineId || undefined}
             pipelines={pipelines}
@@ -171,7 +177,7 @@ const LeadsPage = () => {
             }
             disabled={pipelineStatuses.length === 0}
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-35">
               <SelectValue placeholder="All statuses" />
             </SelectTrigger>
             <SelectContent>
@@ -199,7 +205,7 @@ const LeadsPage = () => {
               updateFilter("source", value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-35">
               <SelectValue placeholder="All sources" />
             </SelectTrigger>
             <SelectContent>
@@ -221,7 +227,7 @@ const LeadsPage = () => {
               updateFilter("rfmSegment", value === "all" ? "" : value)
             }
           >
-            <SelectTrigger className="w-44">
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="All segments" />
             </SelectTrigger>
             <SelectContent>
@@ -236,6 +242,24 @@ const LeadsPage = () => {
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            variant="outline"
+            onClick={handleRunSegmentation}
+            disabled={isSegmenting || segmentCooldown > 0}
+            className="shrink-0 gap-2"
+          >
+            {isSegmenting ? (
+              <div className="w-3.5 h-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <span>✦</span>
+            )}
+            {isSegmenting
+              ? "Segmenting…"
+              : segmentCooldown > 0
+                ? `Wait ${segmentCooldown}s`
+                : "Segment Leads"}
+          </Button>
 
           <Button
             variant="outline"

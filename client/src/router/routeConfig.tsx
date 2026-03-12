@@ -1,8 +1,7 @@
 import type { UserRole } from "@/types";
 import { lazy } from "react";
 
-const DashboardPage = lazy(() => import("../pages/dashboardPage"));
-const preloadDashboard = () => import("../pages/dashboardPage");
+import DashboardPage from "../pages/dashboardPage";
 
 const UsersPage = lazy(() => import("../pages/usersPage"));
 const preloadUsers = () => import("../pages/usersPage");
@@ -52,7 +51,6 @@ export const routeConfig: RouteConfig[] = [
   {
     path: "/dashboard",
     element: <DashboardPage />,
-    preload: preloadDashboard,
   },
   {
     path: "/leads",

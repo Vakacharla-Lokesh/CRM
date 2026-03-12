@@ -1,11 +1,11 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-import { type Lead } from "@/types";
+import { segmentStyles, type Lead } from "@/types";
 import ActionDropdown from "../common/actionDropDown";
 
 interface ColumnsProps {
@@ -169,6 +169,35 @@ export const columns = ({
           Source
           <ArrowUpDown className="ml-2 h-4 w-4" />
         </Button>
+      );
+    },
+  },
+  {
+    id: "rfm.segment",
+    accessorFn: (row) => row.rfm?.segment ?? "Unsegmented",
+    header: ({ column }) => (
+      <Button
+        variant="ghost"
+        onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        className="gap-1"
+      >
+        <Sparkles className="w-3.5 h-3.5" />
+        Segment
+        <ArrowUpDown className="ml-1 h-4 w-4" />
+      </Button>
+    ),
+    cell: ({ row }) => {
+      const segment = (row.original.rfm?.segment ?? "Unsegmented") as string;
+
+      const style = segmentStyles[segment] ?? segmentStyles["Unsegmented"];
+
+      return (
+        <span
+          className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full ${style.badge}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${style.dot}`} />
+          {segment}
+        </span>
       );
     },
   },
