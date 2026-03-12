@@ -1,7 +1,13 @@
 import asyncCatch from "../../../utils/asyncCatch.js";
 import * as roleService from "../services/roleService.js";
 
-const getTenantId = (req) => req.tenantContext?.tenantId;
+const getTenantId = (req) => {
+  // Super admins can query roles for a specific tenant via ?tenantId=
+  if (req.auth?.role === "super_admin" && req.query.tenantId) {
+    return req.query.tenantId;
+  }
+  return req.tenantContext?.tenantId;
+};
 
 export const getAllRoles = asyncCatch(async (req, res) => {
   const roles = await roleService.getAllRoles(getTenantId(req));

@@ -23,8 +23,8 @@ const userSchema = new Schema(
     },
     role: {
       type: String,
-      enum: ["user", "admin", "super_admin"],
       required: true,
+      trim: true,
     },
     permissions: {
       type: Map,

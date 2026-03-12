@@ -2,8 +2,10 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import tenantModel from "../models/tenantModel.js";
 import userModel from "../../users/models/userModel.js";
+import roleModel from "../../roles/models/roleModel.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
+import { DEFAULT_ROLE_PERMISSIONS } from "../../../utils/permissionPresets.js";
 
 export const getAllTenants = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
@@ -44,6 +46,27 @@ export const createTenant = wrapServiceFn(async (tenantData) => {
   try {
     session.startTransaction();
     const tenant = await tenantModel.create([tenantData], { session });
+    const tenantId = tenant[0]._id;
+
+    // Create default roles for the new tenant
+    await roleModel.insertMany(
+      [
+        {
+          tenantId,
+          name: "admin",
+          description: "Full access administrator role",
+          permissions: DEFAULT_ROLE_PERMISSIONS.admin,
+        },
+        {
+          tenantId,
+          name: "user",
+          description: "Standard user role with basic access",
+          permissions: DEFAULT_ROLE_PERMISSIONS.user,
+        },
+      ],
+      { session },
+    );
+
     const randomPassword = crypto.randomBytes(6).toString("hex");
     const adminUser = await userModel.create(
       [
@@ -51,7 +74,7 @@ export const createTenant = wrapServiceFn(async (tenantData) => {
           firstName: "admin",
           email: tenant[0].email,
           password: randomPassword,
-          tenantId: tenant[0]._id,
+          tenantId,
           role: "admin",
         },
       ],

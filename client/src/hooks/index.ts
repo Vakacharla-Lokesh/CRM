@@ -8,7 +8,7 @@ export {
   useCreateRole,
   useUpdateRole,
   useDeleteRole,
-} from "./useRoles.ts";
+} from "./roles/useRoles.ts";
 export { useHasPermission } from "./usePermissions.ts";
 
 export { useLeadData } from "./leads/useLeadData.ts";

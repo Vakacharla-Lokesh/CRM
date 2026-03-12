@@ -29,7 +29,7 @@ export const createUserSchema = z
     mobile: z
       .string()
       .regex(/^[1-9]\d{9}$/, "Please provide valid mobile number"),
-    role: z.enum(["user", "admin"]).optional(),
+    role: z.string().min(1).max(50).optional(),
     password: z.string().min(8).optional(),
     tenantId: z.string().min(1).optional(),
     permissions: permissionsMapSchema,
@@ -45,7 +45,7 @@ export const updateUserSchema = z
       .string()
       .regex(/^[1-9]\d{9}$/)
       .optional(),
-    role: z.enum(["user", "admin"]).optional(),
+    role: z.string().min(1).max(50).optional(),
     password: z.union([z.literal(""), z.string().min(8)]).optional(),
     tenantId: z.string().optional(),
     lastKnownUpdatedAt: z.string().optional(),
@@ -68,7 +68,7 @@ export const updatePasswordSchema = z
 
 export const passwordResetSchema = z
   .object({
-    email: z.string().email("Please provide a valid email address"),
+    email: z.email("Please provide a valid email address"),
   })
   .strict();
 
@@ -77,7 +77,7 @@ export const updateProfileSchema = z
     name: z.string().min(1).optional(),
     firstName: z.string().min(1).optional(),
     lastName: z.string().optional(),
-    email: z.string().email().optional(),
+    email: z.email().optional(),
     phone: z.string().optional(),
     department: z.string().optional(),
     position: z.string().optional(),
