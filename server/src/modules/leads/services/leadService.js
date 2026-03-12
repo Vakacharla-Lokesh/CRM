@@ -1,12 +1,13 @@
 import leadModel from "../models/leadModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import {
   getDefaultPipeline,
   validateStatusInPipeline,
 } from "../../pipelines/services/pipelineService.js";
 
-export const getAllLeads = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllLeads = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (cursor) {
     const lastUpdatedAt = Buffer.from(cursor, "base64").toString("utf8");
     filter.updatedAt = { $lt: new Date(lastUpdatedAt) };
@@ -28,9 +29,9 @@ export const getAllLeads = async (filter, { limit = 20, cursor } = {}) => {
       : null;
 
   return { leads, nextCursor, hasNextPage };
-};
+});
 
-export const getLeadById = async (id, tenantId) => {
+export const getLeadById = wrapServiceFn(async (id, tenantId) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
@@ -39,9 +40,9 @@ export const getLeadById = async (id, tenantId) => {
   }
 
   return lead;
-};
+});
 
-export const createLead = async (leadData) => {
+export const createLead = wrapServiceFn(async (leadData) => {
   let pipelineId = leadData.pipelineId ?? null;
 
   if (!pipelineId) {
@@ -58,9 +59,9 @@ export const createLead = async (leadData) => {
   const lead = await leadModel.create({ ...leadData, pipelineId });
   await updateLeadScore(lead._id);
   return leadModel.findById(lead._id);
-};
+});
 
-export const updateLead = async (id, tenantId, updates, lastKnownUpdatedAt) => {
+export const updateLead = wrapServiceFn(async (id, tenantId, updates, lastKnownUpdatedAt) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
@@ -87,9 +88,9 @@ export const updateLead = async (id, tenantId, updates, lastKnownUpdatedAt) => {
 
   await updateLeadScore(id);
   return leadModel.findById(id);
-};
+});
 
-export const deleteLead = async (id, tenantId) => {
+export const deleteLead = wrapServiceFn(async (id, tenantId) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
@@ -99,25 +100,25 @@ export const deleteLead = async (id, tenantId) => {
 
   await leadModel.findByIdAndDelete(id);
   return lead;
-};
+});
 
-export const getLeadsByTenant = async (tenantId) => {
+export const getLeadsByTenant = wrapServiceFn(async (tenantId) => {
   return leadModel.find({ tenantId });
-};
+});
 
-export const getLeadsByUser = async (userId, tenantId) => {
+export const getLeadsByUser = wrapServiceFn(async (userId, tenantId) => {
   const filter = { assignedTo: userId };
   if (tenantId) filter.tenantId = tenantId;
   return leadModel.find(filter);
-};
+});
 
-export const getLeadsByOrganization = async (organizationId, tenantId) => {
+export const getLeadsByOrganization = wrapServiceFn(async (organizationId, tenantId) => {
   const filter = { organizationId };
   if (tenantId) filter.tenantId = tenantId;
   return leadModel.find(filter);
-};
+});
 
-export const updateLeadStatus = async (
+export const updateLeadStatus = wrapServiceFn(async (
   id,
   tenantId,
   status,
@@ -153,9 +154,9 @@ export const updateLeadStatus = async (
   const updatedLead = await leadModel.findById(id);
 
   return { updatedLead, previousStatus };
-};
+});
 
-export const updateLeadScoreManually = async (
+export const updateLeadScoreManually = wrapServiceFn(async (
   id,
   tenantId,
   score,
@@ -182,9 +183,9 @@ export const updateLeadScoreManually = async (
   lead.score = score;
   await lead.save();
   return lead;
-};
+});
 
-export const convertLeadToDeal = async (id, tenantId, dealData, userId) => {
+export const convertLeadToDeal = wrapServiceFn(async (id, tenantId, dealData, userId) => {
   const lead = await leadModel.findById(id);
   if (!lead) throw new AppError("Lead not found", 404);
 
@@ -213,9 +214,9 @@ export const convertLeadToDeal = async (id, tenantId, dealData, userId) => {
   await lead.save();
 
   return { deal, lead };
-};
+});
 
-export const searchLeads = async (
+export const searchLeads = wrapServiceFn(async (
   filter,
   { q, status, source, limit = 25 },
 ) => {
@@ -238,9 +239,9 @@ export const searchLeads = async (
     .find(filter)
     .sort({ createdAt: -1 })
     .limit(Math.min(parseInt(limit), 25));
-};
+});
 
-export const assignLead = async (id, tenantId, assignedTo) => {
+export const assignLead = wrapServiceFn(async (id, tenantId, assignedTo) => {
   if (!assignedTo) throw new AppError("assignedTo userId is required", 400);
 
   const lead = await leadModel.findById(id);
@@ -255,4 +256,4 @@ export const assignLead = async (id, tenantId, assignedTo) => {
   await lead.save();
 
   return { lead, previousAssignee };
-};
+});

@@ -1,6 +1,7 @@
 import leadModel from "../../leads/models/leadModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getLeadTrends = async (filter, days = 30) => {
+export const getLeadTrends = wrapServiceFn(async (filter, days = 30) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -47,9 +48,9 @@ export const getLeadTrends = async (filter, days = 30) => {
   });
 
   return trends;
-};
+});
 
-export const getLeadStatusBreakdown = async (filter, days) => {
+export const getLeadStatusBreakdown = wrapServiceFn(async (filter, days) => {
   const matchFilter =
     days !== null
       ? {
@@ -90,9 +91,9 @@ export const getLeadStatusBreakdown = async (filter, days) => {
   }));
 
   return { breakdown: enriched, total };
-};
+});
 
-export const getLeadScoreDistribution = async (filter) => {
+export const getLeadScoreDistribution = wrapServiceFn(async (filter) => {
   const leadScoreDistributionPipeline = [
     { $match: filter },
     {
@@ -138,4 +139,4 @@ export const getLeadScoreDistribution = async (filter) => {
   return leadModel.aggregate(leadScoreDistributionPipeline, {
     readPreference: "secondaryPreferred",
   });
-};
+});

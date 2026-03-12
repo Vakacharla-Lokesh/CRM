@@ -8,6 +8,7 @@ import { logActivity } from "../../leads/services/leadActivityService.js";
 import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import { queueService } from "../../../services/aws/queue/queueService.js";
 import { marked } from "marked";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const TRACKING_BASE_URL =
   process.env.API_BASE_URL || "http://localhost:4000/api";
@@ -57,7 +58,7 @@ async function sendCampaignEmailDirect(ce, campaign) {
   }
 }
 
-export const createAndDispatchCampaign = async ({
+export const createAndDispatchCampaign = wrapServiceFn(async ({
   tenantId,
   userId,
   subject,
@@ -119,9 +120,9 @@ export const createAndDispatchCampaign = async ({
   }
 
   return Campaign.findById(campaign._id).lean();
-};
+});
 
-export const processAllPendingEmails = async () => {
+export const processAllPendingEmails = wrapServiceFn(async () => {
   const pendingEmails = await CampaignEmail.find({ status: "pending" }).lean();
 
   if (!pendingEmails.length) {
@@ -150,9 +151,9 @@ export const processAllPendingEmails = async () => {
   }
 
   console.log("[CampaignService] Pending email recovery complete");
-};
+});
 
-export const recordEmailOpen = async (campaignEmailId) => {
+export const recordEmailOpen = wrapServiceFn(async (campaignEmailId) => {
   const ce = await CampaignEmail.findById(campaignEmailId);
   if (!ce || ce.status === "opened") return;
 
@@ -163,19 +164,19 @@ export const recordEmailOpen = async (campaignEmailId) => {
   await Campaign.findByIdAndUpdate(ce.campaignId, { $inc: { openCount: 1 } });
 
   return ce;
-};
+});
 
-export const getCampaigns = async (tenantId) => {
+export const getCampaigns = wrapServiceFn(async (tenantId) => {
   return Campaign.find({ tenantId }).sort({ createdAt: -1 }).lean();
-};
+});
 
-export const getCampaignById = async (campaignId, tenantId) => {
+export const getCampaignById = wrapServiceFn(async (campaignId, tenantId) => {
   const campaign = await Campaign.findOne({ _id: campaignId, tenantId }).lean();
   if (!campaign) throw new AppError("Campaign not found", 404);
   return campaign;
-};
+});
 
-export const recordLinkClick = async (campaignEmailId) => {
+export const recordLinkClick = wrapServiceFn(async (campaignEmailId) => {
   const ce = await CampaignEmail.findByIdAndUpdate(
     campaignEmailId,
     { $inc: { linkClickCount: 1 } },
@@ -188,4 +189,4 @@ export const recordLinkClick = async (campaignEmailId) => {
   });
 
   return ce;
-};
+});

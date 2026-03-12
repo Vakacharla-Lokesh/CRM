@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 import { getDefaultPipeline } from "../../pipelines/services/pipelineService.js";
 
@@ -17,7 +18,7 @@ import leadModel from "../../leads/models/leadModel.js";
 import organizationModel from "../../organizations/models/organizationModel.js";
 import dealModel from "../../deals/models/dealModel.js";
 
-export async function bulkImportLeads(file, context) {
+export const bulkImportLeads = wrapServiceFn(async function bulkImportLeads(file, context) {
   const { userId, tenantId, defaultStatus, defaultSource } = context;
 
   let rawRows;
@@ -104,9 +105,9 @@ export async function bulkImportLeads(file, context) {
     failed: errors.length,
     errors,
   };
-}
+});
 
-export async function bulkImportOrganizations(file, context) {
+export const bulkImportOrganizations = wrapServiceFn(async function bulkImportOrganizations(file, context) {
   const { userId, tenantId } = context;
 
   let rawRows;
@@ -178,9 +179,9 @@ export async function bulkImportOrganizations(file, context) {
   }
 
   return { imported, skipped, failed: errors.length, errors };
-}
+});
 
-export async function bulkImportDeals(file, context) {
+export const bulkImportDeals = wrapServiceFn(async function bulkImportDeals(file, context) {
   const { userId, tenantId, defaultStatus } = context;
 
   let rawRows;
@@ -280,4 +281,4 @@ export async function bulkImportDeals(file, context) {
   }
 
   return { imported, skipped, failed: errors.length, errors };
-}
+});

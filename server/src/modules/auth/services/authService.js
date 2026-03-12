@@ -8,6 +8,7 @@ import { otpCache } from "../../../config/cache.js";
 import emailController from "../../emails/controllers/emailController.js";
 import { seedDefaultPipeline } from "../../pipelines/services/pipelineService.js";
 import envConfig from "../../../config/envConfig.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const OTP_EXPIRY_MINUTES = 5;
 const RESET_TOKEN_EXPIRY_MINUTES = 15;
@@ -38,7 +39,7 @@ export const generateAccessToken = (user) => {
   );
 };
 
-export const generateAndStoreRefreshToken = async (payload) => {
+export const generateAndStoreRefreshToken = wrapServiceFn(async (payload) => {
   const rawToken = crypto.randomBytes(64).toString("hex");
   const tokenHash = RefreshToken.hashToken(rawToken);
 
@@ -52,7 +53,7 @@ export const generateAndStoreRefreshToken = async (payload) => {
   });
 
   return rawToken;
-};
+});
 
 export const formatUser = (user) => {
   const permissions = user.permissions
@@ -78,7 +79,7 @@ export const formatUser = (user) => {
   };
 };
 
-export const registerUser = async ({ password, name, ...userData }) => {
+export const registerUser = wrapServiceFn(async ({ password, name, ...userData }) => {
   const existingUser = await userModel.findOne({ email: userData.email });
   if (existingUser) {
     throw new AppError("User with this email already exists", 409);
@@ -105,16 +106,16 @@ export const registerUser = async ({ password, name, ...userData }) => {
   });
 
   return user;
-};
+});
 
-export const revokeRefreshToken = async (rawRefreshToken) => {
+export const revokeRefreshToken = wrapServiceFn(async (rawRefreshToken) => {
   if (rawRefreshToken) {
     const tokenHash = RefreshToken.hashToken(rawRefreshToken);
     await RefreshToken.findOneAndUpdate({ tokenHash }, { revoked: true });
   }
-};
+});
 
-export const rotateRefreshToken = async (rawToken) => {
+export const rotateRefreshToken = wrapServiceFn(async (rawToken) => {
   if (!rawToken) throw new AppError("Refresh token is required", 401);
 
   const tokenHash = RefreshToken.hashToken(rawToken);
@@ -147,13 +148,13 @@ export const rotateRefreshToken = async (rawToken) => {
   const newRefreshToken = await generateAndStoreRefreshToken(user);
 
   return { newAccessToken, newRefreshToken, tokenReused: false };
-};
+});
 
-export const getProfileByEmail = async (email) => {
+export const getProfileByEmail = wrapServiceFn(async (email) => {
   const user = await userModel.findById(email).populate("roleId");
   if (!user) throw new AppError("User not found", 404);
   return user;
-};
+});
 
 export const verifyToken = (token) => {
   try {
@@ -164,7 +165,7 @@ export const verifyToken = (token) => {
   }
 };
 
-export const requestOTP = async (email) => {
+export const requestOTP = wrapServiceFn(async (email) => {
   const user = await userModel.findOne({ email });
   if (!user) return { userExists: false };
 
@@ -186,9 +187,9 @@ export const requestOTP = async (email) => {
   }
 
   return { userExists: true, expiresIn: OTP_EXPIRY_MINUTES * 60 };
-};
+});
 
-export const verifyOTP = async (email, otp) => {
+export const verifyOTP = wrapServiceFn(async (email, otp) => {
   const redisKey = `otp:${email}`;
   const raw = await otpCache.get(redisKey);
 
@@ -229,9 +230,9 @@ export const verifyOTP = async (email, otp) => {
   );
 
   return { resetToken, expiresIn: RESET_TOKEN_EXPIRY_MINUTES * 60 };
-};
+});
 
-export const resetPassword = async (resetToken, newPassword) => {
+export const resetPassword = wrapServiceFn(async (resetToken, newPassword) => {
   let decoded;
   try {
     decoded = jwt.verify(resetToken, envConfig.jwtSecret);
@@ -259,4 +260,4 @@ export const resetPassword = async (resetToken, newPassword) => {
   } catch (emailError) {
     console.warn("Failed to send confirmation email:", emailError);
   }
-};
+});

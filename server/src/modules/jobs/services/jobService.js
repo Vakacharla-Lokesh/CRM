@@ -1,5 +1,6 @@
 import { jobCache } from "../../../config/cache.js";
 import crypto from "crypto";
+import { wrapService } from "../../../utils/serviceWrapper.js";
 
 const JOB_TTL = 30 * 24 * 60 * 60;
 
@@ -16,7 +17,7 @@ const safeParse = (val) => {
   }
 };
 
-export const jobService = {
+export const jobService = wrapService({
   async createJob({ tenantId, type, status = "pending" }) {
     const jobId = crypto.randomUUID();
     const now = Date.now();
@@ -68,4 +69,4 @@ export const jobService = {
     await jobCache.set(jobKey, JSON.stringify(updated), JOB_TTL);
     return updated;
   },
-};
+});

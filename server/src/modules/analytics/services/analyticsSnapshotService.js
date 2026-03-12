@@ -7,11 +7,12 @@ import tenantModel from "../../tenants/models/tenantModel.js";
 import userModel from "../../users/models/userModel.js";
 import { periodDates, pctChange } from "../../../utils/dateFormat.js";
 import { logger } from "../../../utils/logger.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const PERIOD_KEY = "historical";
 export const TENANT_SCOPE_KEY = "tenant";
 
-export async function computeSnapshotForScope(leadFilter, dealFilter) {
+export const computeSnapshotForScope = wrapServiceFn(async function computeSnapshotForScope(leadFilter, dealFilter) {
   const { currentStart, currentEnd, previousStart, previousEnd } =
     periodDates(30);
 
@@ -210,9 +211,9 @@ export async function computeSnapshotForScope(leadFilter, dealFilter) {
       previousEnd,
     },
   };
-}
+})
 
-export async function saveAnalyticsSnapshot(
+export const saveAnalyticsSnapshot = wrapServiceFn(async function saveAnalyticsSnapshot(
   tenantId,
   scopeKey,
   leadFilter,
@@ -242,9 +243,9 @@ export async function saveAnalyticsSnapshot(
   logger.info(
     `[AnalyticsSnapshot] Snapshot saved — tenant: ${tenantId}, scope: ${scopeKey}`,
   );
-}
+})
 
-export async function computeTodayDelta(leadFilter, dealFilter) {
+export const computeTodayDelta = wrapServiceFn(async function computeTodayDelta(leadFilter, dealFilter) {
   const todayStart = startOfDay(new Date());
 
   const todayLeadFilter = { ...leadFilter, createdAt: { $gte: todayStart } };
@@ -326,9 +327,9 @@ export async function computeTodayDelta(leadFilter, dealFilter) {
     activeCampaigns: sourcesToday[0]?.count ?? 0,
     totalOrganizations: orgsToday[0]?.count ?? 0,
   };
-}
+})
 
-export async function getAllTenantsWithUsers() {
+export const getAllTenantsWithUsers = wrapServiceFn(async function getAllTenantsWithUsers() {
   const tenants = await tenantModel.find({ isActive: true }, { _id: 1 }).lean();
 
   const result = await Promise.all(
@@ -345,4 +346,4 @@ export async function getAllTenantsWithUsers() {
   );
 
   return result;
-}
+});

@@ -1,8 +1,9 @@
 import bcrypt from "bcryptjs";
 import userModel from "../models/userModel.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllUsers = async (filter, { limit = 20, cursor } = {}) => {
+export const getAllUsers = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
   if (!filter.role) {
     filter.role = { $ne: "super_admin" };
   }
@@ -26,16 +27,16 @@ export const getAllUsers = async (filter, { limit = 20, cursor } = {}) => {
       : null;
 
   return { users, nextCursor, hasNextPage };
-};
+});
 
-export const getUserById = async (id) => {
+export const getUserById = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
   if (!user || user.role === "super_admin")
     throw new AppError("User not found", 404);
   return user;
-};
+});
 
-export const createUser = async (userData) => {
+export const createUser = wrapServiceFn(async (userData) => {
   const { password, ...rest } = userData;
 
   const existingUser = await userModel.findOne({ email: rest.email });
@@ -52,9 +53,9 @@ export const createUser = async (userData) => {
   const userObject = user.toObject();
   delete userObject.password;
   return userObject;
-};
+});
 
-export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
+export const updateUser = wrapServiceFn(async (id, updateData, lastKnownUpdatedAt) => {
   const { password, tenantId: _tenantId, ...rest } = updateData;
 
   const user = await userModel.findById(id);
@@ -85,9 +86,9 @@ export const updateUser = async (id, updateData, lastKnownUpdatedAt) => {
   delete userObject.password;
   
   return userObject;
-};
+});
 
-export const deleteUser = async (id) => {
+export const deleteUser = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
   if (!user) throw new AppError("User not found", 404);
 
@@ -96,17 +97,17 @@ export const deleteUser = async (id) => {
   }
 
   await userModel.findByIdAndUpdate(id, { isActive: false });
-};
+});
 
-export const getUsersByTenant = async (tenantId) => {
+export const getUsersByTenant = wrapServiceFn(async (tenantId) => {
   return userModel.find({
     tenantId,
     isActive: true,
     role: { $ne: "super_admin" },
   });
-};
+});
 
-export const updateUserRole = async (id, role) => {
+export const updateUserRole = wrapServiceFn(async (id, role) => {
   const user = await userModel.findByIdAndUpdate(
     id,
     { role },
@@ -117,18 +118,18 @@ export const updateUserRole = async (id, role) => {
   const userObject = user.toObject();
   delete userObject.password;
   return userObject;
-};
+});
 
-export const getCurrentUser = async (userId) => {
+export const getCurrentUser = wrapServiceFn(async (userId) => {
   const user = await userModel.findById(userId);
   if (!user) throw new AppError("User not found", 404);
 
   const userObject = user.toObject();
   delete userObject.password;
   return userObject;
-};
+});
 
-export const searchUsers = async (filter, q) => {
+export const searchUsers = wrapServiceFn(async (filter, q) => {
   if (!q) throw new AppError("Search query is required", 400);
 
   const searchRegex = new RegExp(q, "i");
@@ -143,9 +144,9 @@ export const searchUsers = async (filter, q) => {
       { mobile: searchRegex },
     ],
   });
-};
+});
 
-export const getUserStats = async (filter) => {
+export const getUserStats = wrapServiceFn(async (filter) => {
   const statsFilter = { ...filter, role: { $ne: "super_admin" } };
 
   const totalUsers = await userModel.countDocuments(statsFilter);
@@ -169,9 +170,9 @@ export const getUserStats = async (filter) => {
       return acc;
     }, {}),
   };
-};
+});
 
-export const updatePassword = async (id, oldPassword, newPassword) => {
+export const updatePassword = wrapServiceFn(async (id, oldPassword, newPassword) => {
   const user = await userModel.findById(id).select("+password");
   if (!user) throw new AppError("User not found", 404);
 
@@ -184,9 +185,9 @@ export const updatePassword = async (id, oldPassword, newPassword) => {
 
   user.password = newPassword;
   await user.save();
-};
+});
 
-export const updateProfile = async (id, profileData) => {
+export const updateProfile = wrapServiceFn(async (id, profileData) => {
   const { name, firstName, lastName, email, phone, department, position } =
     profileData;
   const updateData = {};
@@ -221,9 +222,9 @@ export const updateProfile = async (id, profileData) => {
   const userObject = user.toObject();
   delete userObject.password;
   return userObject;
-};
+});
 
-export const getUserPermissions = async (id) => {
+export const getUserPermissions = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
   if (!user) throw new AppError("User not found", 404);
 
@@ -231,9 +232,9 @@ export const getUserPermissions = async (id) => {
     role: user.role,
     permissions: user.getPermissionsArray(),
   };
-};
+});
 
-export const assignRoleToUser = async (id, permissions, role) => {
+export const assignRoleToUser = wrapServiceFn(async (id, permissions, role) => {
   if (!Array.isArray(permissions)) {
     throw new AppError("permissions must be an array of strings", 400);
   }
@@ -265,4 +266,4 @@ export const assignRoleToUser = async (id, permissions, role) => {
     role: user.role,
     permissions: user.getPermissionsArray(),
   };
-};
+});

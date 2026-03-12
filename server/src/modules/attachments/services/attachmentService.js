@@ -5,6 +5,7 @@ import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import AppError from "../../../utils/appError.js";
 import { s3Manager } from "../../../services/aws/s3Manager.js";
 import { BUCKETS } from "../../../services/aws/initAwsResources.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 export function toPublic(att) {
   return {
@@ -20,7 +21,7 @@ export function toPublic(att) {
   };
 }
 
-export const verifyLeadTenantAccess = async (leadId, userRole, userTenantId) => {
+export const verifyLeadTenantAccess = wrapServiceFn(async (leadId, userRole, userTenantId) => {
   const lead = await leadModel.findById(leadId);
   if (!lead) throw new AppError("Lead not found", 404);
 
@@ -32,20 +33,20 @@ export const verifyLeadTenantAccess = async (leadId, userRole, userTenantId) => 
   }
 
   return lead;
-};
+});
 
-export const getAllAttachments = async () => {
+export const getAllAttachments = wrapServiceFn(async () => {
   const attachments = await attachmentModel.find().select("-__v");
   return attachments.map(toPublic);
-};
+});
 
-export const getAttachmentById = async (id) => {
+export const getAttachmentById = wrapServiceFn(async (id) => {
   const attachment = await attachmentModel.findById(id);
   if (!attachment) throw new AppError("Attachment not found", 404);
   return attachment;
-};
+});
 
-export const getPresignedUploadUrl = async (leadId, fileName, fileSize) => {
+export const getPresignedUploadUrl = wrapServiceFn(async (leadId, fileName, fileSize) => {
   const uuid = randomUUID();
   const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, "_");
   const s3Key = `attachments/${leadId}/${uuid}-${safeFileName}`;
@@ -58,15 +59,15 @@ export const getPresignedUploadUrl = async (leadId, fileName, fileSize) => {
   const s3Url = s3Manager.buildS3Url(BUCKETS.leads, s3Key);
 
   return { presignedUrl, s3Key, s3Url };
-};
+});
 
-export const createAttachment = async (attachmentData) => {
+export const createAttachment = wrapServiceFn(async (attachmentData) => {
   const attachment = await attachmentModel.create(attachmentData);
   await updateLeadScore(attachmentData.leadId);
   return attachment;
-};
+});
 
-export const deleteAttachment = async (id) => {
+export const deleteAttachment = wrapServiceFn(async (id) => {
   const attachment = await attachmentModel.findById(id);
   if (!attachment) throw new AppError("Attachment not found", 404);
 
@@ -77,14 +78,14 @@ export const deleteAttachment = async (id) => {
   await updateLeadScore(leadId);
 
   return { attachment, leadId };
-};
+});
 
-export const getAttachmentsByLead = async (leadId) => {
+export const getAttachmentsByLead = wrapServiceFn(async (leadId) => {
   const attachments = await attachmentModel.find({ leadId });
   return attachments.map(toPublic);
-};
+});
 
-export const downloadAttachment = async (id) => {
+export const downloadAttachment = wrapServiceFn(async (id) => {
   const attachment = await attachmentModel.findById(id);
   if (!attachment) throw new AppError("Attachment not found", 404);
 
@@ -95,4 +96,4 @@ export const downloadAttachment = async (id) => {
   );
 
   return { url: result.url, fileName: attachment.fileName, attachment };
-};
+});

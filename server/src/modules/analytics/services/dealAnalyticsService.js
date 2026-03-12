@@ -1,6 +1,7 @@
 import dealModel from "../../deals/models/dealModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getDealPipeline = async (filter) => {
+export const getDealPipeline = wrapServiceFn(async (filter) => {
   const dealStatusPipeline = [
     { $match: filter },
     {
@@ -87,9 +88,9 @@ export const getDealPipeline = async (filter) => {
           : 0,
     },
   };
-};
+});
 
-export const getDealTrends = async (filter, days = 30) => {
+export const getDealTrends = wrapServiceFn(async (filter, days = 30) => {
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
@@ -141,4 +142,4 @@ export const getDealTrends = async (filter, days = 30) => {
   return dealModel.aggregate(dealTrendsPipeline, {
     readPreference: "secondaryPreferred",
   });
-};
+});

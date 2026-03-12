@@ -1,6 +1,7 @@
 import leadActivityModel from "../models/leadActivityModel.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const logActivity = async ({
+export const logActivity = wrapServiceFn(async ({
   leadId,
   tenantId,
   type,
@@ -16,12 +17,12 @@ export const logActivity = async ({
     metadata: metadata || {},
     createdBy: userId || undefined,
   });
-};
+});
 
-export const getActivitiesByLead = async (leadId) => {
+export const getActivitiesByLead = wrapServiceFn(async (leadId) => {
   return leadActivityModel
     .find({ leadId })
     .sort({ createdAt: -1 })
     .populate("createdBy", "firstName lastName")
     .lean();
-};
+});

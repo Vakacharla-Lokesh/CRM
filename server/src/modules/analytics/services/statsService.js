@@ -1,8 +1,9 @@
 import userModel from "../../users/models/userModel.js";
 import tenantModel from "../../tenants/models/tenantModel.js";
 import mongoose from "mongoose";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getUsersStatsService = async (tenantFilter) => {
+export const getUsersStatsService = wrapServiceFn(async (tenantFilter) => {
   const baseFilter = { ...tenantFilter };
 
   const [totalUsers, activeUsers, inactiveUsers, adminsCount] =
@@ -17,9 +18,9 @@ export const getUsersStatsService = async (tenantFilter) => {
     ]);
 
   return { totalUsers, activeUsers, inactiveUsers, adminsCount };
-};
+});
 
-export const getTenantsStatsService = async () => {
+export const getTenantsStatsService = wrapServiceFn(async () => {
   const [totalTenants, activeTenants, suspendedTenants] = await Promise.all([
     tenantModel.countDocuments(),
     tenantModel.countDocuments({ isActive: true }),
@@ -27,4 +28,4 @@ export const getTenantsStatsService = async () => {
   ]);
 
   return { totalTenants, activeTenants, suspendedTenants };
-};
+});

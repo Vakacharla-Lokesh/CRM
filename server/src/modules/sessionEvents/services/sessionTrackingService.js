@@ -2,6 +2,7 @@ import SessionEvent from "../models/sessionEventModel.js";
 import { createLead } from "../../leads/services/leadService.js";
 import { getNextAssignee } from "../../roundRobin/services/roundRobinService.js";
 import { notifyUser, notificationTypes } from "../../../services/notificationService.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
 const SCORE_THRESHOLD = 50;
 const SESSION_TTL_MS = 2 * 60 * 60 * 1000;
@@ -257,7 +258,7 @@ export const stopSessionTracking = () => {
   }
 };
 
-export const evaluateSession = async (
+export const evaluateSession = wrapServiceFn(async (
   sessionId,
   tenantId,
   visitorName,
@@ -269,4 +270,4 @@ export const evaluateSession = async (
   if (score >= SCORE_THRESHOLD) {
     await createAutoLead(sessionId, tenantId, visitorName, visitorEmail, score);
   }
-};
+});

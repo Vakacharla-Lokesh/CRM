@@ -2,18 +2,19 @@ import commentModel from "../models/commentModel.js";
 import leadModel from "../../leads/models/leadModel.js";
 import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import AppError from "../../../utils/appError.js";
+import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllComments = async () => {
+export const getAllComments = wrapServiceFn(async () => {
   return commentModel.find();
-};
+});
 
-export const getCommentById = async (id) => {
+export const getCommentById = wrapServiceFn(async (id) => {
   const comment = await commentModel.findById(id);
   if (!comment) throw new AppError("Comment not found", 404);
   return comment;
-};
+});
 
-export const verifyLeadTenantAccess = async (
+export const verifyLeadTenantAccess = wrapServiceFn(async (
   leadId,
   userRole,
   userTenantId,
@@ -32,15 +33,15 @@ export const verifyLeadTenantAccess = async (
   }
 
   return lead;
-};
+});
 
-export const createComment = async (commentData, leadId) => {
+export const createComment = wrapServiceFn(async (commentData, leadId) => {
   const comment = await commentModel.create(commentData);
   await updateLeadScore(leadId);
   return comment;
-};
+});
 
-export const updateComment = async (id, updates, lastKnownUpdatedAt) => {
+export const updateComment = wrapServiceFn(async (id, updates, lastKnownUpdatedAt) => {
   const comment = await commentModel.findById(id);
   if (!comment) throw new AppError("Comment not found", 404);
 
@@ -62,9 +63,9 @@ export const updateComment = async (id, updates, lastKnownUpdatedAt) => {
   });
 
   return { updatedComment, leadId: comment.leadId };
-};
+});
 
-export const deleteComment = async (id) => {
+export const deleteComment = wrapServiceFn(async (id) => {
   const comment = await commentModel.findById(id);
   if (!comment) throw new AppError("Comment not found", 404);
 
@@ -73,8 +74,8 @@ export const deleteComment = async (id) => {
   await updateLeadScore(leadId);
 
   return { comment, leadId };
-};
+});
 
-export const getCommentsByLead = async (leadId) => {
+export const getCommentsByLead = wrapServiceFn(async (leadId) => {
   return commentModel.find({ leadId });
-};
+});
