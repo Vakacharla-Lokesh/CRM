@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect, type FormEvent } from "react";
 import {
   Dialog,
@@ -27,13 +26,13 @@ function TenantModal({ isOpen, tenant, onClose, onSave }: TenantModalProps) {
   const [errors, setErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Reset form when modal closes
+  // Initialize/reset form data when modal opens or tenant changes
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
       setFormData({
-        name: tenant?.name || "",
-        email: tenant?.email || "",
-        mobile: tenant?.mobile || "",
+        name: tenant?.name ?? "",
+        email: tenant?.email ?? "",
+        mobile: tenant?.mobile ?? "",
       });
       setErrors({});
     }

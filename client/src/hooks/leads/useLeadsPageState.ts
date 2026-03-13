@@ -81,8 +81,17 @@ export function useLeadsPageState() {
 
   // analytics stats
   const leadStatsQuery = useQuery({
-    queryKey: ["analytics", "statusBreakdown"],
-    queryFn: () => analyticsAPI.statusBreakdown(),
+    queryKey: [
+      "analytics",
+      "statusBreakdown",
+      filters.pipelineId,
+      filters.status,
+    ],
+    queryFn: () =>
+      analyticsAPI.statusBreakdown({
+        pipelineId: filters.pipelineId ?? undefined,
+        status: filters.status ?? undefined,
+      }),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -106,10 +115,8 @@ export function useLeadsPageState() {
   useEffect(() => {
     if (!pipelineInitialized && defaultPipeline) {
       setPipelineInitialized(true);
-      setSelectedPipelineId(defaultPipeline._id);
-      updateFilter("pipelineId", defaultPipeline._id);
     }
-  }, [defaultPipeline, pipelineInitialized, updateFilter]);
+  }, [defaultPipeline, pipelineInitialized]);
 
   const selectedPipeline: Pipeline | undefined = pipelines.find(
     (p) => p._id === selectedPipelineId,
@@ -119,12 +126,7 @@ export function useLeadsPageState() {
 
   const handleResetFilters = () => {
     resetFilters();
-    if (defaultPipeline) {
-      setSelectedPipelineId(defaultPipeline._id);
-      updateFilter("pipelineId", defaultPipeline._id);
-    } else {
-      setSelectedPipelineId("");
-    }
+    setSelectedPipelineId("");
   };
 
   // fetch leads on mount
@@ -298,6 +300,11 @@ export function useLeadsPageState() {
     setIsImportModalOpen(true);
   };
 
+  const resetSelection = () => {
+    setSelectedLeadIds([]);
+    setSelectionResetKey((k) => k + 1);
+  };
+
   const handleRunSegmentation = async () => {
     try {
       setIsSegmenting(true);
@@ -369,6 +376,7 @@ export function useLeadsPageState() {
     selectedLeadIds,
     setSelectedLeadIds,
     selectionResetKey,
+    resetSelection,
 
     // delete dialog
     deleteDialogOpen,

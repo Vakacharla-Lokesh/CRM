@@ -36,6 +36,7 @@ const DealsPage = () => {
     selectedDealIds,
     setSelectedDealIds,
     selectionResetKey,
+    resetSelection,
     deleteDialogOpen,
     setDeleteDialogOpen,
     isExportDialogOpen,
@@ -174,7 +175,7 @@ const DealsPage = () => {
       <BulkActionBar
         selectedIds={selectedDealIds}
         entityType="deals"
-        onClearSelection={() => setSelectedDealIds([])}
+        onClearSelection={resetSelection}
         exportHandler={handleExport}
         exportMailHandler={() => setIsExportDialogOpen(true)}
         onDeleteSuccess={fetchDeals}

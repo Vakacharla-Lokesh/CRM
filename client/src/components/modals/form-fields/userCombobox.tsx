@@ -44,6 +44,8 @@ export function UserCombobox({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
+  const listId = `${id}-list`;
+
   const selected = options.find((o) => o.value === value);
 
   const filtered = search.trim()
@@ -58,12 +60,13 @@ export function UserCombobox({
         {label}
       </Label>
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
+          <PopoverTrigger asChild>
           <Button
             id={id}
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-controls={listId}
             disabled={disabled}
             className="w-full justify-between font-normal text-sm h-9"
           >
@@ -84,7 +87,7 @@ export function UserCombobox({
               value={search}
               onValueChange={setSearch}
             />
-            <CommandList>
+            <CommandList id={listId}>
               <CommandEmpty>No users found.</CommandEmpty>
               <CommandGroup>
                 {filtered.map((option) => (

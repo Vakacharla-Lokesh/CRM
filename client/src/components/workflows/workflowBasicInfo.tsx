@@ -1,7 +1,7 @@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import MDEditor from "@uiw/react-md-editor";
 
 const EMPTY_ERRORS: Record<string, string> = {};
 
@@ -42,14 +42,16 @@ export const WorkflowBasicInfo: React.FC<WorkflowBasicInfoProps> = ({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="wf-desc">Description</Label>
-        <Textarea
-          id="wf-desc"
-          value={description}
-          onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="Optional description…"
-          rows={2}
-        />
+        <Label>Description</Label>
+        <div data-color-mode="auto">
+          <MDEditor
+            value={description}
+            onChange={(val) => onDescriptionChange(val ?? "")}
+            preview="edit"
+            height={120}
+            textareaProps={{ placeholder: "Optional description…" }}
+          />
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

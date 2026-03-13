@@ -20,6 +20,7 @@ const tenantSchema = new Schema(
     },
     isActive: { type: Boolean, default: true },
     isSystemTenant: { type: Boolean, default: false },
+    deletedAt: { type: Date, default: null },
   },
   { timestamps: true },
 );

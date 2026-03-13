@@ -1,6 +1,7 @@
 // hooks and basic imports
 import { useState } from "react";
 import { useUserData, useUsersStats } from "@/hooks";
+import { useRoles } from "@/hooks/roles/useRoles";
 import { useParams } from "react-router-dom";
 
 // components imports
@@ -50,7 +51,10 @@ const UsersPage = () => {
     loadMore,
   } = useUserData(id);
 
-  const { data: usersStats, isLoading: statsLoading } = useUsersStats();
+  const { data: usersStats, isLoading: statsLoading } = useUsersStats({
+    role: filters.role || undefined,
+    status: filters.status || undefined,
+  });
 
   // selected user for edit and delete
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -67,6 +71,9 @@ const UsersPage = () => {
 
   // RBAC
   const canManageRoles = useHasPermission("users:manage_roles");
+
+  // dynamic roles for filter dropdown
+  const { data: roles } = useRoles();
 
   // handle add user
   const handleAddUser = () => {
@@ -192,9 +199,11 @@ const UsersPage = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
-              <SelectItem value="user">User</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-              <SelectItem value="super_admin">Super Admin</SelectItem>
+              {roles?.map((role) => (
+                <SelectItem key={role._id} value={role.name}>
+                  {role.name}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <Select

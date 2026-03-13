@@ -12,6 +12,7 @@ export const getOrganizationStats = asyncCatch(async (req, res) => {
   if (!canViewAll) {
     filter.userId = new mongoose.Types.ObjectId(req.auth.userId);
   }
+  if (req.query.industry) filter.industry = req.query.industry;
 
   const stats = await analyticsService.getOrganizationStats(filter);
 

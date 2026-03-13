@@ -27,8 +27,8 @@ export function useDealsPageState() {
 
   // analytics stats
   const dealStatsQuery = useQuery({
-    queryKey: ["analytics", "dealPipeline"],
-    queryFn: () => analyticsAPI.dealPipeline(),
+    queryKey: ["analytics", "dealPipeline", filters.status],
+    queryFn: () => analyticsAPI.dealPipeline({ status: filters.status || undefined }),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -177,6 +177,11 @@ export function useDealsPageState() {
     updateFilter("stage", value === "all" ? "" : (value as DealStatus));
   };
 
+  const resetSelection = () => {
+    setSelectedDealIds([]);
+    setSelectionResetKey((k) => k + 1);
+  };
+
   return {
     // data
     filteredDeals,
@@ -207,6 +212,7 @@ export function useDealsPageState() {
     selectedDealIds,
     setSelectedDealIds,
     selectionResetKey,
+    resetSelection,
 
     // export
     isExportDialogOpen,

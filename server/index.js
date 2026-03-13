@@ -6,6 +6,7 @@ import httpServer from "./src/server.js";
 import { ensureAwsInitialized } from "./src/services/aws/initAwsResources.js";
 import { queueService } from "./src/services/aws/queue/queueService.js";
 import { startSessionTracking } from "./src/modules/sessionEvents/services/sessionTrackingService.js";
+import { startTenantCleanupCron } from "./src/services/tenantCleanupCron.js";
 import { processAllPendingEmails } from "./src/modules/campaign/services/campaignService.js";
 
 try {
@@ -48,6 +49,17 @@ try {
     error.message,
   );
   console.warn("[Tracking] Server will continue without session tracking");
+}
+
+try {
+  await startTenantCleanupCron();
+  console.log("[Cleanup] Tenant cleanup cron started");
+} catch (error) {
+  console.warn(
+    "[Cleanup] Warning: Failed to start tenant cleanup cron.",
+    error.message,
+  );
+  console.warn("[Cleanup] Server will continue without cleanup functionality");
 }
 
 httpServer.listen(process.env.PORT, () => {

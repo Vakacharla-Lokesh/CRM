@@ -114,6 +114,7 @@ export function RelationCombobox({
 
   const selected = options.find((o) => o.value === value);
   const placeholder = `Search ${relationType}s…`;
+  const listId = `relation-${relationType}-list`;
 
   return (
     <div className="space-y-1">
@@ -124,11 +125,12 @@ export function RelationCombobox({
         open={open}
         onOpenChange={setOpen}
       >
-        <PopoverTrigger asChild>
+          <PopoverTrigger asChild>
           <Button
             variant="outline"
             role="combobox"
             aria-expanded={open}
+            aria-controls={listId}
             disabled={disabled}
             className="w-full justify-between font-normal text-sm h-9"
           >
@@ -149,7 +151,7 @@ export function RelationCombobox({
               value={search}
               onValueChange={setSearch}
             />
-            <CommandList>
+            <CommandList id={listId}>
               {loading ? (
                 <div className="flex items-center justify-center py-4">
                   <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

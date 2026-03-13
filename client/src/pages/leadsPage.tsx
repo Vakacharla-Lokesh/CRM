@@ -59,6 +59,7 @@ const LeadsPage = () => {
     selectedLeadIds,
     setSelectedLeadIds,
     selectionResetKey,
+    resetSelection,
     deleteDialogOpen,
     setDeleteDialogOpen,
     isOnline,
@@ -318,9 +319,7 @@ const LeadsPage = () => {
       <BulkActionBar
         selectedIds={selectedLeadIds}
         entityType="leads"
-        onClearSelection={() => {
-          setSelectedLeadIds([]);
-        }}
+        onClearSelection={resetSelection}
         exportHandler={handleExport}
         exportMailHandler={() => setIsExportDialogOpen(true)}
         onDeleteSuccess={fetchLeads}

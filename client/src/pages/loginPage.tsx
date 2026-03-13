@@ -81,7 +81,7 @@ function LoginPage() {
               <h1 className="text-2xl font-bold text-primary">Campaign Flux</h1>
             </div>
             <h2 className="text-3xl font-bold text-foreground">
-              Holla, Welcome Back
+              Hola, Welcome Back
             </h2>
             <p className="text-muted-foreground text-sm">
               Hey, welcome back to your special place
