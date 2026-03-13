@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useWorkflowData } from "@/hooks";
 import { useDebounce } from "@/hooks";
 
 import { DataTable } from "../components/common/dataTable";
 import { columns } from "../components/workflows/workflowColumns";
-import WorkflowModal from "../components/workflows/workflowModal";
 import WorkflowLogsPanel from "../components/workflows/workflowLogsPanel";
 import { ConfirmDialog } from "@/components/common/confirmDialog";
 import { Button } from "@/components/ui/button";
@@ -14,9 +14,11 @@ import { Search, Plus, GitBranch } from "lucide-react";
 import { toast } from "sonner";
 import { useNotifications } from "@/hooks";
 
-import type { Workflow, CreateWorkflowDTO } from "@/types/workflows";
+import type { Workflow } from "@/types/workflows";
 
 const WorkflowsPage = () => {
+  const navigate = useNavigate();
+
   const {
     workflows,
     loading,
@@ -25,12 +27,8 @@ const WorkflowsPage = () => {
     hasNextPage,
     loadMore,
     searchWorkflows,
-    createWorkflow,
-    updateWorkflow,
     toggleWorkflow,
     deleteWorkflow,
-    creating,
-    updating,
   } = useWorkflowData();
 
   const { notifyEvent } = useNotifications();
@@ -38,10 +36,6 @@ const WorkflowsPage = () => {
   // Search state
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce(searchInput, 400);
-
-  // Modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | null>(null);
 
   // Logs panel state
   const [logsWorkflow, setLogsWorkflow] = useState<Workflow | null>(null);
@@ -57,15 +51,9 @@ const WorkflowsPage = () => {
   }, [debouncedSearch]);
 
   // ── Handlers ──────────────────────────────────────────────────────────
-  const handleCreate = () => {
-    setSelectedWorkflow(null);
-    setIsModalOpen(true);
-  };
+  const handleCreate = () => navigate("/workflows/new");
 
-  const handleEdit = (workflow: Workflow) => {
-    setSelectedWorkflow(workflow);
-    setIsModalOpen(true);
-  };
+  const handleEdit = (workflow: Workflow) => navigate(`/workflows/${workflow._id}/edit`);
 
   const handleDeleteRequest = (id: string) => {
     setWorkflowToDelete(id);
@@ -96,28 +84,6 @@ const WorkflowsPage = () => {
     toggleWorkflow(id);
   };
 
-  const handleSave = async (data: CreateWorkflowDTO) => {
-    if (selectedWorkflow) {
-      await updateWorkflow(selectedWorkflow._id, data);
-      notifyEvent({
-        type: "workflow_updated",
-        title: "Workflow Updated",
-        message: `The workflow "${data.name}" has been updated.`,
-        entityType: "workflow",
-      });
-      toast.success("Workflow updated");
-    } else {
-      await createWorkflow(data);
-      notifyEvent({
-        type: "workflow_created",
-        title: "Workflow Created",
-        message: `The workflow "${data.name}" has been created.`,
-        entityType: "workflow",
-      });
-      toast.success("Workflow created");
-    }
-  };
-
   const tableColumns = columns({
     onEdit: handleEdit,
     onDelete: handleDeleteRequest,
@@ -138,7 +104,7 @@ const WorkflowsPage = () => {
             </p>
           </div>
         </div>
-        <Button onClick={handleCreate} disabled={creating || updating}>
+        <Button onClick={handleCreate}>
           <Plus className="h-4 w-4 mr-2" />
           New Workflow
         </Button>
@@ -175,14 +141,6 @@ const WorkflowsPage = () => {
           onLoadMore={loadMore}
         />
       )}
-
-      {/* Create / Edit modal */}
-      <WorkflowModal
-        isOpen={isModalOpen}
-        workflow={selectedWorkflow}
-        onClose={() => setIsModalOpen(false)}
-        onSave={handleSave}
-      />
 
       {/* Execution logs panel */}
       <WorkflowLogsPanel

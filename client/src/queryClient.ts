@@ -8,8 +8,11 @@ export const queryClient = new QueryClient({
     queries: {
       // Retry failed queries
       retry: (failureCount, error: ApiError) => {
-        if (error.status === 401 || error.status === 403) return false;
-        if (error.status === 404) return false;
+        const status =
+          (error as ApiError & { statusCode?: number }).statusCode ??
+          error.status;
+        if (status === 401 || status === 403) return false;
+        if (status === 404) return false;
         return failureCount < 3;
       },
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),

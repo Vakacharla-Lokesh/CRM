@@ -127,22 +127,24 @@ export function useTenantPageState() {
   const confirmDelete = async () => {
     if (!tenantToDelete) return;
 
+    const idToDelete = tenantToDelete;
+    setDeleteDialogOpen(false);
+    setTenantToDelete(null);
+
     try {
-      await deleteTenant(tenantToDelete);
+      await deleteTenant(idToDelete);
       refresh();
-      setTenantToDelete(null);
       toast.success("Tenant deleted successfully!");
       notifyEvent({
         type: "tenant_deleted",
         title: "Tenant Deleted",
         message: `A tenant has been deleted successfully.`,
-        entityId: tenantToDelete,
+        entityId: idToDelete,
         entityType: "tenant",
       });
     } catch (error) {
       console.error("Error deleting tenant:", error);
       toast.error("Failed to delete tenant. Please try again.");
-      setTenantToDelete(null);
     }
   };
 

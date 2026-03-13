@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -48,13 +49,27 @@ export default function SessionTrackerPopup() {
     return () => clearTimeout(timer);
   }, [submitted]);
 
-  useEffect(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
-    fetch(`${baseUrl}/tenants/public`)
-      .then((res) => res.json())
-      .then((data) => setTenants(data.tenants ?? []))
-      .catch((err) => console.error("[Popup] Failed to fetch tenants:", err));
-  }, []);
+  const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
+
+  const fetchTenants = async (): Promise<PublicTenant[]> => {
+    const res = await fetch(`${baseUrl}/tenants/public`);
+    const json = await res.json();
+    return json.tenants ?? [];
+  };
+
+  // use React Query to fetch tenants (avoids fetch-in-effect linting)
+  useQuery({
+    queryKey: ["publicTenants"],
+    queryFn: fetchTenants,
+    onSuccess(data) {
+      setTenants(data ?? []);
+    },
+    onError(err) {
+      // keep previous behavior of logging errors
+      // eslint-disable-next-line no-console
+      console.error("[Popup] Failed to fetch tenants:", err);
+    },
+  });
 
   const handleSubmit = useCallback(async () => {
     const { firstName, email, tenantId } = form;

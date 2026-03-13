@@ -36,6 +36,7 @@ const OrganizationsPage = () => {
     selectedOrganizationIds,
     setSelectedOrganizationIds,
     selectionResetKey,
+    resetSelection,
     isModalOpen,
     deleteDialogOpen,
     setDeleteDialogOpen,
@@ -205,7 +206,7 @@ const OrganizationsPage = () => {
       <BulkActionBar
         selectedIds={selectedOrganizationIds}
         entityType="organizations"
-        onClearSelection={() => setSelectedOrganizationIds([])}
+        onClearSelection={resetSelection}
         exportHandler={handleExport}
         exportMailHandler={() => setIsExportDialogOpen(true)}
         onDeleteSuccess={fetchOrganizations}

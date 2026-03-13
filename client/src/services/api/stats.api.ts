@@ -14,8 +14,8 @@ export interface TenantsStatsResponse {
 }
 
 export const statsAPI = {
-  getUsersStats: () =>
-    get<UsersStatsResponse>("/stats/users"),
+  getUsersStats: (params?: { role?: string; status?: string }) =>
+    get<UsersStatsResponse>("/stats/users", params),
 
   getTenantsStats: () =>
     get<TenantsStatsResponse>("/stats/tenants"),

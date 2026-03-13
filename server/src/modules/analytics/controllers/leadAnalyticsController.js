@@ -47,10 +47,13 @@ export const getLeadStatusBreakdown = asyncCatch(async (req, res) => {
         ],
       };
   const days = req.query.days !== undefined ? parseInt(req.query.days) : null;
+  const pipelineId = req.query.pipelineId || null;
+  const status = req.query.status || null;
 
   const { breakdown, total } = await analyticsService.getLeadStatusBreakdown(
     filter,
     days,
+    { pipelineId, status },
   );
 
   res.json({ breakdown, total, days });

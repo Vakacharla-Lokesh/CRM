@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import { Building2 } from "lucide-react";
 
 import { useAppContext } from "@/hooks";
 import { routeConfig } from "@/router/routeConfig";
@@ -105,6 +106,21 @@ function Sidebar({ isOpen }: SidebarProps) {
           />
         ))}
       </nav>
+      {!isSuperAdmin && user && (
+        <div className="mt-auto p-4 border-t border-border">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground overflow-hidden">
+            <Building2 className="w-4 h-4 shrink-0" />
+            {isOpen && (
+              <span
+                className="truncate font-medium"
+                title={user.tenantName ?? user.tenantId}
+              >
+                {user.tenantName ?? user.tenantId}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </aside>
   );
 }

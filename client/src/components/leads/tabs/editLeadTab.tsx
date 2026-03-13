@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/select";
 import type { Lead } from "@/types";
 import { useLeadData } from "@/hooks";
+import { useOrganizationData } from "@/hooks/organizations/useOrganizationData";
+import { OrganizationSection } from "@/components/modals/sections";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 
 interface EditLeadTabProps {
@@ -20,11 +22,23 @@ interface EditLeadTabProps {
 
 function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
   const { updateLead } = useLeadData();
+  const { organizations } = useOrganizationData();
 
   const [formData, setFormData] = useState<Lead>(lead);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [organizationMode, setOrganizationMode] = useState<"select" | "create">("select");
+  const [newOrgData, setNewOrgData] = useState({
+    name: "",
+    website: "",
+    size: 0,
+    industry: "",
+  });
+
+  const handleOrgInputChange = (field: string, value: string | number) => {
+    setNewOrgData((prev) => ({ ...prev, [field]: value }));
+  };
 
   const handleInputChange = (field: keyof Lead, value: string | number) => {
     setFormData((prev) => ({
@@ -56,6 +70,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         lastName: formData.lastName || "",
         email: formData.email,
         source: formData.source,
+        organizationId: formData.organizationId || undefined,
       });
 
       onUpdate(formData);
@@ -175,6 +190,16 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           <span>100</span>
         </div>
       </div>
+
+      <OrganizationSection
+        organizations={organizations}
+        selectedOrgId={formData.organizationId || ""}
+        onOrgSelect={(orgId) => handleInputChange("organizationId", orgId)}
+        newOrgData={newOrgData}
+        onNewOrgChange={handleOrgInputChange}
+        errors={{}}
+        onModeChange={setOrganizationMode}
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
         <div className="space-y-1">

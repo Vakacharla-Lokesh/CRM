@@ -37,8 +37,8 @@ export function useOrganizationsPageState() {
 
   // analytics stats
   const orgStatsQuery = useQuery({
-    queryKey: ["analytics", "organizationStats"],
-    queryFn: () => analyticsAPI.organizationStats(),
+    queryKey: ["analytics", "organizationStats", filters.industry],
+    queryFn: () => analyticsAPI.organizationStats({ industry: filters.industry || undefined }),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -244,6 +244,11 @@ export function useOrganizationsPageState() {
     setIsImportModalOpen(true);
   };
 
+  const resetSelection = () => {
+    setSelectedOrganizationIds([]);
+    setSelectionResetKey((k) => k + 1);
+  };
+
   return {
     // data
     filteredOrganizations,
@@ -265,6 +270,7 @@ export function useOrganizationsPageState() {
     selectedOrganizationIds,
     setSelectedOrganizationIds,
     selectionResetKey,
+    resetSelection,
 
     // modal
     isModalOpen,

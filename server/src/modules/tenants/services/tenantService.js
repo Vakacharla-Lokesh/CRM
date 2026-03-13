@@ -7,29 +7,31 @@ import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../../../utils/permissionPresets.js";
 
-export const getAllTenants = wrapServiceFn(async (filter, { limit = 20, cursor } = {}) => {
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { $gt: lastId };
-  }
+export const getAllTenants = wrapServiceFn(
+  async (filter, { limit = 20, cursor } = {}) => {
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = { $gt: lastId };
+    }
 
-  const tenants = await tenantModel
-    .find({ ...filter, isActive: true })
-    .sort({ _id: 1 })
-    .limit(limit + 1);
+    const tenants = await tenantModel
+      .find({ ...filter, isActive: true })
+      .sort({ _id: 1 })
+      .limit(limit + 1);
 
-  const hasNextPage = tenants.length > limit;
-  if (hasNextPage) tenants.pop();
+    const hasNextPage = tenants.length > limit;
+    if (hasNextPage) tenants.pop();
 
-  const nextCursor =
-    hasNextPage && tenants.length > 0
-      ? Buffer.from(tenants[tenants.length - 1]._id.toString()).toString(
-          "base64",
-        )
-      : null;
+    const nextCursor =
+      hasNextPage && tenants.length > 0
+        ? Buffer.from(tenants[tenants.length - 1]._id.toString()).toString(
+            "base64",
+          )
+        : null;
 
-  return { tenants, nextCursor, hasNextPage };
-});
+    return { tenants, nextCursor, hasNextPage };
+  },
+);
 
 export const getTenantById = wrapServiceFn(async (id) => {
   const tenant = await tenantModel.findById(id);
@@ -68,6 +70,12 @@ export const createTenant = wrapServiceFn(async (tenantData) => {
     );
 
     const randomPassword = crypto.randomBytes(6).toString("hex");
+
+    // Create permissions map from admin role permissions
+    const adminPermissionsMap = new Map(
+      DEFAULT_ROLE_PERMISSIONS.admin.map((permission) => [permission, true]),
+    );
+
     const adminUser = await userModel.create(
       [
         {
@@ -76,6 +84,7 @@ export const createTenant = wrapServiceFn(async (tenantData) => {
           password: randomPassword,
           tenantId,
           role: "admin",
+          permissions: adminPermissionsMap,
         },
       ],
       { session },
@@ -94,139 +103,124 @@ export const createTenant = wrapServiceFn(async (tenantData) => {
   }
 });
 
-export const updateTenant = wrapServiceFn(async (id, updates, lastKnownUpdatedAt) => {
-  const tenant = await tenantModel.findById(id);
-  if (!tenant) throw new AppError("Tenant not found", 404);
+export const updateTenant = wrapServiceFn(
+  async (id, updates, lastKnownUpdatedAt) => {
+    const tenant = await tenantModel.findById(id);
+    if (!tenant) throw new AppError("Tenant not found", 404);
 
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(tenant.updatedAt).getTime();
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(tenant.updatedAt).getTime();
 
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This tenant was modified by someone else. Please refresh and try again.",
-        409,
-      );
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This tenant was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
     }
-  }
 
-  const updatedTenant = await tenantModel.findByIdAndUpdate(id, updates, {
-    new: true,
-    runValidators: true,
-  });
-  if (!updatedTenant) throw new AppError("Tenant not found", 404);
-  return updatedTenant;
-});
+    const updatedTenant = await tenantModel.findByIdAndUpdate(id, updates, {
+      new: true,
+      runValidators: true,
+    });
+    if (!updatedTenant) throw new AppError("Tenant not found", 404);
+    return updatedTenant;
+  },
+);
 
 export const deleteTenant = wrapServiceFn(async (id) => {
-  const session = await mongoose.startSession({
-    readConcern: { level: "snapshot" },
-    writeConcern: { w: "majority", j: true },
-  });
-  session.startTransaction();
+  const tenant = await tenantModel.findById(id);
 
-  try {
-    const tenant = await tenantModel.findById(id).session(session);
-
-    if (!tenant) {
-      await session.abortTransaction();
-      session.endSession();
-      throw new AppError("Tenant not found", 404);
-    }
-
-    if (!tenant.isActive) {
-      await session.abortTransaction();
-      session.endSession();
-      throw new AppError("Tenant is already inactive", 400);
-    }
-
-    await tenantModel.findByIdAndUpdate(id, { isActive: false }, { session });
-
-    await userModel.updateMany(
-      { tenantId: id },
-      { isActive: false },
-      { session },
-    );
-
-    await session.commitTransaction();
-    session.endSession();
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
+  if (!tenant) {
+    throw new AppError("Tenant not found", 404);
   }
+
+  if (tenant.isSystemTenant) {
+    throw new AppError("Cannot delete the system tenant", 400);
+  }
+
+  if (!tenant.isActive) {
+    throw new AppError("Tenant is already inactive", 400);
+  }
+
+  await tenantModel.findByIdAndUpdate(id, {
+    isActive: false,
+    deletedAt: new Date(),
+  });
+
+  await userModel.updateMany({ tenantId: id }, { isActive: false });
 });
 
-export const searchTenants = wrapServiceFn(async (
-  tenantFilter,
-  { q, isActive, limit = 25 },
-) => {
-  if (!q || q.trim() === "") {
-    throw new AppError("Search query 'q' is required", 400);
-  }
+export const searchTenants = wrapServiceFn(
+  async (tenantFilter, { q, isActive, limit = 25 }) => {
+    if (!q || q.trim() === "") {
+      throw new AppError("Search query 'q' is required", 400);
+    }
 
-  const parsedLimit = Math.min(parseInt(limit) || 25, 25);
+    const parsedLimit = Math.min(parseInt(limit) || 25, 25);
 
-  const pipeline = [
-    {
-      $search: {
-        index: "tenant_search",
-        compound: {
-          must: [
-            {
-              text: {
-                query: q.trim(),
-                path: ["name", "email"],
-                fuzzy: {
-                  maxEdits: 1,
-                  prefixLength: 2,
+    const pipeline = [
+      {
+        $search: {
+          index: "tenant_search",
+          compound: {
+            must: [
+              {
+                text: {
+                  query: q.trim(),
+                  path: ["name", "email"],
+                  fuzzy: {
+                    maxEdits: 1,
+                    prefixLength: 2,
+                  },
                 },
               },
-            },
-          ],
-          filter: [],
+            ],
+            filter: [],
+          },
         },
       },
-    },
-  ];
+    ];
 
-  if (Object.keys(tenantFilter).length > 0) {
-    pipeline[0].$search.compound.filter.push({
-      equals: {
-        path: Object.keys(tenantFilter)[0],
-        value: Object.values(tenantFilter)[0],
+    if (Object.keys(tenantFilter).length > 0) {
+      pipeline[0].$search.compound.filter.push({
+        equals: {
+          path: Object.keys(tenantFilter)[0],
+          value: Object.values(tenantFilter)[0],
+        },
+      });
+    }
+
+    if (typeof isActive !== "undefined") {
+      pipeline[0].$search.compound.filter.push({
+        equals: {
+          path: "isActive",
+          value: isActive === "true",
+        },
+      });
+    }
+
+    pipeline.push(
+      {
+        $limit: parsedLimit,
       },
-    });
-  }
-
-  if (typeof isActive !== "undefined") {
-    pipeline[0].$search.compound.filter.push({
-      equals: {
-        path: "isActive",
-        value: isActive === "true",
+      {
+        $project: {
+          name: 1,
+          email: 1,
+          mobile: 1,
+          isActive: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          score: { $meta: "searchScore" },
+        },
       },
-    });
-  }
+    );
 
-  pipeline.push(
-    {
-      $limit: parsedLimit,
-    },
-    {
-      $project: {
-        name: 1,
-        email: 1,
-        mobile: 1,
-        isActive: 1,
-        createdAt: 1,
-        updatedAt: 1,
-        score: { $meta: "searchScore" },
-      },
-    },
-  );
-
-  return tenantModel.aggregate(pipeline);
-});
+    return tenantModel.aggregate(pipeline);
+  },
+);
 
 export const getPublicTenants = wrapServiceFn(async () => {
   return tenantModel

@@ -59,11 +59,17 @@ passport.use(
       try {
         const user = await userModel.findById(jwtPayload.userId).lean();
         if (!user) return done(null, false);
-        const permissions = user.permissions
-          ? Object.entries(user.permissions)
+
+        let permissions = [];
+        if (user.permissions && typeof user.permissions === "object") {
+          try {
+            permissions = Object.entries(user.permissions)
               .filter(([, v]) => v === true)
-              .map(([k]) => k)
-          : [];
+              .map(([k]) => k);
+          } catch (err) {
+            console.error("Error processing permissions in passport:", err);
+          }
+        }
 
         return done(null, {
           userId: user._id,

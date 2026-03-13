@@ -12,6 +12,7 @@ export const getDealPipeline = asyncCatch(async (req, res) => {
   if (!canViewAll) {
     filter.userId = new mongoose.Types.ObjectId(req.auth.userId);
   }
+  if (req.query.status) filter.status = req.query.status;
 
   const result = await analyticsService.getDealPipeline(filter);
 

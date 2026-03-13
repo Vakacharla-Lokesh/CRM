@@ -30,9 +30,7 @@ export interface NavItem {
   to: string;
   label: string;
   icon: LucideIcon;
-  /** Legacy role-based guard — used only for super_admin-exclusive items */
   roles?: UserRole[];
-  /** Fine-grained permission guard — show only when user has this permission */
   permission?: string;
 }
 
@@ -43,22 +41,34 @@ export const navItems: NavItem[] = [
     icon: LayoutDashboard,
   },
   {
-    to: "/leads",
-    label: "Leads",
-    icon: Users,
-    permission: "leads:read",
-  },
-  {
     to: "/organizations",
     label: "Organizations",
     icon: Building2,
     permission: "organizations:read",
   },
   {
+    to: "/leads",
+    label: "Leads",
+    icon: Users,
+    permission: "leads:read",
+  },
+  {
     to: "/deals",
     label: "Deals",
     icon: DollarSign,
     permission: "deals:read",
+  },
+  {
+    to: "/tasks",
+    label: "Tasks",
+    icon: CheckSquare,
+    permission: "tasks:read",
+  },
+  {
+    to: "/campaigns",
+    label: "Campaigns",
+    icon: Mail,
+    permission: "campaigns:read",
   },
   {
     to: "/workflows",
@@ -89,17 +99,5 @@ export const navItems: NavItem[] = [
     label: "Tenants",
     icon: Building,
     roles: ["super_admin"],
-  },
-  {
-    to: "/tasks",
-    label: "Tasks",
-    icon: CheckSquare,
-    permission: "tasks:read",
-  },
-  {
-    to: "/campaigns",
-    label: "Campaigns",
-    icon: Mail,
-    permission: "campaigns:read",
   },
 ];

@@ -9,6 +9,7 @@ export interface User {
   roleName?: string;
   permissions: string[];
   tenantId: string;
+  tenantName?: string;
   isActive?: boolean;
   lastLogin?: Date;
   createdAt: Date;

@@ -100,7 +100,7 @@ export const refreshToken = asyncCatch(async (req, res) => {
 });
 
 export const getProfile = asyncCatch(async (req, res) => {
-  const user = await authService.getProfileByEmail(req.user.email);
+  const user = await authService.getProfileById(req.user.userId);
 
   res.json({
     user: authService.formatUser(user),

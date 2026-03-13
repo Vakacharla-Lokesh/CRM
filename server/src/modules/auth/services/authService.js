@@ -17,20 +17,34 @@ const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 const MAX_OTP_ATTEMPTS = 5;
 
 export const generateAccessToken = (user) => {
-  const permissions = user.permissions
-    ? Object.entries(
-        user.permissions instanceof Map
-          ? Object.fromEntries(user.permissions)
-          : user.permissions,
-      )
-        .filter(([, v]) => v === true)
-        .map(([k]) => k)
-    : [];
+  let permissions = [];
+
+  if (user.permissions) {
+    try {
+      // Handle Map type from Mongoose
+      if (user.permissions instanceof Map) {
+        permissions = Array.from(user.permissions.entries())
+          .filter(([, v]) => v === true)
+          .map(([k]) => k);
+      } else if (typeof user.permissions === "object") {
+        // Handle plain object
+        permissions = Object.entries(user.permissions)
+          .filter(([, v]) => v === true)
+          .map(([k]) => k);
+      }
+    } catch (err) {
+      console.error("Error processing permissions for token:", err);
+      permissions = [];
+    }
+  }
+
+  const tenant = tenantModel.findById(user.tenantId);
 
   return jwt.sign(
     {
       userId: user._id ?? user.userId,
       tenantId: user.tenantId,
+      tenantName: tenant.name,
       role: user.role,
       permissions,
     },
@@ -56,26 +70,37 @@ export const generateAndStoreRefreshToken = wrapServiceFn(async (payload) => {
 });
 
 export const formatUser = (user) => {
-  const permissions = user.permissions
-    ? Object.entries(
-        user.permissions instanceof Map
-          ? Object.fromEntries(user.permissions)
-          : user.permissions,
-      )
-        .filter(([, v]) => v === true)
-        .map(([k]) => k)
-    : [];
+  let permissions = [];
+
+  if (user.permissions) {
+    try {
+      // Handle Map type from Mongoose
+      if (user.permissions instanceof Map) {
+        permissions = Array.from(user.permissions.entries())
+          .filter(([, v]) => v === true)
+          .map(([k]) => k);
+      } else if (typeof user.permissions === "object") {
+        // Handle plain object
+        permissions = Object.entries(user.permissions)
+          .filter(([, v]) => v === true)
+          .map(([k]) => k);
+      }
+    } catch (err) {
+      console.error("Error processing permissions:", err);
+      permissions = [];
+    }
+  }
 
   return {
     _id: user._id?.toString() ?? user.id?.toString(),
-    roleId: user.roleId?.toString(),
     firstName: user.firstName,
     lastName: user.lastName,
     email: user.email,
     mobile: user.mobile,
     role: user.role,
     permissions,
-    tenantId: user.tenantId?.toString(),
+    tenantId: user.tenantId?._id?.toString() ?? user.tenantId?.toString(),
+    tenantName: user.tenantId?.name ?? undefined,
   };
 };
 
@@ -156,7 +181,16 @@ export const rotateRefreshToken = wrapServiceFn(async (rawToken) => {
 });
 
 export const getProfileByEmail = wrapServiceFn(async (email) => {
-  const user = await userModel.findById(email).populate("roleId");
+  const user = await userModel.findOne({ email }).populate("roleId");
+  if (!user) throw new AppError("User not found", 404);
+  return user;
+});
+
+export const getProfileById = wrapServiceFn(async (userId) => {
+  const user = await userModel
+    .findById(userId)
+    .populate("roleId")
+    .populate("tenantId", "name");
   if (!user) throw new AppError("User not found", 404);
   return user;
 });

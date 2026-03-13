@@ -154,8 +154,12 @@ export const analyticsAPI = {
   leadTrends: (params?: { days?: number }) =>
     get<LeadTrendsResponse>("/analytics/leads/trends", params),
 
-  /** GET /analytics/leads/status-breakdown?days=N */
-  statusBreakdown: (params?: { days?: number }) =>
+  /** GET /analytics/leads/status-breakdown?days=N&pipelineId=&status= */
+  statusBreakdown: (params?: {
+    days?: number;
+    pipelineId?: string;
+    status?: string;
+  }) =>
     get<LeadStatusBreakdownResponse>(
       "/analytics/leads/status-breakdown",
       params,
@@ -166,15 +170,16 @@ export const analyticsAPI = {
     get<LeadScoreDistributionResponse>("/analytics/leads/score-distribution"),
 
   /** GET /analytics/deals/pipeline */
-  dealPipeline: () => get<DealPipelineResponse>("/analytics/deals/pipeline"),
+  dealPipeline: (params?: { status?: string }) =>
+    get<DealPipelineResponse>("/analytics/deals/pipeline", params),
 
   /** GET /analytics/deals/trends?days=N */
   dealTrends: (params?: { days?: number }) =>
     get<DealTrendsResponse>("/analytics/deals/trends", params),
 
   /** GET /analytics/organizations/stats */
-  organizationStats: () =>
-    get<OrganizationStatsResponse>("/analytics/organizations/stats"),
+  organizationStats: (params?: { industry?: string }) =>
+    get<OrganizationStatsResponse>("/analytics/organizations/stats", params),
 
   /** GET /analytics/organizations/top?limit=N */
   topOrganizations: (params?: { limit?: number }) =>

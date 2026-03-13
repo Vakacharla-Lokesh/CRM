@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,8 @@ import {
   GROUP_BY_OPTIONS,
   DEFAULT_POSITION,
 } from "@/types/constants/analytics/analyticsChartTypes";
+import { LEAD_STATUSES, LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
+import { statuses as DEAL_STATUSES } from "@/types/deals";
 
 import {
   ChartTypePicker,
@@ -58,21 +60,57 @@ function ChartConfigModal({
   const [groupBy, setGroupBy] = useState<GroupByField>(
     initialWidget?.groupBy ?? "status",
   );
+  const [filterStatus, setFilterStatus] = useState(
+    (initialWidget?.filters as Record<string, string>)?.status ?? "",
+  );
+  const [filterSource, setFilterSource] = useState(
+    (initialWidget?.filters as Record<string, string>)?.source ?? "",
+  );
+  const [filterIndustry, setFilterIndustry] = useState(
+    (initialWidget?.filters as Record<string, string>)?.industry ?? "",
+  );
+
+  // Re-sync all fields whenever the modal opens or the target widget changes
+  useEffect(() => {
+    if (open) {
+      setTitle(initialWidget?.title ?? "");
+      setType(initialWidget?.type ?? "bar");
+      setEntity(initialWidget?.entity ?? "leads");
+      setMetric(initialWidget?.metric ?? "count");
+      setGroupBy(initialWidget?.groupBy ?? "status");
+      setFilterStatus((initialWidget?.filters as Record<string, string>)?.status ?? "");
+      setFilterSource((initialWidget?.filters as Record<string, string>)?.source ?? "");
+      setFilterIndustry((initialWidget?.filters as Record<string, string>)?.industry ?? "");
+    }
+  }, [open, initialWidget]);
 
   const handleEntityChange = (val: WidgetEntity) => {
     setEntity(val);
     // Reset groupBy to first valid option for this entity
     const firstOption = GROUP_BY_OPTIONS[val]?.[0]?.value;
     if (firstOption) setGroupBy(firstOption);
+    // Reset filters on entity change
+    setFilterStatus("");
+    setFilterSource("");
+    setFilterIndustry("");
   };
 
   const handleSave = () => {
     if (!title.trim()) return;
+    const filters: Record<string, string> = {};
+    if (entity === "leads") {
+      if (filterStatus) filters.status = filterStatus;
+      if (filterSource) filters.source = filterSource;
+    } else if (entity === "deals") {
+      if (filterStatus) filters.status = filterStatus;
+    } else if (entity === "organizations") {
+      if (filterIndustry) filters.industry = filterIndustry;
+    }
     onSave({
       type,
       entity,
       title: title.trim(),
-      filters: {},
+      filters,
       groupBy,
       metric,
       position: initialWidget?.position ?? DEFAULT_POSITION,
@@ -186,6 +224,72 @@ function ChartConfigModal({
               </PillSelect>
             </ConfigRow>
           </div>
+
+          {/* Filters — per entity */}
+          {(entity === "leads" || entity === "deals" || entity === "organizations") && (
+            <>
+              <SectionLabel label="Filters" />
+              <div
+                className="rounded-xl overflow-hidden mb-4"
+                style={{ border: "1px solid var(--border)", backgroundColor: "var(--card)" }}
+              >
+                {entity === "leads" && (
+                  <>
+                    <ConfigRow icon={<IconLayers />} label="Status">
+                      <PillSelect
+                        id="filter-lead-status"
+                        value={filterStatus || "__all__"}
+                        onValueChange={(v) => setFilterStatus(v === "__all__" ? "" : v)}
+                      >
+                        <SelectItem value="__all__">All statuses</SelectItem>
+                        {LEAD_STATUSES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.value}</SelectItem>
+                        ))}
+                      </PillSelect>
+                    </ConfigRow>
+                    <RowDivider />
+                    <ConfigRow icon={<IconDatabase />} label="Source">
+                      <PillSelect
+                        id="filter-lead-source"
+                        value={filterSource || "__all__"}
+                        onValueChange={(v) => setFilterSource(v === "__all__" ? "" : v)}
+                      >
+                        <SelectItem value="__all__">All sources</SelectItem>
+                        {LEAD_SOURCES.map((s) => (
+                          <SelectItem key={s.value} value={s.value}>{s.value}</SelectItem>
+                        ))}
+                      </PillSelect>
+                    </ConfigRow>
+                  </>
+                )}
+                {entity === "deals" && (
+                  <ConfigRow icon={<IconLayers />} label="Status">
+                    <PillSelect
+                      id="filter-deal-status"
+                      value={filterStatus || "__all__"}
+                      onValueChange={(v) => setFilterStatus(v === "__all__" ? "" : v)}
+                    >
+                      <SelectItem value="__all__">All statuses</SelectItem>
+                      {DEAL_STATUSES.map((s) => (
+                        <SelectItem key={s} value={s}>{s}</SelectItem>
+                      ))}
+                    </PillSelect>
+                  </ConfigRow>
+                )}
+                {entity === "organizations" && (
+                  <ConfigRow icon={<IconT />} label="Industry">
+                    <Input
+                      id="filter-org-industry"
+                      value={filterIndustry}
+                      onChange={(e) => setFilterIndustry(e.target.value)}
+                      placeholder="e.g. SaaS, Retail…"
+                      className="h-8 text-sm"
+                    />
+                  </ConfigRow>
+                )}
+              </div>
+            </>
+          )}
 
           <div className="grid grid-cols-2 gap-6 mb-4">
             {/* X AXIS */}

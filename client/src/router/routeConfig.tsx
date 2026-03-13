@@ -21,6 +21,8 @@ const preloadTenants = () => import("../pages/tenantsPage");
 const WorkflowsPage = lazy(() => import("../pages/workflowsPage"));
 const preloadWorkflows = () => import("../pages/workflowsPage");
 
+const WorkflowFormPage = lazy(() => import("../pages/workflowFormPage"));
+
 const AnalyticsPage = lazy(() => import("../pages/analyticsPage"));
 const preloadAnalytics = () => import("../pages/analyticsPage");
 
@@ -113,6 +115,18 @@ export const routeConfig: RouteConfig[] = [
     requiredPermissions: ["leads:read"],
     unauthorizedFallback: "/dashboard",
     preload: preloadWorkflows,
+  },
+  {
+    path: "/workflows/new",
+    element: <WorkflowFormPage />,
+    requiredPermissions: ["leads:read"],
+    unauthorizedFallback: "/dashboard",
+  },
+  {
+    path: "/workflows/:id/edit",
+    element: <WorkflowFormPage />,
+    requiredPermissions: ["leads:read"],
+    unauthorizedFallback: "/dashboard",
   },
   {
     path: "/analytics",
