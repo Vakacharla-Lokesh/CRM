@@ -28,7 +28,6 @@ interface PublicTenant {
 export default function SessionTrackerPopup() {
   const [open, setOpen] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [tenants, setTenants] = useState<PublicTenant[]>([]);
   const [form, setForm] = useState({ firstName: "", email: "", tenantId: "" });
   const [loading, setLoading] = useState(false);
 
@@ -52,23 +51,25 @@ export default function SessionTrackerPopup() {
   const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
   const fetchTenants = async (): Promise<PublicTenant[]> => {
-    const res = await fetch(`${baseUrl}/tenants/public`);
-    const json = await res.json();
-    return json.tenants ?? [];
+    try {
+      const res = await fetch(`${baseUrl}/tenants/public`);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch tenants: ${res.status}`);
+      }
+      const json = await res.json();
+      return json.tenants ?? [];
+    } catch (error) {
+      console.error("[Popup] Failed to fetch tenants:", error);
+      return [];
+    }
   };
 
-  // use React Query to fetch tenants (avoids fetch-in-effect linting)
-  useQuery({
+  // Use React Query to fetch tenants and get data directly from query result
+  const { data: tenants = [] } = useQuery({
     queryKey: ["publicTenants"],
     queryFn: fetchTenants,
-    onSuccess(data) {
-      setTenants(data ?? []);
-    },
-    onError(err) {
-      // keep previous behavior of logging errors
-      // eslint-disable-next-line no-console
-      console.error("[Popup] Failed to fetch tenants:", err);
-    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    retry: 2,
   });
 
   const handleSubmit = useCallback(async () => {
@@ -154,17 +155,28 @@ export default function SessionTrackerPopup() {
                 color: "var(--foreground)",
               }}
             >
-              <SelectValue placeholder="Select organisation" />
+              <SelectValue 
+                placeholder={tenants.length === 0 ? "Loading organisations..." : "Select organisation"} 
+              />
             </SelectTrigger>
-            <SelectContent position="popper">
-              {tenants.map((t) => (
-                <SelectItem
-                  key={t._id}
-                  value={t._id}
-                >
-                  {t.name}
-                </SelectItem>
-              ))}
+            <SelectContent 
+              position="popper"
+              style={{ zIndex: 9999 }}
+            >
+              {tenants.length === 0 ? (
+                <div className="p-2 text-sm" style={{ color: "var(--muted-foreground)" }}>
+                  No organisations available
+                </div>
+              ) : (
+                tenants.map((t) => (
+                  <SelectItem
+                    key={t._id}
+                    value={t._id}
+                  >
+                    {t.name}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
 

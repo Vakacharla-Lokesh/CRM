@@ -1,4 +1,5 @@
 import asyncCatch from "../../../utils/asyncCatch.js";
+import emailController from "../../emails/controllers/emailController.js";
 import * as userService from "../services/userService.js";
 
 // Get all users
@@ -53,7 +54,15 @@ export const createUser = asyncCatch(async (req, res) => {
   const userData = { ...req.body };
   if (tenantId) userData.tenantId = tenantId;
 
+  const password = user.password;
+
   const user = await userService.createUser(req.body);
+
+  try {
+    await emailController.sendUserEmail(user, password);
+  } catch (emailErr) {
+    console.error("Failed to send user welcome email: ", emailErr.message)
+  }
 
   res.status(201).json({
     message: "User created successfully",
