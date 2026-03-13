@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import User from "../modules/users/models/userModel.js";
-import Role from "../models/roleModel.js";
+import {RoleModel as Role} from "../modules/roles/index.js";
 import Tenant from "../modules/tenants/models/tenantModel.js";
 import { ALL_PERMISSIONS } from "../utils/permissionPresets.js";
 

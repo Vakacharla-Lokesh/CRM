@@ -120,13 +120,16 @@ export default function TasksPage() {
               return (
                 <div
                   key={col.id}
-                  className={`rounded-2xl p-3 ${col.color}`}
+                  className={`rounded-2xl p-3 ${col.columnColor}`}
                 >
                   {/* Column header */}
                   <div className="flex items-center justify-between mb-3 px-1">
-                    <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                      {col.label}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {col.icon && <col.icon className="h-4 w-4 text-muted-foreground" />}
+                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                        {col.label}
+                      </span>
+                    </div>
                     <Badge
                       variant="secondary"
                       className="text-xs"

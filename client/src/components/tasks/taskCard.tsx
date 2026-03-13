@@ -1,11 +1,9 @@
 import { Draggable } from "@hello-pangea/dnd";
 import {
-  Calendar,
   User,
   Link2,
   Trash2,
   Pencil,
-  AlertCircle,
 } from "lucide-react";
 import type { Task } from "@/services/api/tasks.api";
 import { PRIORITY_BADGE } from "@/types/constants/tasks";
@@ -22,10 +20,6 @@ export function TaskCard({
   onDelete: (id: string) => void;
 }) {
   const priority = PRIORITY_BADGE[task.priority];
-  const isOverdue =
-    task.dueDate &&
-    new Date(task.dueDate) < new Date() &&
-    task.status !== "done";
 
   return (
     <Draggable
@@ -75,8 +69,9 @@ export function TaskCard({
           <div className="flex flex-wrap items-center gap-2 mt-3">
             {/* Priority badge */}
             <span
-              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${priority.className}`}
+              className={`text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center gap-1 ${priority.badgeClass}`}
             >
+              <span className={`inline-block w-1.5 h-1.5 rounded-full ${priority.dotColor}`} />
               {priority.label}
             </span>
 
@@ -88,20 +83,6 @@ export function TaskCard({
               </span>
             )}
 
-            {/* Due date */}
-            {task.dueDate && (
-              <span
-                className={`flex items-center gap-1 text-[10px] ${
-                  isOverdue
-                    ? "text-red-500 font-semibold"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {isOverdue && <AlertCircle size={10} />}
-                <Calendar size={10} />
-                {new Date(task.dueDate).toLocaleDateString()}
-              </span>
-            )}
           </div>
 
           {/* Assignee */}

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { analyticsAPI } from "@/services";
 import { useDebounce, useOrganizationData, useNotifications } from "@/hooks";
 import { useOffline } from "@/context/useOffline";
@@ -18,6 +18,8 @@ import type {
 } from "@/types";
 
 export function useOrganizationsPageState() {
+  const queryClient = useQueryClient();
+
   const {
     filteredOrganizations,
     loading,
@@ -38,7 +40,10 @@ export function useOrganizationsPageState() {
   // analytics stats
   const orgStatsQuery = useQuery({
     queryKey: ["analytics", "organizationStats", filters.industry],
-    queryFn: () => analyticsAPI.organizationStats({ industry: filters.industry || undefined }),
+    queryFn: () =>
+      analyticsAPI.organizationStats({
+        industry: filters.industry || undefined,
+      }),
     staleTime: 1000 * 60 * 5,
   });
 
@@ -99,7 +104,9 @@ export function useOrganizationsPageState() {
   ) => {
     try {
       await createOrganization(organizationData);
-      handleCloseModal();
+      // Invalidate AFTER the await resolves — modal close happens next in the hook,
+      // then this fires to refresh the list without stomping the close sequence
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
       toast.success("Organization created successfully!");
       notifyEvent({
         type: "organization_created",
@@ -109,13 +116,6 @@ export function useOrganizationsPageState() {
         entityType: "organization",
       });
     } catch (error) {
-      if (error instanceof Error && error.message === "OFFLINE_QUEUED") {
-        handleCloseModal();
-        toast.info("Organization queued for sync when online", {
-          description: "Your changes will be saved when connection is restored",
-        });
-        return;
-      }
       console.error("Error saving organization:", error);
       toast.error("Failed to create organization. Please try again.");
       throw error;
@@ -128,7 +128,7 @@ export function useOrganizationsPageState() {
   ) => {
     try {
       await updateOrganization(id, organizationData);
-      handleCloseModal();
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
       toast.success("Organization updated successfully!");
       notifyEvent({
         type: "organization_updated",
@@ -162,6 +162,7 @@ export function useOrganizationsPageState() {
 
     try {
       await deleteOrganization(organizationToDelete);
+      void queryClient.invalidateQueries({ queryKey: ["organizations"] });
       setOrganizationToDelete(null);
       toast.success("Organization deleted successfully!");
       notifyEvent({

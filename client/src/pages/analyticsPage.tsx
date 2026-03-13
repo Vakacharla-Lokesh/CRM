@@ -67,12 +67,6 @@ function AnalyticsPage() {
     [widgets, saveDashboard],
   );
 
-  const handleReorderWidgets = useCallback(
-    async (newOrder: Widget[]) => {
-      await saveDashboard(newOrder.map(({ data: _d, ...rest }: Widget) => rest));
-    },
-    [saveDashboard],
-  );
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [widgetToDelete, setWidgetToDelete] = useState<string | null>(null);
@@ -182,7 +176,6 @@ function AnalyticsPage() {
           widgets={widgets}
           onEdit={openEditModal}
           onDelete={openDeleteDialog}
-          onReorder={handleReorderWidgets}
         />
       )}
 

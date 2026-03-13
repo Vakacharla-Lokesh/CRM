@@ -2,21 +2,13 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import Role from "../modules/roles/models/roleModel.js";
+import {RoleModel as Role} from "../modules/roles/index.js";
 import User from "../modules/users/models/userModel.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "../../.env") });
-
-/**
- * Patch Script: Add missing permissions to existing admin roles and users
- *
- * Adds: roles:read, roles:write, roles:delete, users:delete,
- *       users:manage_roles, bulk:delete, settings:write
- */
-
 const MISSING_ADMIN_PERMISSIONS = [
   "roles:read",
   "roles:write",

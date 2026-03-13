@@ -12,15 +12,6 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.join(__dirname, "../../.env") });
 
-/**
- * Migration Script: Convert role-based system to roleId-based system
- *
- * Steps:
- * 1. For each tenant, create 3 default roles (user, admin, super_admin)
- * 2. For each user, set roleId based on their current role string
- * 3. Verify no data loss
- */
-
 const migrateRoles = async () => {
   try {
     console.log("🚀 Starting RBAC v1 → v2 Migration...\n");

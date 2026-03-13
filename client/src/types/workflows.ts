@@ -61,7 +61,6 @@ export interface WorkflowAction {
   taskDescription?: string;
   taskPriority?: "low" | "medium" | "high" | "urgent";
   taskAssignedTo?: string;
-  taskDueDate?: string;
   taskRelationType?: "lead" | "deal" | "organization";
   taskRelationFromTrigger?: boolean;
 }

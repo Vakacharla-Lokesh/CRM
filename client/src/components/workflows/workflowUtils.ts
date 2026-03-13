@@ -20,9 +20,7 @@ export const TRIGGER_ACTIONS: WorkflowTriggerAction[] = [
 
 export const ACTION_TYPES: { value: WorkflowActionType; label: string }[] = [
   { value: "send_email", label: "Send Email" },
-  { value: "update_field", label: "Update Field" },
   { value: "create_task", label: "Create Task" },
-  { value: "webhook", label: "Slack Webhook" },
 ];
 
 export const getAvailableVariables = (entityType: string): string[] => {

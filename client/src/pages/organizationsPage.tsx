@@ -54,6 +54,7 @@ const OrganizationsPage = () => {
     importOrganizations,
     importOrgLoading,
     handleAddOrganization,
+    handleUpdateOrganization,
     handleCloseModal,
     handleSaveOrganization,
     handleEditOrganization,
@@ -218,6 +219,7 @@ const OrganizationsPage = () => {
         organization={selectedOrganization}
         onClose={handleCloseModal}
         onSave={handleSaveOrganization}
+        onUpdate={handleUpdateOrganization}
       />
 
       <ConfirmDialog

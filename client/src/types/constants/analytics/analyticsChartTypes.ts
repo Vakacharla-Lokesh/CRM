@@ -64,7 +64,6 @@ export interface AnalyticsGridProps {
   widgets: Widget[];
   onEdit: (widget: Widget) => void;
   onDelete: (widgetId: string) => void;
-  onReorder: (newOrder: Widget[]) => void;
 }
 
 export const CHART_TYPE_LABEL: Record<string, string> = {

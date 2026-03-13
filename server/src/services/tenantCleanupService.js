@@ -1,6 +1,6 @@
 import tenantModel from "../modules/tenants/models/tenantModel.js";
 import userModel from "../modules/users/models/userModel.js";
-import roleModel from "../modules/roles/models/roleModel.js";
+import {roleModel} from "../modules/roles/index.js";
 import leadModel from "../modules/leads/models/leadModel.js";
 import organizationModel from "../modules/organizations/models/organizationModel.js";
 import dealModel from "../modules/deals/models/dealModel.js";

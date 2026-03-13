@@ -7,7 +7,6 @@ export const createTaskSchema = z.object({
   priority: z.enum(["low", "medium", "high", "urgent"]).optional(),
   relationType: z.enum(["lead", "deal", "organization"]).nullable().optional(),
   relationId: z.string().nullable().optional(),
-  dueDate: z.string().datetime().nullable().optional(),
   assignedTo: z.string().nullable().optional(),
 });
 

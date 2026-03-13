@@ -643,3 +643,88 @@
   scrollbar-width: thin;
   scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
+
+/* Theme-aware MDEditor styling */
+.themed-md-editor {
+  font-family: var(--font-sans);
+}
+
+/* Light mode */
+[data-color-mode="light"] .themed-md-editor {
+  --w-md-editor-bg-color: rgb(245, 245, 244);
+  --w-md-editor-text-color: rgb(30, 41, 59);
+  --w-md-editor-border-color: rgb(214, 211, 209);
+}
+
+/* Dark mode */
+[data-color-mode="dark"] .themed-md-editor {
+  --w-md-editor-bg-color: rgb(44, 40, 37);
+  --w-md-editor-text-color: rgb(226, 232, 240);
+  --w-md-editor-border-color: rgb(58, 54, 51);
+}
+
+/* Main editor container */
+.themed-md-editor .w-md-editor {
+  background-color: var(--w-md-editor-bg-color) !important;
+  border-color: var(--w-md-editor-border-color) !important;
+  color: var(--w-md-editor-text-color) !important;
+}
+
+/* Toolbar */
+.themed-md-editor .w-md-editor-toolbar {
+  background-color: var(--w-md-editor-bg-color) !important;
+  border-color: var(--w-md-editor-border-color) !important;
+}
+
+/* Text input area - CRITICAL */
+.themed-md-editor .w-md-editor-text-input {
+  background-color: var(--w-md-editor-bg-color) !important;
+  color: var(--w-md-editor-text-color) !important;
+}
+
+.themed-md-editor .w-md-editor-text-input textarea {
+  background-color: var(--w-md-editor-bg-color) !important;
+  color: var(--w-md-editor-text-color) !important;
+  caret-color: var(--w-md-editor-text-color) !important;
+  font-family: var(--font-mono) !important;
+}
+
+.themed-md-editor .w-md-editor-text-input textarea::placeholder {
+  color: rgb(107, 114, 128) !important;
+  opacity: 1 !important;
+}
+
+/* Preview area */
+.themed-md-editor .w-md-editor-preview {
+  background-color: var(--w-md-editor-bg-color) !important;
+  color: var(--w-md-editor-text-color) !important;
+}
+
+.themed-md-editor .w-md-editor-preview-content {
+  color: var(--w-md-editor-text-color) !important;
+}
+
+.themed-md-editor .w-md-editor-preview-content * {
+  color: var(--w-md-editor-text-color) !important;
+}
+
+/* Toolbar buttons */
+.themed-md-editor .w-md-editor-toolbar button {
+  color: var(--w-md-editor-text-color) !important;
+  background-color: transparent !important;
+  border: none !important;
+}
+
+.themed-md-editor .w-md-editor-toolbar button:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.themed-md-editor .w-md-editor-toolbar button.active {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Dividers and separators */
+.themed-md-editor .w-md-editor-toolbar hr {
+  background-color: var(--w-md-editor-border-color) !important;
+  border-color: var(--w-md-editor-border-color) !important;
+}

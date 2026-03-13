@@ -2,7 +2,7 @@ import crypto from "crypto";
 import mongoose from "mongoose";
 import tenantModel from "../models/tenantModel.js";
 import userModel from "../../users/models/userModel.js";
-import roleModel from "../../roles/models/roleModel.js";
+import {roleModel} from "../../roles/index.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 import { DEFAULT_ROLE_PERMISSIONS } from "../../../utils/permissionPresets.js";
