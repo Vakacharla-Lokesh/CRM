@@ -29,14 +29,26 @@ export function useTaskData() {
   const updateTask = useMutation({
     mutationFn: ({ id, dto, lastKnownUpdatedAt }: { id: string; dto: UpdateTaskDTO; lastKnownUpdatedAt?: Date }) =>
       tasksAPI.update(id, dto, lastKnownUpdatedAt),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: TASKS_KEY }),
-    onError: (err: unknown) => {
+    onMutate: async ({ id, dto }) => {
+      // Optimistic update
+      await queryClient.cancelQueries({ queryKey: TASKS_KEY });
+      const previous = queryClient.getQueryData<Task[]>(TASKS_KEY);
+      queryClient.setQueryData<Task[]>(TASKS_KEY, (old) =>
+        old?.map((t) => (t._id === id ? { ...t, ...dto } : t)) ?? [],
+      );
+      return { previous };
+    },
+    onError: (err: unknown, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(TASKS_KEY, context.previous);
+      }
       const status = (err as { status?: number }).status;
       if (status === 409) {
         toast.error("This task was modified by someone else. Please refresh and try again.");
         queryClient.invalidateQueries({ queryKey: TASKS_KEY });
       }
     },
+    // Don't update cache on success - trust the optimistic update to prevent flicker
   });
 
   const updateTaskStatus = useMutation({
@@ -53,6 +65,7 @@ export function useTaskData() {
       return { previous };
     },
     onError: (err: unknown, _vars, context) => {
+      // Rollback to previous state on error
       if (context?.previous) {
         queryClient.setQueryData(TASKS_KEY, context.previous);
       }
@@ -62,7 +75,8 @@ export function useTaskData() {
         queryClient.invalidateQueries({ queryKey: TASKS_KEY });
       }
     },
-    onSettled: () => queryClient.invalidateQueries({ queryKey: TASKS_KEY }),
+    // Don't update cache on success - trust the optimistic update to prevent flicker
+    // The server confirms but doesn't trigger a UI update
   });
 
   const deleteTask = useMutation({

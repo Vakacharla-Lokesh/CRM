@@ -164,11 +164,10 @@ const UsersPage = () => {
     try {
       await deactivateUser(id);
       toast.success("User deactivated successfully!");
+    } catch (error) {
+      console.error("Error deactivating user:", error);
+      toast.error("Failed to deactivate user. Please try again.");
     }
-      catch (error) {
-        console.error("Error deactivating user:", error);
-        toast.error("Failed to deactivate user. Please try again.");
-      }
   };
 
   return (
@@ -223,7 +222,10 @@ const UsersPage = () => {
             <SelectContent>
               <SelectItem value="all">All Roles</SelectItem>
               {roles?.map((role) => (
-                <SelectItem key={role._id} value={role.name}>
+                <SelectItem
+                  key={role._id}
+                  value={role.name}
+                >
                   {role.name}
                 </SelectItem>
               ))}

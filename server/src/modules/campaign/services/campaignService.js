@@ -4,8 +4,6 @@ import AppError from "../../../utils/appError.js";
 import { jobDispatcher } from "../../../services/jobs/jobDispatcher.js";
 import { JOB_TYPES } from "../../../utils/jobTypes.js";
 import emailController from "../../emails/controllers/emailController.js";
-import { logActivity } from "../../leads/services/leadActivityService.js";
-import { updateLeadScore } from "../../../utils/leadScoreUtils.js";
 import { queueService } from "../../../services/aws/queue/queueService.js";
 import { marked } from "marked";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";

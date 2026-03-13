@@ -1,4 +1,5 @@
-import { Draggable } from "@hello-pangea/dnd";
+import { memo } from "react";
+import { useDraggable } from "@dnd-kit/core";
 import {
   User,
   Link2,
@@ -8,7 +9,7 @@ import {
 import type { Task } from "@/services/api/tasks.api";
 import { PRIORITY_BADGE } from "@/types/constants/tasks";
 
-export function TaskCard({
+function TaskCardComponent({
   task,
   index,
   onEdit,
@@ -20,23 +21,23 @@ export function TaskCard({
   onDelete: (id: string) => void;
 }) {
   const priority = PRIORITY_BADGE[task.priority];
+  
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: task._id,
+    data: { task, index },
+  });
 
   return (
-    <Draggable
-      draggableId={task._id}
-      index={index}
+    <div
+      ref={setNodeRef}
+      {...attributes}
+      {...listeners}
+      className={`rounded-xl border p-3 bg-white dark:bg-gray-900 shadow-sm transition-shadow cursor-grab active:cursor-grabbing group ${
+        isDragging
+          ? "shadow-lg rotate-1 ring-2 ring-primary/30 opacity-50"
+          : "hover:shadow-md"
+      }`}
     >
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          className={`rounded-xl border p-3 bg-white dark:bg-gray-900 shadow-sm transition-shadow cursor-grab active:cursor-grabbing group ${
-            snapshot.isDragging
-              ? "shadow-lg rotate-1 ring-2 ring-primary/30"
-              : "hover:shadow-md"
-          }`}
-        >
           {/* Title + actions */}
           <div className="flex items-start justify-between gap-2">
             <p className="text-sm font-medium leading-snug text-gray-900 dark:text-white flex-1">
@@ -100,7 +101,7 @@ export function TaskCard({
             </div>
           )}
         </div>
-      )}
-    </Draggable>
-  );
+      );
 }
+
+export const TaskCard = memo(TaskCardComponent);
