@@ -93,7 +93,7 @@ export function useSocket() {
           }
 
           notifyEvent({
-            type: (notification.type || "message") as NotificationEventType,
+            type: (notification.type ?? "sync_completed") as NotificationEventType,
             title: notification.title || "New Notification",
             message: notification.message,
             metadata: notification.metadata,
@@ -150,7 +150,7 @@ export function useSocket() {
               `[Socket] Max reconnection attempts (${RETRY_CONFIG.maxAttempts}) reached. Giving up.`,
             );
             notifyEvent({
-              type: "error",
+              type: "sync_failed",
               title: "Connection Failed",
               message: "Unable to establish connection after multiple attempts",
             });

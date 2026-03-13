@@ -37,8 +37,6 @@ export default defineConfig({
             "clsx",
             "tailwind-merge",
           ],
-          // DnD — used only on TasksPage, but heavy enough to isolate
-          "vendor-dnd": ["@hello-pangea/dnd"],
           // Socket.io — connection overhead, loaded once
           "vendor-socket": ["socket.io-client"],
           // Markdown editor — only used on specific pages

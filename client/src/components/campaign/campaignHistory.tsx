@@ -5,9 +5,6 @@ import { STATUS_VARIANT } from "@/types/constants/campaign";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 
 function CampaignHistory() {
