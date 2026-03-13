@@ -34,7 +34,7 @@ export function useTaskData() {
       await queryClient.cancelQueries({ queryKey: TASKS_KEY });
       const previous = queryClient.getQueryData<Task[]>(TASKS_KEY);
       queryClient.setQueryData<Task[]>(TASKS_KEY, (old) =>
-        old?.map((t) => (t._id === id ? { ...t, ...dto } : t)) ?? [],
+        old?.map((t) => (t._id === id ? { ...t, ...(dto as Partial<Task>) } : t)) ?? [],
       );
       return { previous };
     },
