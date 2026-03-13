@@ -11,7 +11,7 @@ export const getAllDeals = wrapServiceFn(
 
     const deals = await dealModel
       .find(filter)
-      .sort({ _id: 1 })
+      .sort({ updatedAt: -1 })
       .limit(limit + 1);
 
     const hasNextPage = deals.length > limit;
@@ -131,7 +131,7 @@ export const searchDeals = wrapServiceFn(async (filter, { q, limit = 25 }) => {
 
   return dealModel
     .find(filter)
-    .sort({ createdAt: -1 })
+    .sort({ updatedAt: -1 })
     .limit(Math.min(parseInt(limit), 25));
 });
 

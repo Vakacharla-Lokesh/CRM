@@ -80,8 +80,6 @@ export const createLead = asyncCatch(async (req, res) => {
 
   const lead = await leadService.createLead(leadData);
 
-  await fireWorkflowTrigger(req, "lead", "create", lead._id, lead.toObject());
-
   await logActivity({
     leadId: lead._id,
     tenantId: lead.tenantId,
@@ -96,10 +94,26 @@ export const createLead = asyncCatch(async (req, res) => {
     lead.toObject(),
   );
 
+  if (lead.createdBy != lead.assignedTo) {
+    notificationService.notifyUser(lead.assignedTo, {
+      type: notificationTypes.LEAD_ASSIGNED,
+      title: "Lead Assigned to You",
+      message: `You have been assigned lead: ${lead.firstName} ${lead.lastName || ""}`,
+      metadata: {
+        leadId: lead._id.toString(),
+        leadName: `${lead.firstName} ${lead.lastName || ""}`,
+        assignedBy: req.user.userId,
+        action: "lead:assigned",
+      },
+    });
+  }
+
   res.status(201).json({
     message: "Lead created successfully",
     lead,
   });
+
+  await fireWorkflowTrigger(req, "lead", "create", lead._id, lead.toObject());
 });
 
 export const updateLead = asyncCatch(async (req, res) => {
@@ -107,6 +121,14 @@ export const updateLead = asyncCatch(async (req, res) => {
     req.tenantContext?.scope === "tenant" ? req.tenantContext.tenantId : null;
 
   const { lastKnownUpdatedAt, ...updates } = req.body;
+  const canAssign =
+    req.auth?.role === "super_admin" ||
+    (Array.isArray(req.auth?.permissions) &&
+      req.auth.permissions.includes("leads:assign"));
+
+  if (req.body.assignedTo && !canAssign) {
+    throw new AppError("Forbidden: You cannot change lead assignment", 403);
+  }
   const lead = await leadService.updateLead(
     req.params.id,
     tenantId,
@@ -114,7 +136,19 @@ export const updateLead = asyncCatch(async (req, res) => {
     lastKnownUpdatedAt,
   );
 
-  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
+  if (lead.createdBy != lead.assignedTo) {
+    notificationService.notifyUser(lead.assignedTo, {
+      type: notificationTypes.LEAD_ASSIGNED,
+      title: "Lead Assigned to You",
+      message: `You have been assigned lead: ${lead.firstName} ${lead.lastName || ""}`,
+      metadata: {
+        leadId: lead._id.toString(),
+        leadName: `${lead.firstName} ${lead.lastName || ""}`,
+        assignedBy: req.user.userId,
+        action: "lead:assigned",
+      },
+    });
+  }
 
   await logActivity({
     leadId: req.params.id,
@@ -129,6 +163,8 @@ export const updateLead = asyncCatch(async (req, res) => {
     message: "Lead updated successfully",
     lead,
   });
+
+  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
 });
 
 export const deleteLead = asyncCatch(async (req, res) => {
@@ -137,9 +173,9 @@ export const deleteLead = asyncCatch(async (req, res) => {
 
   const lead = await leadService.deleteLead(req.params.id, tenantId);
 
-  await fireWorkflowTrigger(req, "lead", "delete", lead._id, lead.toObject());
-
   res.json({ message: "Lead deleted successfully" });
+
+  await fireWorkflowTrigger(req, "lead", "delete", lead._id, lead.toObject());
 });
 
 export const getLeadsByTenant = asyncCatch(async (req, res) => {
@@ -191,14 +227,6 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
     lastKnownUpdatedAt,
   );
 
-  await fireWorkflowTrigger(
-    req,
-    "lead",
-    "update",
-    updatedLead._id,
-    updatedLead.toObject(),
-  );
-
   await logActivity({
     leadId: req.params.id,
     tenantId: updatedLead.tenantId,
@@ -212,6 +240,14 @@ export const updateLeadStatus = asyncCatch(async (req, res) => {
     message: "Lead status updated successfully",
     lead: updatedLead,
   });
+
+  await fireWorkflowTrigger(
+    req,
+    "lead",
+    "update",
+    updatedLead._id,
+    updatedLead.toObject(),
+  );
 });
 
 export const updateLeadScoreManually = asyncCatch(async (req, res) => {
@@ -240,8 +276,6 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     req.auth.userId,
   );
 
-  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
-
   await logActivity({
     leadId: lead._id,
     tenantId: lead.tenantId,
@@ -256,6 +290,8 @@ export const convertLeadToDeal = asyncCatch(async (req, res) => {
     deal,
     lead,
   });
+
+  await fireWorkflowTrigger(req, "lead", "update", lead._id, lead.toObject());
 });
 
 export const searchLeads = asyncCatch(async (req, res) => {

@@ -54,6 +54,13 @@ export const initializeSocketServer = (httpServer) => {
       `[Socket] User ${socket.userId} joined room: ${socket.tenantRoom}`,
     );
 
+    // Join personal user room for direct notifications
+    const userRoom = `user:${socket.userId}`;
+    socket.join(userRoom);
+    console.log(
+      `[Socket] User ${socket.userId} joined personal room: ${userRoom}`,
+    );
+
     // Send welcome message
     socket.emit("socket:connected", {
       socketId: socket.id,

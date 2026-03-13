@@ -72,12 +72,12 @@ export const createDeal = asyncCatch(async (req, res) => {
 
   const deal = await dealService.createDeal(dealData);
 
-  await fireWorkflowTrigger(req, "deal", "create", deal._id, deal.toObject());
-
   res.status(201).json({
     message: "Deal created successfully",
     deal,
   });
+
+  await fireWorkflowTrigger(req, "deal", "create", deal._id, deal.toObject());
 });
 
 // Update deal
@@ -100,6 +100,11 @@ export const updateDeal = asyncCatch(async (req, res) => {
     lastKnownUpdatedAt,
   );
 
+  res.json({
+    message: "Deal updated successfully",
+    deal: updatedDeal,
+  });
+
   await fireWorkflowTrigger(
     req,
     "deal",
@@ -107,11 +112,6 @@ export const updateDeal = asyncCatch(async (req, res) => {
     updatedDeal._id,
     updatedDeal.toObject(),
   );
-
-  res.json({
-    message: "Deal updated successfully",
-    deal: updatedDeal,
-  });
 });
 
 // Delete deal
@@ -131,9 +131,9 @@ export const deleteDeal = asyncCatch(async (req, res) => {
     canViewAll,
   );
 
-  await fireWorkflowTrigger(req, "deal", "delete", deal._id, deal.toObject());
-
   res.json({ message: "Deal deleted successfully" });
+
+  await fireWorkflowTrigger(req, "deal", "delete", deal._id, deal.toObject());
 });
 
 // Get deals by tenant

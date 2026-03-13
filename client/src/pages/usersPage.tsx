@@ -49,6 +49,8 @@ const UsersPage = () => {
     deleteUser,
     hasNextPage,
     loadMore,
+    activateUser,
+    deactivateUser,
   } = useUserData(id);
 
   const { data: usersStats, isLoading: statsLoading } = useUsersStats({
@@ -146,6 +148,27 @@ const UsersPage = () => {
       toast.error("Failed to delete user. Please try again.");
       setUserToDelete(null);
     }
+  };
+
+  const handleActivateUser = async (id: string) => {
+    try {
+      await activateUser(id);
+      toast.success("User activated successfully!");
+    } catch (error) {
+      console.error("Error activating user:", error);
+      toast.error("Failed to activate user. Please try again.");
+    }
+  };
+
+  const handleDeactivateUser = async (id: string) => {
+    try {
+      await deactivateUser(id);
+      toast.success("User deactivated successfully!");
+    }
+      catch (error) {
+        console.error("Error deactivating user:", error);
+        toast.error("Failed to deactivate user. Please try again.");
+      }
   };
 
   return (
@@ -263,6 +286,8 @@ const UsersPage = () => {
             onEdit: handleEditUser,
             onDelete: handleDeleteUser,
             onAssignRole: canManageRoles ? handleEditUser : undefined,
+            onActivate: handleActivateUser,
+            onDeactivate: handleDeactivateUser,
           })}
           data={filteredUsers}
           name="Users"

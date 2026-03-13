@@ -218,6 +218,26 @@ export const useUserData = (tenantId?: string) => {
     setFilters({ role: "", status: "", search: "" });
   }, []);
 
+  const activateUser = useCallback(
+    (id: string) =>
+      userService
+        .activateUser(id)
+        .then(() =>
+          queryClient.invalidateQueries({ queryKey: ["users-list"] }),
+        ),
+    [queryClient],
+  );
+
+  const deactivateUser = useCallback(
+    (id: string) =>
+      userService
+        .deactivateUser(id)
+        .then(() =>
+          queryClient.invalidateQueries({ queryKey: ["users-list"] }),
+        ),
+    [queryClient],
+  );
+
   return {
     // Data
     users: allUsers,
@@ -245,6 +265,8 @@ export const useUserData = (tenantId?: string) => {
     getUsersByRole,
     updatePassword,
     updateUserRole,
+    activateUser,
+    deactivateUser,
 
     // Filter methods
     updateFilter,

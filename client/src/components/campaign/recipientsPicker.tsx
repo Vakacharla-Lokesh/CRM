@@ -63,6 +63,16 @@ function RecipientsPicker({
 
   const availableLeads = leads.filter((l) => !selectedIds.includes(l._id));
 
+  const selectAll = () => {
+    const idsToAdd = availableLeads.map((l) => l._id);
+    const merged = Array.from(new Set([...selectedIds, ...idsToAdd]));
+    onChange(merged);
+  };
+
+  const clearAll = () => {
+    onChange([]);
+  };
+
   return (
     <div className="relative" ref={containerRef}>
       {/* Main input area with pills */}
@@ -122,6 +132,24 @@ function RecipientsPicker({
               onChange={(e) => setSearch(e.target.value)}
               className="h-8 text-sm"
             />
+          </div>
+
+          {/* Actions: Select all / Clear all */}
+          <div className="flex items-center justify-end gap-2 px-2 py-1 border-b border-input">
+            <button
+              type="button"
+              onClick={selectAll}
+              className="text-sm text-primary hover:underline px-2 py-1 rounded"
+            >
+              Select all
+            </button>
+            <button
+              type="button"
+              onClick={clearAll}
+              className="text-sm text-muted-foreground hover:underline px-2 py-1 rounded"
+            >
+              Clear all
+            </button>
           </div>
 
           {/* Leads list */}

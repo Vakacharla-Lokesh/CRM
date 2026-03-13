@@ -9,11 +9,15 @@ interface ColumnsProps {
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
   onAssignRole?: (id: string) => void;
+  onActivate?: (id: string) => void;
+  onDeactivate?: (id: string) => void;
 }
 
 export const columns = ({
   onEdit,
   onDelete,
+  onActivate,
+  onDeactivate,
 }: ColumnsProps = {}): ColumnDef<User>[] => [
   {
     id: "select",
@@ -206,15 +210,20 @@ export const columns = ({
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        <ActionDropdown
-          id={row.original._id}
-          type="User"
-          onEdit={onEdit}
-          onDelete={onDelete}
-        />
-      </div>
-    ),
+    cell: ({ row }) => {
+      const isInactive = row.original.isActive === false;
+      return (
+        <div className="flex items-center gap-2">
+          <ActionDropdown
+            id={row.original._id}
+            type="User"
+            onEdit={onEdit}
+            onDelete={isInactive ? undefined : onDelete}
+            onActivate={!isInactive ? undefined : onActivate}
+            onDeactivate={isInactive ? undefined : onDeactivate}
+          />
+        </div>
+      );
+    },
   },
 ];

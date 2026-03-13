@@ -67,6 +67,11 @@ export const createOrganization = asyncCatch(async (req, res) => {
   const organization =
     await organizationService.createOrganization(organizationData);
 
+  res.status(201).json({
+    message: "Organization created successfully",
+    organization,
+  });
+
   await fireWorkflowTrigger(
     req,
     "organization",
@@ -74,11 +79,6 @@ export const createOrganization = asyncCatch(async (req, res) => {
     organization._id,
     organization.toObject(),
   );
-
-  res.status(201).json({
-    message: "Organization created successfully",
-    organization,
-  });
 });
 
 export const updateOrganization = asyncCatch(async (req, res) => {
@@ -100,6 +100,11 @@ export const updateOrganization = asyncCatch(async (req, res) => {
     lastKnownUpdatedAt,
   );
 
+  res.json({
+    message: "Organization updated successfully",
+    organization: updatedOrganization,
+  });
+
   await fireWorkflowTrigger(
     req,
     "organization",
@@ -107,11 +112,6 @@ export const updateOrganization = asyncCatch(async (req, res) => {
     updatedOrganization._id,
     updatedOrganization.toObject(),
   );
-
-  res.json({
-    message: "Organization updated successfully",
-    organization: updatedOrganization,
-  });
 });
 
 export const deleteOrganization = asyncCatch(async (req, res) => {
@@ -130,6 +130,8 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
     canViewAll,
   );
 
+  res.json({ message: "Organization deleted successfully" });
+
   await fireWorkflowTrigger(
     req,
     "organization",
@@ -137,8 +139,6 @@ export const deleteOrganization = asyncCatch(async (req, res) => {
     organization._id,
     organization.toObject(),
   );
-
-  res.json({ message: "Organization deleted successfully" });
 });
 
 export const getOrganizationsByTenant = asyncCatch(async (req, res) => {

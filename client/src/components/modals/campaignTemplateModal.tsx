@@ -1,4 +1,9 @@
-import { LayoutTemplate, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
+import {
+  LayoutTemplate,
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+} from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -78,7 +83,7 @@ function TemplateModal({
       open={open}
       onOpenChange={handleOpenChange}
     >
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <LayoutTemplate size={18} />
@@ -99,14 +104,17 @@ function TemplateModal({
                 Template Name <span className="text-destructive">*</span>
               </label>
               <Input
-                placeholder="e.g., Welcome Series Part 1"
+                placeholder="e.g., Welcome to this Campaign"
                 value={form.name}
                 onChange={set("name")}
                 disabled={isSaving}
               />
               {form.name && (
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CheckCircle2 size={12} className="text-green-600" />
+                  <CheckCircle2
+                    size={12}
+                    className="text-green-600"
+                  />
                   Name entered
                 </p>
               )}
@@ -117,7 +125,10 @@ function TemplateModal({
               <Select
                 value={form.category}
                 onValueChange={(value) =>
-                  setForm((f) => ({ ...f, category: value as TemplateCategory }))
+                  setForm((f) => ({
+                    ...f,
+                    category: value as TemplateCategory,
+                  }))
                 }
                 disabled={isSaving}
               >
@@ -167,34 +178,11 @@ function TemplateModal({
               )}
             </div>
             <Input
-              placeholder="e.g., Quick question for {{firstName}} ❓"
+              placeholder="e.g., Quick question about your campaign"
               value={form.subject}
               onChange={set("subject")}
               disabled={isSaving}
             />
-            <div className="bg-muted/40 rounded-md p-3 space-y-2">
-              <p className="text-xs font-medium text-muted-foreground">
-                Personalization tags:
-              </p>
-              <div className="flex gap-2 flex-wrap">
-                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
-                  {"{"}
-                  {"{firstName}"}}
-                </code>
-                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
-                  {"{"}
-                  {"{lastName}"}}
-                </code>
-                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
-                  {"{"}
-                  {"{company}"}}
-                </code>
-                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
-                  {"{"}
-                  {"{email}"}}
-                </code>
-              </div>
-            </div>
           </div>
 
           {/* Email Body */}
@@ -214,9 +202,7 @@ function TemplateModal({
             </p>
             <ThemedMDEditor
               value={form.body}
-              onChange={(val) =>
-                setForm((f) => ({ ...f, body: val ?? "" }))
-              }
+              onChange={(val) => setForm((f) => ({ ...f, body: val ?? "" }))}
               height={280}
               preview="edit"
               visibleDragbar={false}
@@ -229,7 +215,10 @@ function TemplateModal({
             <div className="bg-blue-50 border border-blue-200/50 rounded-lg p-3 flex gap-2">
               {isValid ? (
                 <>
-                  <CheckCircle2 size={16} className="text-green-600 shrink-0 mt-0.5" />
+                  <CheckCircle2
+                    size={16}
+                    className="text-green-600 shrink-0 mt-0.5"
+                  />
                   <div className="text-sm text-foreground">
                     <p className="font-medium">Ready to save</p>
                     <p className="text-xs text-muted-foreground">
@@ -239,7 +228,10 @@ function TemplateModal({
                 </>
               ) : (
                 <>
-                  <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                  <AlertCircle
+                    size={16}
+                    className="text-amber-600 shrink-0 mt-0.5"
+                  />
                   <div className="text-sm text-foreground">
                     <p className="font-medium">Complete required fields</p>
                     <p className="text-xs text-muted-foreground">
@@ -266,12 +258,18 @@ function TemplateModal({
           >
             {isSaving ? (
               <>
-                <Loader2 size={14} className="animate-spin mr-2" />
+                <Loader2
+                  size={14}
+                  className="animate-spin mr-2"
+                />
                 Saving...
               </>
             ) : (
               <>
-                <LayoutTemplate size={14} className="mr-2" />
+                <LayoutTemplate
+                  size={14}
+                  className="mr-2"
+                />
                 Save Template
               </>
             )}

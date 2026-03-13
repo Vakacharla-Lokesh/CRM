@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,8 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { Lead } from "@/types";
-import { useLeadData } from "@/hooks";
+import { useLeadData, useAppContext, useUserData, useHasPermission } from "@/hooks";
 import { useOrganizationData } from "@/hooks/organizations/useOrganizationData";
+import { UserCombobox } from "@/components/modals/form-fields";
 import { OrganizationSection } from "@/components/modals/sections";
 import { LEAD_SOURCES } from "@/types/interfaces/form-interfaces";
 
@@ -23,6 +24,21 @@ interface EditLeadTabProps {
 function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
   const { updateLead } = useLeadData();
   const { organizations } = useOrganizationData();
+  const { user } = useAppContext();
+  const canAssign = useHasPermission("leads:assign");
+  const { users, loading: usersLoading, fetchUsers } = useUserData();
+
+  useEffect(() => {
+    if (canAssign) fetchUsers();
+  }, [canAssign, fetchUsers]);
+
+  const tenantUsers = useMemo(() => {
+    if (!canAssign || !user?._id) return [];
+    const others = users
+      .filter((u) => u._id !== user._id)
+      .map((u) => ({ value: u._id, label: `${u.firstName} ${u.lastName ?? ""}`.trim() }));
+    return [{ value: user._id, label: "Assign to self" }, ...others];
+  }, [canAssign, users, user]);
 
   const [formData, setFormData] = useState<Lead>(lead);
   const [isSaving, setIsSaving] = useState(false);
@@ -68,13 +84,21 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         return;
       }
 
-      updateLead(lead._id, {
+      const updates: Partial<Lead> = {
         firstName: formData.firstName,
         lastName: formData.lastName || "",
         email: formData.email,
         source: formData.source,
-        organizationId: formData.organizationId || undefined,
-      });
+      };
+      
+      if (canAssign) {
+        updates.assignedTo = formData.assignedTo || undefined;
+      }
+      if (formData.organizationId) {
+        updates.organizationId = formData.organizationId;
+      }
+
+      updateLead(lead._id, updates);
 
       onUpdate(formData);
       setSuccess(true);
@@ -200,6 +224,20 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
         errors={{}}
         onModeChange={setOrganizationMode}
       />
+
+      {canAssign && (
+        <div className="pt-4">
+          <UserCombobox
+            id="assignedTo"
+            label="Assign To"
+            value={formData.assignedTo || undefined}
+            onChange={(value) => handleInputChange("assignedTo", value)}
+            placeholder={usersLoading ? "Loading users..." : "Select user to assign"}
+            options={tenantUsers}
+            disabled={usersLoading}
+          />
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border">
         <div className="space-y-1">

@@ -45,7 +45,6 @@ const DealsPage = () => {
     setExportEmail,
     isSending,
     fetchDeals,
-    handleAddDeal,
     handleEdit,
     handleDeleteDeal,
     confirmDelete,
@@ -68,12 +67,6 @@ const DealsPage = () => {
             Manage and track your deals
           </p>
         </div>
-        <Button
-          onClick={handleAddDeal}
-          className="px-4 py-2 font-medium rounded-lg transition-colors flex items-center gap-2 whitespace-nowrap"
-        >
-          <span>+</span> Add Deal
-        </Button>
       </div>
 
       <DealStatistics
