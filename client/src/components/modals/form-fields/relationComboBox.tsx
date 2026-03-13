@@ -74,6 +74,11 @@ export function RelationCombobox({
   useEffect(() => {
     if (!relationType || !open) return;
 
+    // If there's no search text and we already populated options for this
+    // relation type, skip fetching again to avoid showing the loader every
+    // time the popover is toggled open/closed.
+    if (!search.trim() && options.length > 0) return;
+
     if (debounceRef.current) clearTimeout(debounceRef.current);
 
     debounceRef.current = setTimeout(async () => {
@@ -108,7 +113,7 @@ export function RelationCombobox({
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [search, relationType, open]);
+  }, [search, relationType, open, options.length]);
 
   if (!relationType) return null;
 

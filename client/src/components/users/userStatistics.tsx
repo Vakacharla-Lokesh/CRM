@@ -30,12 +30,12 @@ const UserStatistics = ({ statistics, isLoading }: UserStatisticsProps) => {
           {isLoading ? placeholder : (statistics?.inactiveUsers ?? 0)}
         </p>
       </div>
-      <div className="rounded-lg p-4 shadow-sm border border-border bg-card">
+      {/* <div className="rounded-lg p-4 shadow-sm border border-border bg-card">
         <p className="text-sm text-muted-foreground">Admins</p>
         <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 mt-1">
           {isLoading ? placeholder : (statistics?.adminsCount ?? 0)}
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };

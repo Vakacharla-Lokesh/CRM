@@ -1,5 +1,14 @@
-import { useState } from "react";
-import { DragDropContext, Droppable, type DropResult } from "@hello-pangea/dnd";
+import { useState, useMemo, useCallback } from "react";
+import {
+  DndContext,
+  type DragEndEvent,
+  DragOverlay,
+  closestCorners,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDroppable,
+} from "@dnd-kit/core";
 import { Plus } from "lucide-react";
 import { toast } from "sonner";
 import { useTaskData } from "@/hooks/useTaskData";
@@ -22,6 +31,15 @@ export default function TasksPage() {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    })
+  );
 
   const openCreate = () => {
     setEditingTask(null);
@@ -63,17 +81,20 @@ export default function TasksPage() {
     }
   };
 
-  const onDragEnd = (result: DropResult) => {
-    const { draggableId, destination } = result;
-    if (!destination) return;
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    setActiveId(null);
+    const { active, over } = event;
+    if (!over) return;
 
-    const newStatus = destination.droppableId as Task["status"];
-    const task = tasks.find((t) => t._id === draggableId);
-    if (!task || task.status === newStatus) return;
+    const task = tasks.find((t) => t._id === active.id);
+    if (!task) return;
+
+    const newStatus = over.id as Task["status"];
+    if (task.status === newStatus) return;
 
     updateTaskStatus.mutate(
       {
-        id: draggableId,
+        id: active.id as string,
         status: newStatus,
         lastKnownUpdatedAt: task.updatedAt
           ? new Date(task.updatedAt)
@@ -81,10 +102,12 @@ export default function TasksPage() {
       },
       { onError: () => toast.error("Failed to move task") },
     );
-  };
+  }, [tasks, updateTaskStatus]);
 
-  const tasksByStatus = (status: Task["status"]) =>
-    tasks.filter((t) => t.status === status);
+  const tasksByStatus = useMemo(
+    () => (status: Task["status"]) => tasks.filter((t) => t.status === status),
+    [tasks],
+  );
 
   return (
     <div className="space-y-6">
@@ -113,67 +136,40 @@ export default function TasksPage() {
           <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-        <DragDropContext onDragEnd={onDragEnd}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragEnd={handleDragEnd}
+          onDragStart={(event) => setActiveId(event.active.id as string)}
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-start">
             {COLUMNS.map((col) => {
               const colTasks = tasksByStatus(col.id);
               return (
-                <div
+                <DropZone
                   key={col.id}
-                  className={`rounded-2xl p-3 ${col.columnColor}`}
-                >
-                  {/* Column header */}
-                  <div className="flex items-center justify-between mb-3 px-1">
-                    <div className="flex items-center gap-2">
-                      {col.icon && <col.icon className="h-4 w-4 text-muted-foreground" />}
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
-                        {col.label}
-                      </span>
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs"
-                    >
-                      {colTasks.length}
-                    </Badge>
-                  </div>
-
-                  <Droppable droppableId={col.id}>
-                    {(provided, snapshot) => (
-                      <div
-                        ref={provided.innerRef}
-                        {...provided.droppableProps}
-                        className={`space-y-2 min-h-30 rounded-xl transition-colors ${
-                          snapshot.isDraggingOver
-                            ? "bg-primary/5 ring-2 ring-primary/20 ring-dashed"
-                            : ""
-                        }`}
-                      >
-                        {colTasks.map((task, index) => (
-                          <TaskCard
-                            key={task._id}
-                            task={task}
-                            index={index}
-                            onEdit={openEdit}
-                            onDelete={handleDelete}
-                          />
-                        ))}
-                        {provided.placeholder}
-
-                        {/* Empty state */}
-                        {colTasks.length === 0 && !snapshot.isDraggingOver && (
-                          <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
-                            No tasks
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </Droppable>
-                </div>
+                  id={col.id}
+                  label={col.label}
+                  icon={col.icon}
+                  columnColor={col.columnColor}
+                  tasks={colTasks}
+                  activeId={activeId}
+                  onEdit={openEdit}
+                  onDelete={handleDelete}
+                />
               );
             })}
           </div>
-        </DragDropContext>
+          <DragOverlay>
+            {activeId ? (
+              <div className="rounded-xl border p-3 bg-white dark:bg-gray-900 shadow-lg opacity-75 cursor-grabbing">
+                <p className="text-sm font-medium">
+                  {tasks.find((t) => t._id === activeId)?.title}
+                </p>
+              </div>
+            ) : null}
+          </DragOverlay>
+        </DndContext>
       )}
 
       {/* Modal */}
@@ -184,6 +180,80 @@ export default function TasksPage() {
         onSave={handleSave}
         isSaving={createTask.isPending || updateTask.isPending}
       />
+    </div>
+  );
+}
+
+// DropZone component using useDroppable
+function DropZone({
+  id,
+  label,
+  icon: Icon,
+  columnColor,
+  tasks,
+  activeId,
+  onEdit,
+  onDelete,
+}: {
+  id: string;
+  label: string;
+  icon?: React.ElementType;
+  columnColor: string;
+  tasks: Task[];
+  activeId: string | null;
+  onEdit: (task: Task) => void;
+  onDelete: (id: string) => void;
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+  });
+
+  return (
+    <div
+      className={`rounded-2xl p-3 ${columnColor}`}
+    >
+      {/* Column header */}
+      <div className="flex items-center justify-between mb-3 px-1">
+        <div className="flex items-center gap-2">
+          {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+          <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+            {label}
+          </span>
+        </div>
+        <Badge
+          variant="secondary"
+          className="text-xs"
+        >
+          {tasks.length}
+        </Badge>
+      </div>
+
+      {/* Droppable area */}
+      <div
+        ref={setNodeRef}
+        className={`space-y-2 min-h-30 rounded-xl transition-colors ${
+          isOver
+            ? "bg-primary/5 ring-2 ring-primary/20 ring-dashed"
+            : ""
+        }`}
+      >
+        {tasks.map((task, index) => (
+          <TaskCard
+            key={task._id}
+            task={task}
+            index={index}
+            onEdit={onEdit}
+            onDelete={onDelete}
+          />
+        ))}
+
+        {/* Empty state */}
+        {tasks.length === 0 && !activeId && (
+          <div className="flex items-center justify-center h-20 text-xs text-muted-foreground">
+            No tasks
+          </div>
+        )}
+      </div>
     </div>
   );
 }
