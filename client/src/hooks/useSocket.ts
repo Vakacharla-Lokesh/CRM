@@ -60,7 +60,12 @@ export function useSocket() {
       socketRef.current.on(
         "notification:received",
         (notification: NotificationPayload) => {
-          if (notification.metadata?.action === "lead:assigned") {
+          // Invalidate leads query when a lead is assigned
+          if (
+            notification.metadata?.action === "lead:assigned" ||
+            notification.type === "lead_assigned"
+          ) {
+            console.log("[Socket] Invalidating leads - lead assigned notification");
             queryClient.invalidateQueries({ queryKey: ["leads"] });
           }
 
@@ -99,15 +104,6 @@ export function useSocket() {
           });
         }
       });
-
-      socketRef.current.on(
-        "notification:received",
-        (notification: NotificationPayload) => {
-          if (notification.metadata?.action === "lead:assigned") {
-            queryClient.invalidateQueries({ queryKey: ["leads"] });
-          }
-        },
-      );
 
       socketRef.current.on("connect_error", (error) => {
         console.error("[Socket] Connection error:", error);

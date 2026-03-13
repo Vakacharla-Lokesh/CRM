@@ -59,9 +59,11 @@ export const updateLeadSchema = z.object({
     ])
     .optional(),
   score: z.number().min(0).max(100).optional(),
-  status: z.string().min(1).max(50),
+  status: z.string().min(1).max(50).optional(),
   assignedTo: z.string().min(1).optional(),
   createdBy: z.string().min(1).optional(),
+  organizationId: z.string().min(1).optional(),
+  lastKnownUpdatedAt: z.string().datetime().optional(),
 });
 
 export const updateLeadStatusSchema = z
@@ -82,3 +84,7 @@ export const convertLeadSchema = z
     status: z.string().min(1).max(50).optional(),
   })
   .strict();
+
+export const assignLeadSchema = z.object({
+  assignedTo: z.string().min(1),
+});

@@ -75,4 +75,8 @@ export const usersAPI = {
 
   getPermissions: (userId: string) =>
     get<{ permissions: string[] }>(`/users/${userId}/permissions`),
+
+  activateUser: (userId: string) => patch(`/users/${userId}/activate`),
+
+  deactivateUser: (userId: string) => patch(`/users/${userId}/deactivate`),
 };

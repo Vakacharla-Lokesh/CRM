@@ -16,7 +16,9 @@ interface ActionDropdownProps {
   type?: string;
   onEdit?: (id: string) => void;
   onDelete?: (id: string) => void;
+  onActivate?: (id: string) => void;
   onViewUsers?: (id: string) => void;
+  onDeactivate?: (id: string) => void;
   viewUsersLabel?: string;
 }
 
@@ -25,6 +27,8 @@ const ActionDropdown: React.FC<ActionDropdownProps> = ({
   type = "Item",
   onEdit,
   onDelete,
+  onActivate,
+  onDeactivate,
   onViewUsers,
   viewUsersLabel = "View Users",
 }) => {
@@ -87,6 +91,26 @@ ${type} ID: ${id}
           >
             <Pencil className="w-4 h-4" />
             Edit {type}
+          </DropdownMenuItem>
+        )}
+
+        {onActivate != undefined && (
+          <DropdownMenuItem
+            onClick={() => onActivate(id)}
+            className="flex items-center gap-2 text-destructive focus:text-destructive"
+          >
+            <Eye className="w-4 h-4" />
+            Activate {type}
+          </DropdownMenuItem>
+        )}
+
+        {onDeactivate != undefined && (
+          <DropdownMenuItem
+            onClick={() => onDeactivate(id)}
+            className="flex items-center gap-2 text-destructive focus:text-destructive"
+          >
+            <Eye className="w-4 h-4" />
+            Deactivate {type}
           </DropdownMenuItem>
         )}
 

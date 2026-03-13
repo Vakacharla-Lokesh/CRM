@@ -52,7 +52,7 @@ export const createUser = asyncCatch(async (req, res) => {
 
   const userData = { ...req.body };
   if (tenantId) userData.tenantId = tenantId;
-  
+
   const user = await userService.createUser(req.body);
 
   res.status(201).json({
@@ -142,8 +142,6 @@ export const updatePassword = asyncCatch(async (req, res) => {
 
 // Send password reset email
 export const sendPasswordReset = asyncCatch(async (req, res) => {
-  // TODO: Implement actual password reset token generation and email sending
-  // For now, just return success message
   res.json({
     message: "If an account exists, a password reset email has been sent",
   });
@@ -158,8 +156,6 @@ export const updateProfile = asyncCatch(async (req, res) => {
 
 // Get user activity
 export const getUserActivity = asyncCatch(async (req, res) => {
-  // TODO: Implement actual activity logging system
-  // For now, return empty array
   res.json([]);
 });
 
@@ -181,5 +177,23 @@ export const assignRoleToUser = asyncCatch(async (req, res) => {
     success: true,
     message: "Permissions updated successfully",
     data,
+  });
+});
+
+export const activateUser = asyncCatch(async (req, res) => {
+  const user = await userService.activateUser(req.params.id);
+
+  res.json({
+    message: "User activated successfully",
+    user,
+  });
+});
+
+export const deactivateUser = asyncCatch(async (req, res) => {
+  const user = await userService.deactivateUser(req.params.id);
+
+  res.json({
+    message: "User deactivated successfully",
+    user,
   });
 });

@@ -3,35 +3,43 @@ import userModel from "../models/userModel.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
-export const getAllUsers = wrapServiceFn(async (filter = {}, { limit = 20, cursor, excludeUserId } = {}) => {
-  if (!filter.role) {
-    filter.role = { $ne: "super_admin" };
-  }
+export const getAllUsers = wrapServiceFn(
+  async (filter = {}, { limit = 20, cursor, excludeUserId } = {}) => {
+    if (!filter.role) {
+      filter.role = { $ne: "super_admin" };
+    }
 
-  if (cursor) {
-    const lastId = Buffer.from(cursor, "base64").toString("utf8");
-    filter._id = { ...(filter._id && typeof filter._id === "object" ? filter._id : {}), $gt: lastId };
-  }
+    if (cursor) {
+      const lastId = Buffer.from(cursor, "base64").toString("utf8");
+      filter._id = {
+        ...(filter._id && typeof filter._id === "object" ? filter._id : {}),
+        $gt: lastId,
+      };
+    }
 
-  if (excludeUserId) {
-    filter._id = { ...(filter._id && typeof filter._id === "object" ? filter._id : {}), $ne: excludeUserId };
-  }
+    if (excludeUserId) {
+      filter._id = {
+        ...(filter._id && typeof filter._id === "object" ? filter._id : {}),
+        $ne: excludeUserId,
+      };
+    }
 
-  const users = await userModel
-    .find({ ...filter })
-    .sort({ _id: 1 })
-    .limit(limit + 1);
+    const users = await userModel
+      .find({ ...filter })
+      .sort({ _id: 1 })
+      .limit(limit + 1);
 
-  const hasNextPage = users.length > limit;
-  if (hasNextPage) users.pop();
+    const hasNextPage = users.length > limit;
+    if (hasNextPage) users.pop();
 
-  const nextCursor =
-    hasNextPage && users.length > 0
-      ? Buffer.from(users[users.length - 1]._id.toString()).toString("base64")
-      : null;
+    const nextCursor =
+      hasNextPage && users.length > 0
+        ? Buffer.from(users[users.length - 1]._id.toString()).toString("base64")
+        : null;
 
-  return { users, nextCursor, hasNextPage };
-});
+    return { users, nextCursor, hasNextPage };
+  },
+);
 
 export const getUserById = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
@@ -59,38 +67,40 @@ export const createUser = wrapServiceFn(async (userData) => {
   return userObject;
 });
 
-export const updateUser = wrapServiceFn(async (id, updateData, lastKnownUpdatedAt) => {
-  const { password, tenantId: _tenantId, ...rest } = updateData;
+export const updateUser = wrapServiceFn(
+  async (id, updateData, lastKnownUpdatedAt) => {
+    const { password, tenantId: _tenantId, ...rest } = updateData;
 
-  const user = await userModel.findById(id);
-  if (!user) throw new AppError("User not found", 404);
+    const user = await userModel.findById(id);
+    if (!user) throw new AppError("User not found", 404);
 
-  if (lastKnownUpdatedAt) {
-    const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
-    const serverTimestamp = new Date(user.updatedAt).getTime();
+    if (lastKnownUpdatedAt) {
+      const clientTimestamp = new Date(lastKnownUpdatedAt).getTime();
+      const serverTimestamp = new Date(user.updatedAt).getTime();
 
-    if (clientTimestamp !== serverTimestamp) {
-      throw new AppError(
-        "This user was modified by someone else. Please refresh and try again.",
-        409,
-      );
+      if (clientTimestamp !== serverTimestamp) {
+        throw new AppError(
+          "This user was modified by someone else. Please refresh and try again.",
+          409,
+        );
+      }
     }
-  }
 
-   if (password && password.length > 0) {
-    rest.password = await bcrypt.hash(password, 12);
-  }
+    if (password && password.length > 0) {
+      rest.password = await bcrypt.hash(password, 12);
+    }
 
-  const updatedUser = await userModel.findByIdAndUpdate(id, rest, {
-    new: true,
-    runValidators: true,
-  });
+    const updatedUser = await userModel.findByIdAndUpdate(id, rest, {
+      new: true,
+      runValidators: true,
+    });
 
-  const userObject = updatedUser.toObject();
-  delete userObject.password;
-  
-  return userObject;
-});
+    const userObject = updatedUser.toObject();
+    delete userObject.password;
+
+    return userObject;
+  },
+);
 
 export const deleteUser = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
@@ -176,20 +186,22 @@ export const getUserStats = wrapServiceFn(async (filter) => {
   };
 });
 
-export const updatePassword = wrapServiceFn(async (id, oldPassword, newPassword) => {
-  const user = await userModel.findById(id).select("+password");
-  if (!user) throw new AppError("User not found", 404);
+export const updatePassword = wrapServiceFn(
+  async (id, oldPassword, newPassword) => {
+    const user = await userModel.findById(id).select("+password");
+    if (!user) throw new AppError("User not found", 404);
 
-  if (oldPassword && user.password) {
-    const isMatch = await user.comparePassword(oldPassword);
-    if (!isMatch) {
-      throw new AppError("Invalid old password", 401);
+    if (oldPassword && user.password) {
+      const isMatch = await user.comparePassword(oldPassword);
+      if (!isMatch) {
+        throw new AppError("Invalid old password", 401);
+      }
     }
-  }
 
-  user.password = newPassword;
-  await user.save();
-});
+    user.password = newPassword;
+    await user.save();
+  },
+);
 
 export const updateProfile = wrapServiceFn(async (id, profileData) => {
   const { name, firstName, lastName, email, phone, department, position } =
@@ -270,4 +282,42 @@ export const assignRoleToUser = wrapServiceFn(async (id, permissions, role) => {
     role: user.role,
     permissions: user.getPermissionsArray(),
   };
+});
+
+export const activateUser = wrapServiceFn(async (id) => {
+  const user = await userModel.findById(id);
+  if (!user) throw new AppError("User not found", 404);
+
+  if (user.isActive) {
+    throw new AppError("User is already active", 400);
+  }
+
+  const updatedUser = await userModel.findByIdAndUpdate(
+    id,
+    { isActive: true },
+    { new: true },
+  );
+
+  const userObject = updatedUser.toObject();
+  delete userObject.password;
+  return userObject;
+});
+
+export const deactivateUser = wrapServiceFn(async (id) => {
+  const user = await userModel.findById(id);
+  if (!user) throw new AppError("User not found", 404);
+
+  if (!user.isActive) {
+    throw new AppError("User is already inactive", 400);
+  }
+
+  const updatedUser = await userModel.findByIdAndUpdate(
+    id,
+    { isActive: false },
+    { new: true },
+  );
+
+  const userObject = updatedUser.toObject();
+  delete userObject.password;
+  return userObject;
 });

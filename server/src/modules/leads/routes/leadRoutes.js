@@ -28,6 +28,7 @@ import {
   updateLeadStatusSchema,
   updateLeadScoreSchema,
   convertLeadSchema,
+  assignLeadSchema,
 } from "../validators/leadsValidator.js";
 
 const router = Router();
@@ -134,6 +135,7 @@ router.patch(
   authenticateRequest,
   requirePermission("leads:assign"),
   injectTenantContext,
+  validate(assignLeadSchema),
   assignLead,
 );
 

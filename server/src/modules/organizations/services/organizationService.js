@@ -11,7 +11,7 @@ export const getAllOrganizations = wrapServiceFn(
 
     const organizations = await organizationModel
       .find(filter)
-      .sort({ _id: 1 })
+      .sort({ updatedAt: -1 })
       .limit(limit + 1);
 
     const hasNextPage = organizations.length > limit;

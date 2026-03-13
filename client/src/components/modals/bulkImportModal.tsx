@@ -84,18 +84,26 @@ export default function BulkImportModal({
     );
   };
 
-  const handleClose = () => {
+  const resetState = () => {
     setSelectedFile(null);
     setResult(null);
     setModalState("idle");
     if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Close immediately (so parent can start dialog close animation),
+  // then reset local state after a short delay to avoid a visible flash.
+  const closeAfterDelay = (delay = 260) => {
     onClose();
+    setTimeout(resetState, delay);
   };
 
   return (
     <Dialog
       open={isOpen}
-      onOpenChange={handleClose}
+      onOpenChange={(open) => {
+        if (!open) closeAfterDelay();
+      }}
     >
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
@@ -225,7 +233,7 @@ export default function BulkImportModal({
           <div className="flex justify-end gap-2 pt-1">
             <Button
               variant="outline"
-              onClick={handleClose}
+              onClick={() => closeAfterDelay()}
               disabled={loading}
             >
               {modalState === "success" ? "Close" : "Cancel"}

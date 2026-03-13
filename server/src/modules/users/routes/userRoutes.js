@@ -15,19 +15,23 @@ import {
   getUserActivity,
   getUserPermissions,
   assignRoleToUser,
+  activateUser,
+  deactivateUser,
 } from "../controllers/userController.js";
 import { validate } from "../../../middlewares/validate.js";
 import { authenticateRequest } from "../../../middlewares/auth.js";
-import { requirePermission, injectTenantContext } from "../../../middlewares/rbac.js";
+import {
+  requirePermission,
+  injectTenantContext,
+} from "../../../middlewares/rbac.js";
 import {
   createUserSchema,
   updateUserSchema,
   updatePasswordSchema,
   passwordResetSchema,
   updateProfileSchema,
-  assignPermissionsSchema
+  assignPermissionsSchema,
 } from "../validators/userValidators.js";
-
 
 const router = Router();
 
@@ -96,6 +100,20 @@ router.delete(
   requirePermission("users:delete"),
   injectTenantContext,
   deleteUser,
+);
+router.patch(
+  "/:id/activate",
+  authenticateRequest,
+  requirePermission("users:write"),
+  injectTenantContext,
+  activateUser,
+);
+router.patch(
+  "/:id/deactivate",
+  authenticateRequest,
+  requirePermission("users:write"),
+  injectTenantContext,
+  deactivateUser,
 );
 router.patch(
   "/:id/role",

@@ -81,15 +81,8 @@ export const userService = {
     updates: Partial<User>,
     lastKnownUpdatedAt?: Date,
   ): Promise<User> => {
-    const {
-      firstName,
-      lastName,
-      email,
-      mobile,
-      role,
-      tenantId,
-      permissions,
-    } = updates;
+    const { firstName, lastName, email, mobile, role, tenantId, permissions } =
+      updates;
 
     const body: Record<string, unknown> = {};
     if (firstName !== undefined) body.firstName = firstName;
@@ -170,6 +163,14 @@ export const userService = {
 
   getUserPermissions: async (id: string): Promise<string[]> => {
     return apiClient.get<string[]>(`/users/${id}/permissions`);
+  },
+
+  activateUser: async (id: string): Promise<{ message: string }> => {
+    return apiClient.patch<{ message: string }>(`/users/${id}/activate`);
+  },
+
+  deactivateUser: async (id: string): Promise<{ message: string }> => {
+    return apiClient.patch<{ message: string }>(`/users/${id}/deactivate`);
   },
 };
 
