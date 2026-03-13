@@ -98,7 +98,6 @@ const workflowSchema = new Schema(
           default: "medium",
         },
         taskAssignedTo: String, // userId or {{variable}}
-        taskDueDate: String, // ISO string or {{variable}}
         taskRelationType: {
           type: String,
           enum: ["lead", "deal", "organization"],

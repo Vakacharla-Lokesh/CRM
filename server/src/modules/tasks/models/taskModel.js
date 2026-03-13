@@ -23,7 +23,6 @@ const taskSchema = new Schema(
       default: null,
     },
     relationId: { type: Schema.Types.ObjectId, default: null },
-    dueDate: { type: Date, default: null },
     assignedTo: { type: Schema.Types.ObjectId, ref: "Users", default: null },
     createdBy: { type: Schema.Types.ObjectId, ref: "Users", required: true },
   },

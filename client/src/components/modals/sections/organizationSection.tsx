@@ -54,6 +54,10 @@ export function OrganizationSection({
     selectedOrgId ? "select" : "select",
   );
 
+  const selectedOrganization = organizations.find(
+    (org) => org._id === selectedOrgId,
+  );
+
   const handleModeChange = (value: string) => {
     if (value === "create-new") {
       setOrganizationMode("create");
@@ -76,7 +80,7 @@ export function OrganizationSection({
   };
 
   return (
-    <div className="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
+    <div className="space-y-4 p-4 border border-border rounded-lg">
       <div className="space-y-2">
         <Label
           htmlFor="organization"
@@ -94,7 +98,7 @@ export function OrganizationSection({
           <SelectContent>
             <SelectItem value="create-new">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
                 <span className="font-semibold">+ Create New Organization</span>
               </div>
             </SelectItem>
@@ -103,17 +107,63 @@ export function OrganizationSection({
                 key={org._id}
                 value={org._id}
               >
-                <div className="flex flex-col">
-                  <span>{org.name}</span>
-                  <span className="text-xs text-gray-500">
-                    {org.industry} • {org.size}
-                  </span>
-                </div>
+                <span>{org.name}</span>
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
+
+      {organizationMode === "select" && selectedOrganization && (
+        <div className="space-y-4 p-4 bg-muted rounded-lg border border-border">
+          <div className="space-y-2">
+            <Label
+              htmlFor="selected-website"
+              className="text-sm font-semibold"
+            >
+              Website
+            </Label>
+            <Input
+              id="selected-website"
+              type="text"
+              value={selectedOrganization.website || ""}
+              disabled
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label
+                htmlFor="selected-size"
+                className="text-sm font-semibold"
+              >
+                Organization Size
+              </Label>
+              <Input
+                id="selected-size"
+                type="text"
+                value={selectedOrganization.size || ""}
+                disabled
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label
+                htmlFor="selected-industry"
+                className="text-sm font-semibold"
+              >
+                Industry
+              </Label>
+              <Input
+                id="selected-industry"
+                type="text"
+                value={selectedOrganization.industry || ""}
+                disabled
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       <div
         className={`overflow-hidden transition-all duration-500 ease-in-out ${
@@ -122,11 +172,11 @@ export function OrganizationSection({
             : "max-h-0 opacity-0"
         }`}
       >
-        <div className="space-y-4 pt-4 border-t border-gray-200 dark:border-gray-700 animate-in fade-in slide-in-from-top-2 duration-500">
-          <div className="flex items-center justify-between gap-2 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+        <div className="space-y-4 pt-4 border-t border-border animate-in fade-in slide-in-from-top-2 duration-500">
+          <div className="flex items-center justify-between gap-2 p-3 bg-muted border border-border rounded-lg">
             <div className="flex items-center gap-2">
               <svg
-                className="w-5 h-5 text-blue-500"
+                className="w-5 h-5 text-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -138,14 +188,14 @@ export function OrganizationSection({
                   d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                 />
               </svg>
-              <p className="text-sm text-blue-700 dark:text-blue-300">
+              <p className="text-sm text-muted-foreground">
                 Create a new organization to associate with this lead
               </p>
             </div>
             <button
               type="button"
               onClick={handleCancel}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200 font-medium transition-colors"
+              className="text-sm text-muted-foreground hover:text-foreground font-medium transition-colors"
             >
               Cancel
             </button>
@@ -156,7 +206,7 @@ export function OrganizationSection({
               htmlFor="name"
               className="text-sm font-semibold"
             >
-              Organization Name <span className="text-red-500">*</span>
+              Organization Name <span className="text-destructive">*</span>
             </Label>
             <Input
               id="name"
@@ -165,10 +215,10 @@ export function OrganizationSection({
                 onNewOrgChange("name", e.target.value)
               }
               placeholder="Acme Corporation"
-              className={`transition-all duration-200 ${errors.name ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+              className={`transition-all duration-200 ${errors.name ? "border-destructive" : ""}`}
             />
             {errors.name && (
-              <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+              <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
                 {errors.name}
               </p>
             )}
@@ -179,7 +229,7 @@ export function OrganizationSection({
               htmlFor="website"
               className="text-sm font-semibold"
             >
-              Website <span className="text-red-500">*</span>
+              Website <span className="text-destructive">*</span>
             </Label>
             <Input
               id="website"
@@ -189,10 +239,10 @@ export function OrganizationSection({
                 onNewOrgChange("website", e.target.value)
               }
               placeholder="https://www.acme.com"
-              className={`transition-all duration-200 ${errors.website ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+              className={`transition-all duration-200 ${errors.website ? "border-destructive" : ""}`}
             />
             {errors.website && (
-              <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+              <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
                 {errors.website}
               </p>
             )}
@@ -204,7 +254,7 @@ export function OrganizationSection({
                 htmlFor="size"
                 className="text-sm font-semibold"
               >
-                Organization Size <span className="text-red-500">*</span>
+                Organization Size <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="size"
@@ -219,10 +269,10 @@ export function OrganizationSection({
                   )
                 }
                 placeholder="50"
-                className={`transition-all duration-200 ${errors.size ? "border-red-500 shake" : "focus:ring-2 focus:ring-blue-500/20"}`}
+                className={`transition-all duration-200 ${errors.size ? "border-destructive" : ""}`}
               />
               {errors.size && (
-                <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
                   {errors.size}
                 </p>
               )}
@@ -233,7 +283,7 @@ export function OrganizationSection({
                 htmlFor="industry"
                 className="text-sm font-semibold"
               >
-                Industry <span className="text-red-500">*</span>
+                Industry <span className="text-destructive">*</span>
               </Label>
               <Select
                 value={newOrgData.industry}
@@ -245,8 +295,8 @@ export function OrganizationSection({
                   id="industry"
                   className={`transition-all duration-200 ${
                     errors.industry
-                      ? "border-red-500 shake"
-                      : "focus:ring-2 focus:ring-blue-500/20"
+                      ? "border-destructive"
+                      : ""
                   }`}
                 >
                   <SelectValue placeholder="Select industry" />
@@ -270,7 +320,7 @@ export function OrganizationSection({
                 </SelectContent>
               </Select>
               {errors.industry && (
-                <p className="text-sm text-red-500 animate-in fade-in slide-in-from-top-1 duration-200">
+                <p className="text-sm text-destructive animate-in fade-in slide-in-from-top-1 duration-200">
                   {errors.industry}
                 </p>
               )}

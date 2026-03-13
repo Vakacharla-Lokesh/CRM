@@ -1,4 +1,4 @@
-import { LayoutTemplate, Loader2 } from "lucide-react";
+import { LayoutTemplate, Loader2, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "../ui/button";
 import {
   Dialog,
@@ -6,16 +6,21 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
-import { Separator } from "../ui/separator";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { Textarea } from "../ui/textarea";
 import { CATEGORIES } from "@/types/constants/campaign";
 import { useState } from "react";
 import type { TemplateCategory } from "@/services/campaignService";
-import { useTheme } from "@/context/themeContext";
-import MDEditor from "@uiw/react-md-editor";
-import "@uiw/react-md-editor/markdown-editor.css";
-import "@uiw/react-markdown-preview/markdown.css";
+import { ThemedMDEditor } from "../ui/mdEditor";
 
 interface TemplateFormState {
   name: string;
@@ -50,13 +55,6 @@ function TemplateModal({
     ...EMPTY_FORM,
     ...initial,
   }));
-  const { mode } = useTheme();
-  const colorMode =
-    mode === "system"
-      ? window.matchMedia("(prefers-color-scheme: dark)").matches
-        ? "dark"
-        : "light"
-      : mode;
 
   const handleOpenChange = (isOpen: boolean) => {
     if (isOpen) setForm({ ...EMPTY_FORM, ...initial });
@@ -73,6 +71,7 @@ function TemplateModal({
       setForm((f) => ({ ...f, [field]: e.target.value }));
 
   const isValid = form.name.trim() && form.subject.trim() && form.body.trim();
+  const isEditing = !!initial?.name;
 
   return (
     <Dialog
@@ -82,94 +81,175 @@ function TemplateModal({
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <LayoutTemplate size={16} />
-            {initial?.name ? "Edit Template" : "Create New Template"}
+            <LayoutTemplate size={18} />
+            {isEditing ? "Edit Template" : "Create Template"}
           </DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? "Update your campaign template"
+              : "Create a new template for future campaigns"}
+          </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-1.5">
+        <div className="space-y-5 py-4">
+          {/* Name and Category Row */}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
               <label className="text-sm font-medium">
                 Template Name <span className="text-destructive">*</span>
               </label>
               <Input
-                placeholder="e.g. Pricing Announcement"
+                placeholder="e.g., Welcome Series Part 1"
                 value={form.name}
                 onChange={set("name")}
+                disabled={isSaving}
               />
+              {form.name && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <CheckCircle2 size={12} className="text-green-600" />
+                  Name entered
+                </p>
+              )}
             </div>
-            <div className="space-y-1.5">
+
+            <div className="space-y-2">
               <label className="text-sm font-medium">Category</label>
-              <select
+              <Select
                 value={form.category}
-                onChange={set("category")}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring"
+                onValueChange={(value) =>
+                  setForm((f) => ({ ...f, category: value as TemplateCategory }))
+                }
+                disabled={isSaving}
               >
-                {CATEGORIES.map((c) => (
-                  <option
-                    key={c}
-                    value={c}
-                  >
-                    {c}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem
+                      key={c}
+                      value={c}
+                    >
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="space-y-1.5">
+          {/* Description */}
+          <div className="space-y-2">
             <label className="text-sm font-medium">Description</label>
-            <Input
-              placeholder="Short description of this template's purpose"
+            <Textarea
+              placeholder="What is this template for? e.g., 'Initial contact for new leads'"
               value={form.description}
               onChange={set("description")}
+              rows={2}
+              className="resize-none"
+              disabled={isSaving}
             />
+            <p className="text-xs text-muted-foreground">
+              {form.description.length}/150 characters
+            </p>
           </div>
 
-          <Separator />
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              Subject Line <span className="text-destructive">*</span>
-            </label>
+          {/* Subject Line */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">
+                Subject Line <span className="text-destructive">*</span>
+              </label>
+              {form.subject && (
+                <span className="text-xs text-muted-foreground">
+                  {form.subject.length} characters
+                </span>
+              )}
+            </div>
             <Input
-              placeholder="e.g. Exciting update for {{firstName}} 🎉"
+              placeholder="e.g., Quick question for {{firstName}} ❓"
               value={form.subject}
               onChange={set("subject")}
+              disabled={isSaving}
             />
-            <p className="text-xs text-muted-foreground">
-              Use{" "}
-              <code className="bg-muted px-1 rounded text-xs">
-                {"{{firstName}}"}
-              </code>{" "}
-              or{" "}
-              <code className="bg-muted px-1 rounded text-xs">
-                {"{{company}}"}
-              </code>{" "}
-              for personalization
-            </p>
-          </div>
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">
-              Email Body <span className="text-destructive">*</span>
-            </label>
-            <p className="text-xs text-muted-foreground">
-              Use Markdown to format your email. Any links you insert will
-              automatically be wrapped with click tracking.
-            </p>
-            <div data-color-mode={colorMode}>
-              <MDEditor
-                value={form.body}
-                onChange={(val) =>
-                  setForm((f) => ({ ...f, body: val ?? "" }))
-                }
-                height={320}
-                preview="edit"
-              />
+            <div className="bg-muted/40 rounded-md p-3 space-y-2">
+              <p className="text-xs font-medium text-muted-foreground">
+                Personalization tags:
+              </p>
+              <div className="flex gap-2 flex-wrap">
+                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
+                  {"{"}
+                  {"{firstName}"}}
+                </code>
+                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
+                  {"{"}
+                  {"{lastName}"}}
+                </code>
+                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
+                  {"{"}
+                  {"{company}"}}
+                </code>
+                <code className="bg-background px-2 py-1 rounded text-xs border border-border">
+                  {"{"}
+                  {"{email}"}}
+                </code>
+              </div>
             </div>
           </div>
+
+          {/* Email Body */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium">
+                Email Body <span className="text-destructive">*</span>
+              </label>
+              {form.body && (
+                <span className="text-xs text-muted-foreground">
+                  {form.body.length} characters
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Write in Markdown format. Links will automatically be tracked.
+            </p>
+            <ThemedMDEditor
+              value={form.body}
+              onChange={(val) =>
+                setForm((f) => ({ ...f, body: val ?? "" }))
+              }
+              height={280}
+              preview="edit"
+              visibleDragbar={false}
+              disabled={isSaving}
+            />
+          </div>
+
+          {/* Validation Status */}
+          {form.name || form.subject || form.body ? (
+            <div className="bg-blue-50 border border-blue-200/50 rounded-lg p-3 flex gap-2">
+              {isValid ? (
+                <>
+                  <CheckCircle2 size={16} className="text-green-600 shrink-0 mt-0.5" />
+                  <div className="text-sm text-foreground">
+                    <p className="font-medium">Ready to save</p>
+                    <p className="text-xs text-muted-foreground">
+                      All required fields are filled
+                    </p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <AlertCircle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                  <div className="text-sm text-foreground">
+                    <p className="font-medium">Complete required fields</p>
+                    <p className="text-xs text-muted-foreground">
+                      Template name, subject, and body are required
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : null}
         </div>
 
         <DialogFooter>
@@ -185,17 +265,16 @@ function TemplateModal({
             disabled={!isValid || isSaving}
           >
             {isSaving ? (
-              <Loader2
-                size={14}
-                className="animate-spin mr-2"
-              />
+              <>
+                <Loader2 size={14} className="animate-spin mr-2" />
+                Saving...
+              </>
             ) : (
-              <LayoutTemplate
-                size={14}
-                className="mr-2"
-              />
+              <>
+                <LayoutTemplate size={14} className="mr-2" />
+                Save Template
+              </>
             )}
-            {isSaving ? "Saving..." : "Save Template"}
           </Button>
         </DialogFooter>
       </DialogContent>

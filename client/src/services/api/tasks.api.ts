@@ -9,7 +9,6 @@ export interface Task {
   priority: "low" | "medium" | "high" | "urgent";
   relationType?: "lead" | "deal" | "organization" | null;
   relationId?: string | null;
-  dueDate?: string | null;
   assignedTo?: {
     _id: string;
     firstName: string;
@@ -33,7 +32,6 @@ export interface CreateTaskDTO {
   priority?: Task["priority"];
   relationType?: Task["relationType"];
   relationId?: string | null;
-  dueDate?: string | null;
   assignedTo?: string | null;
 }
 

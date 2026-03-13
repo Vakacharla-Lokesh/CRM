@@ -150,7 +150,6 @@ class WorkflowExecutionEngine {
       taskDescription,
       taskPriority = "medium",
       taskAssignedTo,
-      taskDueDate,
       taskRelationType,
       taskRelationFromTrigger = true,
     } = action;
@@ -165,7 +164,6 @@ class WorkflowExecutionEngine {
     );
     const resolvedPriority = this.resolveTemplate(taskPriority, variables);
     const resolvedAssignedTo = this.resolveTemplate(taskAssignedTo, variables);
-    const resolvedDueDate = this.resolveTemplate(taskDueDate, variables);
 
     if (!resolvedTitle) {
       throw new Error("create_task action missing taskTitle");
@@ -193,7 +191,6 @@ class WorkflowExecutionEngine {
       status: "todo",
       relationType,
       relationId,
-      dueDate: resolvedDueDate ? new Date(resolvedDueDate) : null,
       assignedTo: resolvedAssignedTo || null,
       createdBy: null, // system-created via workflow
     };

@@ -28,7 +28,10 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [organizationMode, setOrganizationMode] = useState<"select" | "create">("select");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [_organizationMode, setOrganizationMode] = useState<"select" | "create">(
+    "select",
+  );
   const [newOrgData, setNewOrgData] = useState({
     name: "",
     website: "",
@@ -142,9 +145,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             value={formData.source}
             onValueChange={(value) => handleInputChange("source", value)}
           >
-            <SelectTrigger
-              id="source"
-            >
+            <SelectTrigger id="source">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -175,15 +176,14 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
             {formData.score}
           </span>
         </div>
+
         <div className="h-2 bg-secondary rounded-full overflow-hidden">
           <div
-            className="h-full transition-all duration-300"
-            style={{ 
-              width: `${formData.score}%`,
-              backgroundColor: 'hsl(var(--primary))'
-            }}
+            className="h-full transition-all duration-300 bg-primary"
+            style={{ width: `${formData.score}%` }}
           />
         </div>
+
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>0</span>
           <span>50</span>
@@ -210,9 +210,7 @@ function EditLeadTab({ lead, onUpdate }: EditLeadTabProps) {
           </p>
         </div>
         <div className="space-y-1">
-          <p className="text-xs text-muted-foreground">
-            Last Updated
-          </p>
+          <p className="text-xs text-muted-foreground">Last Updated</p>
           <p className="text-sm font-medium text-foreground">
             {new Date(lead.updatedAt).toLocaleDateString()} at{" "}
             {new Date(lead.updatedAt).toLocaleTimeString()}

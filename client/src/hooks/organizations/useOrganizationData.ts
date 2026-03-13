@@ -98,8 +98,7 @@ export const useOrganizationData = () => {
 
     allOrganizations.forEach((org) => {
       if (org.industry) {
-        byIndustry[org.industry] =
-          (byIndustry[org.industry] ?? 0) + 1;
+        byIndustry[org.industry] = (byIndustry[org.industry] ?? 0) + 1;
       }
     });
 
@@ -144,9 +143,8 @@ export const useOrganizationData = () => {
     mutationFn: (organizationData: Partial<Organization>) =>
       organizationService.createOrganization(organizationData),
     onSuccess: (newOrg) => {
-      // Write-through on create
       updateItem(newOrg._id, { ...newOrg, id: newOrg._id }).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      // invalidation is handled at the call site after modal closes
     },
   });
 
@@ -159,18 +157,21 @@ export const useOrganizationData = () => {
       id: string;
       updates: Partial<Organization>;
       lastKnownUpdatedAt?: Date;
-    }) => organizationService.updateOrganization(id, updates, lastKnownUpdatedAt),
+    }) =>
+      organizationService.updateOrganization(id, updates, lastKnownUpdatedAt),
     onSuccess: (updatedOrg) => {
       updateItem(updatedOrg._id, {
         ...updatedOrg,
         id: updatedOrg._id,
       }).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
+      // invalidation is handled at the call site after modal closes
     },
     onError: (err: unknown) => {
       const status = (err as { status?: number }).status;
       if (status === 409) {
-        toast.error("This organization was modified by someone else. Please refresh and try again.");
+        toast.error(
+          "This organization was modified by someone else. Please refresh and try again.",
+        );
         queryClient.invalidateQueries({ queryKey: ["organizations"] });
       }
     },
@@ -180,7 +181,6 @@ export const useOrganizationData = () => {
     mutationFn: (id: string) => organizationService.deleteOrganization(id),
     onSuccess: (_, id) => {
       deleteItem(id).catch(() => {});
-      queryClient.invalidateQueries({ queryKey: ["organizations"] });
     },
   });
 

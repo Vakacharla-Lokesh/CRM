@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import MDEditor from "@uiw/react-md-editor";
+import { ThemedMDEditor } from "@/components/ui/mdEditor";
 import type { WorkflowAction } from "@/types/workflows";
 
 interface EmailActionFieldsProps {
@@ -14,7 +14,7 @@ export const EmailActionFields: React.FC<EmailActionFieldsProps> = ({
   return (
     <div className="space-y-2">
       <Input
-        placeholder="Recipient email or {{lead.email}}"
+        placeholder="Recipient email address"
         value={action.recipient ?? ""}
         onChange={(e) => onUpdate({ recipient: e.target.value })}
       />
@@ -23,17 +23,13 @@ export const EmailActionFields: React.FC<EmailActionFieldsProps> = ({
         value={action.subject ?? ""}
         onChange={(e) => onUpdate({ subject: e.target.value })}
       />
-      <div data-color-mode="auto">
-        <MDEditor
-          value={action.body ?? ""}
-          onChange={(val) => onUpdate({ body: val ?? "" })}
-          preview="edit"
-          height={160}
-          textareaProps={{
-            placeholder: "Email body — use {{field}} for dynamic values",
-          }}
-        />
-      </div>
+      <ThemedMDEditor
+        value={action.body ?? ""}
+        onChange={(val) => onUpdate({ body: val ?? "" })}
+        preview="edit"
+        height={160}
+        placeholder="Email body"
+      />
     </div>
   );
 };

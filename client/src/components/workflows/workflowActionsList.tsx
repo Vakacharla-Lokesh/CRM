@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -7,11 +6,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2 } from "lucide-react";
 import {
   EmailActionFields,
-  UpdateFieldActionFields,
-  WebhookActionFields,
   CreateTaskActionFields,
 } from "./actionTypes";
 import { ACTION_TYPES } from "./workflowUtils";
@@ -20,13 +16,12 @@ import type {
   WorkflowActionType,
   WorkflowTriggerEntity,
 } from "@/types/workflows";
+import { Zap, AlertCircle } from "lucide-react";
 
 const EMPTY_ERRORS: Record<string, string> = {};
 
 interface WorkflowActionsListProps {
   actions: WorkflowAction[];
-  onAddAction: () => void;
-  onRemoveAction: (index: number) => void;
   onUpdateAction: (index: number, patch: Partial<WorkflowAction>) => void;
   triggerEntity: WorkflowTriggerEntity;
   errors?: Record<string, string>;
@@ -34,44 +29,32 @@ interface WorkflowActionsListProps {
 
 export const WorkflowActionsList: React.FC<WorkflowActionsListProps> = ({
   actions,
-  onAddAction,
-  onRemoveAction,
   onUpdateAction,
   triggerEntity,
   errors = EMPTY_ERRORS,
 }) => {
-  const renderActionFields = (action: WorkflowAction, index: number) => {
-    switch (action.type) {
+  const action = actions[0];
+
+  if (!action) {
+    return null;
+  }
+
+  const renderActionFields = (currentAction: WorkflowAction) => {
+    switch (currentAction.type) {
       case "send_email":
         return (
           <EmailActionFields
-            action={action}
-            onUpdate={(patch) => onUpdateAction(index, patch)}
-          />
-        );
-      case "update_field":
-        return (
-          <UpdateFieldActionFields
-            action={action}
-            onUpdate={(patch) => onUpdateAction(index, patch)}
-          />
-        );
-      case "webhook":
-        return (
-          <WebhookActionFields
-            action={action}
-            onUpdate={(patch) => onUpdateAction(index, patch)}
-            triggerEntity={triggerEntity}
-            actionIndex={index}
+            action={currentAction}
+            onUpdate={(patch) => onUpdateAction(0, patch)}
           />
         );
       case "create_task":
         return (
           <CreateTaskActionFields
-            action={action}
-            onUpdate={(patch) => onUpdateAction(index, patch)}
+            action={currentAction}
+            onUpdate={(patch) => onUpdateAction(0, patch)}
             triggerEntity={triggerEntity}
-            actionIndex={index}
+            actionIndex={0}
           />
         );
       default:
@@ -79,74 +62,82 @@ export const WorkflowActionsList: React.FC<WorkflowActionsListProps> = ({
     }
   };
 
+  const getActionDescription = (type: WorkflowActionType): string => {
+    switch (type) {
+      case "send_email":
+        return "Send an email notification";
+      case "webhook":
+        return "Send data to Slack or external service";
+      case "create_task":
+        return "Automatically create a task";
+      default:
+        return "Select an action type";
+    }
+  };
+
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold">Actions</h3>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onAddAction}
-        >
-          <Plus className="h-4 w-4 mr-1" />
-          Add Action
-        </Button>
-      </div>
-
-      {errors.actions && (
-        <p className="text-xs text-destructive">{errors.actions}</p>
-      )}
-
-      {actions.map((action, i) => (
-        <div
-          key={i}
-          className="border rounded-lg p-4 space-y-3"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground font-medium">
-              Action {i + 1}
-            </span>
-            {actions.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onRemoveAction(i)}
-              >
-                <Trash2 className="h-4 w-4 text-destructive" />
-              </Button>
-            )}
+    <div className="relative">
+      {/* Background accent */}
+      <div className="absolute inset-0 bg-accent/20 rounded-2xl pointer-events-none" />
+      
+      <div className="relative bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm hover:shadow-md transition-shadow">
+        {/* Header */}
+        <div className="flex items-start gap-3">
+          <div className="flex items-center justify-center w-10 h-10 bg-accent rounded-lg">
+            <Zap className="h-5 w-5 text-primary" />
           </div>
-
-          <div className="space-y-1">
-            <Label>Type</Label>
-            <Select
-              value={action.type}
-              onValueChange={(v) =>
-                onUpdateAction(i, { type: v as WorkflowActionType })
-              }
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {ACTION_TYPES.map(({ value, label }) => (
-                  <SelectItem
-                    key={value}
-                    value={value}
-                  >
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div>
+            <h3 className="font-semibold text-base text-foreground">Workflow Actions</h3>
+            <p className="text-sm text-muted-foreground mt-1">Define what should happen when the trigger activates</p>
           </div>
-
-          {/* Render dynamic fields based on action type */}
-          {renderActionFields(action, i)}
         </div>
-      ))}
+
+        {errors.actions && (
+          <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-3 flex items-start gap-2">
+            <AlertCircle className="h-4 w-4 text-destructive shrink-0 mt-0.5" />
+            <p className="text-xs text-destructive">{errors.actions}</p>
+          </div>
+        )}
+
+        {/* Action Type Selection */}
+        <div className="space-y-3">
+          <div className="flex items-baseline justify-between">
+            <Label className="text-sm font-medium text-foreground">Action Type</Label>
+            <span className="text-xs text-muted-foreground font-medium uppercase tracking-wide">Step 3</span>
+          </div>
+          <Select
+            value={action.type}
+            onValueChange={(v) =>
+              onUpdateAction(0, { type: v as WorkflowActionType })
+            }
+          >
+            <SelectTrigger className="h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ACTION_TYPES.map(({ value, label }) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className="text-sm"
+                >
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {getActionDescription(action.type)}
+          </p>
+        </div>
+
+        {/* Dynamic action fields */}
+        <div className="border-t border-border pt-6">
+          <div className="space-y-4">
+            {renderActionFields(action)}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

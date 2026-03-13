@@ -15,9 +15,16 @@ import type {
   WorkflowTriggerAction,
   CreateWorkflowDTO,
 } from "@/types/workflows";
-import { ArrowLeft, GitBranch } from "lucide-react";
+import { ArrowLeft, GitBranch, AlertCircle } from "lucide-react";
 
 const emptyAction = (): WorkflowAction => ({ type: "send_email" });
+const normalizeAction = (action: WorkflowAction): WorkflowAction => {
+  const normalized = { ...(action as WorkflowAction & {
+    taskDueDate?: string;
+  }) };
+  delete normalized.taskDueDate;
+  return normalized;
+};
 
 const WorkflowFormPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -57,7 +64,7 @@ const WorkflowFormPage = () => {
       setTriggerAction(existingWorkflow.trigger.action);
       setActions(
         existingWorkflow.actions.length > 0
-          ? existingWorkflow.actions
+          ? [normalizeAction(existingWorkflow.actions[0])]
           : [emptyAction()],
       );
     }
@@ -85,7 +92,7 @@ const WorkflowFormPage = () => {
         description: description.trim() || undefined,
         isActive,
         trigger: { entity: triggerEntity, action: triggerAction },
-        actions,
+        actions: [normalizeAction(actions[0] ?? emptyAction())],
       };
 
       if (isEdit && id) {
@@ -121,9 +128,6 @@ const WorkflowFormPage = () => {
     }
   };
 
-  const addAction = () => setActions((prev) => [...prev, emptyAction()]);
-  const removeAction = (i: number) =>
-    setActions((prev) => prev.filter((_, idx) => idx !== i));
   const updateAction = (i: number, patch: Partial<WorkflowAction>) =>
     setActions((prev) =>
       prev.map((a, idx) => (idx === i ? { ...a, ...patch } : a)),
@@ -138,74 +142,105 @@ const WorkflowFormPage = () => {
   }
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={() => navigate("/workflows")}
-          aria-label="Back to workflows"
-        >
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <GitBranch className="h-5 w-5 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight">
-          {isEdit ? "Edit Workflow" : "New Workflow"}
-        </h1>
-      </div>
-
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6"
-      >
-        <WorkflowBasicInfo
-          name={name}
-          onNameChange={setName}
-          description={description}
-          onDescriptionChange={setDescription}
-          isActive={isActive}
-          onActiveChange={setIsActive}
-          errors={errors}
-        />
-
-        <WorkflowTrigger
-          triggerEntity={triggerEntity}
-          onEntityChange={setTriggerEntity}
-          triggerAction={triggerAction}
-          onActionChange={setTriggerAction}
-        />
-
-        <WorkflowActionsList
-          actions={actions}
-          onAddAction={addAction}
-          onRemoveAction={removeAction}
-          onUpdateAction={updateAction}
-          triggerEntity={triggerEntity}
-          errors={errors}
-        />
-
-        {errors.submit && (
-          <p className="text-sm text-destructive">{errors.submit}</p>
-        )}
-
-        <div className="flex justify-end gap-2 pt-2 border-t border-border">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => navigate("/workflows")}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Saving…" : isEdit ? "Update" : "Create"}
-          </Button>
+    <div className="min-h-screen bg-background">
+      <div className="p-6 mx-auto space-y-8">
+        {/* Header Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/workflows")}
+              aria-label="Back to workflows"
+              className="hover:bg-gray-200"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <div className="flex items-center gap-2 flex-1">
+              <div className="flex items-center justify-center w-10 h-10 bg-primary/10 rounded-lg">
+                <GitBranch className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold text-foreground tracking-tight">
+                  {isEdit ? "Edit Workflow" : "Create New Workflow"}
+                </h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {isEdit 
+                    ? "Update your workflow configuration"
+                    : "Set up a new automation workflow to save time and improve consistency"
+                  }
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
-      </form>
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-8"
+        >
+          {/* Step 1: Basic Info */}
+          <WorkflowBasicInfo
+            name={name}
+            onNameChange={setName}
+            description={description}
+            onDescriptionChange={setDescription}
+            isActive={isActive}
+            onActiveChange={setIsActive}
+            errors={errors}
+          />
+
+          {/* Step 2: Trigger */}
+          <WorkflowTrigger
+            triggerEntity={triggerEntity}
+            onEntityChange={setTriggerEntity}
+            triggerAction={triggerAction}
+            onActionChange={setTriggerAction}
+          />
+
+          {/* Step 3: Actions */}
+          <WorkflowActionsList
+            actions={actions}
+            onUpdateAction={updateAction}
+            triggerEntity={triggerEntity}
+            errors={errors}
+          />
+
+          {/* Submit Error */}
+          {errors.submit && (
+            <div className="bg-destructive/5 border border-destructive/20 rounded-lg p-4 flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-destructive shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-semibold text-destructive">Failed to save workflow</h4>
+                <p className="text-sm text-destructive/80 mt-1">{errors.submit}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Footer Actions */}
+          <div className="flex items-center justify-end pt-6 border-t border-border">
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate("/workflows")}
+                disabled={isSubmitting}
+                className="min-w-24"
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="min-w-24"
+              >
+                {isSubmitting ? "Saving…" : isEdit ? "Update Workflow" : "Create Workflow"}
+              </Button>
+            </div>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

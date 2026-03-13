@@ -1,4 +1,5 @@
-import { useState, useEffect, type FormEvent } from "react";
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useState, useEffect } from "react";
 import type {
   CreateOrganizationDTO,
   UpdateOrganizationDTO,
@@ -129,9 +130,7 @@ export function useOrganizationModalState({
     setErrors({});
   };
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     // Guard: if not on the final step, advance instead of submitting
     if (currentStep < totalSteps - 1) {
       handleNext();
@@ -223,9 +222,10 @@ export function useOrganizationModalState({
         };
         await onSave(createData);
       }
+      setIsSubmitting(false);
+      onClose();
     } catch (error) {
       console.error("Failed to save organization:", error);
-    } finally {
       setIsSubmitting(false);
     }
   };

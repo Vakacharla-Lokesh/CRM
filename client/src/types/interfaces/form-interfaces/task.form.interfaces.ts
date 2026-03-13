@@ -7,6 +7,5 @@ export const EMPTY_FORM: CreateTaskDTO = {
   priority: "medium",
   relationType: null,
   relationId: null,
-  dueDate: null,
   assignedTo: null,
 };

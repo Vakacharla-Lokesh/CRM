@@ -151,10 +151,7 @@ function OrganizationModal({
           totalSteps={totalSteps}
         />
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 py-4"
-        >
+        <div className="space-y-6 py-4">
           {renderStep()}
 
           <div className="flex items-center justify-between gap-4 pt-4">
@@ -190,7 +187,8 @@ function OrganizationModal({
               </Button>
             ) : (
               <Button
-                type="submit"
+                type="button"
+                onClick={handleSubmit}
                 disabled={isSubmitting}
               >
                 {isSubmitting
@@ -201,7 +199,7 @@ function OrganizationModal({
               </Button>
             )}
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );

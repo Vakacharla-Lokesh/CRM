@@ -1,187 +1,151 @@
 import { useCreateCampaign } from "@/hooks/useCampaigns";
-import {
-  ChevronRight,
-  LayoutTemplate,
-  Loader2,
-  Mail,
-  Send,
-  Users,
-  X,
-} from "lucide-react";
-import { useState } from "react";
-import TemplateGallery from "./templateGallery";
-import { Badge } from "../ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import LeadMultiSelect from "./leadMultiSelect";
-import { Separator } from "../ui/separator";
+import { Loader2, Send, X } from "lucide-react";
+import RecipientsPicker from "./recipientsPicker";
 import { Input } from "../ui/input";
-import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { ThemedMDEditor } from "../ui/mdEditor";
 
-function ComposeForm() {
-  const [subject, setSubject] = useState("");
-  const [body, setBody] = useState("");
-  const [leadIds, setLeadIds] = useState<string[]>([]);
-  const [formKey, setFormKey] = useState(0);
-  const [showTemplates, setShowTemplates] = useState(false);
+interface ComposeFormProps {
+  subject: string;
+  setSubject: (value: string) => void;
+  body: string;
+  setBody: (value: string) => void;
+  leadIds: string[];
+  setLeadIds: (ids: string[]) => void;
+  onSuccess?: () => void;
+}
 
+function ComposeForm({
+  subject,
+  setSubject,
+  body,
+  setBody,
+  leadIds,
+  setLeadIds,
+  onSuccess,
+}: ComposeFormProps) {
   const { mutate: createCampaign, isPending } = useCreateCampaign();
-
-  const resetForm = () => {
-    setSubject("");
-    setBody("");
-    setLeadIds([]);
-    setFormKey((k) => k + 1);
-  };
 
   const handleSubmit = () => {
     if (!subject.trim() || !body.trim() || leadIds.length === 0) return;
-    createCampaign({ subject, body, leadIds }, { onSuccess: resetForm });
+    createCampaign(
+      { subject, body, leadIds },
+      {
+        onSuccess: () => {
+          onSuccess?.();
+        },
+      },
+    );
   };
 
-  const applyTemplate = (tSubject: string, tBody: string) => {
-    setSubject(tSubject);
-    setBody(tBody);
-    setShowTemplates(false);
-  };
+  const isFormValid = subject.trim() && body.trim() && leadIds.length > 0;
 
   return (
-    <div className="space-y-4">
-      {/* Template gallery collapsible */}
-      <div className="border rounded-xl overflow-hidden">
-        <button
-          type="button"
-          onClick={() => setShowTemplates((v) => !v)}
-          className="w-full flex items-center justify-between px-4 py-3 hover:bg-muted/40 transition-colors"
-        >
-          <span className="flex items-center gap-2 text-sm font-medium">
-            <LayoutTemplate
-              size={15}
-              className="text-muted-foreground"
-            />
-            Start from a template
-            <Badge
-              variant="secondary"
-              className="text-[10px] px-1.5 py-0"
-            >
-              Optional
-            </Badge>
-          </span>
-          <ChevronRight
-            size={14}
-            className={`text-muted-foreground transition-transform ${
-              showTemplates ? "rotate-90" : ""
-            }`}
-          />
-        </button>
-
-        {showTemplates && (
-          <div className="border-t p-4 bg-muted/20">
-            <TemplateGallery onSelect={applyTemplate} />
-          </div>
+    <div className="space-y-8 max-w-3xl">
+      {/* Recipients Field */}
+      <div className="space-y-3">
+        <label className="block text-sm font-semibold text-foreground">
+          Recipients
+        </label>
+        <RecipientsPicker
+          selectedIds={leadIds}
+          onChange={setLeadIds}
+        />
+        {leadIds.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {leadIds.length} recipient{leadIds.length !== 1 ? "s" : ""} selected
+          </p>
         )}
       </div>
 
-      {/* Compose card */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base flex items-center gap-2">
-            <Mail size={16} />
-            Compose Campaign
-          </CardTitle>
-          <CardDescription>
-            Fill in the details below and choose your recipients
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium flex items-center gap-1.5">
-              <Users size={13} />
-              To (Recipients)
-            </label>
-            <LeadMultiSelect
-              key={formKey}
-              selectedIds={leadIds}
-              onChange={setLeadIds}
-            />
-          </div>
+      {/* Subject Field */}
+      <div className="space-y-3">
+        <label
+          htmlFor="subject"
+          className="block text-sm font-semibold text-foreground"
+        >
+          Subject Line
+        </label>
+        <div className="relative">
+          <Input
+            id="subject"
+            placeholder="Enter email subject..."
+            value={subject}
+            onChange={(e) => setSubject(e.target.value)}
+            className="pr-10 h-10"
+          />
+          {subject && (
+            <button
+              type="button"
+              onClick={() => setSubject("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              aria-label="Clear subject"
+            >
+              <X size={16} />
+            </button>
+          )}
+        </div>
+        {subject && (
+          <p className="text-xs text-muted-foreground">
+            {subject.length} characters
+          </p>
+        )}
+      </div>
 
-          <Separator />
-
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium">Subject</label>
-            <div className="relative">
-              <Input
-                placeholder="Email subject..."
-                value={subject}
-                onChange={(e) => setSubject(e.target.value)}
-                className="pr-8"
-              />
-              {subject && (
-                <button
-                  type="button"
-                  onClick={() => setSubject("")}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                >
-                  <X size={12} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium">Body</label>
-              {body && (
-                <button
-                  type="button"
-                  onClick={() => setBody("")}
-                  className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1"
-                >
-                  <X size={10} /> Clear
-                </button>
-              )}
-            </div>
-            <Textarea
-              placeholder="Write your email body here... (HTML supported)"
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              rows={8}
-              className="font-mono text-sm resize-none"
-            />
-          </div>
-
-          <Button
-            onClick={handleSubmit}
-            disabled={isPending || !subject || !body || leadIds.length === 0}
-            className="w-full"
-            size="lg"
+      {/* Body Field */}
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <label
+            htmlFor="body"
+            className="block text-sm font-semibold text-foreground"
           >
-            {isPending ? (
+            Email Body
+          </label>
+        </div>
+        <ThemedMDEditor
+          value={body}
+          onChange={(val) => setBody(val ?? "")}
+          height={280}
+          preview="edit"
+          visibleDragbar={false}
+          disabled={isPending}
+        />
+        {body && (
+          <p className="text-xs text-muted-foreground">
+            {body.length} characters
+          </p>
+        )}
+      </div>
+
+      {/* Send Button */}
+      <div className="pt-4 w-full justify-end items-center">
+        <Button
+          onClick={handleSubmit}
+          disabled={isPending || !isFormValid}
+          size="lg"
+          className="w-full sm:w-auto"
+        >
+          {isPending ? (
+            <>
               <Loader2
                 size={16}
                 className="animate-spin mr-2"
               />
-            ) : (
+              Sending...
+            </>
+          ) : (
+            <>
               <Send
                 size={16}
                 className="mr-2"
               />
-            )}
-            {isPending
-              ? "Queueing..."
-              : leadIds.length > 0
+              {isFormValid
                 ? `Send to ${leadIds.length} Lead${leadIds.length !== 1 ? "s" : ""}`
-                : "Send Campaign"}
-          </Button>
-        </CardContent>
-      </Card>
+                : "Complete the email to send"}
+            </>
+          )}
+        </Button>
+      </div>
     </div>
   );
 }

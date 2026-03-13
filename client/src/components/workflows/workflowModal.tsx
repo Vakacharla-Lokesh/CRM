@@ -26,6 +26,13 @@ interface WorkflowModalProps {
 }
 
 const emptyAction = (): WorkflowAction => ({ type: "send_email" });
+const normalizeAction = (action: WorkflowAction): WorkflowAction => {
+  const normalized = { ...(action as WorkflowAction & {
+    taskDueDate?: string;
+  }) };
+  delete normalized.taskDueDate;
+  return normalized;
+};
 
 const WorkflowModal = ({
   isOpen,
@@ -53,7 +60,9 @@ const WorkflowModal = ({
       setTriggerEntity(workflow.trigger.entity);
       setTriggerAction(workflow.trigger.action);
       setActions(
-        workflow.actions.length > 0 ? workflow.actions : [emptyAction()],
+        workflow.actions.length > 0
+          ? [normalizeAction(workflow.actions[0])]
+          : [emptyAction()],
       );
     } else {
       setName("");
@@ -91,7 +100,7 @@ const WorkflowModal = ({
           entity: triggerEntity,
           action: triggerAction,
         },
-        actions,
+        actions: [normalizeAction(actions[0] ?? emptyAction())],
       };
       await onSave(data);
       onClose();
@@ -106,11 +115,6 @@ const WorkflowModal = ({
       setIsSubmitting(false);
     }
   };
-
-  const addAction = () => setActions((prev) => [...prev, emptyAction()]);
-
-  const removeAction = (i: number) =>
-    setActions((prev) => prev.filter((_, idx) => idx !== i));
 
   const updateAction = (i: number, patch: Partial<WorkflowAction>) =>
     setActions((prev) =>
@@ -128,7 +132,7 @@ const WorkflowModal = ({
             {workflow ? "Edit Workflow" : "Create Workflow"}
           </DialogTitle>
           <DialogDescription>
-            Define a trigger and one or more actions to automate your CRM.
+            Define one trigger and one action to automate your CRM.
           </DialogDescription>
         </DialogHeader>
 
@@ -158,8 +162,6 @@ const WorkflowModal = ({
           {/* Actions */}
           <WorkflowActionsList
             actions={actions}
-            onAddAction={addAction}
-            onRemoveAction={removeAction}
             onUpdateAction={updateAction}
             triggerEntity={triggerEntity}
             errors={errors}
