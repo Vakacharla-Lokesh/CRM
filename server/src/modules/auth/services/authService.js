@@ -38,13 +38,11 @@ export const generateAccessToken = (user) => {
     }
   }
 
-  const tenant = tenantModel.findById(user.tenantId);
-
   return jwt.sign(
     {
       userId: user._id ?? user.userId,
       tenantId: user.tenantId,
-      tenantName: tenant.name,
+      tenantName: user.tenantName || user.tenantId?.name,
       role: user.role,
       permissions,
     },
@@ -100,7 +98,7 @@ export const formatUser = (user) => {
     role: user.role,
     permissions,
     tenantId: user.tenantId?._id?.toString() ?? user.tenantId?.toString(),
-    tenantName: user.tenantId?.name ?? undefined,
+    tenantName: user.tenantName || user.tenantId?.name,
   };
 };
 
@@ -134,7 +132,12 @@ export const registerUser = wrapServiceFn(
       console.error("Failed to seed default pipeline for user:", err);
     });
 
-    return user;
+    // Fetch tenant name and add to user object
+    const tenant = await tenantModel.findById(tenantId).select("name");
+    const userObj = user.toObject();
+    userObj.tenantName = tenant?.name;
+
+    return userObj;
   },
 );
 

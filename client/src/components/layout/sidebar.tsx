@@ -113,9 +113,9 @@ function Sidebar({ isOpen }: SidebarProps) {
             {isOpen && (
               <span
                 className="truncate font-medium"
-                title={user.tenantName ?? user.tenantId}
+                title={user.tenantName}
               >
-                {user.tenantName ?? user.tenantId}
+                {user.tenantName}
               </span>
             )}
           </div>

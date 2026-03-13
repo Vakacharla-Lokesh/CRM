@@ -48,6 +48,11 @@ const emailController = {
     return await getTransport().sendMail(mailOptions);
   },
 
+  sendUserEmail: async(user, password) => {
+    const mailOptions = emailTemplates.userEmail(user, password);
+    return await getTransport().sendMail(mailOptions);
+  },
+
   sendTestEmail: async (email) => {
     return await getTransport().sendMail({
       from: `"${FROM_NAME()}" <${FROM_EMAIL()}>`,

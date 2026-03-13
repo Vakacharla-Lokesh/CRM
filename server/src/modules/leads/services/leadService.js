@@ -102,6 +102,10 @@ export const deleteLead = wrapServiceFn(async (id, tenantId) => {
     throw new AppError("Forbidden: You cannot delete this lead", 403);
   }
 
+  if(lead.status == "Converted"){
+    throw new AppError("Forbidden: You cannot delete a converted lead", 403);
+  }
+
   await leadModel.findByIdAndDelete(id);
   return lead;
 });

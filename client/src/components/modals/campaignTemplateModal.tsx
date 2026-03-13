@@ -1,8 +1,7 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import {
   LayoutTemplate,
   Loader2,
-  AlertCircle,
-  CheckCircle2,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import {
@@ -23,7 +22,7 @@ import {
 } from "../ui/select";
 import { Textarea } from "../ui/textarea";
 import { CATEGORIES } from "@/types/constants/campaign";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { TemplateCategory } from "@/services/campaignService";
 import { ThemedMDEditor } from "../ui/mdEditor";
 
@@ -61,9 +60,16 @@ function TemplateModal({
     ...initial,
   }));
 
+  useEffect(() => {
+    if (open) {
+      setForm({ ...EMPTY_FORM, ...initial });
+    } else {
+      setForm(EMPTY_FORM);
+    }
+  }, [open, initial]);
+
   const handleOpenChange = (isOpen: boolean) => {
-    if (isOpen) setForm({ ...EMPTY_FORM, ...initial });
-    else onClose();
+    if (!isOpen) onClose();
   };
 
   const set =
@@ -109,15 +115,6 @@ function TemplateModal({
                 onChange={set("name")}
                 disabled={isSaving}
               />
-              {form.name && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <CheckCircle2
-                    size={12}
-                    className="text-green-600"
-                  />
-                  Name entered
-                </p>
-              )}
             </div>
 
             <div className="space-y-2">
@@ -209,39 +206,6 @@ function TemplateModal({
               disabled={isSaving}
             />
           </div>
-
-          {/* Validation Status */}
-          {form.name || form.subject || form.body ? (
-            <div className="bg-blue-50 border border-blue-200/50 rounded-lg p-3 flex gap-2">
-              {isValid ? (
-                <>
-                  <CheckCircle2
-                    size={16}
-                    className="text-green-600 shrink-0 mt-0.5"
-                  />
-                  <div className="text-sm text-foreground">
-                    <p className="font-medium">Ready to save</p>
-                    <p className="text-xs text-muted-foreground">
-                      All required fields are filled
-                    </p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <AlertCircle
-                    size={16}
-                    className="text-amber-600 shrink-0 mt-0.5"
-                  />
-                  <div className="text-sm text-foreground">
-                    <p className="font-medium">Complete required fields</p>
-                    <p className="text-xs text-muted-foreground">
-                      Template name, subject, and body are required
-                    </p>
-                  </div>
-                </>
-              )}
-            </div>
-          ) : null}
         </div>
 
         <DialogFooter>

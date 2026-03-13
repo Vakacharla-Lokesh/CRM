@@ -15,9 +15,33 @@ interface NotificationPayload {
   metadata?: Record<string, unknown>;
 }
 
+// Exponential backoff with jitter configuration
+const RETRY_CONFIG = {
+  initialDelay: 1000, // 1 second
+  maxDelay: 30000, // 30 seconds
+  maxAttempts: 10,
+  backoffMultiplier: 2,
+  jitterFactor: 0.1, // 10% jitter
+};
+
+// Calculate retry delay with exponential backoff and jitter
+function calculateRetryDelay(attemptNumber: number): number {
+  const exponentialDelay = Math.min(
+    RETRY_CONFIG.initialDelay * Math.pow(RETRY_CONFIG.backoffMultiplier, attemptNumber),
+    RETRY_CONFIG.maxDelay,
+  );
+
+  // Add jitter (random variance) to prevent thundering herd
+  const jitterRange = exponentialDelay * RETRY_CONFIG.jitterFactor;
+  const jitter = Math.random() * jitterRange - jitterRange / 2;
+
+  return Math.max(exponentialDelay + jitter, RETRY_CONFIG.initialDelay);
+}
+
 export function useSocket() {
   const socketRef = useRef<Socket | null>(null);
   const reconnectTimeoutRef = useRef<number | null>(null);
+  const retryCountRef = useRef<number>(0);
   const { user } = useAppContext();
   const { notifyEvent } = useNotifications();
 
@@ -40,16 +64,15 @@ export function useSocket() {
     try {
       socketRef.current = io(SOCKET_SERVER_URL, {
         withCredentials: true,
-        reconnection: true,
-        reconnectionDelay: 1000,
-        reconnectionDelayMax: 5000,
-        reconnectionAttempts: 5,
+        // Use manual reconnection strategy with exponential backoff + jitter
+        reconnection: false, // Disable automatic reconnection
         transports: ["websocket", "polling"],
       });
 
       // Events
       socketRef.current.on("socket:connected", (data) => {
         console.log("[Socket] Connected:", data);
+        retryCountRef.current = 0; // Reset retry count on successful connection
         notifyEvent({
           type: "sync_completed",
           title: "Connected",
@@ -79,11 +102,14 @@ export function useSocket() {
       );
 
       socketRef.current.on("reconnect_attempt", () => {
-        console.log("[Socket] Attempting to reconnect...");
+        console.log(
+          `[Socket] Attempting to reconnect... (Attempt ${retryCountRef.current + 1}/${RETRY_CONFIG.maxAttempts})`,
+        );
       });
 
       socketRef.current.on("reconnect", () => {
         console.log("[Socket] Reconnected");
+        retryCountRef.current = 0; // Reset retry count on successful reconnection
         notifyEvent({
           type: "sync_completed",
           title: "Reconnected",
@@ -102,6 +128,33 @@ export function useSocket() {
             title: "Offline",
             message: "Unable to reach notification server",
           });
+
+          // Implement custom retry with exponential backoff + jitter
+          if (retryCountRef.current < RETRY_CONFIG.maxAttempts && user) {
+            const delay = calculateRetryDelay(retryCountRef.current);
+            console.log(
+              `[Socket] Scheduling reconnect in ${Math.round(delay)}ms (Attempt ${retryCountRef.current + 1})`,
+            );
+
+            reconnectTimeoutRef.current = window.setTimeout(() => {
+              retryCountRef.current++;
+              console.log(
+                `[Socket] Retrying connection (Attempt ${retryCountRef.current}/${RETRY_CONFIG.maxAttempts})`,
+              );
+              if (socketRef.current) {
+                socketRef.current.connect();
+              }
+            }, delay);
+          } else if (retryCountRef.current >= RETRY_CONFIG.maxAttempts) {
+            console.error(
+              `[Socket] Max reconnection attempts (${RETRY_CONFIG.maxAttempts}) reached. Giving up.`,
+            );
+            notifyEvent({
+              type: "error",
+              title: "Connection Failed",
+              message: "Unable to establish connection after multiple attempts",
+            });
+          }
         }
       });
 

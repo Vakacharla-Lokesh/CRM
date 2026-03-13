@@ -1,7 +1,18 @@
 import bcrypt from "bcryptjs";
 import userModel from "../models/userModel.js";
+import tenantModel from "../../tenants/models/tenantModel.js";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
+
+// Helper function to add tenantName to user object
+const addTenantNameToUser = async (userObj) => {
+  if (!userObj.tenantId) return userObj;
+  const tenant = await tenantModel.findById(userObj.tenantId).select("name");
+  return {
+    ...userObj,
+    tenantName: tenant?.name || null,
+  };
+};
 
 export const getAllUsers = wrapServiceFn(
   async (filter = {}, { limit = 20, cursor, excludeUserId } = {}) => {
@@ -45,7 +56,9 @@ export const getUserById = wrapServiceFn(async (id) => {
   const user = await userModel.findById(id);
   if (!user || user.role === "super_admin")
     throw new AppError("User not found", 404);
-  return user;
+  const userObject = user.toObject();
+  delete userObject.password;
+  return await addTenantNameToUser(userObject);
 });
 
 export const createUser = wrapServiceFn(async (userData) => {
@@ -64,7 +77,7 @@ export const createUser = wrapServiceFn(async (userData) => {
 
   const userObject = user.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });
 
 export const updateUser = wrapServiceFn(
@@ -98,7 +111,7 @@ export const updateUser = wrapServiceFn(
     const userObject = updatedUser.toObject();
     delete userObject.password;
 
-    return userObject;
+    return await addTenantNameToUser(userObject);
   },
 );
 
@@ -131,7 +144,7 @@ export const updateUserRole = wrapServiceFn(async (id, role) => {
 
   const userObject = user.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });
 
 export const getCurrentUser = wrapServiceFn(async (userId) => {
@@ -140,7 +153,7 @@ export const getCurrentUser = wrapServiceFn(async (userId) => {
 
   const userObject = user.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });
 
 export const searchUsers = wrapServiceFn(async (filter, q) => {
@@ -237,7 +250,7 @@ export const updateProfile = wrapServiceFn(async (id, profileData) => {
 
   const userObject = user.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });
 
 export const getUserPermissions = wrapServiceFn(async (id) => {
@@ -300,7 +313,7 @@ export const activateUser = wrapServiceFn(async (id) => {
 
   const userObject = updatedUser.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });
 
 export const deactivateUser = wrapServiceFn(async (id) => {
@@ -319,5 +332,5 @@ export const deactivateUser = wrapServiceFn(async (id) => {
 
   const userObject = updatedUser.toObject();
   delete userObject.password;
-  return userObject;
+  return await addTenantNameToUser(userObject);
 });

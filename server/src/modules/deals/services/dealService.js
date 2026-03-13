@@ -1,4 +1,6 @@
 import dealModel from "../models/dealModel.js";
+import leadModel from "../../leads/models/leadModel.js";
+import mongoose from "mongoose";
 import AppError from "../../../utils/appError.js";
 import { wrapServiceFn } from "../../../utils/serviceWrapper.js";
 
@@ -81,19 +83,41 @@ export const updateDeal = wrapServiceFn(
 
 export const deleteDeal = wrapServiceFn(
   async (id, tenantId, userId, canViewAll) => {
-    const deal = await dealModel.findById(id);
-    if (!deal) throw new AppError("Deal not found", 404);
+    const session = await mongoose.startSession();
+    let deal;
+    try {
+      session.startTransaction();
 
-    if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
-      throw new AppError("Forbidden: You cannot delete this deal", 403);
+      deal = await dealModel.findById(id).session(session);
+      if (!deal) throw new AppError("Deal not found", 404);
+
+      if (tenantId && deal.tenantId.toString() !== tenantId.toString()) {
+        throw new AppError("Forbidden: You cannot delete this deal", 403);
+      }
+
+      if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
+        throw new AppError("Forbidden: You cannot delete this deal", 403);
+      }
+
+      await dealModel.findByIdAndDelete(id, { session });
+
+      // Update related lead status to 'Dead'
+      if (deal.leadId) {
+        await leadModel.findByIdAndUpdate(
+          deal.leadId,
+          { status: "Dead" },
+          { session },
+        );
+      }
+
+      await session.commitTransaction();
+      return deal;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
     }
-
-    if (!canViewAll && deal.assignedTo?.toString() !== userId.toString()) {
-      throw new AppError("Forbidden: You cannot delete this deal", 403);
-    }
-
-    await dealModel.findByIdAndDelete(id);
-    return deal;
   },
 );
 
