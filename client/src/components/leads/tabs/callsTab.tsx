@@ -1,0 +1,309 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Trash2, Phone } from "lucide-react";
+import { useCallData } from "@/hooks";
+import { type CallType, type CallStatus, CALL_STATUSES } from "@/types";
+import { ConfirmDialog } from "@/components/common/confirmDialog";
+import { capitalize } from "@/utils";
+
+interface CallsTabProps {
+  leadId: string;
+}
+
+function CallsTab({ leadId }: CallsTabProps) {
+  const { calls, loading, error, createCall, deleteCall } = useCallData(leadId);
+  const [isAdding, setIsAdding] = useState(false);
+  const [formData, setFormData] = useState({
+    type: "outgoing" as CallType,
+    status: "completed" as CallStatus,
+    duration: "",
+    notes: "",
+  });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [callToDelete, setCallToDelete] = useState<string | null>(null);
+
+  const handleAddCall = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      setIsAdding(true);
+
+      if (formData.duration && isNaN(Number(formData.duration))) {
+        throw new Error("Duration must be a valid number");
+      }
+
+      await createCall({
+        type: formData.type,
+        status: formData.status,
+        duration: formData.duration ? Number(formData.duration) : undefined,
+        notes: formData.notes,
+      });
+
+      setFormData({
+        type: "outgoing",
+        status: "completed",
+        duration: "",
+        notes: "",
+      });
+      setIsAdding(false);
+    } catch (err) {
+      console.error("Error adding call:", err);
+      setIsAdding(false);
+    }
+  };
+
+  const handleDeleteCall = (callId: string) => {
+    setCallToDelete(callId);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!callToDelete) return;
+
+    try {
+      await deleteCall(callToDelete);
+      setCallToDelete(null);
+    } catch (err) {
+      console.error("Error deleting call:", err);
+      setCallToDelete(null);
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      completed: "text-xs font-semibold px-2 py-1 rounded bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400",
+      missed: "text-xs font-semibold px-2 py-1 rounded bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400",
+      "no-answer": "text-xs font-semibold px-2 py-1 rounded bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400",
+      voicemail: "text-xs font-semibold px-2 py-1 rounded bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400",
+    };
+    return colors[status] || colors.completed;
+  };
+
+  const getCallTypeColor = (type: string) => {
+    return type === "incoming"
+      ? "text-green-600 dark:text-green-400"
+      : "text-primary dark:text-primary";
+  };
+
+  return (
+    <div className="space-y-6">
+      {error && (
+        <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        </div>
+      )}
+
+      <div className="bg-secondary rounded-lg p-6 border border-border">
+        <h3 className="text-lg font-semibold text-foreground mb-4">
+          Log New Call
+        </h3>
+        <form
+          onSubmit={handleAddCall}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="type">Call Type *</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    type: value as CallType,
+                  })
+                }
+              >
+                <SelectTrigger
+                  id="type"
+                  disabled={isAdding}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="incoming">Incoming</SelectItem>
+                  <SelectItem value="outgoing">Outgoing</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status">Status *</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) =>
+                  setFormData({
+                    ...formData,
+                    status: value as CallStatus,
+                  })
+                }
+              >
+                <SelectTrigger
+                  id="status"
+                  disabled={isAdding}
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CALL_STATUSES.map((status) => (
+                    <SelectItem
+                      key={status}
+                      value={status}
+                    >
+                      {status === "no-answer"
+                        ? "No Answer"
+                        : capitalize(status)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="duration">Duration (minutes)</Label>
+              <Input
+                id="duration"
+                type="number"
+                min="1"
+                max="1000"
+                value={formData.duration}
+                onChange={(e) =>
+                  setFormData({ ...formData, duration: e.target.value })
+                }
+                placeholder="Call duration in minutes"
+                disabled={isAdding}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="notes">Call Notes</Label>
+            <Textarea
+              id="notes"
+              value={formData.notes}
+              onChange={(e) =>
+                setFormData({ ...formData, notes: e.target.value })
+              }
+              placeholder="Add any notes about the call"
+              rows={4}
+              disabled={isAdding}
+              className="resize-none"
+            />
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={isAdding}
+              className="gap-2"
+            >
+              <Phone className="w-4 h-4" />
+              {isAdding ? "Logging..." : "Log Call"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <div className="space-y-4">
+        <h3 className="text-lg font-semibold text-foreground">
+          Call History ({calls.length})
+        </h3>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+              <p className="text-muted-foreground">
+                Loading calls...
+              </p>
+            </div>
+          </div>
+        ) : calls.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">
+              No calls logged yet
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {calls.map((call) => (
+              <div
+                key={call._id}
+                className="bg-muted/40 border border-border rounded-lg p-4 hover:border-primary/50 transition-colors"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Phone
+                        className={`w-4 h-4 ${getCallTypeColor(call.type)}`}
+                      />
+                      <span className="font-semibold text-foreground capitalize">
+                        {call.type} Call
+                      </span>
+                      <span
+                        className={`text-xs font-semibold px-2 py-1 rounded ${getStatusColor(call.status)}`}
+                      >
+                        {call.status === "no-answer"
+                          ? "No Answer"
+                          : call.status}
+                      </span>
+                    </div>
+
+                    {call.duration && (
+                      <p className="text-sm text-muted-foreground mb-2">
+                        Duration:{" "}
+                        <span className="font-medium">
+                          {call.duration} minutes
+                        </span>
+                      </p>
+                    )}
+
+                    {call.notes && (
+                      <p className="text-sm text-muted-foreground mb-2 whitespace-pre-wrap wrap-break-word">
+                        {call.notes}
+                      </p>
+                    )}
+
+                    <p className="text-xs text-muted-foreground/60">
+                      {new Date(call.createdAt).toLocaleDateString()} at{" "}
+                      {new Date(call.createdAt).toLocaleTimeString()}
+                    </p>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteCall(call._id)}
+                    className="text-destructive hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <ConfirmDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+        title="Delete Call"
+        description="Are you sure you want to delete this call log? This action cannot be undone."
+        confirmText="Delete"
+        variant="destructive"
+      />
+    </div>
+  );
+}
+
+export default CallsTab;

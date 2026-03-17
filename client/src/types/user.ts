@@ -1,0 +1,70 @@
+export interface User {
+  _id: string;
+  userId?: string;
+  firstName: string;
+  lastName?: string;
+  email: string;
+  mobile?: string;
+  role: UserRole;
+  roleName?: string;
+  permissions: string[];
+  tenantId: string;
+  tenantName?: string;
+  isActive?: boolean;
+  lastLogin?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface CreateUserDTO {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  mobile?: string;
+  role?: UserRole;
+  tenantId: string;
+  permissions?: Record<string, boolean> | string[];
+}
+
+export interface UpdateUserDTO {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  mobile?: string;
+  role?: UserRole;
+  isActive?: boolean;
+  permissions?: Record<string, boolean> | string[];
+  lastKnownUpdatedAt?: Date;
+}
+
+export interface UserListResponse {
+  users: User[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface UserFilters {
+  role?: string;
+  isActive?: boolean;
+  search?: string;
+}
+
+export interface UserStatistics {
+  total: number;
+  active: number;
+  inactive: number;
+  byRole: Record<string, number>;
+}
+
+export type UserRole = "user" | "admin" | "super_admin";
+
+export function isUser(obj: any): obj is User {
+  return (
+    obj &&
+    typeof obj._id === "string" &&
+    typeof obj.email === "string" &&
+    typeof obj.role === "string"
+  );
+}
